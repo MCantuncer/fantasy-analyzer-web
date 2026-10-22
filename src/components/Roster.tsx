@@ -21,7 +21,10 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
                 {p.injury_status !== 'ACTIVE' && <span className="badge badge-lost">{p.injury_status.replace('_', ' ')}</span>}
               </span>
               <span className="muted">{p.positions.join('/')}</span>
-              <span className="muted num" title="Generic value: z-score summed over the league's categories">
+              <span className="muted num" title="What owners think he's worth (auction dollars)">
+                ${Math.round(p.perceived_value)}
+              </span>
+              <span className="muted num" title="Category value: z-score summed over the league's categories">
                 {p.value.toFixed(1)}
               </span>
             </label>

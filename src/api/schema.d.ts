@@ -215,6 +215,11 @@ export interface components {
              * @description Generic z-score value summed over the league's categories
              */
             value: number;
+            /**
+             * Perceived Value
+             * @description What owners think he's worth, in auction dollars
+             */
+            perceived_value: number;
         };
         /** SeasonRow */
         SeasonRow: {
@@ -278,6 +283,10 @@ export interface components {
             give: components["schemas"]["PlayerRef"][];
             /** Get */
             get: components["schemas"]["PlayerRef"][];
+            /** @description Who you cut to make room when you get more players */
+            my_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Who they would likely cut to make room */
+            their_drop?: components["schemas"]["PlayerRef"] | null;
             /**
              * My Cats Gain
              * @description Change in my expected categories won per week
@@ -289,16 +298,30 @@ export interface components {
              */
             their_cats_gain: number;
             /**
-             * Paper Gap
-             * @description Generic value I receive minus value I give; above 0 means I win on paper
+             * Value They Get
+             * @description Perceived value they receive, in auction dollars
              */
-            paper_gap: number;
+            value_they_get: number;
             /**
-             * Paper Verdict
-             * @description How the deal reads to an owner who judges by generic rankings
+             * Value They Give
+             * @description Perceived value they send, in auction dollars
+             */
+            value_they_give: number;
+            /**
+             * Acceptance
+             * @description Rough chance the other owner accepts (heuristic)
+             */
+            acceptance: number;
+            /**
+             * Acceptance Label
              * @enum {string}
              */
-            paper_verdict: "win_for_them" | "even" | "stretch";
+            acceptance_label: "likely" | "possible" | "long_shot";
+            /**
+             * Pitch
+             * @description Why the deal helps them, to use when you propose it
+             */
+            pitch: string;
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */

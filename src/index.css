@@ -223,19 +223,19 @@ details summary {
 }
 
 .badge-locked,
-.paper-win_for_them {
+.accept-likely {
   background: var(--good-soft);
   color: var(--good);
 }
 
 .badge-swing,
-.paper-even {
+.accept-possible {
   background: var(--warn-soft);
   color: var(--warn);
 }
 
 .badge-lost,
-.paper-stretch {
+.accept-long_shot {
   background: var(--bad-soft);
   color: var(--bad);
 }
@@ -463,4 +463,9 @@ tr.cutline th {
   .hero .stats {
     gap: 20px;
   }
+}
+
+.pitch {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
 }
