@@ -3,17 +3,22 @@ import { useEffect, useState } from 'react'
 import { ApiError, fetchAnalysis, fetchLeague } from './api/client'
 import type { AnalysisReport } from './api/client'
 import { CookieForm } from './components/CookieForm'
-import { Report } from './components/Report'
+import { Landing } from './components/Landing'
+import { Report, TABS } from './components/Report'
+import type { Tab } from './components/Report'
+import { Status } from './components/Status'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
 import { parseLeagueInput } from './lib/espnUrl'
+import { applyTheme, loadTheme } from './lib/theme'
+import type { Theme } from './lib/theme'
 
 interface Selection {
   leagueId: number
   season: number | null
 }
 
-function readUrl(): { selection: Selection | null; teamId: number | null } {
+function readUrl(): { selection: Selection | null; teamId: number | null; tab: Tab } {
   const q = new URLSearchParams(window.location.search)
   const league = Number(q.get('league'))
   const team = Number(q.get('team'))
@@ -21,15 +26,17 @@ function readUrl(): { selection: Selection | null; teamId: number | null } {
   return {
     selection: league > 0 ? { leagueId: league, season: season > 0 ? season : null } : null,
     teamId: team > 0 ? team : null,
+    tab: TABS.find((t) => t.id === q.get('tab'))?.id ?? 'moves',
   }
 }
 
 // Only IDs go in the URL, never cookies.
-function writeUrl(selection: Selection | null, teamId: number | null) {
+function writeUrl(selection: Selection | null, teamId: number | null, tab: Tab) {
   const q = new URLSearchParams()
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (teamId) q.set('team', String(teamId))
+  if (teamId && tab !== 'moves') q.set('tab', tab)
   const search = q.toString()
   window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname)
 }
@@ -58,15 +65,17 @@ function storeKeep(leagueId: number, teamId: number, ids: number[]) {
 
 export default function App() {
   const initial = readUrl()
-  const [input, setInput] = useState(initial.selection ? String(initial.selection.leagueId) : '')
   const [selection, setSelection] = useState<Selection | null>(initial.selection)
   const [teamId, setTeamId] = useState<number | null>(initial.teamId)
+  const [tab, setTab] = useState<Tab>(initial.tab)
+  const [theme, setTheme] = useState<Theme>(() => loadTheme())
   const [creds, setCreds] = useState<Credentials | null>(() => loadCredentials())
   const [keep, setKeep] = useState<number[]>([])
   const [appliedKeep, setAppliedKeep] = useState<number[]>([])
   const [report, setReport] = useState<AnalysisReport | null>(null)
 
-  useEffect(() => writeUrl(selection, teamId), [selection, teamId])
+  useEffect(() => writeUrl(selection, teamId, tab), [selection, teamId, tab])
+  useEffect(() => applyTheme(theme), [theme])
 
   const league = useQuery({
     queryKey: ['league', selection?.leagueId, selection?.season, creds?.swid ?? null],
@@ -98,14 +107,20 @@ export default function App() {
 
   const leagueError = league.error instanceof ApiError ? league.error : null
   const needsCookies = leagueError?.code === 'private_league'
+  const leagueData = league.data?.supported ? league.data : null
 
-  function submitLeague(e: React.FormEvent) {
-    e.preventDefault()
+  function submitLeague(input: string) {
     const parsed = parseLeagueInput(input)
     if (!parsed.leagueId) return
     setSelection({ leagueId: parsed.leagueId, season: parsed.season ?? null })
     setTeamId(parsed.teamId ?? null)
+    setTab('moves')
     setReport(null)
+  }
+
+  function chooseTeam(id: number | null) {
+    setTeamId(id)
+    setTab('moves')
   }
 
   function reset() {
@@ -125,49 +140,109 @@ export default function App() {
   const keepChanged = [...keep].sort().join(',') !== [...appliedKeep].sort().join(',')
 
   return (
-    <div className="page">
+    <>
       <header className="topbar">
-        <button className="link brand" onClick={reset}>
-          Fantasy Analyzer
-        </button>
-        {creds && (
-          <button
-            className="link small"
-            onClick={() => {
-              clearCredentials()
-              setCreds(null)
-            }}
-          >
-            Forget ESPN cookies
+        <div className="topbar-inner">
+          <button className="brand" onClick={reset} aria-label="Fantasy Analyzer, start over">
+            <svg className="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="1" y="1" width="26" height="26" rx="7" fill="var(--accent)" />
+              <path
+                d="M8 19 L12 13 L16 16 L20 9"
+                stroke="var(--on-accent)"
+                strokeWidth="2.4"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="brand-name">Fantasy Analyzer</span>
           </button>
+          {leagueData && teamId && (
+            <div className="switcher">
+              <span className="league-name">{leagueData.name}</span>
+              <label className="sr-only" htmlFor="team-switch">
+                Your team
+              </label>
+              <select id="team-switch" value={teamId} onChange={(e) => chooseTeam(Number(e.target.value) || null)}>
+                {leagueData.teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="topbar-actions">
+            {creds && (
+              <button
+                className="link small hide-sm"
+                onClick={() => {
+                  clearCredentials()
+                  setCreds(null)
+                }}
+              >
+                Forget ESPN cookies
+              </button>
+            )}
+            {report && teamId && (
+              <button
+                className="icon"
+                aria-label="Refresh analysis"
+                title="Refresh"
+                disabled={analysis.isPending}
+                onClick={() => analysis.mutate({ teamId, keep })}
+              >
+                <svg className={analysis.isPending ? 'spinner' : undefined} width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path d="M15 9a6 6 0 1 1-2-4.5M15 3v3.5h-3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                </svg>
+              </button>
+            )}
+            <button
+              className="icon"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? (
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                  <path
+                    d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M3.7 14.3l1.4-1.4M12.9 5.1l1.4-1.4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                  />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path d="M14.5 11.5A6.5 6.5 0 0 1 6.5 3.5a6.5 6.5 0 1 0 8 8z" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+        {report && (
+          <nav className="tabs" role="tablist" aria-label="Sections">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                id={`tab-${t.id}`}
+                role="tab"
+                className="tab"
+                aria-selected={tab === t.id}
+                aria-controls={`panel-${t.id}`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
         )}
       </header>
 
-      <main className="stack">
-        {!selection && (
-          <form className="card stack" onSubmit={submitLeague}>
-            <h1>Find the moves that win your league</h1>
-            <p className="muted">
-              For ESPN fantasy basketball head-to-head category leagues. Get trades the other owner should accept,
-              pickups with the right drop, and how each one changes your playoff odds.
-            </p>
-            <label>
-              League ID or your ESPN team page URL
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="744636428 or https://fantasy.espn.com/basketball/team?leagueId=…&teamId=…"
-                inputMode="url"
-                autoFocus
-              />
-            </label>
-            <button type="submit" disabled={!parseLeagueInput(input).leagueId}>
-              Load league
-            </button>
-          </form>
-        )}
+      <main className="main">
+        {!selection && <Landing initial="" onSubmit={submitLeague} />}
 
-        {selection && league.isLoading && <p className="card">Loading league…</p>}
+        {selection && league.isLoading && <Status phase="league" />}
 
         {needsCookies && (
           <CookieForm
@@ -181,53 +256,63 @@ export default function App() {
 
         {leagueError && !needsCookies && (
           <div className="card error stack">
+            <h2>Couldn't load that league</h2>
             <p>{leagueError.message}</p>
-            <button className="secondary" onClick={reset}>
-              Try another league
-            </button>
+            <div className="row">
+              <button className="secondary" onClick={reset}>
+                Try another league
+              </button>
+            </div>
           </div>
         )}
 
         {league.data && !league.data.supported && (
-          <div className="card error">
+          <div className="card error stack">
+            <h2>This league isn't supported yet</h2>
             <p>{league.data.unsupported_reason}</p>
+            <div className="row">
+              <button className="secondary" onClick={reset}>
+                Try another league
+              </button>
+            </div>
           </div>
         )}
 
-        {league.data && league.data.supported && (
-          <section className="card">
-            <label>
-              Your team in {league.data.name}
-              <select
-                value={teamId ?? ''}
-                onChange={(e) => {
-                  setTeamId(Number(e.target.value) || null)
-                }}
-              >
-                <option value="">Choose your team</option>
-                {league.data.teams.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} ({t.record})
-                  </option>
-                ))}
-              </select>
-            </label>
+        {leagueData && !teamId && (
+          <section className="card stack" aria-labelledby="pick-title">
+            <div>
+              <span className="eyebrow">{leagueData.name}</span>
+              <h2 id="pick-title">Which team is yours?</h2>
+            </div>
+            <div className="team-grid">
+              {leagueData.teams.map((t) => (
+                <button key={t.id} className="secondary team-choice" onClick={() => chooseTeam(t.id)}>
+                  <span>{t.name}</span>
+                  {t.record !== '0-0-0' && <span className="muted tnum">{t.record}</span>}
+                </button>
+              ))}
+            </div>
           </section>
         )}
 
-        {analysis.isPending && !report && (
-          <p className="card">Simulating the season and screening every trade… this takes a few seconds.</p>
-        )}
+        {analysis.isPending && !report && <Status phase="analysis" leagueName={leagueData?.name} />}
 
         {analysis.error && (
-          <div className="card error">
+          <div className="card error stack">
+            <h2>Something went wrong</h2>
             <p>{analysis.error.message}</p>
+            <div className="row">
+              <button className="secondary" onClick={() => teamId && analysis.mutate({ teamId, keep })}>
+                Try again
+              </button>
+            </div>
           </div>
         )}
 
         {report && (
           <Report
             report={report}
+            tab={tab}
             keep={keep}
             keepChanged={keepChanged}
             onToggleKeep={toggleKeep}
@@ -236,6 +321,6 @@ export default function App() {
           />
         )}
       </main>
-    </div>
+    </>
   )
 }

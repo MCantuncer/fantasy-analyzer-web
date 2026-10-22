@@ -4,22 +4,24 @@ export function Builds({ builds, categories, myTeamId }: { builds: TeamBuild[]; 
   const n = builds.length
   const sorted = [...builds].sort((a, b) => b.expected_cats_won - a.expected_cats_won)
   return (
-    <section className="card">
-      <h2>League builds</h2>
-      <p className="muted">
-        Each team's weekly rank per category (1 is best). Teams far behind in a category are likely punting it, so
-        players who help there are worth less to them and more to you in a trade.
-      </p>
+    <section className="card flush" aria-labelledby="builds-title">
+      <div className="card-head">
+        <h2 id="builds-title">League builds</h2>
+        <span className="small muted">
+          Weekly rank per category, 1 is best. Teams far behind in a category are likely punting it, so players who
+          help there are worth less to them.
+        </span>
+      </div>
       <div className="table-wrap">
-        <table className="ranks">
+        <table>
           <thead>
             <tr>
-              <th>Team</th>
+              <th className="left">Team</th>
               {categories.map((c) => (
                 <th key={c}>{c}</th>
               ))}
               <th title="Expected categories won per week against an average opponent">Cats/wk</th>
-              <th>Likely punts</th>
+              <th className="left">Likely punts</th>
             </tr>
           </thead>
           <tbody>
@@ -36,7 +38,7 @@ export function Builds({ builds, categories, myTeamId }: { builds: TeamBuild[]; 
                   )
                 })}
                 <td>{b.expected_cats_won.toFixed(2)}</td>
-                <td className="muted">{b.weak.join(', ') || '–'}</td>
+                <td className="left muted">{b.weak.join(', ') || '–'}</td>
               </tr>
             ))}
           </tbody>

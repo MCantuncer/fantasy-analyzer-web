@@ -1,18 +1,17 @@
-import { pct } from '../lib/format'
+import { pct, ptsDiff, signedInt } from '../lib/format'
 
+/** Compact "10% → 18% +8" for list rows. */
 export function OddsChange({ before, after }: { before: number; after: number }) {
-  // Difference of the rounded numbers, so the delta matches what is shown.
-  const diff = Math.round(after * 100) - Math.round(before * 100)
+  const diff = ptsDiff(before, after)
   return (
-    <div className="odds">
-      <span className="muted">Playoff odds</span>
-      <strong>
-        {pct(before)} → {pct(after)}
-      </strong>
-      <span className={diff >= 0 ? 'delta up' : 'delta down'}>
-        {diff >= 0 ? '+' : '−'}
-        {Math.abs(diff)} pts
+    <span className="odds-change num">
+      <span className="sr-only">Playoff odds from </span>
+      <span className="before">{pct(before)} → </span>
+      <span className="after">{pct(after)}</span>
+      <span className={`delta ${diff >= 0 ? 'good' : 'bad'}`}>
+        {signedInt(diff)}
+        <span className="sr-only"> points</span>
       </span>
-    </div>
+    </span>
   )
 }

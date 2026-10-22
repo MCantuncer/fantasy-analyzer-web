@@ -1,14 +1,26 @@
+import { useState } from 'react'
 import type { AnalysisReport } from '../api/client'
-import { pct } from '../lib/format'
+import { BestMove } from './BestMove'
 import { Builds } from './Builds'
 import { CategoryOutlook } from './CategoryOutlook'
+import { CategoryTiles } from './CategoryTiles'
+import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Season } from './Season'
 import { Trades } from './Trades'
 
+export const TABS = [
+  { id: 'moves', label: 'Moves' },
+  { id: 'team', label: 'My team' },
+  { id: 'league', label: 'League' },
+] as const
+
+export type Tab = (typeof TABS)[number]['id']
+
 interface Props {
   report: AnalysisReport
+  tab: Tab
   keep: number[]
   keepChanged: boolean
   onToggleKeep: (id: number) => void
@@ -16,94 +28,81 @@ interface Props {
   rerunning: boolean
 }
 
-function BestMove({ report }: { report: AnalysisReport }) {
-  const trade = report.trades[0]
-  const pickup = report.pickups[0]
-  const tradeGain = trade ? trade.playoff_pct_after - trade.playoff_pct_before : -1
-  const pickupGain = pickup ? pickup.playoff_pct_after - pickup.playoff_pct_before : -1
-  if (tradeGain <= 0 && pickupGain <= 0) return <p>No single move clearly raises your playoff odds right now.</p>
-  if (pickupGain >= tradeGain && pickup) {
-    return (
-      <p>
-        Best move: add <strong>{pickup.add.name}</strong> and drop <strong>{pickup.drop.name}</strong>. Your playoff
-        odds go from {pct(pickup.playoff_pct_before)} to {pct(pickup.playoff_pct_after)}, and no one has to agree.
-      </p>
-    )
-  }
-  return (
-    <p>
-      Best move: offer <strong>{trade.give.map((p) => p.name).join(' + ')}</strong> to {trade.partner_team_name} for{' '}
-      <strong>{trade.get.map((p) => p.name).join(' + ')}</strong>. Your playoff odds go from{' '}
-      {pct(trade.playoff_pct_before)} to {pct(trade.playoff_pct_after)}.
-    </p>
-  )
-}
-
-export function Report({ report, keep, keepChanged, onToggleKeep, onRerun, rerunning }: Props) {
-  const me = report.season.find((r) => r.team_id === report.team_id)
-  const rank = report.season.findIndex((r) => r.team_id === report.team_id) + 1
-  const locked = report.categories.filter((c) => c.tag === 'locked').map((c) => c.category)
-  const lost = report.categories.filter((c) => c.tag === 'lost').map((c) => c.category)
+export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning }: Props) {
+  const [show, setShow] = useState<'trades' | 'pickups'>('trades')
 
   return (
-    <div className="stack">
-      <section className="card hero">
-        <div className="muted">{report.league.name}</div>
-        <h1>{report.team_name}</h1>
-        {me && (
-          <div className="stats">
-            <div>
-              <span className="muted">Playoff odds</span>
-              <strong>{pct(me.playoff_pct)}</strong>
+    <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+      {tab === 'moves' && (
+        <>
+          <div className="split">
+            <div className="wide">
+              <BestMove report={report} />
             </div>
-            <div>
-              <span className="muted">Projected finish</span>
-              <strong>
-                {rank} of {report.season.length}
-              </strong>
-            </div>
-            <div>
-              <span className="muted">Projected record</span>
-              <strong>
-                {me.projected_wins.toFixed(0)}-{me.projected_losses.toFixed(0)}
-              </strong>
+            <div className="narrow">
+              <Outlook report={report} />
             </div>
           </div>
-        )}
-        <BestMove report={report} />
-        <p className="muted">
-          You win {locked.join(', ') || 'no category'} most weeks
-          {lost.length ? ` and lose ${lost.join(', ')} most weeks` : ''}. Upgrades in categories you already win are
-          wasted, so the moves below target the swing categories.
-        </p>
-      </section>
+          <CategoryTiles categories={report.categories} />
+          <div className="moves stack" data-show={show}>
+            <div className="moves-switch segmented" role="group" aria-label="Show">
+              <button type="button" aria-pressed={show === 'trades'} onClick={() => setShow('trades')}>
+                Trades · {report.trades.length}
+              </button>
+              <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
+                Pickups · {report.pickups.length}
+              </button>
+            </div>
+            <div className="split">
+              <div className="wide">
+                <Trades trades={report.trades} />
+              </div>
+              <div className="narrow">
+                <Pickups pickups={report.pickups} faab={report.faab_remaining} />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
-      <CategoryOutlook categories={report.categories} />
-      <Trades trades={report.trades} />
-      <Pickups pickups={report.pickups} faab={report.faab_remaining} />
-      <Builds builds={report.builds} categories={report.league.categories} myTeamId={report.team_id} />
-      <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
-      <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} />
+      {tab === 'team' && (
+        <div className="split">
+          <div className="narrow">
+            <CategoryOutlook categories={report.categories} />
+          </div>
+          <div className="wide">
+            <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} />
+          </div>
+        </div>
+      )}
+
+      {tab === 'league' && (
+        <>
+          <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
+          <Builds builds={report.builds} categories={report.league.categories} myTeamId={report.team_id} />
+        </>
+      )}
+
       {keepChanged && (
         <div className="sticky-action">
           <button onClick={onRerun} disabled={rerunning}>
-            {rerunning ? 'Updating…' : 'Update analysis with these keepers'}
+            {rerunning ? 'Updating…' : 'Update moves with these keepers'}
           </button>
         </div>
       )}
 
-      <section className="card muted small">
-        <h3>Assumptions</h3>
+      <details className="footnote">
+        <summary>How this works</summary>
         <ul>
           {report.assumptions.notes.map((n) => (
             <li key={n}>{n}</li>
           ))}
           <li>
-            {report.assumptions.simulations.toLocaleString()} season simulations. Generated {report.generated_at} in{' '}
+            {report.assumptions.simulations.toLocaleString()} season simulations, run in{' '}
             {(report.elapsed_ms / 1000).toFixed(1)}s.
           </li>
         </ul>
-      </section>
+      </details>
     </div>
   )
 }

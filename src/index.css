@@ -221,7 +221,7 @@ select {
 }
 
 input::placeholder {
-  color: var(--faint);
+  color: var(--muted);
 }
 
 input[type='checkbox'] {
@@ -675,7 +675,7 @@ details summary {
 
 /* ---------- Moves lists ---------- */
 
-.moves-switch {
+.moves-switch.segmented {
   display: none;
 }
 
@@ -1162,8 +1162,8 @@ tr.cutline th {
 /* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
-  .moves-switch {
-    display: block;
+  .moves-switch.segmented {
+    display: grid;
   }
 
   .moves[data-show='trades'] .pickups-panel,
@@ -1286,4 +1286,25 @@ tr.cutline th {
   .card.flush {
     padding: 0;
   }
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.team-choice {
+  justify-content: space-between;
+  font-weight: 500;
+  text-align: left;
+}
+
+h2 + p {
+  margin-top: 4px;
+}
+
+td.keep-cell {
+  padding-top: 0;
+  padding-bottom: 0;
 }
