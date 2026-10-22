@@ -43,3 +43,7 @@ When ESPN says a league is private, the app asks for the user's `espn_s2` and `S
 - They are kept in `sessionStorage` (gone when the tab closes), or in `localStorage` only if the user ticks "Remember on this device". "Forget ESPN cookies" clears both.
 - They are sent to the backend in request headers, never in the URL. Shareable links contain only the league and team IDs.
 - Production builds ship a strict Content Security Policy with no third-party scripts, to limit the risk of the cookies being read by injected code.
+
+## Deploy
+
+On [Vercel](https://vercel.com): Add New > Project, import this repo, and set the environment variable `VITE_API_URL` to the API's public URL (for example `https://fantasy-analyzer-api.onrender.com`). Vercel rebuilds on every push to `main`. `vercel.json` adds security headers; the Content Security Policy is built into the page and only allows calls to `VITE_API_URL`.
