@@ -21,3 +21,17 @@ export function ordinal(n: number): string {
   const v = n % 100
   return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
+
+/** Change in percentage points between two rounded percentages, so it matches what is shown. */
+export function ptsDiff(before: number, after: number): number {
+  return Math.round(after * 100) - Math.round(before * 100)
+}
+
+/** A signed whole number with a real minus sign, e.g. +8 or −3. */
+export function signedInt(n: number): string {
+  return `${n > 0 ? '+' : n < 0 ? '−' : '±'}${Math.abs(n)}`
+}
+
+export function names(players: { name: string }[]): string {
+  return players.map((p) => p.name).join(' + ')
+}
