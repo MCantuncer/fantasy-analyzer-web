@@ -22,9 +22,9 @@ export function Trades({ trades }: { trades: TradeIdea[] }) {
     <section className="card">
       <h2>Trades to offer</h2>
       <p className="muted">
-        1-for-1, 2-for-1 and 1-for-2 deals that help you, help the other team's categories, and give them fair value
-        as owners see it (rankings, auction values, what they paid in your draft). Ranked by your playoff gain weighted
-        by the chance they accept.
+        1-for-1, 2-for-1 and 1-for-2 deals that help you, help the other team in the categories it competes in, and
+        give them fair value as owners see it (rankings, auction values, what they paid in your draft, with a premium
+        for stars). Ranked by your playoff gain weighted by the chance they accept.
       </p>
       {trades.length === 0 ? (
         <p>No deal helps both sides at a fair price right now. Check back after a few weeks of games.</p>
@@ -50,6 +50,13 @@ export function Trades({ trades }: { trades: TradeIdea[] }) {
                 <span className="muted">Pitch: </span>
                 {t.pitch}
               </p>
+              {t.reasons.length > 0 && (
+                <ul className="reasons small">
+                  {t.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              )}
               <div className="idea-foot">
                 <span
                   className={`badge accept-${t.acceptance_label}`}
