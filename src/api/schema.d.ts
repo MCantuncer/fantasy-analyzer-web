@@ -294,7 +294,7 @@ export interface components {
             my_cats_gain: number;
             /**
              * Their Cats Gain
-             * @description Change in theirs, under their own build
+             * @description Change in theirs, ignoring the categories they punt
              */
             their_cats_gain: number;
             /**
@@ -322,6 +322,11 @@ export interface components {
              * @description Why the deal helps them, to use when you propose it
              */
             pitch: string;
+            /**
+             * Reasons
+             * @description Why it can work for both sides: sell high, buy low, their punts, timing
+             */
+            reasons: string[];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
