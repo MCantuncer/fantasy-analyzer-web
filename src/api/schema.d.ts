@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trade-of-the-day": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trade Of Day */
+        post: operations["trade_of_day_api_trade_of_the_day_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-of-the-day/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vote */
+        post: operations["vote_api_trade_of_the_day_vote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -240,6 +274,19 @@ export interface components {
              */
             tier: "core" | "tradeable" | "droppable" | "injured";
         };
+        /** PollTally */
+        PollTally: {
+            /**
+             * Yes
+             * @default 0
+             */
+            yes: number;
+            /**
+             * No
+             * @default 0
+             */
+            no: number;
+        };
         /** SeasonRow */
         SeasonRow: {
             /** Team Id */
@@ -363,6 +410,101 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** TradeOfTheDay */
+        TradeOfTheDay: {
+            /**
+             * Status
+             * @description pending: still being worked out, ask again shortly; none: no deal works for both sides today
+             * @enum {string}
+             */
+            status: "ready" | "pending" | "none";
+            /**
+             * Date
+             * @description UTC day this pick is for, YYYY-MM-DD
+             */
+            date: string;
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Headline */
+            headline?: string | null;
+            /**
+             * Sides
+             * @description The two teams; the spotlight team first
+             */
+            sides?: components["schemas"]["TradeSide"][];
+            /** Spotlight Team Id */
+            spotlight_team_id?: number | null;
+            /**
+             * Team Pairs
+             * @default 0
+             */
+            team_pairs: number;
+            /**
+             * Win Win Deals
+             * @description Deals found that work for both sides
+             * @default 0
+             */
+            win_win_deals: number;
+            /**
+             * Votes
+             * @description 'Would you take it?' votes, by team id
+             */
+            votes?: {
+                [key: string]: components["schemas"]["PollTally"];
+            };
+            /** Generated At */
+            generated_at?: string | null;
+        };
+        /** TradeSide */
+        TradeSide: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Abbrev */
+            abbrev: string;
+            /** Sends */
+            sends: components["schemas"]["PlayerRef"][];
+            /** @description Who this team cuts to make room */
+            drop?: components["schemas"]["PlayerRef"] | null;
+            /**
+             * Cats Gain
+             * @description Change in expected categories won per week, ignoring this team's punts
+             */
+            cats_gain: number;
+            /**
+             * Category Changes
+             * @description Change in weekly win % per category
+             */
+            category_changes: {
+                [key: string]: number;
+            };
+            /** Punts */
+            punts: string[];
+            /**
+             * Acceptance
+             * @description Rough chance this owner says yes (heuristic)
+             */
+            acceptance: number;
+            /**
+             * Acceptance Label
+             * @enum {string}
+             */
+            acceptance_label: "likely" | "possible" | "long_shot";
+            /**
+             * Pitch
+             * @description Why the deal helps this team
+             */
+            pitch: string;
+            /** Reasons */
+            reasons: string[];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /** Playoff Pct After */
+            playoff_pct_after: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -375,6 +517,33 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VoteRequest */
+        VoteRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Date */
+            date: string;
+            /**
+             * Team Id
+             * @description The side being voted on
+             */
+            team_id: number;
+            /**
+             * Take
+             * @description True: that team should take the deal
+             */
+            take: boolean;
+            /**
+             * Voter
+             * @description Random id kept by the browser
+             */
+            voter: string;
         };
     };
     responses: never;
@@ -479,6 +648,96 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trade_of_day_api_trade_of_the_day_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeOfTheDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vote_api_trade_of_the_day_vote_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeOfTheDay"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

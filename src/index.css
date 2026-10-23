@@ -24,6 +24,7 @@
   --bad-soft: rgb(255 138 138 / 0.14);
   --on-good: #0b0e14;
   --shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+  --accent-soft: rgb(124 140 255 / 0.12);
 
   --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-num: 'Barlow Semi Condensed', 'Inter', system-ui, sans-serif;
@@ -63,6 +64,7 @@
   --bad-soft: #fbe7e7;
   --on-good: #ffffff;
   --shadow: 0 8px 24px rgb(14 19 32 / 0.16);
+  --accent-soft: #eef0ff;
 
   color-scheme: light;
 }
@@ -490,6 +492,231 @@ details summary {
   gap: 8px 16px;
   flex-wrap: wrap;
   margin-bottom: 12px;
+}
+
+/* ---------- Trade of the day ---------- */
+
+.totd {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: linear-gradient(180deg, var(--accent-soft), transparent 160px), var(--surface);
+}
+
+.totd.involved {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.totd-loading,
+.totd-quiet {
+  gap: 8px;
+  padding: 16px 20px;
+}
+
+.totd-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+}
+
+.totd-eyebrow {
+  color: var(--accent-text);
+}
+
+.totd-headline {
+  font-family: var(--font-num);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.totd-callout {
+  margin: 0;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.totd-sides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.totd-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.totd-side.me {
+  border-color: var(--accent);
+}
+
+.totd-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.totd-team-name {
+  font-weight: 700;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.totd-you {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.totd-players {
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.totd-pos {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.totd-odds {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.totd-odds-figures {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 22px;
+}
+
+.delta-pill.sm {
+  font-size: 15px;
+}
+
+.totd-gains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.totd-gains li {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--good-soft);
+}
+
+.totd-why p {
+  margin: 4px 0 0;
+}
+
+.totd-poll {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.totd-poll-q {
+  font-weight: 600;
+}
+
+.totd-poll-buttons button {
+  flex: 1;
+}
+
+.totd-poll-buttons button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.totd-tally {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.totd-swap {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent-text);
+}
+
+.totd-note {
+  text-align: right;
+}
+
+/* Only small screens fold the story away, to keep the page's own best move in reach. */
+.totd-more {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .totd {
+    padding: 16px;
+  }
+
+  .totd-headline {
+    font-size: 24px;
+  }
+
+  .totd-sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .totd-swap {
+    transform: rotate(90deg);
+    margin: -4px 0;
+  }
+
+  .totd:not(.open) .totd-why,
+  .totd:not(.open) .totd-gains {
+    display: none;
+  }
+
+  .totd-more {
+    display: inline-flex;
+  }
+
+  .totd-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .totd-note {
+    text-align: left;
+  }
 }
 
 /* ---------- Best move ---------- */

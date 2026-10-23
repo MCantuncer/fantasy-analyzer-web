@@ -9,6 +9,8 @@ export type PlayerRef = components['schemas']['PlayerRef']
 export type CategoryOutlook = components['schemas']['CategoryOutlook']
 export type TeamBuild = components['schemas']['TeamBuild']
 export type SeasonRow = components['schemas']['SeasonRow']
+export type TradeOfTheDay = components['schemas']['TradeOfTheDay']
+export type TradeSide = components['schemas']['TradeSide']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -61,6 +63,28 @@ export function fetchAnalysis(
   return post<AnalysisReport>(
     '/api/analyze',
     { league_id: leagueId, team_id: teamId, season, keep_player_ids: keepPlayerIds },
+    creds,
+  )
+}
+
+export function fetchTradeOfTheDay(leagueId: number, season: number | null, creds: Credentials | null) {
+  return post<TradeOfTheDay>('/api/trade-of-the-day', { league_id: leagueId, season }, creds)
+}
+
+export function voteTradeOfTheDay(
+  vote: { leagueId: number; season: number; date: string; teamId: number; take: boolean; voter: string },
+  creds: Credentials | null,
+) {
+  return post<TradeOfTheDay>(
+    '/api/trade-of-the-day/vote',
+    {
+      league_id: vote.leagueId,
+      season: vote.season,
+      date: vote.date,
+      team_id: vote.teamId,
+      take: vote.take,
+      voter: vote.voter,
+    },
     creds,
   )
 }
