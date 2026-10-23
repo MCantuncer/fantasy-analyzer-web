@@ -55,6 +55,196 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trade-of-the-day": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trade Of Day */
+        post: operations["trade_of_day_api_trade_of_the_day_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-of-the-day/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vote */
+        post: operations["vote_api_trade_of_the_day_vote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team-link/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Team Link Start */
+        post: operations["team_link_start_api_team_link_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team-link/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Team Link Verify */
+        post: operations["team_link_verify_api_team_link_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team-link/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Team Link Me */
+        post: operations["team_link_me_api_team_link_me_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team-link/unlink": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Team Link Unlink */
+        post: operations["team_link_unlink_api_team_link_unlink_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Feed
+         * @description A week of moves, newest first. With a linked team: the chat, reactions and reply counts too.
+         */
+        post: operations["feed_api_feed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/feed/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replies */
+        post: operations["replies_api_feed_replies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Post */
+        post: operations["create_post_api_posts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/posts/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete Post */
+        post: operations["delete_post_api_posts_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** React */
+        post: operations["react_api_reactions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -144,12 +334,150 @@ export interface components {
              */
             tag: "locked" | "swing" | "lost";
         };
+        /** DeletePostRequest */
+        DeletePostRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Post Id */
+            post_id: number;
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Code */
             code: string;
             /** Message */
             message: string;
+        };
+        /** FeedBid */
+        FeedBid: {
+            /** Team Id */
+            team_id: number;
+            /** Bid */
+            bid: number;
+        };
+        /** FeedItem */
+        FeedItem: {
+            /**
+             * Id
+             * @description tx:<id> for an ESPN move, post:<id> for a message; also the reply/reaction target
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "waiver" | "free_agent" | "trade" | "post";
+            /**
+             * At
+             * @description ISO time
+             */
+            at: string;
+            /**
+             * Team Id
+             * @description The team that made the move or wrote the post
+             */
+            team_id: number;
+            /**
+             * Team Ids
+             * @description Every team in the move
+             */
+            team_ids?: number[];
+            /** Bid */
+            bid?: number | null;
+            /** Moves */
+            moves?: components["schemas"]["FeedMove"][];
+            /**
+             * Losing Bids
+             * @description Bids this claim beat, highest first
+             */
+            losing_bids?: components["schemas"]["FeedBid"][];
+            /** Body */
+            body?: string | null;
+            reactions?: components["schemas"]["Reactions"];
+            /**
+             * Replies
+             * @default 0
+             */
+            replies: number;
+        };
+        /** FeedMove */
+        FeedMove: {
+            player: components["schemas"]["FeedPlayer"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "add" | "drop" | "trade";
+            /**
+             * From Team Id
+             * @description 0 = free agency
+             */
+            from_team_id: number;
+            /**
+             * To Team Id
+             * @description 0 = free agency
+             */
+            to_team_id: number;
+        };
+        /** FeedPage */
+        FeedPage: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Page */
+            page: number;
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["FeedItem"][];
+            /** Teams */
+            teams: components["schemas"]["FeedTeam"][];
+            /** Faab Budget */
+            faab_budget?: number | null;
+            /** @description The linked team; chat and reactions need one */
+            me?: components["schemas"]["LinkedTeam"] | null;
+        };
+        /** FeedPlayer */
+        FeedPlayer: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Position */
+            position: string;
+        };
+        /** FeedRequest */
+        FeedRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Page
+             * @description 0 = the last 7 days, 1 = the 7 before that, ...
+             * @default 0
+             */
+            page: number;
+        };
+        /** FeedTeam */
+        FeedTeam: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Abbrev */
+            abbrev: string;
+            /** Faab Spent */
+            faab_spent?: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -188,6 +516,22 @@ export interface components {
             supported: boolean;
             /** Unsupported Reason */
             unsupported_reason?: string | null;
+        };
+        /** LinkedTeam */
+        LinkedTeam: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /**
+             * Token
+             * @description Only on a fresh link: send it as 'Authorization: Bearer <token>' from now on
+             */
+            token?: string | null;
         };
         /** PickupIdea */
         PickupIdea: {
@@ -240,6 +584,92 @@ export interface components {
              */
             tier: "core" | "tradeable" | "droppable" | "injured";
         };
+        /** PollTally */
+        PollTally: {
+            /**
+             * Yes
+             * @default 0
+             */
+            yes: number;
+            /**
+             * No
+             * @default 0
+             */
+            no: number;
+        };
+        /** PostRequest */
+        PostRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Body */
+            body: string;
+            /**
+             * Target
+             * @description None = chat
+             */
+            target?: string | null;
+        };
+        /** ReactRequest */
+        ReactRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Target */
+            target: string;
+            /** Reaction */
+            reaction: string;
+            /**
+             * On
+             * @default true
+             */
+            on: boolean;
+        };
+        /** Reactions */
+        Reactions: {
+            /** Counts */
+            counts?: {
+                [key: string]: number;
+            };
+            /**
+             * Mine
+             * @description Reactions from the linked team
+             */
+            mine?: string[];
+        };
+        /** ReactionsOut */
+        ReactionsOut: {
+            /** Target */
+            target: string;
+            reactions: components["schemas"]["Reactions"];
+        };
+        /** RepliesPage */
+        RepliesPage: {
+            /** Target */
+            target: string;
+            /** Items */
+            items: components["schemas"]["FeedItem"][];
+        };
+        /** RepliesRequest */
+        RepliesRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Target */
+            target: string;
+        };
         /** SeasonRow */
         SeasonRow: {
             /** Team Id */
@@ -280,6 +710,44 @@ export interface components {
             weak: string[];
             /** Expected Cats Won */
             expected_cats_won: number;
+        };
+        /** TeamLinkChallenge */
+        TeamLinkChallenge: {
+            /**
+             * Challenge
+             * @description Signed challenge to send back to /api/team-link/verify
+             */
+            challenge: string;
+            /**
+             * Code
+             * @description Set this as the team's abbreviation on ESPN
+             */
+            code: string;
+            /** Expires At */
+            expires_at: string;
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Current Abbrev */
+            current_abbrev: string;
+        };
+        /** TeamLinkStart */
+        TeamLinkStart: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+        };
+        /** TeamLinkVerify */
+        TeamLinkVerify: {
+            /** Challenge */
+            challenge: string;
         };
         /** TeamSummary */
         TeamSummary: {
@@ -365,6 +833,101 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** TradeOfTheDay */
+        TradeOfTheDay: {
+            /**
+             * Status
+             * @description pending: still being worked out, ask again shortly; none: no deal works for both sides today
+             * @enum {string}
+             */
+            status: "ready" | "pending" | "none";
+            /**
+             * Date
+             * @description UTC day this pick is for, YYYY-MM-DD
+             */
+            date: string;
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Headline */
+            headline?: string | null;
+            /**
+             * Sides
+             * @description The two teams; the spotlight team first
+             */
+            sides?: components["schemas"]["TradeSide"][];
+            /** Spotlight Team Id */
+            spotlight_team_id?: number | null;
+            /**
+             * Team Pairs
+             * @default 0
+             */
+            team_pairs: number;
+            /**
+             * Win Win Deals
+             * @description Deals found that work for both sides
+             * @default 0
+             */
+            win_win_deals: number;
+            /**
+             * Votes
+             * @description 'Would you take it?' votes, by team id
+             */
+            votes?: {
+                [key: string]: components["schemas"]["PollTally"];
+            };
+            /** Generated At */
+            generated_at?: string | null;
+        };
+        /** TradeSide */
+        TradeSide: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Abbrev */
+            abbrev: string;
+            /** Sends */
+            sends: components["schemas"]["PlayerRef"][];
+            /** @description Who this team cuts to make room */
+            drop?: components["schemas"]["PlayerRef"] | null;
+            /**
+             * Cats Gain
+             * @description Change in expected categories won per week, ignoring this team's punts
+             */
+            cats_gain: number;
+            /**
+             * Category Changes
+             * @description Change in weekly win % per category
+             */
+            category_changes: {
+                [key: string]: number;
+            };
+            /** Punts */
+            punts: string[];
+            /**
+             * Acceptance
+             * @description Rough chance this owner says yes (heuristic)
+             */
+            acceptance: number;
+            /**
+             * Acceptance Label
+             * @enum {string}
+             */
+            acceptance_label: "likely" | "possible" | "long_shot";
+            /**
+             * Pitch
+             * @description Why the deal helps this team
+             */
+            pitch: string;
+            /** Reasons */
+            reasons: string[];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /** Playoff Pct After */
+            playoff_pct_after: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -377,6 +940,33 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VoteRequest */
+        VoteRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Date */
+            date: string;
+            /**
+             * Team Id
+             * @description The side being voted on
+             */
+            team_id: number;
+            /**
+             * Take
+             * @description True: that team should take the deal
+             */
+            take: boolean;
+            /**
+             * Voter
+             * @description Random id kept by the browser
+             */
+            voter: string;
         };
     };
     responses: never;
@@ -495,6 +1085,518 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trade_of_day_api_trade_of_the_day_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeOfTheDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vote_api_trade_of_the_day_vote_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeOfTheDay"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_link_start_api_team_link_start_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamLinkStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamLinkChallenge"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_link_verify_api_team_link_verify_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamLinkVerify"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedTeam"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_link_me_api_team_link_me_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedTeam"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_link_unlink_api_team_link_unlink_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feed_api_feed_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replies_api_feed_replies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepliesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepliesPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_post_api_posts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedItem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    delete_post_api_posts_delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletePostRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    react_api_reactions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReactRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReactionsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

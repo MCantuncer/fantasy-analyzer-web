@@ -318,6 +318,7 @@ export default function App() {
             onToggleKeep={toggleKeep}
             onRerun={() => teamId && analysis.mutate({ teamId, keep })}
             rerunning={analysis.isPending}
+            creds={creds}
           />
         )}
       </main>

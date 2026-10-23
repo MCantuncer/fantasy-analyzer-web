@@ -4,16 +4,20 @@ import { BestMove } from './BestMove'
 import { Builds } from './Builds'
 import { CategoryOutlook } from './CategoryOutlook'
 import { CategoryTiles } from './CategoryTiles'
+import { LeagueChat } from './LeagueChat'
 import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Season } from './Season'
+import { TradeOfTheDay } from './TradeOfTheDay'
 import { Trades } from './Trades'
+import type { Credentials } from '../lib/credentials'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
   { id: 'team', label: 'My team' },
   { id: 'league', label: 'League' },
+  { id: 'chat', label: 'League chat' },
 ] as const
 
 export type Tab = (typeof TABS)[number]['id']
@@ -26,15 +30,23 @@ interface Props {
   onToggleKeep: (id: number) => void
   onRerun: () => void
   rerunning: boolean
+  creds: Credentials | null
 }
 
-export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning }: Props) {
+export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning, creds }: Props) {
   const [show, setShow] = useState<'trades' | 'pickups'>('trades')
 
   return (
     <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
       {tab === 'moves' && (
         <>
+          <TradeOfTheDay
+            leagueId={report.league.id}
+            season={report.league.season}
+            leagueName={report.league.name}
+            myTeamId={report.team_id}
+            creds={creds}
+          />
           <div className="split">
             <div className="wide">
               <BestMove report={report} />
@@ -83,6 +95,10 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
         </>
       )}
 
+      {tab === 'chat' && (
+        <LeagueChat leagueId={report.league.id} season={report.league.season} myTeamId={report.team_id} creds={creds} />
+      )}
+
       {keepChanged && (
         <div className="sticky-action">
           <button onClick={onRerun} disabled={rerunning}>
@@ -91,18 +107,20 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
         </div>
       )}
 
-      <details className="footnote">
-        <summary>How this works</summary>
-        <ul>
-          {report.assumptions.notes.map((n) => (
-            <li key={n}>{n}</li>
-          ))}
-          <li>
-            {report.assumptions.simulations.toLocaleString()} season simulations, run in{' '}
-            {(report.elapsed_ms / 1000).toFixed(1)}s.
-          </li>
-        </ul>
-      </details>
+      {tab !== 'chat' && (
+        <details className="footnote">
+          <summary>How this works</summary>
+          <ul>
+            {report.assumptions.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+            <li>
+              {report.assumptions.simulations.toLocaleString()} season simulations, run in{' '}
+              {(report.elapsed_ms / 1000).toFixed(1)}s.
+            </li>
+          </ul>
+        </details>
+      )}
     </div>
   )
 }
