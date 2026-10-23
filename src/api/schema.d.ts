@@ -222,7 +222,7 @@ export interface components {
             value: number;
             /**
              * Perceived Value
-             * @description What owners think he's worth, in auction dollars
+             * @description Trade value in auction dollars: draft-day signals fading into % owned, rest-of-season category value and this season's production
              */
             perceived_value: number;
             /**

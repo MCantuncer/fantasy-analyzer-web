@@ -30,7 +30,7 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
               <th className="left">Player</th>
               <th className="left">Pos</th>
               <th className="left">Status</th>
-              <th title="What owners think he's worth, in auction dollars">Owner value</th>
+              <th title="Trade value in auction dollars: draft-day rankings and prices fading into % owned, rest-of-season value in your categories and this season's production">Trade value</th>
               <th title="Category value: z-scores summed over the league's categories">Cat value</th>
             </tr>
           </thead>
