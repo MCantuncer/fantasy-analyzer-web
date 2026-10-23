@@ -57,7 +57,8 @@ function OddsMeter({ before, after }: { before: number; after: number }) {
 
 export function BestMove({ report }: { report: AnalysisReport }) {
   const trade = report.trades[0]
-  const pickup = report.pickups[0]
+  // Only a straight add/drop counts here: a pickup that needs a trade first does need someone to agree.
+  const pickup = report.pickups.find((p) => !p.open_spot_by_trade)
   const tradeGain = trade ? trade.playoff_pct_after - trade.playoff_pct_before : -1
   const pickupGain = pickup ? pickup.playoff_pct_after - pickup.playoff_pct_before : -1
   const league = report.league

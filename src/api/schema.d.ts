@@ -185,6 +185,11 @@ export interface components {
         PickupIdea: {
             add: components["schemas"]["PlayerRef"];
             drop: components["schemas"]["PlayerRef"];
+            /**
+             * Open Spot By Trade
+             * @description The spot would come from trading `drop` (he has trade value), not from releasing him
+             */
+            open_spot_by_trade: boolean;
             /** Availability */
             availability: string;
             /** My Cats Gain */
@@ -220,6 +225,12 @@ export interface components {
              * @description What owners think he's worth, in auction dollars
              */
             perceived_value: number;
+            /**
+             * Tier
+             * @description core: kept by you. tradeable: has a market, trade rather than drop. droppable: replaceable from free agency. injured: out right now.
+             * @enum {string}
+             */
+            tier: "core" | "tradeable" | "droppable" | "injured";
         };
         /** SeasonRow */
         SeasonRow: {

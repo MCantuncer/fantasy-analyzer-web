@@ -38,8 +38,8 @@ export function Pickups({ pickups, faab }: { pickups: PickupIdea[]; faab: number
                       <span className="bad" aria-hidden="true">
                         −{' '}
                       </span>
-                      <span className="sr-only">drop </span>
-                      {p.drop.name}
+                      <span className="sr-only">{p.open_spot_by_trade ? 'trade ' : 'drop '}</span>
+                      {p.open_spot_by_trade ? `Trade ${p.drop.name} first to open the spot` : p.drop.name}
                     </span>
                   </span>
                   <OddsChange before={p.playoff_pct_before} after={p.playoff_pct_after} />
@@ -52,9 +52,17 @@ export function Pickups({ pickups, faab }: { pickups: PickupIdea[]; faab: number
                           {p.add.name}: {p.add.positions.join('/')}, {p.add.percent_owned}% owned,{' '}
                           {p.availability === 'WAIVERS' ? 'on waivers' : 'free agent'}.
                         </li>
-                        <li>
-                          You drop {p.drop.name} ({p.drop.positions.join('/')}).
-                        </li>
+                        {p.open_spot_by_trade ? (
+                          <li>
+                            {p.drop.name} has trade value ({Math.round(p.drop.percent_owned)}% owned), so don't release
+                            him: move him in a trade that brings back fewer players, then add {p.add.name}.
+                          </li>
+                        ) : (
+                          <li>
+                            You drop {p.drop.name} ({p.drop.positions.join('/')}, {Math.round(p.drop.percent_owned)}%
+                            owned): replaceable from free agency.
+                          </li>
+                        )}
                       </ul>
                     </div>
                     <ImpactBars changes={p.category_changes} label="Your weekly win chance per category" />
