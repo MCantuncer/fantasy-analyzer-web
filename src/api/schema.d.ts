@@ -306,6 +306,8 @@ export interface components {
             my_drop?: components["schemas"]["PlayerRef"] | null;
             /** @description Who they would likely cut to make room */
             their_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Free agent you add to fill the spot a 2-for-1 opens on your roster */
+            my_add?: components["schemas"]["PlayerRef"] | null;
             /**
              * My Cats Gain
              * @description Change in my expected categories won per week

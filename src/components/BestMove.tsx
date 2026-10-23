@@ -118,7 +118,16 @@ export function BestMove({ report }: { report: AnalysisReport }) {
       </div>
       <div className="swap">
         <Side label="YOU GIVE" tone="bad" players={trade.give} note={trade.my_drop ? `You also drop ${trade.my_drop.name}` : 'From your roster'} />
-        <Side label="YOU GET" tone="good" players={trade.get} note={`${pct(trade.acceptance)} chance they accept`} />
+        <Side
+          label="YOU GET"
+          tone="good"
+          players={trade.get}
+          note={
+            trade.my_add
+              ? `Plus ${trade.my_add.name} from free agency · ${pct(trade.acceptance)} chance they accept`
+              : `${pct(trade.acceptance)} chance they accept`
+          }
+        />
       </div>
       <OddsMeter before={trade.playoff_pct_before} after={trade.playoff_pct_after} />
       <div className="row">
