@@ -72,8 +72,16 @@ export interface components {
             categories: components["schemas"]["CategoryOutlook"][];
             /** Builds */
             builds: components["schemas"]["TeamBuild"][];
-            /** Trades */
+            /**
+             * Trades
+             * @description Fair deals: both teams' categories improve
+             */
             trades: components["schemas"]["TradeIdea"][];
+            /**
+             * Edge Trades
+             * @description Edge deals: they get at least equal trade value on paper, you gain clearly more on the court
+             */
+            edge_trades: components["schemas"]["TradeIdea"][];
             /** Pickups */
             pickups: components["schemas"]["PickupIdea"][];
             /** Season */
@@ -308,6 +316,11 @@ export interface components {
              * @description Change in theirs, ignoring the categories they punt
              */
             their_cats_gain: number;
+            /**
+             * Edge
+             * @description My gain minus theirs: how much more the deal does for me
+             */
+            edge: number;
             /**
              * Value They Get
              * @description Perceived value they receive, in auction dollars

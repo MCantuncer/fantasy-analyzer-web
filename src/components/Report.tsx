@@ -55,7 +55,7 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
             </div>
             <div className="split">
               <div className="wide">
-                <Trades trades={report.trades} />
+                <Trades fair={report.trades} edge={report.edge_trades} />
               </div>
               <div className="narrow">
                 <Pickups pickups={report.pickups} faab={report.faab_remaining} />
