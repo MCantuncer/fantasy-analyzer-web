@@ -39,17 +39,53 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export function Trades({ trades }: { trades: TradeIdea[] }) {
-  const [open, setOpen] = useState<string | null>(trades[0] ? tradeKey(trades[0]) : null)
+type Mode = 'fair' | 'edge'
+
+const MODES: Record<Mode, { label: string; hint: string; empty: string; why: string }> = {
+  fair: {
+    label: 'Fair',
+    hint: 'Both teams get better in the categories they play for',
+    empty: 'No deal helps both sides at a fair price right now. Check back after a few weeks of games.',
+    why: 'Why they might say yes',
+  },
+  edge: {
+    label: 'Edge',
+    hint: 'They win on paper, you win on the court',
+    empty: 'No deal gives them the paper win while clearly favoring you right now.',
+    why: 'Why it favors you',
+  },
+}
+
+function cats(x: number) {
+  return `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}`
+}
+
+export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] }) {
+  const [mode, setMode] = useState<Mode>('fair')
+  const trades = mode === 'fair' ? fair : edge
+  const [open, setOpen] = useState<string | null>(fair[0] ? tradeKey(fair[0]) : null)
+
+  const choose = (m: Mode) => {
+    setMode(m)
+    const list = m === 'fair' ? fair : edge
+    setOpen(list[0] ? tradeKey(list[0]) : null)
+  }
 
   return (
     <section className="card flush trades-panel" aria-labelledby="trades-title">
       <div className="card-head">
         <h2 id="trades-title">Trades to offer</h2>
-        <span className="small muted">Ranked by your gain and the chance they say yes</span>
+        <div className="segmented" role="group" aria-label="Trade style">
+          {(Object.keys(MODES) as Mode[]).map((m) => (
+            <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)} title={MODES[m].hint}>
+              {MODES[m].label} · {(m === 'fair' ? fair : edge).length}
+            </button>
+          ))}
+        </div>
       </div>
+      <p className="small muted trades-hint">{MODES[mode].hint}. Ranked by your gain and the chance they say yes.</p>
       {trades.length === 0 ? (
-        <p className="empty">No deal helps both sides at a fair price right now. Check back after a few weeks of games.</p>
+        <p className="empty">{MODES[mode].empty}</p>
       ) : (
         <>
           <div className="move-cols" aria-hidden="true">
@@ -102,7 +138,7 @@ export function Trades({ trades }: { trades: TradeIdea[] }) {
                         <p className="pitch">{t.pitch}</p>
                         {t.reasons.length > 0 && (
                           <>
-                            <div className="detail-label">Why they might say yes</div>
+                            <div className="detail-label">{MODES[mode].why}</div>
                             <ul className="reasons">
                               {t.reasons.map((r) => (
                                 <li key={r}>{r}</li>
@@ -114,6 +150,9 @@ export function Trades({ trades }: { trades: TradeIdea[] }) {
                           <li>
                             They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners
                             price players.
+                          </li>
+                          <li>
+                            Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
                           </li>
                           {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
                           {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
