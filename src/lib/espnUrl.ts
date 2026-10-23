@@ -13,3 +13,8 @@ export function parseLeagueInput(input: string): { leagueId?: number; teamId?: n
     return {}
   }
 }
+
+/** A team's page on ESPN, where its owner finds Team Settings. */
+export function espnTeamUrl(ref: { leagueId: number; season: number }, teamId: number) {
+  return `https://fantasy.espn.com/basketball/team?leagueId=${ref.leagueId}&teamId=${teamId}&seasonId=${ref.season}`
+}

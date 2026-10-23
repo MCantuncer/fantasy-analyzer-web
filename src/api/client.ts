@@ -11,6 +11,14 @@ export type TeamBuild = components['schemas']['TeamBuild']
 export type SeasonRow = components['schemas']['SeasonRow']
 export type TradeOfTheDay = components['schemas']['TradeOfTheDay']
 export type TradeSide = components['schemas']['TradeSide']
+export type TeamLinkChallenge = components['schemas']['TeamLinkChallenge']
+export type LinkedTeam = components['schemas']['LinkedTeam']
+export type FeedPage = components['schemas']['FeedPage']
+export type FeedItem = components['schemas']['FeedItem']
+export type FeedTeam = components['schemas']['FeedTeam']
+export type Reactions = components['schemas']['Reactions']
+export type RepliesPage = components['schemas']['RepliesPage']
+export type ReactionsOut = components['schemas']['ReactionsOut']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -25,13 +33,14 @@ export class ApiError extends Error {
   }
 }
 
-async function post<T>(path: string, body: unknown, creds: Credentials | null): Promise<T> {
+async function post<T>(path: string, body: unknown, creds: Credentials | null, token?: string | null): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   // Cookies travel in headers only, never in the URL.
   if (creds) {
     headers['X-ESPN-S2'] = creds.espnS2
     headers['X-ESPN-SWID'] = creds.swid
   }
+  if (token) headers.Authorization = `Bearer ${token}`
   let res: Response
   try {
     res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
@@ -86,5 +95,63 @@ export function voteTradeOfTheDay(
       voter: vote.voter,
     },
     creds,
+  )
+}
+
+export interface LeagueRef {
+  leagueId: number
+  season: number
+}
+
+export function startTeamLink(ref: LeagueRef, teamId: number, creds: Credentials | null) {
+  return post<TeamLinkChallenge>(
+    '/api/team-link/start',
+    { league_id: ref.leagueId, season: ref.season, team_id: teamId },
+    creds,
+  )
+}
+
+export function verifyTeamLink(challenge: string, creds: Credentials | null) {
+  return post<LinkedTeam>('/api/team-link/verify', { challenge }, creds)
+}
+
+export function unlinkTeam(token: string) {
+  return post<{ ok: boolean }>('/api/team-link/unlink', {}, null, token)
+}
+
+export function fetchFeed(ref: LeagueRef, page: number, token: string | null, creds: Credentials | null) {
+  return post<FeedPage>('/api/feed', { league_id: ref.leagueId, season: ref.season, page }, creds, token)
+}
+
+export function fetchReplies(ref: LeagueRef, target: string, token: string) {
+  return post<RepliesPage>('/api/feed/replies', { league_id: ref.leagueId, season: ref.season, target }, null, token)
+}
+
+export function createPost(ref: LeagueRef, body: string, target: string | null, token: string) {
+  return post<FeedItem>('/api/posts', { league_id: ref.leagueId, season: ref.season, body, target }, null, token)
+}
+
+export function deletePost(ref: LeagueRef, postId: number, token: string) {
+  return post<{ ok: boolean }>(
+    '/api/posts/delete',
+    { league_id: ref.leagueId, season: ref.season, post_id: postId },
+    null,
+    token,
+  )
+}
+
+export function react(
+  ref: LeagueRef,
+  target: string,
+  reaction: string,
+  on: boolean,
+  token: string,
+  creds: Credentials | null,
+) {
+  return post<ReactionsOut>(
+    '/api/reactions',
+    { league_id: ref.leagueId, season: ref.season, target, reaction, on },
+    creds,
+    token,
   )
 }
