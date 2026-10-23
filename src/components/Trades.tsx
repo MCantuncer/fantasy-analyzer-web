@@ -155,6 +155,12 @@ export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] })
                             Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
                           </li>
                           {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
+                          {t.my_add && (
+                            <li>
+                              You send more than you get back: pick up {t.my_add.name} from free agency for the open
+                              spot. The odds above include him.
+                            </li>
+                          )}
                           {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
                         </ul>
                         <div className="row">
