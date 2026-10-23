@@ -159,17 +159,33 @@ export default function App() {
           </button>
           {leagueData && teamId && (
             <div className="switcher">
-              <span className="league-name">{leagueData.name}</span>
-              <label className="sr-only" htmlFor="team-switch">
-                Your team
-              </label>
-              <select id="team-switch" value={teamId} onChange={(e) => chooseTeam(Number(e.target.value) || null)}>
-                {leagueData.teams.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
+              <span className="league-name" title={leagueData.name}>
+                {leagueData.name}
+              </span>
+              <span className="crumb-sep" aria-hidden="true">
+                /
+              </span>
+              {/* The visible name sizes the control; the native select sits invisibly on top of it. */}
+              <span className="team-select">
+                <span className="team-select-name">
+                  {leagueData.teams.find((t) => t.id === teamId)?.name ?? 'Choose your team'}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M2.5 4.5l3.5 3.5 3.5-3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                </svg>
+                <select
+                  id="team-switch"
+                  aria-label="Your team"
+                  value={teamId}
+                  onChange={(e) => chooseTeam(Number(e.target.value) || null)}
+                >
+                  {leagueData.teams.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
             </div>
           )}
           <div className="topbar-actions">
