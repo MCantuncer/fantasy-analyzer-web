@@ -1,5 +1,12 @@
 import type { PlayerRef } from '../api/client'
 
+const TIERS: Record<PlayerRef['tier'], { label: string; title: string }> = {
+  core: { label: 'Core', title: 'You keep him: never offered or dropped' },
+  tradeable: { label: 'Tradeable', title: "Has a market. If he doesn't fit, trade him rather than drop him" },
+  droppable: { label: 'Droppable', title: 'Lightly owned and replaceable from free agency' },
+  injured: { label: 'Injured', title: "Out right now. Hold him unless it's long term" },
+}
+
 interface Props {
   roster: PlayerRef[]
   keep: number[]
@@ -11,7 +18,9 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
     <section className="card flush" aria-labelledby="roster-title">
       <div className="card-head">
         <h2 id="roster-title">Your roster</h2>
-        <span className="small muted">Keep a player to leave him out of trades and drops.</span>
+        <span className="small muted">
+          Keep a player to leave him out of trades and drops. Only droppable players are ever suggested as drops.
+        </span>
       </div>
       <div className="table-wrap">
         <table>
@@ -20,6 +29,7 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
               <th className="keep-cell">Keep</th>
               <th className="left">Player</th>
               <th className="left">Pos</th>
+              <th className="left">Status</th>
               <th title="What owners think he's worth, in auction dollars">Owner value</th>
               <th title="Category value: z-scores summed over the league's categories">Cat value</th>
             </tr>
@@ -38,6 +48,11 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
                   {p.injury_status !== 'ACTIVE' && <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>}
                 </th>
                 <td className="left muted">{p.positions.join('/')}</td>
+                <td className="left">
+                  <span className={`badge tier-${p.tier}`} title={TIERS[p.tier].title}>
+                    {TIERS[p.tier].label}
+                  </span>
+                </td>
                 <td>${Math.round(p.perceived_value)}</td>
                 <td className={p.value > 0 ? 'good' : p.value < 0 ? 'bad' : ''}>
                   {p.value > 0 ? '+' : p.value < 0 ? '−' : ''}

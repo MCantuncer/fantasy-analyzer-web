@@ -303,6 +303,28 @@ details summary {
   color: var(--bad);
 }
 
+/* Roster tiers. The label always says the tier; color only reinforces it. */
+.tier-core {
+  background: var(--raised);
+  color: var(--accent-text);
+  border: 1px solid var(--border);
+}
+
+.tier-tradeable {
+  background: var(--track);
+  color: var(--text);
+}
+
+.tier-droppable {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.tier-injured {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
 /* Outcome colors. Text always carries the meaning too. */
 .good {
   color: var(--good);
