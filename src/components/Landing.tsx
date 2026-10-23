@@ -61,11 +61,11 @@ export function Landing({ initial, onSubmit }: { initial: string; onSubmit: (inp
           </li>
           <li>
             <strong>Fair trades</strong>
-            <span className="small muted">valued the way owners see them</span>
+            <span className="small muted">valued on production, not just draft prices</span>
           </li>
           <li>
             <strong>Smart pickups</strong>
-            <span className="small muted">every add tested against every drop</span>
+            <span className="small muted">only players you can afford to cut</span>
           </li>
         </ul>
       </div>
