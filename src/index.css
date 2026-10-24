@@ -327,6 +327,56 @@ details summary {
   color: var(--bad);
 }
 
+/* Owner premium badges: why an owner holds on to a player. The label carries the meaning. */
+.badge + .badge,
+th .badge {
+  margin-left: 4px;
+}
+
+.owner-jewel {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.owner-keystone {
+  background: transparent;
+  color: var(--accent-text);
+  border: 1px solid var(--accent);
+  padding: 1px 7px;
+}
+
+.owner-fresh_signing,
+.owner-on_the_block {
+  background: var(--track);
+  color: var(--text-2);
+}
+
+.owner-on_the_block {
+  border: 1px dashed var(--muted);
+  padding: 1px 7px;
+}
+
+.owner-not_for_sale {
+  background: var(--raised);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1px 7px;
+}
+
+.badge-notes .badge {
+  margin-right: 4px;
+}
+
+.trade-warnings {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 14px;
+}
+
 /* Outcome colors. Text always carries the meaning too. */
 .good {
   color: var(--good);

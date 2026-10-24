@@ -3,6 +3,7 @@ import type { TradeIdea } from '../api/client'
 import { names, pct, tradeKey } from '../lib/format'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
+import { BadgeNotes } from './PlayerBadges'
 
 const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -82,6 +83,13 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
       {open && (
         <div className="move-detail" id={`${id}-detail`}>
           <div>
+            {t.warnings && t.warnings.length > 0 && (
+              <ul className="trade-warnings">
+                {t.warnings.map((w) => (
+                  <li key={w}>{w} Only shown because the deal is one of the best of the day.</li>
+                ))}
+              </ul>
+            )}
             <div className="detail-label">Your pitch to {t.partner_team_name}</div>
             <p className="pitch">{t.pitch}</p>
             {t.reasons.length > 0 && (
@@ -96,7 +104,8 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
             )}
             <ul className="reasons">
               <li>
-                They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners price players.
+                They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners price players
+                {t.owner_premium >= 0.5 ? `, including a ${dollars(t.owner_premium)} owner premium on what they send.` : '.'}
               </li>
               <li>
                 Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
@@ -111,6 +120,7 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
               {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
               {extra}
             </ul>
+            <BadgeNotes players={t.get} />
             <div className="row">
               <CopyButton text={t.pitch} />
             </div>
