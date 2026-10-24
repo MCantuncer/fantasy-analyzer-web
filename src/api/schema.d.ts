@@ -702,6 +702,41 @@ export interface components {
             /** Faab Spent */
             faab_spent?: number | null;
         };
+        /** Fixture */
+        Fixture: {
+            /** Id */
+            id: number;
+            /**
+             * Start
+             * @description UTC start time, ISO 8601
+             */
+            start: string;
+            away: components["schemas"]["GameSide"];
+            home: components["schemas"]["GameSide"];
+            /**
+             * My Players
+             * @description Your players in this game; empty without team_id
+             */
+            my_players: components["schemas"]["FixturePlayer"][];
+        };
+        /** FixtureDay */
+        FixtureDay: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /** Games */
+            games: components["schemas"]["Fixture"][];
+        };
+        /** FixturePlayer */
+        FixturePlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Injury Status */
+            injury_status: string;
+        };
         /** Game */
         Game: {
             /** Id */
@@ -1200,6 +1235,11 @@ export interface components {
              * @description A game is on; ask again in about a minute
              */
             live: boolean;
+            /**
+             * Week
+             * @description Games still to tip off this week (Monday to Sunday), whatever day is shown
+             */
+            week: components["schemas"]["FixtureDay"][];
             /** Updated At */
             updated_at: string;
         };
@@ -1226,6 +1266,11 @@ export interface components {
              * @description ESPN scoring period (a day). Default: the last day a game started
              */
             day?: number | null;
+            /**
+             * Team Id
+             * @description Your team: this week's fixtures name your players
+             */
+            team_id?: number | null;
         };
         /** SeasonRow */
         SeasonRow: {

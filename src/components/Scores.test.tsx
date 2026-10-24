@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ScoreDay } from '../api/client'
 import { game, line } from '../test/fixtures'
@@ -21,6 +21,31 @@ const DAY: ScoreDay = {
     { day: 3, date: '2026-10-22', games: 2 },
     { day: 4, date: '2026-10-23', games: 2 },
     { day: 5, date: '2026-10-24', games: 8 },
+  ],
+  week: [
+    {
+      day: 5,
+      date: '2026-10-24',
+      games: [
+        {
+          id: 9,
+          start: '2026-10-24T22:00:00Z',
+          away: { pro_team_id: 14, abbrev: 'MIA', name: 'Miami Heat', score: null },
+          home: { pro_team_id: 30, abbrev: 'CHA', name: 'Charlotte Hornets', score: null },
+          my_players: [
+            { player_id: 11, name: 'Giannis Antetokounmpo', injury_status: 'ACTIVE' },
+            { player_id: 12, name: 'Davion Mitchell', injury_status: 'OUT' },
+          ],
+        },
+        {
+          id: 10,
+          start: '2026-10-24T23:30:00Z',
+          away: { pro_team_id: 3, abbrev: 'NO', name: 'New Orleans Pelicans', score: null },
+          home: { pro_team_id: 7, abbrev: 'DEN', name: 'Denver Nuggets', score: null },
+          my_players: [],
+        },
+      ],
+    },
   ],
   games: [
     game({
@@ -90,5 +115,23 @@ describe('Scores', () => {
     ;(await screen.findByRole('button', { name: 'Later day' })).click()
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
     expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ league_id: 1, day: 5 })
+  })
+
+  it("lists this week's games still to play, with my players and who is out", async () => {
+    mockApi()
+    renderScores()
+    const week = await screen.findByRole('region', { name: 'Still to play this week' })
+    expect(week).toHaveTextContent('MIA @ CHA')
+    expect(week).toHaveTextContent('G. Antetokounmpo, D. Mitchell (out)')
+    expect(week).toHaveTextContent('Your players have 1 game left before Monday.')
+  })
+
+  it('jumps to any day of the season from the picker', async () => {
+    const fetchMock = mockApi()
+    renderScores()
+    const picker = await screen.findByLabelText('Jump to a day')
+    fireEvent.change(picker, { target: { value: '3' } })
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ day: 3, team_id: 3 })
   })
 })

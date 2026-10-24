@@ -1,4 +1,4 @@
-import type { Game, GameLine } from '../api/client'
+import type { FixtureDay, Game, GameLine } from '../api/client'
 
 export interface NightTotals {
   played: number
@@ -97,4 +97,25 @@ export function tipOff(iso: string): string {
 export function winner(g: Game): 'away' | 'home' | null {
   if (g.status !== 'final' || g.away.score == null || g.home.score == null || g.away.score === g.home.score) return null
   return g.away.score > g.home.score ? 'away' : 'home'
+}
+
+/** "Sat 24 Oct", for a longer date label. */
+export function longDayLabel(date: string | null | undefined): string {
+  if (!date) return ''
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+const OUT = new Set(['OUT', 'INJURY_RESERVE', 'SUSPENSION'])
+
+export function isOut(injuryStatus: string): boolean {
+  return OUT.has(injuryStatus)
+}
+
+/** Games your healthy players still have this week, counted per player. */
+export function gamesLeft(week: FixtureDay[]): number {
+  return week.reduce(
+    (n, d) => n + d.games.reduce((m, g) => m + g.my_players.filter((p) => !isOut(p.injury_status)).length, 0),
+    0,
+  )
 }

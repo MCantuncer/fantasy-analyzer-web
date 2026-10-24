@@ -40,7 +40,7 @@ describe('api client', () => {
           init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
         }),
     )
-    const pending = fetchScores(1, 2027, null, null)
+    const pending = fetchScores(1, 2027, null, null, null)
     const outcome = expect(pending).rejects.toMatchObject({ code: 'timeout' })
     await vi.advanceTimersByTimeAsync(SCORES_TIMEOUT_MS)
     await outcome
