@@ -300,6 +300,11 @@ export interface components {
              * @description Players never offered in trades or suggested as drops
              */
             keep_player_ids?: number[];
+            /**
+             * Not For Sale Player Ids
+             * @description Other teams' players their owners won't move: never targeted in trades
+             */
+            not_for_sale_player_ids?: number[];
         };
         /** Assumptions */
         Assumptions: {
@@ -555,6 +560,22 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** PlayerBadge */
+        PlayerBadge: {
+            /**
+             * Kind
+             * @description jewel: star name. keystone: carries a category for his team. fresh_signing: just traded for or picked up. not_for_sale: untouchable. on_the_block: on his owner's ESPN trade block.
+             * @enum {string}
+             */
+            kind: "jewel" | "keystone" | "fresh_signing" | "not_for_sale" | "on_the_block";
+            /**
+             * Category
+             * @description The category a keystone carries
+             */
+            category?: string | null;
+            /** Reason */
+            reason: string;
+        };
         /** PlayerRef */
         PlayerRef: {
             /** Id */
@@ -583,6 +604,17 @@ export interface components {
              * @enum {string}
              */
             tier: "core" | "tradeable" | "droppable" | "injured";
+            /**
+             * Badges
+             * @description Why his owner holds on to him
+             */
+            badges?: components["schemas"]["PlayerBadge"][];
+            /**
+             * Owner Premium
+             * @description What his owner wants on top of trade value, in auction dollars
+             * @default 0
+             */
+            owner_premium: number;
         };
         /** PollTally */
         PollTally: {
@@ -798,9 +830,20 @@ export interface components {
             value_they_get: number;
             /**
              * Value They Give
-             * @description Perceived value they send, in auction dollars
+             * @description Perceived value they send, in auction dollars, including their owner premium
              */
             value_they_give: number;
+            /**
+             * Owner Premium
+             * @description Part of value_they_give that is owner premium on their badged players
+             * @default 0
+             */
+            owner_premium: number;
+            /**
+             * Warnings
+             * @description Jewels or keystones you give up: only suggested for a clearly better deal
+             */
+            warnings?: string[];
             /**
              * Acceptance
              * @description Rough chance the other owner accepts (heuristic)
