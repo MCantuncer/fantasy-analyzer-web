@@ -155,3 +155,23 @@ export function react(
     token,
   )
 }
+
+export type TargetReport = components['schemas']['TargetReport']
+export type TargetOffer = components['schemas']['TargetOffer']
+export type TeamRoster = components['schemas']['TeamRoster']
+export type TradeTarget = components['schemas']['TradeTarget']
+
+export function fetchTarget(
+  leagueId: number,
+  teamId: number,
+  season: number | null,
+  playerId: number,
+  keepPlayerIds: number[],
+  creds: Credentials | null,
+) {
+  return post<TargetReport>(
+    '/api/target',
+    { league_id: leagueId, team_id: teamId, season, player_id: playerId, keep_player_ids: keepPlayerIds },
+    creds,
+  )
+}

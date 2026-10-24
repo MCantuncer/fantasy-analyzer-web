@@ -4,7 +4,7 @@ import { names, pct } from '../lib/format'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 
-const ACCEPTANCE = {
+export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
   possible: { label: 'Possible', tone: 'warn' },
   long_shot: { label: 'Long shot', tone: 'bad' },
@@ -18,7 +18,7 @@ function tradeKey(t: TradeIdea) {
   return `${t.partner_team_id}-${t.give.map((p) => p.id).join('.')}-${t.get.map((p) => p.id).join('.')}`
 }
 
-function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <button
