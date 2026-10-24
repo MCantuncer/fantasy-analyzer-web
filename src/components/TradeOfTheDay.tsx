@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
+import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { pct, ptsDiff, signedInt } from '../lib/format'
-import { loadVote, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
+import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
 
 interface Props {
   leagueId: number
@@ -33,7 +33,7 @@ function Poll({
   onVote: (take: boolean) => void
   busy: boolean
 }) {
-  const mine = loadVote(pick.league_id, pick.date, side.team_id)
+  const mine = loadVote(pick.league_id, pickKey(pick), side.team_id)
   const tally = pick.votes?.[side.team_id] ?? { yes: 0, no: 0 }
   const total = tally.yes + tally.no
   return (
@@ -172,10 +172,14 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
     refetchInterval: (q) => (q.state.data?.status === 'pending' ? 5000 : false),
   })
   const vote = useMutation({
-    mutationFn: (v: { teamId: number; take: boolean; date: string }) =>
+    mutationFn: (v: { teamId: number; take: boolean; date: string; pickId: string | null }) =>
       voteTradeOfTheDay({ leagueId, season, voter: voterId(), ...v }, creds),
-    onMutate: (v) => storeVote(leagueId, v.date, v.teamId, v.take),
+    onMutate: (v) => storeVote(leagueId, pickKey({ date: v.date, pick_id: v.pickId }), v.teamId, v.take),
     onSuccess: (data) => queryClient.setQueryData(queryKey, data),
+    // The pick was replaced during the day (an injury or a better deal): load the new one.
+    onError: (e) => {
+      if (e instanceof ApiError && e.code === 'pick_changed') queryClient.invalidateQueries({ queryKey })
+    },
   })
 
   const pick = query.data
@@ -229,7 +233,8 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
     }
   }
 
-  const onVote = (teamId: number) => (take: boolean) => vote.mutate({ teamId, take, date: pick.date })
+  const onVote = (teamId: number) => (take: boolean) =>
+    vote.mutate({ teamId, take, date: pick.date, pickId: pick.pick_id ?? null })
 
   return (
     <section
@@ -287,7 +292,12 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
           Same trade for every team today. A new one every day at 00:00 UTC.
         </span>
       </div>
-      {vote.isError && <p className="small bad">Couldn't save your vote. Reload for today's trade and try again.</p>}
+      {vote.isError &&
+        (vote.error instanceof ApiError && vote.error.code === 'pick_changed' ? (
+          <p className="small muted">Today's trade was just updated, so here's the new one.</p>
+        ) : (
+          <p className="small bad">Couldn't save your vote. Reload for today's trade and try again.</p>
+        ))}
     </section>
   )
 }

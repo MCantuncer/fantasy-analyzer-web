@@ -16,22 +16,27 @@ export function voterId(): string {
   }
 }
 
-function voteKey(leagueId: number, date: string, teamId: number) {
-  return `totd-vote:${leagueId}:${date}:${teamId}`
+/** Votes belong to one deal: when the day's pick is replaced, the poll starts over. */
+function voteKey(leagueId: number, pick: string, teamId: number) {
+  return `totd-vote:${leagueId}:${pick}:${teamId}`
 }
 
-export function loadVote(leagueId: number, date: string, teamId: number): boolean | null {
+export function pickKey(pick: { date: string; pick_id?: string | null }): string {
+  return pick.pick_id ? `${pick.date}:${pick.pick_id}` : pick.date
+}
+
+export function loadVote(leagueId: number, pick: string, teamId: number): boolean | null {
   try {
-    const v = localStorage.getItem(voteKey(leagueId, date, teamId))
+    const v = localStorage.getItem(voteKey(leagueId, pick, teamId))
     return v === 'yes' ? true : v === 'no' ? false : null
   } catch {
     return null
   }
 }
 
-export function storeVote(leagueId: number, date: string, teamId: number, take: boolean) {
+export function storeVote(leagueId: number, pick: string, teamId: number, take: boolean) {
   try {
-    localStorage.setItem(voteKey(leagueId, date, teamId), take ? 'yes' : 'no')
+    localStorage.setItem(voteKey(leagueId, pick, teamId), take ? 'yes' : 'no')
   } catch {
     // storage unavailable; the vote still counts, the page just won't remember it
   }

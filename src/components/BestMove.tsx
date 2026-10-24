@@ -1,11 +1,13 @@
 import type { AnalysisReport, PlayerRef } from '../api/client'
 import { pct, ptsDiff, signedInt } from '../lib/format'
+import { InjuryBadges } from './InjuryBadges'
 
 export function Side({ label, tone, players, note }: { label: string; tone: 'good' | 'bad'; players: PlayerRef[]; note: string }) {
   return (
     <div className="swap-side">
       <div className={`swap-label ${tone}`}>{label}</div>
       <div className="swap-name">{players.map((p) => p.name).join(' + ')}</div>
+      <InjuryBadges players={players} />
       <div className="small muted">{note}</div>
     </div>
   )

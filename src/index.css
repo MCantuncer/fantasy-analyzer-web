@@ -300,6 +300,11 @@ details summary {
   white-space: nowrap;
 }
 
+.injury-badge {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .badge-bad {
   background: var(--bad-soft);
   color: var(--bad);

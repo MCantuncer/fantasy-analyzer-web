@@ -1893,8 +1893,27 @@ export interface components {
             votes?: {
                 [key: string]: components["schemas"]["PollTally"];
             };
-            /** Generated At */
+            /**
+             * Pick Id
+             * @description Identifies the deal; changes when the pick is replaced
+             */
+            pick_id?: string | null;
+            /**
+             * Score
+             * @description Ranking score: the smaller side's gain times the odds both agree
+             * @default 0
+             */
+            score: number;
+            /**
+             * Generated At
+             * @description When this deal became the pick
+             */
             generated_at?: string | null;
+            /**
+             * Checked At
+             * @description When the pick was last checked against the league
+             */
+            checked_at?: string | null;
         };
         /** TradeSide */
         TradeSide: {
@@ -1987,6 +2006,11 @@ export interface components {
              * @description True: that team should take the deal
              */
             take: boolean;
+            /**
+             * Pick Id
+             * @description The deal being voted on; refused if the pick has changed
+             */
+            pick_id?: string | null;
             /**
              * Voter
              * @description Random id kept by the browser
