@@ -1,7 +1,7 @@
 import type { AnalysisReport, PlayerRef } from '../api/client'
 import { pct, ptsDiff, signedInt } from '../lib/format'
 
-function Side({ label, tone, players, note }: { label: string; tone: 'good' | 'bad'; players: PlayerRef[]; note: string }) {
+export function Side({ label, tone, players, note }: { label: string; tone: 'good' | 'bad'; players: PlayerRef[]; note: string }) {
   return (
     <div className="swap-side">
       <div className={`swap-label ${tone}`}>{label}</div>
@@ -24,7 +24,7 @@ function topChanges(changes: Record<string, number>) {
   return parts.join('; ')
 }
 
-function OddsMeter({ before, after }: { before: number; after: number }) {
+export function OddsMeter({ before, after }: { before: number; after: number }) {
   const diff = ptsDiff(before, after)
   const lo = Math.min(before, after)
   return (
