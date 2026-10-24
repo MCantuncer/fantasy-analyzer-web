@@ -29,6 +29,13 @@ export type AuthConfig = components['schemas']['AuthConfig']
 export type LeagueOverview = components['schemas']['LeagueOverview']
 export type OverviewTeam = components['schemas']['OverviewTeam']
 export type OverviewMatchup = components['schemas']['OverviewMatchup']
+export type ShopReport = components['schemas']['ShopReport']
+export type ShopDeal = components['schemas']['ShopDeal']
+export type ShopTeam = components['schemas']['ShopTeam']
+export type ShopTarget = components['schemas']['ShopTarget']
+export type ScoreDay = components['schemas']['ScoreDay']
+export type Game = components['schemas']['Game']
+export type GameLine = components['schemas']['GameLine']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -44,7 +51,13 @@ export class ApiError extends Error {
 }
 
 // Every call carries the signed-in account's token; ESPN cookies only when the league is private.
-async function request<T>(method: 'GET' | 'POST', path: string, body: unknown, creds: Credentials | null): Promise<T> {
+async function request<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body: unknown,
+  creds: Credentials | null,
+  timeoutMs?: number,
+): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   // Cookies travel in headers only, never in the URL.
   if (creds) {
@@ -53,11 +66,24 @@ async function request<T>(method: 'GET' | 'POST', path: string, body: unknown, c
   }
   const token = loadToken()
   if (token) headers.Authorization = `Bearer ${token}`
+  // A request that never answers (a stalled cold start, a dropped connection) must not spin forever.
+  const controller = timeoutMs ? new AbortController() : null
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : undefined
   let res: Response
   try {
-    res = await fetch(`${BASE}${path}`, { method, headers, body: method === 'POST' ? JSON.stringify(body) : undefined })
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      body: method === 'POST' ? JSON.stringify(body) : undefined,
+      signal: controller?.signal,
+    })
   } catch {
+    if (controller?.signal.aborted) {
+      throw new ApiError(0, 'timeout', 'The server took too long to answer. It may be waking up, so try again.')
+    }
     throw new ApiError(0, 'network', 'Could not reach the analyzer server.')
+  } finally {
+    clearTimeout(timer)
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null)
@@ -70,8 +96,8 @@ async function request<T>(method: 'GET' | 'POST', path: string, body: unknown, c
   return res.json() as Promise<T>
 }
 
-function post<T>(path: string, body: unknown, creds: Credentials | null = null): Promise<T> {
-  return request<T>('POST', path, body, creds)
+function post<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
+  return request<T>('POST', path, body, creds, timeoutMs)
 }
 
 export function fetchAuthConfig() {
@@ -128,6 +154,27 @@ export function fetchAnalysis(
   return post<AnalysisReport>(
     '/api/analyze',
     { league_id: leagueId, team_id: teamId, season, keep_player_ids: keepPlayerIds },
+    creds,
+  )
+}
+
+export function fetchShop(
+  leagueId: number,
+  teamId: number,
+  season: number | null,
+  offerPlayerIds: number[],
+  keepPlayerIds: number[],
+  creds: Credentials | null,
+) {
+  return post<ShopReport>(
+    '/api/shop',
+    {
+      league_id: leagueId,
+      team_id: teamId,
+      season,
+      offer_player_ids: offerPlayerIds,
+      keep_player_ids: keepPlayerIds,
+    },
     creds,
   )
 }
@@ -213,4 +260,11 @@ export function fetchTarget(
     { league_id: leagueId, team_id: teamId, season, player_id: playerId, keep_player_ids: keepPlayerIds },
     creds,
   )
+}
+
+// The free API server can take most of a minute to wake up; past that, show an error with a retry.
+export const SCORES_TIMEOUT_MS = 60_000
+
+export function fetchScores(leagueId: number, season: number | null, day: number | null, creds: Credentials | null) {
+  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day }, creds, SCORES_TIMEOUT_MS)
 }

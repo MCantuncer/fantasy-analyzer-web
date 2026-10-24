@@ -431,6 +431,7 @@ export default function App() {
             rerunning={analysis.isPending}
             creds={creds}
             overview={overview.data ?? null}
+            onTab={(t) => setTab(t)}
           />
         )}
       </main>

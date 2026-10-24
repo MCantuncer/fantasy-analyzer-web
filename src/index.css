@@ -1511,6 +1511,177 @@ tr.cutline th {
   padding-left: 18px;
 }
 
+/* ---------- Scores ---------- */
+
+.scores-bar {
+  gap: 12px;
+}
+
+.day-strip {
+  gap: 6px;
+}
+
+.day-strip button {
+  flex: none;
+  font-weight: 500;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.day-strip .icon-btn {
+  width: 44px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.day-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--raised);
+  font-weight: 600;
+}
+
+.your-night {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 16px 20px;
+}
+
+.night-lead {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.night-cats {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(44px, auto));
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.night-cats div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.night-cats dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.night-cats dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 0;
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 400;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+button.game-card:hover {
+  border-color: var(--faint);
+}
+
+.game-card.has-mine {
+  border-color: var(--faint);
+}
+
+.game-card[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--raised);
+}
+
+.game-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.mine-names {
+  color: var(--accent-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.team-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 500;
+}
+
+.team-row .score {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.team-row.lead {
+  font-weight: 700;
+}
+
+.team-row.dim {
+  color: var(--muted);
+}
+
+.game-top {
+  border-top: 1px solid var(--divider);
+  padding-top: 8px;
+  color: var(--text-2);
+}
+
+.badge-live {
+  background: var(--bad);
+  color: var(--bg);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+table.box td,
+table.box th {
+  padding: 8px 10px;
+}
+
+table.box th[scope='row'] {
+  padding-left: 20px;
+}
+
+tr.box-team th {
+  padding: 12px 20px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.box-foot {
+  margin: 0;
+  padding: 12px 20px;
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
@@ -1571,6 +1742,25 @@ tr.cutline th {
 @media (max-width: 640px) {
   :root {
     font-size: 14px;
+  }
+
+  .night-cats {
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    width: 100%;
+  }
+
+  .day-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .game-grid {
+    gap: 8px;
+  }
+
+  .game-card {
+    padding: 12px 14px;
   }
 
   .topbar-inner,
@@ -2248,6 +2438,223 @@ td.keep-cell {
   }
 }
 
+/* Trade Park: player picker on the left, results on the right; one column on phones. */
+.park {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.park-picker {
+  position: sticky;
+  top: 112px;
+}
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(60vh, 560px);
+  overflow-y: auto;
+}
+
+.pick {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--divider);
+  cursor: pointer;
+}
+
+.pick input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.pick.on {
+  background: var(--accent-soft);
+}
+
+.pick.off {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pick-name {
+  display: grid;
+  min-width: 0;
+}
+
+.pick-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pick-value {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.park-go {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.park-go button {
+  width: 100%;
+}
+
+.park-results {
+  gap: 16px;
+  min-width: 0;
+}
+
+.park-empty {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.park-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.park-hero-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.park-deal {
+  margin: 0;
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.park-pills {
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.park-hero-odds {
+  display: grid;
+  gap: 4px;
+}
+
+.park-hero-odds .before {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.park-hero-odds .after {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.park-targets {
+  margin: 0;
+  max-width: 90ch;
+}
+
+.kind-pill {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.park-pills .kind-pill {
+  margin-left: 0;
+}
+
+.kind-pill.win_win {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.kind-pill.paper_win {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.market {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.market li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) 128px;
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.market-deal {
+  min-width: 0;
+}
+
+.market .odds-change {
+  justify-self: end;
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .park {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .park-picker {
+    position: static;
+  }
+
+  .pick-list {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 560px) {
+  .market li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .market-deal {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .park-deal {
+    font-size: 19px;
+  }
+}
+
 /* Accounts: sign-in, my leagues, league overview, verify */
 .page-title {
   margin: 0;
@@ -2378,7 +2785,7 @@ button.block {
 .league-card {
   padding: 0;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
 }
 
 .league-open {
@@ -2388,7 +2795,7 @@ button.block {
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-  padding: 16px;
+  padding: 16px 8px 16px 16px;
   text-align: left;
   background: none;
   border: 0;
@@ -2415,10 +2822,58 @@ button.block {
   white-space: nowrap;
 }
 
-.league-remove {
-  align-self: flex-start;
-  margin: -8px 0 4px 6px;
+.league-menu {
+  position: relative;
+  flex: none;
+  margin: 8px 8px 0 0;
+}
+
+.league-menu summary {
+  list-style: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
   color: var(--muted);
+}
+
+.league-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.league-menu summary:hover,
+.league-menu[open] summary {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  z-index: 20;
+  min-width: 220px;
+  padding: 6px;
+  box-shadow: var(--shadow);
+}
+
+button.menu-item {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font-weight: 500;
+}
+
+button.menu-item:hover {
+  background: var(--raised);
+}
+
+button.menu-item.danger {
+  color: var(--bad);
 }
 
 .verify-banner {

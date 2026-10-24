@@ -208,6 +208,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/shop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Shop
+         * @description Best deals across the league for one or more of your players.
+         */
+        post: operations["shop_api_shop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trade-of-the-day": {
         parameters: {
             query?: never;
@@ -395,6 +415,26 @@ export interface paths {
         put?: never;
         /** Target */
         post: operations["target_api_target_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scores
+         * @description A day of NBA games with scores and box scores, each player tagged with his fantasy team here.
+         */
+        post: operations["scores_api_scores_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -661,6 +701,80 @@ export interface components {
             abbrev: string;
             /** Faab Spent */
             faab_spent?: number | null;
+        };
+        /** Game */
+        Game: {
+            /** Id */
+            id: number;
+            /**
+             * Start
+             * @description UTC start time, ISO 8601
+             */
+            start: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "scheduled" | "live" | "final";
+            away: components["schemas"]["GameSide"];
+            home: components["schemas"]["GameSide"];
+            /**
+             * Lines
+             * @description Everyone who played, most minutes first
+             */
+            lines: components["schemas"]["GameLine"][];
+        };
+        /** GameLine */
+        GameLine: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /**
+             * Owner Team Id
+             * @description Fantasy team in this league; none = free agent
+             */
+            owner_team_id?: number | null;
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Tpm */
+            tpm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+        };
+        /** GameSide */
+        GameSide: {
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /**
+             * Score
+             * @description None before tip-off
+             */
+            score?: number | null;
         };
         /** GoogleSignIn */
         GoogleSignIn: {
@@ -1061,6 +1175,58 @@ export interface components {
             /** Target */
             target: string;
         };
+        /** ScoreDay */
+        ScoreDay: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Day */
+            day: number;
+            /**
+             * Date
+             * @description US date of the games
+             */
+            date?: string | null;
+            /** Games */
+            games: components["schemas"]["Game"][];
+            /**
+             * Days
+             * @description Every day of the season with games, for the date picker
+             */
+            days: components["schemas"]["ScoreDayRef"][];
+            /**
+             * Live
+             * @description A game is on; ask again in about a minute
+             */
+            live: boolean;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** ScoreDayRef */
+        ScoreDayRef: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /** Games */
+            games: number;
+        };
+        /** ScoresRequest */
+        ScoresRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Day
+             * @description ESPN scoring period (a day). Default: the last day a game started
+             */
+            day?: number | null;
+        };
         /** SeasonRow */
         SeasonRow: {
             /** Team Id */
@@ -1081,6 +1247,212 @@ export interface components {
             first_seed_pct: number;
             /** Mean Rank */
             mean_rank: number;
+        };
+        /** ShopDeal */
+        ShopDeal: {
+            /** Partner Team Id */
+            partner_team_id: number;
+            /** Partner Team Name */
+            partner_team_name: string;
+            /** Give */
+            give: components["schemas"]["PlayerRef"][];
+            /** Get */
+            get: components["schemas"]["PlayerRef"][];
+            /** @description Who you cut to make room when you get more players */
+            my_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Who they would likely cut to make room */
+            their_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Free agent you add to fill the spot a 2-for-1 opens on your roster */
+            my_add?: components["schemas"]["PlayerRef"] | null;
+            /**
+             * My Cats Gain
+             * @description Change in my expected categories won per week
+             */
+            my_cats_gain: number;
+            /**
+             * Their Cats Gain
+             * @description Change in theirs, ignoring the categories they punt
+             */
+            their_cats_gain: number;
+            /**
+             * Edge
+             * @description My gain minus theirs: how much more the deal does for me
+             */
+            edge: number;
+            /**
+             * Value They Get
+             * @description Perceived value they receive, in auction dollars
+             */
+            value_they_get: number;
+            /**
+             * Value They Give
+             * @description Perceived value they send, in auction dollars, including their owner premium
+             */
+            value_they_give: number;
+            /**
+             * Owner Premium
+             * @description Part of value_they_give that is owner premium on their badged players
+             * @default 0
+             */
+            owner_premium: number;
+            /**
+             * Warnings
+             * @description Jewels or keystones you give up: only suggested for a clearly better deal
+             */
+            warnings?: string[];
+            /**
+             * Acceptance
+             * @description Rough chance the other owner accepts (heuristic)
+             */
+            acceptance: number;
+            /**
+             * Acceptance Label
+             * @enum {string}
+             */
+            acceptance_label: "likely" | "possible" | "long_shot";
+            /**
+             * Pitch
+             * @description Why the deal helps them, to use when you propose it
+             */
+            pitch: string;
+            /**
+             * Reasons
+             * @description Why it can work for both sides: sell high, buy low, their punts, timing
+             */
+            reasons: string[];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /** Playoff Pct After */
+            playoff_pct_after: number;
+            /**
+             * Category Changes
+             * @description Change in my weekly win % per category
+             */
+            category_changes: {
+                [key: string]: number;
+            };
+            /**
+             * Kind
+             * @description win_win: their build improves too. paper_win: they win on trade value, you win on the court
+             * @enum {string}
+             */
+            kind: "win_win" | "paper_win";
+            /**
+             * Uses All
+             * @description The deal sends every player you picked
+             */
+            uses_all: boolean;
+            /**
+             * Faab
+             * @description FAAB dollars you send with the players (0 = none)
+             * @default 0
+             */
+            faab: number;
+            /**
+             * Target Gain
+             * @description Change in your weekly win chance summed over the target categories
+             */
+            target_gain: number;
+        };
+        /** ShopReport */
+        ShopReport: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Offered */
+            offered: components["schemas"]["PlayerRef"][];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /**
+             * Faab Remaining
+             * @description Your FAAB left, or null if the league has no FAAB budget
+             */
+            faab_remaining: number | null;
+            /**
+             * Faab Cap
+             * @description Most FAAB the search added to one deal
+             */
+            faab_cap: number;
+            /**
+             * Targets
+             * @description Categories the search aims at, picked from your team and players
+             */
+            targets: components["schemas"]["ShopTarget"][];
+            /**
+             * Deals
+             * @description Best deals across the league, best first
+             */
+            deals: components["schemas"]["ShopDeal"][];
+            /**
+             * Teams
+             * @description Every other team, best market first
+             */
+            teams: components["schemas"]["ShopTeam"][];
+        };
+        /** ShopRequest */
+        ShopRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Keep Player Ids
+             * @description Players never offered in trades or suggested as drops
+             */
+            keep_player_ids?: number[];
+            /**
+             * Not For Sale Player Ids
+             * @description Other teams' players their owners won't move: never targeted in trades
+             */
+            not_for_sale_player_ids?: number[];
+            /**
+             * Offer Player Ids
+             * @description Your players to shop. Each deal sends one or more of them.
+             */
+            offer_player_ids: number[];
+            /**
+             * Faab Max
+             * @description Most FAAB dollars to add to one deal. Default: 15% of what you have left. 0 turns it off.
+             */
+            faab_max?: number | null;
+        };
+        /** ShopTarget */
+        ShopTarget: {
+            /** Category */
+            category: string;
+            /**
+             * Win Pct
+             * @description Your weekly win chance in it today
+             */
+            win_pct: number;
+            /**
+             * Reason
+             * @description swing: close to a coin flip each week. carried: the players you're shopping supply a lot of it
+             * @enum {string}
+             */
+            reason: "swing" | "carried";
+        };
+        /** ShopTeam */
+        ShopTeam: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Record */
+            record: string;
+            /**
+             * Deals Found
+             * @description Packages with this team that pass the checks, before the season sim
+             */
+            deals_found: number;
+            /** @description The best deal with this team, if one holds up */
+            best?: components["schemas"]["ShopDeal"] | null;
         };
         /** SignUpRequest */
         SignUpRequest: {
@@ -2066,6 +2438,61 @@ export interface operations {
             };
         };
     };
+    shop_api_shop_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShopRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopReport"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     trade_of_day_api_trade_of_the_day_post: {
         parameters: {
             query?: never;
@@ -2586,6 +3013,52 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scores_api_scores_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoresRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

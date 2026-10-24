@@ -35,3 +35,8 @@ export function signedInt(n: number): string {
 export function names(players: { name: string }[]): string {
   return players.map((p) => p.name).join(' + ')
 }
+
+/** Stable key for a trade: partner plus the players on each side. */
+export function tradeKey(t: { partner_team_id: number; give: { id: number }[]; get: { id: number }[] }): string {
+  return `${t.partner_team_id}-${t.give.map((p) => p.id).join('.')}-${t.get.map((p) => p.id).join('.')}`
+}

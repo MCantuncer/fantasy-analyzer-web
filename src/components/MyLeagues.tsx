@@ -77,14 +77,25 @@ export function MyLeagues({ me, creds, onCreds, onOpen }: Props) {
                   : 'League view only. Verify your team to see your moves.'}
               </span>
             </button>
-            <button
-              type="button"
-              className="link small league-remove"
-              aria-label={`Remove ${l.name}`}
-              onClick={() => remove.mutate({ leagueId: l.league_id, season: l.season })}
-            >
-              Remove
-            </button>
+            <details className="league-menu">
+              <summary aria-label={`More for ${l.name}`} title="More">
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <circle cx="4" cy="9" r="1.5" fill="currentColor" />
+                  <circle cx="9" cy="9" r="1.5" fill="currentColor" />
+                  <circle cx="14" cy="9" r="1.5" fill="currentColor" />
+                </svg>
+              </summary>
+              <div className="menu card">
+                <button
+                  type="button"
+                  className="menu-item danger"
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate({ leagueId: l.league_id, season: l.season })}
+                >
+                  Remove from my leagues
+                </button>
+              </div>
+            </details>
           </article>
         ))}
       </div>
