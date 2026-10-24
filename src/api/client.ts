@@ -27,6 +27,7 @@ export type ShopTarget = components['schemas']['ShopTarget']
 export type ScoreDay = components['schemas']['ScoreDay']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
+export type FixtureDay = components['schemas']['FixtureDay']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -48,7 +49,9 @@ async function post<T>(
   token?: string | null,
   timeoutMs?: number,
 ): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
   // Cookies travel in headers only, never in the URL.
   if (creds) {
     headers['X-ESPN-S2'] = creds.espnS2
@@ -98,7 +101,12 @@ export function fetchAnalysis(
 ) {
   return post<AnalysisReport>(
     '/api/analyze',
-    { league_id: leagueId, team_id: teamId, season, keep_player_ids: keepPlayerIds },
+    {
+      league_id: leagueId,
+      team_id: teamId,
+      season,
+      keep_player_ids: keepPlayerIds,
+    },
     creds,
   )
 }
@@ -129,7 +137,14 @@ export function fetchTradeOfTheDay(leagueId: number, season: number | null, cred
 }
 
 export function voteTradeOfTheDay(
-  vote: { leagueId: number; season: number; date: string; teamId: number; take: boolean; voter: string },
+  vote: {
+    leagueId: number
+    season: number
+    date: string
+    teamId: number
+    take: boolean
+    voter: string
+  },
   creds: Credentials | null,
 ) {
   return post<TradeOfTheDay>(
@@ -219,7 +234,13 @@ export function fetchTarget(
 ) {
   return post<TargetReport>(
     '/api/target',
-    { league_id: leagueId, team_id: teamId, season, player_id: playerId, keep_player_ids: keepPlayerIds },
+    {
+      league_id: leagueId,
+      team_id: teamId,
+      season,
+      player_id: playerId,
+      keep_player_ids: keepPlayerIds,
+    },
     creds,
   )
 }
@@ -227,6 +248,18 @@ export function fetchTarget(
 // The free API server can take most of a minute to wake up; past that, show an error with a retry.
 export const SCORES_TIMEOUT_MS = 60_000
 
-export function fetchScores(leagueId: number, season: number | null, day: number | null, creds: Credentials | null) {
-  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day }, creds, null, SCORES_TIMEOUT_MS)
+export function fetchScores(
+  leagueId: number,
+  season: number | null,
+  day: number | null,
+  teamId: number | null,
+  creds: Credentials | null,
+) {
+  return post<ScoreDay>(
+    '/api/scores',
+    { league_id: leagueId, season, day, team_id: teamId },
+    creds,
+    null,
+    SCORES_TIMEOUT_MS,
+  )
 }

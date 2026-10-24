@@ -1,9 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { fetchScores } from '../api/client'
-import type { Game, GameLine, ScoreDay } from '../api/client'
+import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { best, dayLabel, myLines, nightTotals, ratio, statLine, tipOff, winner } from '../lib/scores'
+import {
+  best,
+  dayLabel,
+  gamesLeft,
+  isOut,
+  longDayLabel,
+  myLines,
+  nightTotals,
+  ratio,
+  statLine,
+  tipOff,
+  winner,
+} from '../lib/scores'
 
 const SLOW_AFTER_MS = 8_000
 
@@ -20,8 +32,8 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
   const [onlyMine, setOnlyMine] = useState(false)
   const [picked, setPicked] = useState<number | null>(null)
   const scores = useQuery({
-    queryKey: ['scores', leagueId, season, day, creds?.swid ?? null],
-    queryFn: () => fetchScores(leagueId, season, day, creds),
+    queryKey: ['scores', leagueId, season, day, teamId, creds?.swid ?? null],
+    queryFn: () => fetchScores(leagueId, season, day, teamId, creds),
     retry: false,
     staleTime: 30_000,
     // While a game is on, follow it; ESPN's numbers move about once a minute.
@@ -44,6 +56,10 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
   }
 
   const data = scores.data
+  const pickDay = (d: number) => {
+    setDay(d)
+    setPicked(null)
+  }
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const games = onlyMine ? data.games.filter((g) => g.lines.some((l) => l.owner_team_id === teamId)) : data.games
   const selected =
@@ -54,13 +70,8 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
   return (
     <div className="stack scores">
       <div className="row scores-bar">
-        <DayStrip
-          data={data}
-          onPick={(d) => {
-            setDay(d)
-            setPicked(null)
-          }}
-        />
+        <DayStrip data={data} onPick={pickDay} />
+        <DayJump data={data} onPick={pickDay} />
         <span className="grow" />
         <label className="row">
           <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
@@ -86,13 +97,76 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
         </div>
       )}
 
+      {data.week && data.week.length > 0 && <ThisWeek week={data.week} onPick={pickDay} />}
+
       {selected && <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />}
 
       <p className="small muted">
-        Scores are added up from ESPN's fantasy stats{data.live ? ' and refresh every minute' : ''}. ESPN's fantasy data
-        has no quarter or game clock.
+        Scores are added up from ESPN's fantasy stats
+        {data.live ? ' and refresh every minute' : ''}. ESPN's fantasy data has no quarter or game clock.
       </p>
     </div>
+  )
+}
+
+/** Any day of the season, for going further back than the strip shows. */
+function DayJump({ data, onPick }: { data: ScoreDay; onPick: (day: number) => void }) {
+  return (
+    <label className="row day-jump">
+      <span className="sr-only">Jump to a day</span>
+      <select value={data.day} onChange={(e) => onPick(Number(e.target.value))}>
+        {data.days.map((d) => (
+          <option key={d.day} value={d.day}>
+            {longDayLabel(d.date)} · {d.games} {d.games === 1 ? 'game' : 'games'}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+function ThisWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day: number) => void }) {
+  const left = gamesLeft(week)
+  return (
+    <section className="card flush" aria-labelledby="week-title">
+      <div className="card-head">
+        <h2 id="week-title">Still to play this week</h2>
+        <span className="small muted">
+          Your players have <strong className="tnum">{left}</strong> {left === 1 ? 'game' : 'games'} left before Monday.
+          Days are US game dates; times are yours.
+        </span>
+      </div>
+      <ol className="week-list">
+        {week.map((d) => (
+          <li key={d.day}>
+            <button className="link week-day" onClick={() => onPick(d.day)}>
+              {longDayLabel(d.date)} · {d.games.length} {d.games.length === 1 ? 'game' : 'games'}
+            </button>
+            <ul>
+              {d.games.map((g) => (
+                <li key={g.id} className="fixture">
+                  <span className="num fixture-time">{tipOff(g.start)}</span>
+                  <span className="fixture-teams">
+                    {g.away.abbrev} @ {g.home.abbrev}
+                  </span>
+                  {g.my_players.length > 0 && (
+                    <span className="fixture-mine">
+                      {g.my_players.map((p, i) => (
+                        <span key={p.player_id} className={isOut(p.injury_status) ? 'muted' : undefined}>
+                          {i > 0 && ', '}
+                          {shortName(p.name)}
+                          {isOut(p.injury_status) && ' (out)'}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
