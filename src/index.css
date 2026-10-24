@@ -1511,6 +1511,177 @@ tr.cutline th {
   padding-left: 18px;
 }
 
+/* ---------- Scores ---------- */
+
+.scores-bar {
+  gap: 12px;
+}
+
+.day-strip {
+  gap: 6px;
+}
+
+.day-strip button {
+  flex: none;
+  font-weight: 500;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.day-strip .icon-btn {
+  width: 44px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.day-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--raised);
+  font-weight: 600;
+}
+
+.your-night {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 16px 20px;
+}
+
+.night-lead {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.night-cats {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(44px, auto));
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.night-cats div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.night-cats dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.night-cats dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 0;
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 400;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+button.game-card:hover {
+  border-color: var(--faint);
+}
+
+.game-card.has-mine {
+  border-color: var(--faint);
+}
+
+.game-card[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--raised);
+}
+
+.game-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.mine-names {
+  color: var(--accent-text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.team-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 500;
+}
+
+.team-row .score {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.team-row.lead {
+  font-weight: 700;
+}
+
+.team-row.dim {
+  color: var(--muted);
+}
+
+.game-top {
+  border-top: 1px solid var(--divider);
+  padding-top: 8px;
+  color: var(--text-2);
+}
+
+.badge-live {
+  background: var(--bad);
+  color: var(--bg);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+table.box td,
+table.box th {
+  padding: 8px 10px;
+}
+
+table.box th[scope='row'] {
+  padding-left: 20px;
+}
+
+tr.box-team th {
+  padding: 12px 20px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.box-foot {
+  margin: 0;
+  padding: 12px 20px;
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
@@ -1571,6 +1742,25 @@ tr.cutline th {
 @media (max-width: 640px) {
   :root {
     font-size: 14px;
+  }
+
+  .night-cats {
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    width: 100%;
+  }
+
+  .day-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .game-grid {
+    gap: 8px;
+  }
+
+  .game-card {
+    padding: 12px 14px;
   }
 
   .topbar-inner,
