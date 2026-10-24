@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchLeague, fetchScores, SCORES_TIMEOUT_MS } from './client'
+import { ApiError, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS } from './client'
+import { clearToken, saveToken } from '../lib/session'
 
 describe('api client', () => {
   afterEach(() => vi.restoreAllMocks())
@@ -19,6 +20,16 @@ describe('api client', () => {
     )
     await expect(fetchLeague(1, null, null)).rejects.toMatchObject({ status: 401, code: 'private_league' })
     await expect(fetchLeague(1, null, null)).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('sends the session token as a bearer header', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}'))
+    saveToken('tok-123')
+    await fetchMe()
+    expect((fetchMock.mock.calls[0][1]?.headers as Record<string, string>).Authorization).toBe('Bearer tok-123')
+    clearToken()
+    await fetchMe()
+    expect((fetchMock.mock.calls[1][1]?.headers as Record<string, string>).Authorization).toBeUndefined()
   })
 
   it('gives up on a scores request that never answers', async () => {

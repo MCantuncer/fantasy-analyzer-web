@@ -2,17 +2,19 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Strict Content Security Policy for production builds: no third-party scripts, so
-// injected code can't read the ESPN cookies kept in browser storage. Dev is left
-// alone because Vite's hot reload relies on inline scripts.
+// Strict Content Security Policy for production builds: the only third-party script is
+// Google's sign-in button, so injected code can't read the ESPN cookies or the session
+// kept in browser storage. Dev is left alone because Vite's hot reload relies on inline scripts.
 function contentSecurityPolicy(apiUrl: string | undefined): Plugin {
-  const connect = ["'self'", apiUrl ? new URL(apiUrl).origin : ''].filter(Boolean).join(' ')
+  const google = 'https://accounts.google.com/gsi/'
+  const connect = ["'self'", apiUrl ? new URL(apiUrl).origin : '', google].filter(Boolean).join(' ')
   const policy = [
     "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' ${google}client`,
+    `style-src 'self' 'unsafe-inline' ${google}style`,
     "img-src 'self' data:",
     `connect-src ${connect}`,
+    `frame-src ${google}`,
     "base-uri 'none'",
     "form-action 'self'",
     "object-src 'none'",

@@ -1,5 +1,6 @@
 import type { components } from './schema'
 import type { Credentials } from '../lib/credentials'
+import { loadToken } from '../lib/session'
 
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
@@ -20,6 +21,14 @@ export type FeedTeam = components['schemas']['FeedTeam']
 export type Reactions = components['schemas']['Reactions']
 export type RepliesPage = components['schemas']['RepliesPage']
 export type ReactionsOut = components['schemas']['ReactionsOut']
+export type Me = components['schemas']['Me']
+export type MyLeague = components['schemas']['MyLeague']
+export type Notice = components['schemas']['Notice']
+export type AuthResult = components['schemas']['AuthResult']
+export type AuthConfig = components['schemas']['AuthConfig']
+export type LeagueOverview = components['schemas']['LeagueOverview']
+export type OverviewTeam = components['schemas']['OverviewTeam']
+export type OverviewMatchup = components['schemas']['OverviewMatchup']
 export type ShopReport = components['schemas']['ShopReport']
 export type ShopDeal = components['schemas']['ShopDeal']
 export type ShopTeam = components['schemas']['ShopTeam']
@@ -42,11 +51,12 @@ export class ApiError extends Error {
   }
 }
 
-async function post<T>(
+// Every call carries the signed-in account's token; ESPN cookies only when the league is private.
+async function request<T>(
+  method: 'GET' | 'POST',
   path: string,
   body: unknown,
   creds: Credentials | null,
-  token?: string | null,
   timeoutMs?: number,
 ): Promise<T> {
   const headers: Record<string, string> = {
@@ -57,6 +67,7 @@ async function post<T>(
     headers['X-ESPN-S2'] = creds.espnS2
     headers['X-ESPN-SWID'] = creds.swid
   }
+  const token = loadToken()
   if (token) headers.Authorization = `Bearer ${token}`
   // A request that never answers (a stalled cold start, a dropped connection) must not spin forever.
   const controller = timeoutMs ? new AbortController() : null
@@ -64,9 +75,9 @@ async function post<T>(
   let res: Response
   try {
     res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
+      method,
       headers,
-      body: JSON.stringify(body),
+      body: method === 'POST' ? JSON.stringify(body) : undefined,
       signal: controller?.signal,
     })
   } catch {
@@ -86,6 +97,50 @@ async function post<T>(
     throw new ApiError(res.status, 'http_error', `Request failed (HTTP ${res.status}).`)
   }
   return res.json() as Promise<T>
+}
+
+function post<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
+  return request<T>('POST', path, body, creds, timeoutMs)
+}
+
+export function fetchAuthConfig() {
+  return request<AuthConfig>('GET', '/api/auth/config', null, null)
+}
+
+export function signUp(email: string, password: string) {
+  return post<AuthResult>('/api/auth/signup', { email, password })
+}
+
+export function signIn(email: string, password: string) {
+  return post<AuthResult>('/api/auth/login', { email, password })
+}
+
+export function signInWithGoogle(credential: string) {
+  return post<AuthResult>('/api/auth/google', { credential })
+}
+
+export function signOut() {
+  return post<{ ok: boolean }>('/api/auth/logout', {})
+}
+
+export function fetchMe() {
+  return post<Me>('/api/me', {})
+}
+
+export function clearNotices() {
+  return post<Me>('/api/me/notices/clear', {})
+}
+
+export function addLeague(leagueId: number, season: number | null, creds: Credentials | null) {
+  return post<Me>('/api/my-leagues/add', { league_id: leagueId, season }, creds)
+}
+
+export function removeLeague(ref: LeagueRef) {
+  return post<Me>('/api/my-leagues/remove', { league_id: ref.leagueId, season: ref.season })
+}
+
+export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
+  return post<LeagueOverview>('/api/league-overview', { league_id: ref.leagueId, season: ref.season }, creds)
 }
 
 export function fetchLeague(leagueId: number, season: number | null, creds: Credentials | null) {
@@ -178,44 +233,27 @@ export function verifyTeamLink(challenge: string, creds: Credentials | null) {
   return post<LinkedTeam>('/api/team-link/verify', { challenge }, creds)
 }
 
-export function unlinkTeam(token: string) {
-  return post<{ ok: boolean }>('/api/team-link/unlink', {}, null, token)
+export function fetchFeed(ref: LeagueRef, page: number, creds: Credentials | null) {
+  return post<FeedPage>('/api/feed', { league_id: ref.leagueId, season: ref.season, page }, creds)
 }
 
-export function fetchFeed(ref: LeagueRef, page: number, token: string | null, creds: Credentials | null) {
-  return post<FeedPage>('/api/feed', { league_id: ref.leagueId, season: ref.season, page }, creds, token)
+export function fetchReplies(ref: LeagueRef, target: string) {
+  return post<RepliesPage>('/api/feed/replies', { league_id: ref.leagueId, season: ref.season, target })
 }
 
-export function fetchReplies(ref: LeagueRef, target: string, token: string) {
-  return post<RepliesPage>('/api/feed/replies', { league_id: ref.leagueId, season: ref.season, target }, null, token)
+export function createPost(ref: LeagueRef, body: string, target: string | null) {
+  return post<FeedItem>('/api/posts', { league_id: ref.leagueId, season: ref.season, body, target })
 }
 
-export function createPost(ref: LeagueRef, body: string, target: string | null, token: string) {
-  return post<FeedItem>('/api/posts', { league_id: ref.leagueId, season: ref.season, body, target }, null, token)
+export function deletePost(ref: LeagueRef, postId: number) {
+  return post<{ ok: boolean }>('/api/posts/delete', { league_id: ref.leagueId, season: ref.season, post_id: postId })
 }
 
-export function deletePost(ref: LeagueRef, postId: number, token: string) {
-  return post<{ ok: boolean }>(
-    '/api/posts/delete',
-    { league_id: ref.leagueId, season: ref.season, post_id: postId },
-    null,
-    token,
-  )
-}
-
-export function react(
-  ref: LeagueRef,
-  target: string,
-  reaction: string,
-  on: boolean,
-  token: string,
-  creds: Credentials | null,
-) {
+export function react(ref: LeagueRef, target: string, reaction: string, on: boolean, creds: Credentials | null) {
   return post<ReactionsOut>(
     '/api/reactions',
     { league_id: ref.leagueId, season: ref.season, target, reaction, on },
     creds,
-    token,
   )
 }
 
@@ -255,11 +293,5 @@ export function fetchScores(
   teamId: number | null,
   creds: Credentials | null,
 ) {
-  return post<ScoreDay>(
-    '/api/scores',
-    { league_id: leagueId, season, day, team_id: teamId },
-    creds,
-    null,
-    SCORES_TIMEOUT_MS,
-  )
+  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
 }
