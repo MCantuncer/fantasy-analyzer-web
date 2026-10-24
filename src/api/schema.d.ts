@@ -384,6 +384,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Target */
+        post: operations["target_api_target_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -415,6 +432,11 @@ export interface components {
             pickups: components["schemas"]["PickupIdea"][];
             /** Season */
             season: components["schemas"]["SeasonRow"][];
+            /**
+             * League Rosters
+             * @description Every other team's players, for picking a trade target
+             */
+            league_rosters: components["schemas"]["TeamRoster"][];
             /** Faab Remaining */
             faab_remaining: number | null;
             assumptions: components["schemas"]["Assumptions"];
@@ -830,6 +852,51 @@ export interface components {
              */
             mine: boolean;
         };
+        /** OwnerRead */
+        OwnerRead: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Record */
+            record: string;
+            build: components["schemas"]["TeamBuild"];
+            /**
+             * Punts
+             * @description Categories they win less than 30% of the time
+             */
+            punts: string[];
+            /**
+             * Needs
+             * @description Close categories they compete in, where a gain flips weeks
+             */
+            needs: string[];
+            /** Playoff Pct */
+            playoff_pct: number;
+            /** Outside Playoffs */
+            outside_playoffs: boolean;
+            /**
+             * Target Is Star
+             * @description The target is one of the league's jewels: his owner wants a premium
+             */
+            target_is_star: boolean;
+            /**
+             * Would Value
+             * @description Your players that help their build most
+             */
+            would_value: components["schemas"]["OwnerWant"][];
+        };
+        /** OwnerWant */
+        OwnerWant: {
+            player: components["schemas"]["PlayerRef"];
+            /**
+             * Their Cats Gain
+             * @description Change in their expected categories won, ignoring their punts
+             */
+            their_cats_gain: number;
+            /** Helps */
+            helps: string[];
+        };
         /** PickupIdea */
         PickupIdea: {
             add: components["schemas"]["PlayerRef"];
@@ -1022,6 +1089,187 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** TargetFit */
+        TargetFit: {
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "great" | "good" | "small" | "none";
+            /**
+             * My Cats Gain
+             * @description Change in my expected categories won per week if I add him
+             */
+            my_cats_gain: number;
+            /** @description Who you'd cut to fit him if you gave nothing up */
+            my_drop: components["schemas"]["PlayerRef"] | null;
+            /**
+             * Helps
+             * @description Categories he improves most for you, best first
+             */
+            helps: string[];
+            /**
+             * Hurts
+             * @description Categories he makes worse for you
+             */
+            hurts: string[];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /**
+             * Playoff Pct After
+             * @description Playoff odds if you added him for free, as a ceiling
+             */
+            playoff_pct_after: number;
+            /**
+             * Category Changes
+             * @description Change in my weekly win % per category
+             */
+            category_changes: {
+                [key: string]: number;
+            };
+        };
+        /** TargetOffer */
+        TargetOffer: {
+            /** Partner Team Id */
+            partner_team_id: number;
+            /** Partner Team Name */
+            partner_team_name: string;
+            /** Give */
+            give: components["schemas"]["PlayerRef"][];
+            /** Get */
+            get: components["schemas"]["PlayerRef"][];
+            /** @description Who you cut to make room when you get more players */
+            my_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Who they would likely cut to make room */
+            their_drop?: components["schemas"]["PlayerRef"] | null;
+            /** @description Free agent you add to fill the spot a 2-for-1 opens on your roster */
+            my_add?: components["schemas"]["PlayerRef"] | null;
+            /**
+             * My Cats Gain
+             * @description Change in my expected categories won per week
+             */
+            my_cats_gain: number;
+            /**
+             * Their Cats Gain
+             * @description Change in theirs, ignoring the categories they punt
+             */
+            their_cats_gain: number;
+            /**
+             * Edge
+             * @description My gain minus theirs: how much more the deal does for me
+             */
+            edge: number;
+            /**
+             * Value They Get
+             * @description Perceived value they receive, in auction dollars
+             */
+            value_they_get: number;
+            /**
+             * Value They Give
+             * @description Perceived value they send, in auction dollars, including their owner premium
+             */
+            value_they_give: number;
+            /**
+             * Owner Premium
+             * @description Part of value_they_give that is owner premium on their badged players
+             * @default 0
+             */
+            owner_premium: number;
+            /**
+             * Warnings
+             * @description Jewels or keystones you give up: only suggested for a clearly better deal
+             */
+            warnings?: string[];
+            /**
+             * Acceptance
+             * @description Rough chance the other owner accepts (heuristic)
+             */
+            acceptance: number;
+            /**
+             * Acceptance Label
+             * @enum {string}
+             */
+            acceptance_label: "likely" | "possible" | "long_shot";
+            /**
+             * Pitch
+             * @description Why the deal helps them, to use when you propose it
+             */
+            pitch: string;
+            /**
+             * Reasons
+             * @description Why it can work for both sides: sell high, buy low, their punts, timing
+             */
+            reasons: string[];
+            /** Playoff Pct Before */
+            playoff_pct_before: number;
+            /** Playoff Pct After */
+            playoff_pct_after: number;
+            /**
+             * Category Changes
+             * @description Change in my weekly win % per category
+             */
+            category_changes: {
+                [key: string]: number;
+            };
+            /**
+             * Angle
+             * @enum {string}
+             */
+            angle: "best" | "safer" | "cheaper" | "alternative";
+            /** Angle Note */
+            angle_note: string;
+        };
+        /** TargetReport */
+        TargetReport: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            target: components["schemas"]["PlayerRef"];
+            fit: components["schemas"]["TargetFit"];
+            owner: components["schemas"]["OwnerRead"];
+            /**
+             * Offers
+             * @description Best offer first, then up to two fallbacks
+             */
+            offers: components["schemas"]["TargetOffer"][];
+            /**
+             * Note
+             * @description Why there are no offers, when there are none
+             */
+            note?: string | null;
+            /** Generated At */
+            generated_at: string;
+            /** Elapsed Ms */
+            elapsed_ms: number;
+        };
+        /** TargetRequest */
+        TargetRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Keep Player Ids
+             * @description Players never offered in trades or suggested as drops
+             */
+            keep_player_ids?: number[];
+            /**
+             * Not For Sale Player Ids
+             * @description Other teams' players their owners won't move: never targeted in trades
+             */
+            not_for_sale_player_ids?: number[];
+            /**
+             * Player Id
+             * @description The rostered player you want to trade for
+             */
+            player_id: number;
+        };
         /** TeamBuild */
         TeamBuild: {
             /** Team Id */
@@ -1079,6 +1327,15 @@ export interface components {
         TeamLinkVerify: {
             /** Challenge */
             challenge: string;
+        };
+        /** TeamRoster */
+        TeamRoster: {
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Players */
+            players: components["schemas"]["TradeTarget"][];
         };
         /** TeamSummary */
         TeamSummary: {
@@ -1269,6 +1526,15 @@ export interface components {
             playoff_pct_before: number;
             /** Playoff Pct After */
             playoff_pct_after: number;
+        };
+        /** TradeTarget */
+        TradeTarget: {
+            player: components["schemas"]["PlayerRef"];
+            /**
+             * My Cats Gain
+             * @description Change in my expected categories won if I added him
+             */
+            my_cats_gain: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -2265,6 +2531,61 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    target_api_target_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TargetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TargetReport"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
