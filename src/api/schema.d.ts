@@ -282,6 +282,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scores
+         * @description A day of NBA games with scores and box scores, each player tagged with his fantasy team here.
+         */
+        post: operations["scores_api_scores_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -525,6 +545,80 @@ export interface components {
             abbrev: string;
             /** Faab Spent */
             faab_spent?: number | null;
+        };
+        /** Game */
+        Game: {
+            /** Id */
+            id: number;
+            /**
+             * Start
+             * @description UTC start time, ISO 8601
+             */
+            start: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "scheduled" | "live" | "final";
+            away: components["schemas"]["GameSide"];
+            home: components["schemas"]["GameSide"];
+            /**
+             * Lines
+             * @description Everyone who played, most minutes first
+             */
+            lines: components["schemas"]["GameLine"][];
+        };
+        /** GameLine */
+        GameLine: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /**
+             * Owner Team Id
+             * @description Fantasy team in this league; none = free agent
+             */
+            owner_team_id?: number | null;
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Tpm */
+            tpm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+        };
+        /** GameSide */
+        GameSide: {
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /**
+             * Score
+             * @description None before tip-off
+             */
+            score?: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -788,6 +882,58 @@ export interface components {
             season?: number | null;
             /** Target */
             target: string;
+        };
+        /** ScoreDay */
+        ScoreDay: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Day */
+            day: number;
+            /**
+             * Date
+             * @description US date of the games
+             */
+            date?: string | null;
+            /** Games */
+            games: components["schemas"]["Game"][];
+            /**
+             * Days
+             * @description Every day of the season with games, for the date picker
+             */
+            days: components["schemas"]["ScoreDayRef"][];
+            /**
+             * Live
+             * @description A game is on; ask again in about a minute
+             */
+            live: boolean;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** ScoreDayRef */
+        ScoreDayRef: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /** Games */
+            games: number;
+        };
+        /** ScoresRequest */
+        ScoresRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Day
+             * @description ESPN scoring period (a day). Default: the last day a game started
+             */
+            day?: number | null;
         };
         /** SeasonRow */
         SeasonRow: {
@@ -2204,6 +2350,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TargetReport"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scores_api_scores_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoresRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreDay"];
                 };
             };
             /** @description Unauthorized */
