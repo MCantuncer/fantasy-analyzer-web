@@ -16,6 +16,7 @@ function side(team_name: string, sends: string[], before: number, after: number)
       value: 1,
       perceived_value: 10,
       tier: 'tradeable' as const,
+      owner_premium: 0,
     })),
     cats_gain: 0.1,
     category_changes: {},
