@@ -1968,3 +1968,27 @@ td.keep-cell {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.team-link-btn {
+  min-height: 40px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.team-link-btn.linked {
+  color: var(--good);
+  max-width: 200px;
+}
+
+.team-link-btn.linked span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .team-link-btn {
+    width: 44px;
+    padding: 0;
+  }
+}

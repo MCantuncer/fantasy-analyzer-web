@@ -20,7 +20,7 @@ import {
 } from '../lib/feed'
 import type { Filter } from '../lib/feed'
 import { pct } from '../lib/format'
-import { clearTeamLink, loadTeamLink } from '../lib/teamLink'
+import { useTeamLink } from '../lib/teamLink'
 import type { TeamLink } from '../lib/teamLink'
 import { LinkTeam } from './LinkTeam'
 
@@ -47,7 +47,7 @@ interface Ctx {
 export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
   const ref: LeagueRef = { leagueId, season }
   const qc = useQueryClient()
-  const [link, setLink] = useState<TeamLink | null>(() => loadTeamLink(leagueId, season))
+  const [link, setLink] = useTeamLink(leagueId, season)
   const [filter, setFilter] = useState<Filter>('all')
   const token = link?.token ?? null
   const feedKey = ['feed', leagueId, season, token]
@@ -64,10 +64,9 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
   // The server forgot this device's link (unlinked elsewhere, or a reset): show the link card again.
   useEffect(() => {
     if (link && first && !first.me) {
-      clearTeamLink(leagueId, season)
       setLink(null)
     }
-  }, [link, first, leagueId, season])
+  }, [link, first, setLink])
 
   function patchItem(id: string, patch: (item: FeedItem) => FeedItem) {
     qc.setQueryData<InfiniteData<FeedPage>>(feedKey, (data) =>
@@ -190,7 +189,6 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
               className="link small"
               onClick={() => {
                 unlinkTeam(link.token).catch(() => undefined)
-                clearTeamLink(leagueId, season)
                 setLink(null)
               }}
             >

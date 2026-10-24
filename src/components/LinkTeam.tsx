@@ -4,7 +4,6 @@ import { startTeamLink, verifyTeamLink } from '../api/client'
 import type { FeedTeam, LeagueRef, TeamLinkChallenge } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { espnTeamUrl } from '../lib/espnUrl'
-import { saveTeamLink } from '../lib/teamLink'
 import type { TeamLink } from '../lib/teamLink'
 
 interface Props {
@@ -35,7 +34,6 @@ export function LinkTeam({ leagueRef, teams, defaultTeamId, creds, onLinked }: P
     mutationFn: () => verifyTeamLink(challenge!.challenge, creds),
     onSuccess: (me) => {
       const link = { token: me.token!, teamId: me.team_id, teamName: me.team_name }
-      saveTeamLink(leagueRef.leagueId, leagueRef.season, link)
       onLinked(link)
     },
   })

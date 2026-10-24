@@ -5,6 +5,7 @@ import type { AnalysisReport } from './api/client'
 import { CookieForm } from './components/CookieForm'
 import { Landing } from './components/Landing'
 import { Report, TABS } from './components/Report'
+import { TeamLinkButton } from './components/TeamLinkButton'
 import type { Tab } from './components/Report'
 import { Status } from './components/Status'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
@@ -199,6 +200,13 @@ export default function App() {
               >
                 Forget ESPN cookies
               </button>
+            )}
+            {report && (
+              <TeamLinkButton
+                leagueId={report.league.id}
+                season={report.league.season}
+                onOpen={() => setTab('chat')}
+              />
             )}
             {report && teamId && (
               <button
