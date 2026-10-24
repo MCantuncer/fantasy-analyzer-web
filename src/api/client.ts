@@ -199,6 +199,7 @@ export function voteTradeOfTheDay(
     teamId: number
     take: boolean
     voter: string
+    pickId: string | null
   },
   creds: Credentials | null,
 ) {
@@ -211,6 +212,7 @@ export function voteTradeOfTheDay(
       team_id: vote.teamId,
       take: vote.take,
       voter: vote.voter,
+      pick_id: vote.pickId,
     },
     creds,
   )
