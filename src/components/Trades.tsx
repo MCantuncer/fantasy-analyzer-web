@@ -5,7 +5,7 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { BadgeNotes } from './PlayerBadges'
 
-const ACCEPTANCE = {
+export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
   possible: { label: 'Possible', tone: 'warn' },
   long_shot: { label: 'Long shot', tone: 'bad' },
@@ -15,7 +15,7 @@ function dollars(x: number) {
   return `$${Math.round(x)}`
 }
 
-function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <button

@@ -9,6 +9,7 @@ import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Season } from './Season'
+import { TradeFor } from './TradeFor'
 import { TradeOfTheDay } from './TradeOfTheDay'
 import { TradePark } from './TradePark'
 import { Trades } from './Trades'
@@ -17,6 +18,7 @@ import type { Credentials } from '../lib/credentials'
 export const TABS = [
   { id: 'moves', label: 'Moves' },
   { id: 'park', label: 'Trade Park' },
+  { id: 'trade-for', label: 'Trade for' },
   { id: 'team', label: 'My team' },
   { id: 'league', label: 'League' },
   { id: 'chat', label: 'League chat' },
@@ -100,6 +102,8 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
           onSearch={setSearched}
         />
       )}
+
+      {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
 
       {tab === 'team' && (
         <div className="split">
