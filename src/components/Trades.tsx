@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { TradeIdea } from '../api/client'
-import { names, pct } from '../lib/format'
+import { names, pct, tradeKey } from '../lib/format'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 
@@ -12,10 +12,6 @@ const ACCEPTANCE = {
 
 function dollars(x: number) {
   return `$${Math.round(x)}`
-}
-
-function tradeKey(t: TradeIdea) {
-  return `${t.partner_team_id}-${t.give.map((p) => p.id).join('.')}-${t.get.map((p) => p.id).join('.')}`
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -36,6 +32,93 @@ function CopyButton({ text }: { text: string }) {
     >
       {copied ? 'Copied' : 'Copy pitch'}
     </button>
+  )
+}
+
+interface ItemProps {
+  trade: TradeIdea
+  id: string
+  open: boolean
+  onToggle: () => void
+  why: string
+  /** FAAB dollars sent with the players. */
+  faab?: number
+  tag?: ReactNode
+  extra?: ReactNode
+}
+
+/** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
+export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, extra }: ItemProps) {
+  const acc = ACCEPTANCE[t.acceptance_label]
+  return (
+    <li id={id} className={open ? 'move open' : 'move'}>
+      <button type="button" className="move-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
+        <span>
+          <span className="label-sm">Give </span>
+          <strong>
+            {names(t.give)}
+            {faab > 0 && ` + $${faab} FAAB`}
+          </strong>
+        </span>
+        <span>
+          <span className="label-sm">Get </span>
+          <strong>{names(t.get)}</strong>
+          {tag}
+        </span>
+        <span>
+          <span className="label-sm">with </span>
+          {t.partner_team_name}
+        </span>
+        <span className="accept" title="Rough estimate from value balance and how much the deal helps them">
+          <span className={`tnum ${acc.tone}`}>
+            {pct(t.acceptance)} · {acc.label}
+          </span>
+          <span className="meter" aria-hidden="true">
+            <span className={`fill-${acc.tone}`} style={{ width: pct(t.acceptance) }} />
+          </span>
+        </span>
+        <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
+      </button>
+      {open && (
+        <div className="move-detail" id={`${id}-detail`}>
+          <div>
+            <div className="detail-label">Your pitch to {t.partner_team_name}</div>
+            <p className="pitch">{t.pitch}</p>
+            {t.reasons.length > 0 && (
+              <>
+                <div className="detail-label">{why}</div>
+                <ul className="reasons">
+                  {t.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <ul className="reasons">
+              <li>
+                They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners price players.
+              </li>
+              <li>
+                Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
+              </li>
+              {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
+              {t.my_add && (
+                <li>
+                  You send more than you get back: pick up {t.my_add.name} from free agency for the open spot. The odds
+                  above include him.
+                </li>
+              )}
+              {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
+              {extra}
+            </ul>
+            <div className="row">
+              <CopyButton text={t.pitch} />
+            </div>
+          </div>
+          <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
+        </div>
+      )}
+    </li>
   )
 }
 
@@ -99,78 +182,15 @@ export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] })
             {trades.map((t, i) => {
               const key = tradeKey(t)
               const isOpen = open === key
-              const acc = ACCEPTANCE[t.acceptance_label]
               return (
-                <li key={key} id={`trade-${i}`} className={isOpen ? 'move open' : 'move'}>
-                  <button
-                    type="button"
-                    className="move-row"
-                    aria-expanded={isOpen}
-                    aria-controls={`trade-${i}-detail`}
-                    onClick={() => setOpen(isOpen ? null : key)}
-                  >
-                    <span>
-                      <span className="label-sm">Give </span>
-                      <strong>{names(t.give)}</strong>
-                    </span>
-                    <span>
-                      <span className="label-sm">Get </span>
-                      <strong>{names(t.get)}</strong>
-                    </span>
-                    <span>
-                      <span className="label-sm">with </span>
-                      {t.partner_team_name}
-                    </span>
-                    <span className="accept" title="Rough estimate from value balance and how much the deal helps them">
-                      <span className={`tnum ${acc.tone}`}>
-                        {pct(t.acceptance)} · {acc.label}
-                      </span>
-                      <span className="meter" aria-hidden="true">
-                        <span className={`fill-${acc.tone}`} style={{ width: pct(t.acceptance) }} />
-                      </span>
-                    </span>
-                    <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
-                  </button>
-                  {isOpen && (
-                    <div className="move-detail" id={`trade-${i}-detail`}>
-                      <div>
-                        <div className="detail-label">Your pitch to {t.partner_team_name}</div>
-                        <p className="pitch">{t.pitch}</p>
-                        {t.reasons.length > 0 && (
-                          <>
-                            <div className="detail-label">{MODES[mode].why}</div>
-                            <ul className="reasons">
-                              {t.reasons.map((r) => (
-                                <li key={r}>{r}</li>
-                              ))}
-                            </ul>
-                          </>
-                        )}
-                        <ul className="reasons">
-                          <li>
-                            They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners
-                            price players.
-                          </li>
-                          <li>
-                            Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
-                          </li>
-                          {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
-                          {t.my_add && (
-                            <li>
-                              You send more than you get back: pick up {t.my_add.name} from free agency for the open
-                              spot. The odds above include him.
-                            </li>
-                          )}
-                          {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
-                        </ul>
-                        <div className="row">
-                          <CopyButton text={t.pitch} />
-                        </div>
-                      </div>
-                      <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
-                    </div>
-                  )}
-                </li>
+                <TradeItem
+                  key={key}
+                  trade={t}
+                  id={`trade-${i}`}
+                  open={isOpen}
+                  onToggle={() => setOpen(isOpen ? null : key)}
+                  why={MODES[mode].why}
+                />
               )
             })}
           </ol>

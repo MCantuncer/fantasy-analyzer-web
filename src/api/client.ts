@@ -19,6 +19,10 @@ export type FeedTeam = components['schemas']['FeedTeam']
 export type Reactions = components['schemas']['Reactions']
 export type RepliesPage = components['schemas']['RepliesPage']
 export type ReactionsOut = components['schemas']['ReactionsOut']
+export type ShopReport = components['schemas']['ShopReport']
+export type ShopDeal = components['schemas']['ShopDeal']
+export type ShopTeam = components['schemas']['ShopTeam']
+export type ShopTarget = components['schemas']['ShopTarget']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -72,6 +76,27 @@ export function fetchAnalysis(
   return post<AnalysisReport>(
     '/api/analyze',
     { league_id: leagueId, team_id: teamId, season, keep_player_ids: keepPlayerIds },
+    creds,
+  )
+}
+
+export function fetchShop(
+  leagueId: number,
+  teamId: number,
+  season: number | null,
+  offerPlayerIds: number[],
+  keepPlayerIds: number[],
+  creds: Credentials | null,
+) {
+  return post<ShopReport>(
+    '/api/shop',
+    {
+      league_id: leagueId,
+      team_id: teamId,
+      season,
+      offer_player_ids: offerPlayerIds,
+      keep_player_ids: keepPlayerIds,
+    },
     creds,
   )
 }

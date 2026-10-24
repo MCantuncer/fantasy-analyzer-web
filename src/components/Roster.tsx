@@ -11,9 +11,10 @@ interface Props {
   roster: PlayerRef[]
   keep: number[]
   onToggleKeep: (id: number) => void
+  onShop?: (id: number) => void
 }
 
-export function Roster({ roster, keep, onToggleKeep }: Props) {
+export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
   return (
     <section className="card flush" aria-labelledby="roster-title">
       <div className="card-head">
@@ -32,6 +33,11 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
               <th className="left">Status</th>
               <th title="Trade value in auction dollars: draft-day rankings and prices fading into % owned, rest-of-season value in your categories and this season's production">Trade value</th>
               <th title="Category value: z-scores summed over the league's categories">Cat value</th>
+              {onShop && (
+                <th>
+                  <span className="sr-only">Shop</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -58,6 +64,18 @@ export function Roster({ roster, keep, onToggleKeep }: Props) {
                   {p.value > 0 ? '+' : p.value < 0 ? '−' : ''}
                   {Math.abs(p.value).toFixed(1)}
                 </td>
+                {onShop && (
+                  <td>
+                    <button
+                      type="button"
+                      className="secondary btn-sm"
+                      onClick={() => onShop(p.id)}
+                      title={`Find the best deals for ${p.name} in Trade Park`}
+                    >
+                      Shop<span className="sr-only"> {p.name}</span>
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
