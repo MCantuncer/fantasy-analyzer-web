@@ -5,6 +5,8 @@ import type { Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { best, dayLabel, myLines, nightTotals, ratio, statLine, tipOff, winner } from '../lib/scores'
 
+const SLOW_AFTER_MS = 8_000
+
 interface Props {
   leagueId: number
   season: number
@@ -26,13 +28,7 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
     refetchInterval: (q) => (q.state.data?.live ? 60_000 : false),
   })
 
-  if (scores.isLoading) {
-    return (
-      <section className="card" aria-busy="true">
-        <p className="muted">Loading the scoreboard…</p>
-      </section>
-    )
-  }
+  if (scores.isLoading) return <LoadingScores />
   if (scores.error || !scores.data) {
     return (
       <div className="card error stack">
@@ -97,6 +93,28 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
         has no quarter or game clock.
       </p>
     </div>
+  )
+}
+
+/** After a few seconds, explain the wait: the free API server sleeps when idle. */
+function LoadingScores() {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
+    return () => clearTimeout(timer)
+  }, [])
+  return (
+    <section className="card stack" aria-busy="true" style={{ gap: 4 }}>
+      <p className="muted" role="status">
+        Loading the scoreboard…
+      </p>
+      {slow && (
+        <p className="small muted">
+          Still working. The server may be waking up, which can take up to a minute. If it doesn't answer by then,
+          you'll get a Try again button.
+        </p>
+      )}
+    </section>
   )
 }
 
