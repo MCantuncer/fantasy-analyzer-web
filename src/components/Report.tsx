@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import type { AnalysisReport } from '../api/client'
+import type { AnalysisReport, LeagueOverview as Overview } from '../api/client'
 import { BestMove } from './BestMove'
 import { Builds } from './Builds'
 import { CategoryOutlook } from './CategoryOutlook'
 import { CategoryTiles } from './CategoryTiles'
 import { LeagueChat } from './LeagueChat'
+import { LeagueOverview } from './LeagueOverview'
 import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
@@ -31,9 +32,10 @@ interface Props {
   onRerun: () => void
   rerunning: boolean
   creds: Credentials | null
+  overview: Overview | null
 }
 
-export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning, creds }: Props) {
+export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning, creds, overview }: Props) {
   const [show, setShow] = useState<'trades' | 'pickups'>('trades')
 
   return (
@@ -90,14 +92,13 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
 
       {tab === 'league' && (
         <>
+          {overview && <LeagueOverview overview={overview} onVerify={() => undefined} />}
           <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
           <Builds builds={report.builds} categories={report.league.categories} myTeamId={report.team_id} />
         </>
       )}
 
-      {tab === 'chat' && (
-        <LeagueChat leagueId={report.league.id} season={report.league.season} myTeamId={report.team_id} creds={creds} />
-      )}
+      {tab === 'chat' && <LeagueChat leagueId={report.league.id} season={report.league.season} creds={creds} />}
 
       {keepChanged && (
         <div className="sticky-action">

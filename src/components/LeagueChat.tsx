@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InfiniteData } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
-import { createPost, deletePost, fetchFeed, fetchReplies, react, unlinkTeam } from '../api/client'
+import { useState } from 'react'
+import { createPost, deletePost, fetchFeed, fetchReplies, react } from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef, Reactions } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import {
@@ -20,15 +20,19 @@ import {
 } from '../lib/feed'
 import type { Filter } from '../lib/feed'
 import { pct } from '../lib/format'
-import { clearTeamLink, loadTeamLink } from '../lib/teamLink'
-import type { TeamLink } from '../lib/teamLink'
-import { LinkTeam } from './LinkTeam'
 
 interface Props {
   leagueId: number
   season: number
-  myTeamId: number
   creds: Credentials | null
+  /** Shown instead of the composer to accounts that haven't verified a team here. */
+  onVerify?: () => void
+}
+
+// The verified team this account posts as; null shows moves only.
+interface Poster {
+  teamId: number
+  teamName: string
 }
 
 // Fresh enough for a group chat without a socket; a free server can't hold connections open.
@@ -38,36 +42,28 @@ interface Ctx {
   ref: LeagueRef
   teams: FeedTeam[]
   budget: number | null
-  link: TeamLink | null
+  link: Poster | null
   creds: Credentials | null
   onReact: (item: FeedItem, reaction: string, on: boolean) => void
   onDelete: (item: FeedItem) => void
 }
 
-export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
+export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
   const ref: LeagueRef = { leagueId, season }
   const qc = useQueryClient()
-  const [link, setLink] = useState<TeamLink | null>(() => loadTeamLink(leagueId, season))
   const [filter, setFilter] = useState<Filter>('all')
-  const token = link?.token ?? null
-  const feedKey = ['feed', leagueId, season, token]
+  const feedKey = ['feed', leagueId, season]
 
   const feed = useInfiniteQuery({
     queryKey: feedKey,
-    queryFn: ({ pageParam }) => fetchFeed(ref, pageParam, token, creds),
+    queryFn: ({ pageParam }) => fetchFeed(ref, pageParam, creds),
     initialPageParam: 0,
     getNextPageParam: (last: FeedPage) => (last.has_more ? last.page + 1 : undefined),
     refetchInterval: REFRESH_MS,
   })
 
   const first = feed.data?.pages[0]
-  // The server forgot this device's link (unlinked elsewhere, or a reset): show the link card again.
-  useEffect(() => {
-    if (link && first && !first.me) {
-      clearTeamLink(leagueId, season)
-      setLink(null)
-    }
-  }, [link, first, leagueId, season])
+  const link: Poster | null = first?.me ? { teamId: first.me.team_id, teamName: first.me.team_name } : null
 
   function patchItem(id: string, patch: (item: FeedItem) => FeedItem) {
     qc.setQueryData<InfiniteData<FeedPage>>(feedKey, (data) =>
@@ -82,12 +78,12 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
 
   const reaction = useMutation({
     mutationFn: (v: { item: FeedItem; reaction: string; on: boolean }) =>
-      react(ref, v.item.id, v.reaction, v.on, token!, creds),
+      react(ref, v.item.id, v.reaction, v.on, creds),
     onSuccess: (out) => patchItem(out.target, (i) => ({ ...i, reactions: out.reactions })),
   })
 
   const removal = useMutation({
-    mutationFn: (item: FeedItem) => deletePost(ref, postId(item)!, token!),
+    mutationFn: (item: FeedItem) => deletePost(ref, postId(item)!),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['feed', leagueId, season] })
       qc.invalidateQueries({ queryKey: ['replies', leagueId, season] })
@@ -116,7 +112,7 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
   const items = feed.data.pages
     .flatMap((p) => p.items)
     .filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)))
-    .filter((i) => matches(i, filter, link?.teamId ?? myTeamId))
+    .filter((i) => matches(i, filter, link?.teamId ?? null))
   const ctx: Ctx = {
     ref,
     teams,
@@ -133,20 +129,18 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
         {link ? (
           <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
         ) : (
-          <LinkTeam
-            leagueRef={ref}
-            teams={teams}
-            defaultTeamId={myTeamId}
-            creds={creds}
-            onLinked={(l) => {
-              setLink(l)
-              qc.invalidateQueries({ queryKey: ['feed', leagueId, season] })
-            }}
-          />
+          onVerify && (
+            <div className="verify-banner">
+              <span>Manage a team here? Verify it to post, reply and react.</span>
+              <button type="button" onClick={onVerify}>
+                Verify
+              </button>
+            </div>
+          )
         )}
 
         <div className="chat-filters" role="group" aria-label="Show">
-          {FILTERS.filter((f) => link || f.id !== 'post').map((f) => (
+          {FILTERS.filter((f) => link || (f.id !== 'post' && f.id !== 'mine')).map((f) => (
             <button
               key={f.id}
               type="button"
@@ -186,27 +180,17 @@ export function LeagueChat({ leagueId, season, myTeamId, creds }: Props) {
           <section className="card stack chat-me">
             <span className="kpi-label">Posting as</span>
             <strong>{link.teamName}</strong>
-            <button
-              className="link small"
-              onClick={() => {
-                unlinkTeam(link.token).catch(() => undefined)
-                clearTeamLink(leagueId, season)
-                setLink(null)
-              }}
-            >
-              Unlink this device
-            </button>
           </section>
         )}
         {first.faab_budget ? (
-          <FaabSpent teams={teams} budget={first.faab_budget} myTeamId={link?.teamId ?? myTeamId} />
+          <FaabSpent teams={teams} budget={first.faab_budget} myTeamId={link?.teamId ?? null} />
         ) : null}
       </aside>
     </div>
   )
 }
 
-function FaabSpent({ teams, budget, myTeamId }: { teams: FeedTeam[]; budget: number; myTeamId: number }) {
+function FaabSpent({ teams, budget, myTeamId }: { teams: FeedTeam[]; budget: number; myTeamId: number | null }) {
   const rows = [...teams].sort((a, b) => (b.faab_spent ?? 0) - (a.faab_spent ?? 0))
   const idle = rows.filter((t) => !t.faab_spent).length
   return (
@@ -430,7 +414,7 @@ function Social({ item, ctx, canReply = true }: { item: FeedItem; ctx: Ctx; canR
 function Replies({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const replies = useQuery({
     queryKey: ['replies', ctx.ref.leagueId, ctx.ref.season, item.id],
-    queryFn: () => fetchReplies(ctx.ref, item.id, ctx.link!.token),
+    queryFn: () => fetchReplies(ctx.ref, item.id),
     refetchInterval: REFRESH_MS,
   })
   return (
@@ -448,7 +432,7 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
   const qc = useQueryClient()
   const [text, setText] = useState('')
   const send = useMutation({
-    mutationFn: (body: string) => createPost(ctx.ref, body, target, ctx.link!.token),
+    mutationFn: (body: string) => createPost(ctx.ref, body, target),
     onSuccess: () => {
       setText('')
       qc.invalidateQueries({ queryKey: ['feed', ctx.ref.leagueId, ctx.ref.season] })
