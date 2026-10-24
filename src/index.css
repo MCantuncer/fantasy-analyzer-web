@@ -2247,3 +2247,220 @@ td.keep-cell {
     grid-template-columns: 1fr;
   }
 }
+
+/* Trade Park: player picker on the left, results on the right; one column on phones. */
+.park {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.park-picker {
+  position: sticky;
+  top: 112px;
+}
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(60vh, 560px);
+  overflow-y: auto;
+}
+
+.pick {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--divider);
+  cursor: pointer;
+}
+
+.pick input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.pick.on {
+  background: var(--accent-soft);
+}
+
+.pick.off {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pick-name {
+  display: grid;
+  min-width: 0;
+}
+
+.pick-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pick-value {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.park-go {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.park-go button {
+  width: 100%;
+}
+
+.park-results {
+  gap: 16px;
+  min-width: 0;
+}
+
+.park-empty {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.park-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.park-hero-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.park-deal {
+  margin: 0;
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.park-pills {
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.park-hero-odds {
+  display: grid;
+  gap: 4px;
+}
+
+.park-hero-odds .before {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.park-hero-odds .after {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.park-targets {
+  margin: 0;
+  max-width: 90ch;
+}
+
+.kind-pill {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.park-pills .kind-pill {
+  margin-left: 0;
+}
+
+.kind-pill.win_win {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.kind-pill.paper_win {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.market {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.market li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) 128px;
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.market-deal {
+  min-width: 0;
+}
+
+.market .odds-change {
+  justify-self: end;
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .park {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .park-picker {
+    position: static;
+  }
+
+  .pick-list {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 560px) {
+  .market li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .market-deal {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .park-deal {
+    font-size: 19px;
+  }
+}

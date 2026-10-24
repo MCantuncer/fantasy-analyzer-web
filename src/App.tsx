@@ -335,6 +335,7 @@ export default function App() {
             onRerun={() => teamId && analysis.mutate({ teamId, keep })}
             rerunning={analysis.isPending}
             creds={creds}
+            onTab={setTab}
           />
         )}
       </main>

@@ -11,11 +11,13 @@ import { Roster } from './Roster'
 import { Season } from './Season'
 import { TradeFor } from './TradeFor'
 import { TradeOfTheDay } from './TradeOfTheDay'
+import { TradePark } from './TradePark'
 import { Trades } from './Trades'
 import type { Credentials } from '../lib/credentials'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
+  { id: 'park', label: 'Trade Park' },
   { id: 'trade-for', label: 'Trade for' },
   { id: 'team', label: 'My team' },
   { id: 'league', label: 'League' },
@@ -33,10 +35,20 @@ interface Props {
   onRerun: () => void
   rerunning: boolean
   creds: Credentials | null
+  onTab: (tab: Tab) => void
 }
 
-export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning, creds }: Props) {
+export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, rerunning, creds, onTab }: Props) {
   const [show, setShow] = useState<'trades' | 'pickups'>('trades')
+  // Trade Park: players picked, and the set last searched (kept across tab switches).
+  const [picks, setPicks] = useState<number[]>([])
+  const [searched, setSearched] = useState<number[]>([])
+
+  const shopPlayer = (id: number) => {
+    setPicks([id])
+    setSearched([id])
+    onTab('park')
+  }
 
   return (
     <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
@@ -79,6 +91,18 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
         </>
       )}
 
+      {tab === 'park' && (
+        <TradePark
+          report={report}
+          keep={keep}
+          creds={creds}
+          picks={picks}
+          onPicks={setPicks}
+          searched={searched}
+          onSearch={setSearched}
+        />
+      )}
+
       {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
 
       {tab === 'team' && (
@@ -87,7 +111,7 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
             <CategoryOutlook categories={report.categories} />
           </div>
           <div className="wide">
-            <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} />
+            <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} onShop={shopPlayer} />
           </div>
         </div>
       )}
@@ -111,7 +135,7 @@ export function Report({ report, tab, keep, keepChanged, onToggleKeep, onRerun, 
         </div>
       )}
 
-      {tab !== 'chat' && (
+      {tab !== 'chat' && tab !== 'park' && (
         <details className="footnote">
           <summary>How this works</summary>
           <ul>
