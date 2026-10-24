@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchLeague } from './client'
+import { ApiError, fetchLeague, fetchScores, SCORES_TIMEOUT_MS } from './client'
 
 describe('api client', () => {
   afterEach(() => vi.restoreAllMocks())
@@ -19,5 +19,20 @@ describe('api client', () => {
     )
     await expect(fetchLeague(1, null, null)).rejects.toMatchObject({ status: 401, code: 'private_league' })
     await expect(fetchLeague(1, null, null)).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('gives up on a scores request that never answers', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+        }),
+    )
+    const pending = fetchScores(1, 2027, null, null)
+    const outcome = expect(pending).rejects.toMatchObject({ code: 'timeout' })
+    await vi.advanceTimersByTimeAsync(SCORES_TIMEOUT_MS)
+    await outcome
+    vi.useRealTimers()
   })
 })

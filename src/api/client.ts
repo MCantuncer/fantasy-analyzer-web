@@ -41,7 +41,13 @@ export class ApiError extends Error {
   }
 }
 
-async function post<T>(path: string, body: unknown, creds: Credentials | null, token?: string | null): Promise<T> {
+async function post<T>(
+  path: string,
+  body: unknown,
+  creds: Credentials | null,
+  token?: string | null,
+  timeoutMs?: number,
+): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   // Cookies travel in headers only, never in the URL.
   if (creds) {
@@ -49,11 +55,24 @@ async function post<T>(path: string, body: unknown, creds: Credentials | null, t
     headers['X-ESPN-SWID'] = creds.swid
   }
   if (token) headers.Authorization = `Bearer ${token}`
+  // A request that never answers (a stalled cold start, a dropped connection) must not spin forever.
+  const controller = timeoutMs ? new AbortController() : null
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : undefined
   let res: Response
   try {
-    res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+    res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller?.signal,
+    })
   } catch {
+    if (controller?.signal.aborted) {
+      throw new ApiError(0, 'timeout', 'The server took too long to answer. It may be waking up, so try again.')
+    }
     throw new ApiError(0, 'network', 'Could not reach the analyzer server.')
+  } finally {
+    clearTimeout(timer)
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null)
@@ -205,6 +224,9 @@ export function fetchTarget(
   )
 }
 
+// The free API server can take most of a minute to wake up; past that, show an error with a retry.
+export const SCORES_TIMEOUT_MS = 60_000
+
 export function fetchScores(leagueId: number, season: number | null, day: number | null, creds: Credentials | null) {
-  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day }, creds)
+  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day }, creds, null, SCORES_TIMEOUT_MS)
 }
