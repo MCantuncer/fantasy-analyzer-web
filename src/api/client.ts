@@ -27,6 +27,7 @@ export type ShopTarget = components['schemas']['ShopTarget']
 export type ScoreDay = components['schemas']['ScoreDay']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
+export type FixtureDay = components['schemas']['FixtureDay']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -205,6 +206,12 @@ export function fetchTarget(
   )
 }
 
-export function fetchScores(leagueId: number, season: number | null, day: number | null, creds: Credentials | null) {
-  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day }, creds)
+export function fetchScores(
+  leagueId: number,
+  season: number | null,
+  day: number | null,
+  teamId: number | null,
+  creds: Credentials | null,
+) {
+  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day, team_id: teamId }, creds)
 }
