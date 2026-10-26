@@ -441,6 +441,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/news/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * News Refresh
+         * @description Wakes the server and starts a check of every news source if one is due. Returns nothing about news.
+         */
+        get: operations["news_refresh_api_news_refresh_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * News
+         * @description NBA news from many sources, checked against ESPN's player data and each other before it shows.
+         */
+        post: operations["news_api_news_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -965,6 +1005,170 @@ export interface components {
              * @description The team this account is the verified manager of
              */
             team_id?: number | null;
+        };
+        /** NewsPage */
+        NewsPage: {
+            /** League Id */
+            league_id?: number | null;
+            /** Stories */
+            stories: components["schemas"]["NewsStory"][];
+            /** Sources */
+            sources: components["schemas"]["NewsSourceHealth"][];
+            /** Trending */
+            trending: components["schemas"]["TrendingPlayer"][];
+            /**
+             * Updated At
+             * @description Last time every source was checked, UTC
+             */
+            updated_at?: string | null;
+            /**
+             * Refreshing
+             * @description A check of every source is running; ask again in a minute
+             */
+            refreshing: boolean;
+        };
+        /** NewsPlayer */
+        NewsPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Pro Team
+             * @description NBA team abbreviation; empty for a free agent
+             */
+            pro_team: string;
+            /**
+             * Injury Status
+             * @description ESPN's current status, e.g. ACTIVE, DAY_TO_DAY, OUT
+             */
+            injury_status: string;
+            /**
+             * Owner Team Id
+             * @description Fantasy team in the asked league; none = free agent
+             */
+            owner_team_id?: number | null;
+        };
+        /** NewsRequest */
+        NewsRequest: {
+            /**
+             * League Id
+             * @description Tag each player with his fantasy team here
+             */
+            league_id?: number | null;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Include Held
+             * @description Also return stories only seen on social sites
+             * @default false
+             */
+            include_held: boolean;
+        };
+        /** NewsSourceHealth */
+        NewsSourceHealth: {
+            /** Source Id */
+            source_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "fact" | "outlet" | "tip";
+            /**
+             * Ok
+             * @description None until the source has been tried
+             */
+            ok?: boolean | null;
+            /** Last Success */
+            last_success?: string | null;
+            /** Last Attempt */
+            last_attempt?: string | null;
+            /**
+             * Items
+             * @default 0
+             */
+            items: number;
+            /** Error */
+            error?: string | null;
+        };
+        /** NewsSourceLink */
+        NewsSourceLink: {
+            /** Source Id */
+            source_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "fact" | "outlet" | "tip";
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Published At */
+            published_at: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+        };
+        /** NewsStory */
+        NewsStory: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "injury" | "return" | "trade" | "rumor" | "signing" | "waive" | "role" | "other";
+            /**
+             * Status
+             * @description confirmed: ESPN data or two independent outlets agree. reported: one outlet. held: social sites only. didnt_happen: a reported trade with no team change after 3 days
+             * @enum {string}
+             */
+            status: "confirmed" | "reported" | "held" | "didnt_happen";
+            /**
+             * Headline
+             * @description The lead source's own headline; never written by us
+             */
+            headline: string;
+            /** Summary */
+            summary: string;
+            /**
+             * Published At
+             * @description First seen, UTC
+             */
+            published_at: string;
+            /**
+             * Updated At
+             * @description Latest source, UTC
+             */
+            updated_at: string;
+            /** Players */
+            players: components["schemas"]["NewsPlayer"][];
+            /**
+             * Sources
+             * @description Every source for this story, oldest first
+             */
+            sources: components["schemas"]["NewsSourceLink"][];
+            /**
+             * Severity
+             * @description Injuries: 1 day-to-day, 2 out short term, 3 weeks or more
+             * @default 0
+             */
+            severity: number;
+            /**
+             * Conflict
+             * @description Set when sources disagree on how bad an injury is
+             */
+            conflict?: string | null;
         };
         /** Notice */
         Notice: {
@@ -1971,6 +2175,26 @@ export interface components {
              * @description Change in my expected categories won if I added him
              */
             my_cats_gain: number;
+        };
+        /** TrendingPlayer */
+        TrendingPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team */
+            pro_team: string;
+            /** Injury Status */
+            injury_status: string;
+            /** Percent Owned */
+            percent_owned: number;
+            /**
+             * Percent Change
+             * @description Change in % of ESPN leagues rostering him, today
+             */
+            percent_change: number;
+            /** Owner Team Id */
+            owner_team_id?: number | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -3124,6 +3348,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScoreDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    news_refresh_api_news_refresh_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    news_api_news_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsPage"];
                 };
             };
             /** @description Unauthorized */
