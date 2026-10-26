@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/injury-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Injury Impact
+         * @description Which teammates gain while a player is out, measured from games his team played without him.
+         */
+        post: operations["injury_impact_api_injury_impact_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/config": {
         parameters: {
             query?: never;
@@ -575,6 +595,82 @@ export interface components {
             token: string;
             me: components["schemas"]["Me"];
         };
+        /** Beneficiary */
+        Beneficiary: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Owner Team Id
+             * @description Fantasy team in the asked league; none = free agent
+             */
+            owner_team_id?: number | null;
+            /**
+             * Minutes Before
+             * @description Minutes per game with the injured player playing (recent games count more)
+             */
+            minutes_before: number;
+            /**
+             * Minutes After
+             * @description Expected minutes per game while he is out
+             */
+            minutes_after: number;
+            /** Minutes Change */
+            minutes_change: number;
+            /**
+             * Error
+             * @description 80% band around the measured change; 0 when no games without him were seen
+             */
+            error: number;
+            /**
+             * Games Without
+             * @description Effective games of evidence without him: older games and last season count less
+             */
+            games_without: number;
+            /** @description Expected change per game in each category */
+            gains: components["schemas"]["CategoryGains"];
+            /**
+             * Value
+             * @description Change in 9-category z-score per game
+             */
+            value: number;
+            /**
+             * Confidence
+             * @description strong: 8+ games without him and a clear change; some: 3+ games; estimate: mostly the prior
+             * @enum {string}
+             */
+            confidence: "strong" | "some" | "estimate";
+            /** Note */
+            note?: string | null;
+        };
+        /** CategoryGains */
+        CategoryGains: {
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Tpm */
+            tpm: number;
+            /** To */
+            to: number;
+            /**
+             * Fg Impact
+             * @description FG makes above the league rate per game: positive helps FG%
+             */
+            fg_impact: number;
+            /**
+             * Ft Impact
+             * @description FT makes above the league rate per game: positive helps FT%
+             */
+            ft_impact: number;
+        };
         /** CategoryOutlook */
         CategoryOutlook: {
             /** Category */
@@ -863,6 +959,55 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InjuryImpact */
+        InjuryImpact: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team */
+            pro_team: string;
+            /**
+             * Minutes
+             * @description His recent minutes per game
+             */
+            minutes: number;
+            /**
+             * Games Missed
+             * @description Games his team played without him, this season and last
+             */
+            games_missed: number;
+            /**
+             * Beneficiaries
+             * @description Teammates who gain, best first; at most 6
+             */
+            beneficiaries: components["schemas"]["Beneficiary"][];
+            /** Method */
+            method: string;
+            /**
+             * Track Record
+             * @description How the method did on past seasons' absences
+             */
+            track_record: string;
+        };
+        /** InjuryImpactRequest */
+        InjuryImpactRequest: {
+            /**
+             * Player Id
+             * @description The player who is out
+             */
+            player_id: number;
+            /**
+             * League Id
+             * @description Tag each teammate with his fantasy team here
+             */
+            league_id?: number | null;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
         };
         /** LeagueOverview */
         LeagueOverview: {
@@ -2268,6 +2413,61 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    injury_impact_api_injury_impact_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InjuryImpactRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InjuryImpact"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

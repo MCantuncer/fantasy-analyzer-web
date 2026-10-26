@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { NewsStory } from '../api/client'
-import { ago, dayHeading, inFilter, inScope, ownership, statusText } from './news'
+import { ago, dayHeading, inFilter, inScope, minutesChange, ownership, statusText, topGains } from './news'
 
 const base: NewsStory = {
   id: 'a',
@@ -76,5 +76,31 @@ describe('news helpers', () => {
     expect(ago('2026-10-26T11:58:00Z', now)).toBe('2 min ago')
     expect(ago('2026-10-26T09:00:00Z', now)).toBe('3h ago')
     expect(dayHeading('2026-10-26T11:00:00Z', now)).toBe('Today')
+  })
+
+  it('names the categories a teammate gains most, scaled by how much each category moves', () => {
+    const gains = {
+      pts: 2.4,
+      reb: 0.3,
+      ast: 0.9,
+      stl: 0.2,
+      blk: 0.0,
+      tpm: 0.1,
+      to: -0.3,
+      fg_impact: 0.0,
+      ft_impact: 0.0,
+    }
+    // stl 0.2 is 0.57 of its spread, ast 0.9 is 0.47, pts 2.4 is 0.43, fewer turnovers 0.4.
+    expect(topGains(gains)).toEqual(['+0.2 STL', '+0.9 AST', '+2.4 PTS'])
+    expect(topGains({ ...gains, pts: 0, ast: 0, stl: 0, fg_impact: 0.5 }, 2)).toEqual(['FG% up', '−0.3 TO'])
+    expect(topGains({ pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0.5, fg_impact: -1, ft_impact: 0 })).toEqual(
+      [],
+    )
+  })
+
+  it('shows the minutes band only when there is evidence', () => {
+    expect(minutesChange({ minutes_change: 6.14, error: 2.3, confidence: 'strong' })).toBe('+6.1 ±2.3 min')
+    expect(minutesChange({ minutes_change: -1.2, error: 0, confidence: 'some' })).toBe('−1.2 min')
+    expect(minutesChange({ minutes_change: 4, error: 3, confidence: 'estimate' })).toBe('+4.0 min')
   })
 })

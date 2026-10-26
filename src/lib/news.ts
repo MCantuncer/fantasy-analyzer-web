@@ -1,4 +1,4 @@
-import type { NewsPlayer, NewsStory } from '../api/client'
+import type { Beneficiary, CategoryGains, NewsPlayer, NewsStory } from '../api/client'
 
 export type NewsFilter = 'all' | 'injuries' | 'moves' | 'roles' | 'rumors'
 export type NewsScope = 'nba' | 'league' | 'mine'
@@ -121,4 +121,57 @@ const STATUS: Record<string, string> = {
 
 export function shortStatus(p: Pick<NewsPlayer, 'injury_status'>): string | null {
   return STATUS[p.injury_status] ?? null
+}
+
+// One standard deviation of each category per game, as the API's value model uses (app/analysis/injury.py).
+const CATEGORY_SD: Record<keyof CategoryGains, number> = {
+  pts: 5.6,
+  reb: 2.5,
+  ast: 1.9,
+  stl: 0.35,
+  blk: 0.45,
+  tpm: 0.85,
+  to: 0.75,
+  fg_impact: 0.95,
+  ft_impact: 0.65,
+}
+
+const CATEGORY_LABEL: Record<keyof CategoryGains, string> = {
+  pts: 'PTS',
+  reb: 'REB',
+  ast: 'AST',
+  stl: 'STL',
+  blk: 'BLK',
+  tpm: '3PM',
+  to: 'TO',
+  fg_impact: 'FG%',
+  ft_impact: 'FT%',
+}
+
+const PERCENT_CATEGORIES = new Set<keyof CategoryGains>(['fg_impact', 'ft_impact'])
+
+/** Categories the move helps most, by their share of a standard deviation; turnovers help when they fall. */
+export function topGains(gains: CategoryGains, count = 3): string[] {
+  return (Object.keys(CATEGORY_SD) as (keyof CategoryGains)[])
+    .map((k) => ({ k, z: ((k === 'to' ? -1 : 1) * gains[k]) / CATEGORY_SD[k] }))
+    .filter((c) => c.z >= 0.15)
+    .sort((a, b) => b.z - a.z)
+    .slice(0, count)
+    .map(({ k }) => {
+      if (PERCENT_CATEGORIES.has(k)) return `${CATEGORY_LABEL[k]} up`
+      const v = gains[k]
+      return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} ${CATEGORY_LABEL[k]}`
+    })
+}
+
+export const CONFIDENCE_LABEL: Record<Beneficiary['confidence'], string> = {
+  strong: 'Strong evidence',
+  some: 'Some evidence',
+  estimate: 'Estimate',
+}
+
+export function minutesChange(b: Pick<Beneficiary, 'minutes_change' | 'error' | 'confidence'>): string {
+  const sign = b.minutes_change >= 0 ? '+' : '−'
+  const band = b.confidence !== 'estimate' && b.error > 0 ? ` ±${b.error.toFixed(1)}` : ''
+  return `${sign}${Math.abs(b.minutes_change).toFixed(1)}${band} min`
 }
