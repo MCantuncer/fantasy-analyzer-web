@@ -5,16 +5,13 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
+import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
   possible: { label: 'Possible', tone: 'warn' },
   long_shot: { label: 'Long shot', tone: 'bad' },
 } as const
-
-function dollars(x: number) {
-  return `$${Math.round(x)}`
-}
 
 export function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -51,6 +48,7 @@ interface ItemProps {
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
 export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, extra }: ItemProps) {
+  const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
   return (
     <li id={id} className={open ? 'move open' : 'move'}>
@@ -107,8 +105,10 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
             )}
             <ul className="reasons">
               <li>
-                They get {dollars(t.value_they_get)} of value for {dollars(t.value_they_give)}, as owners price players
-                {t.owner_premium >= 0.5 ? `, including a ${dollars(t.owner_premium)} owner premium on what they send.` : '.'}
+                {valueSentence(t.value_they_get, t.value_they_give, rounds)}, as owners price players
+                {t.owner_premium >= 0.5
+                  ? `, including a ${premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what they send.`
+                  : '.'}
               </li>
               <li>
                 Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.

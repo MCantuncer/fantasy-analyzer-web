@@ -941,6 +941,17 @@ export interface components {
             supported: boolean;
             /** Unsupported Reason */
             unsupported_reason?: string | null;
+            /**
+             * Draft Type
+             * @default auction
+             * @enum {string}
+             */
+            draft_type: "auction" | "snake";
+            /**
+             * Round Values
+             * @description Snake leagues: trade value of the last pick in each draft round, round 1 first. A trade value at or above entry k is worth a round k+1 pick. Null in auction leagues.
+             */
+            round_values?: number[] | null;
         };
         /** LinkedTeam */
         LinkedTeam: {
@@ -2775,7 +2786,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3212,7 +3223,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;

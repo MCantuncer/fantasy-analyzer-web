@@ -5,6 +5,7 @@ import type { Credentials } from '../lib/credentials'
 import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
 import { TradeItem } from './Trades'
+import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
 
 export const MAX_PICKS = 4
 
@@ -49,6 +50,7 @@ function sameSet(a: number[], b: number[]) {
 }
 
 export function TradePark({ report, keep, creds, picks, onPicks, searched, onSearch }: Props) {
+  const rounds = useRoundValues()
   const shop = useQuery({
     queryKey: ['shop', report.league.id, report.league.season, report.team_id, searched, keep, creds?.swid ?? null],
     queryFn: () => fetchShop(report.league.id, report.team_id, report.league.season, searched, keep, creds),
@@ -85,8 +87,8 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
                       {p.injury_status !== 'ACTIVE' && ` · ${p.injury_status.replace(/_/g, ' ').toLowerCase()}`}
                     </span>
                   </span>
-                  <span className="pick-value num" title="Trade value in auction dollars">
-                    ${Math.round(p.perceived_value)}
+                  <span className="pick-value num" title={valueTitle(rounds)}>
+                    {shortValue(p.perceived_value, rounds)}
                   </span>
                   <span className={`badge tier-${p.tier}`}>{TIERS[p.tier]}</span>
                 </label>

@@ -831,7 +831,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -1650,7 +1650,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           }
         }
       }
@@ -3204,6 +3204,30 @@
               }
             ],
             "title": "Unsupported Reason"
+          },
+          "draft_type": {
+            "type": "string",
+            "enum": [
+              "auction",
+              "snake"
+            ],
+            "title": "Draft Type",
+            "default": "auction"
+          },
+          "round_values": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Values",
+            "description": "Snake leagues: trade value of the last pick in each draft round, round 1 first. A trade value at or above entry k is worth a round k+1 pick. Null in auction leagues."
           }
         },
         "type": "object",
