@@ -16,6 +16,7 @@ import type { Credentials } from './lib/credentials'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
+import { RoundValuesContext } from './lib/tradeValue'
 
 interface Selection {
   leagueId: number
@@ -421,18 +422,20 @@ export default function App() {
         )}
 
         {!verifying && verified && report && (
-          <Report
-            report={report}
-            tab={activeTab as Tab}
-            keep={keep}
-            keepChanged={keepChanged}
-            onToggleKeep={toggleKeep}
-            onRerun={() => analysis.mutate({ teamId: myTeamId, keep })}
-            rerunning={analysis.isPending}
-            creds={creds}
-            overview={overview.data ?? null}
-            onTab={(t) => setTab(t)}
-          />
+          <RoundValuesContext.Provider value={report.league.round_values}>
+            <Report
+              report={report}
+              tab={activeTab as Tab}
+              keep={keep}
+              keepChanged={keepChanged}
+              onToggleKeep={toggleKeep}
+              onRerun={() => analysis.mutate({ teamId: myTeamId, keep })}
+              rerunning={analysis.isPending}
+              creds={creds}
+              overview={overview.data ?? null}
+              onTab={(t) => setTab(t)}
+            />
+          </RoundValuesContext.Provider>
         )}
       </main>
     </>

@@ -1,5 +1,6 @@
 import type { PlayerRef } from '../api/client'
 import { PlayerBadges } from './PlayerBadges'
+import { shortValue, useRoundValues } from '../lib/tradeValue'
 
 const TIERS: Record<PlayerRef['tier'], { label: string; title: string }> = {
   core: { label: 'Core', title: 'You keep him: never offered or dropped' },
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
+  const rounds = useRoundValues()
   return (
     <section className="card flush" aria-labelledby="roster-title">
       <div className="card-head">
@@ -32,7 +34,7 @@ export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
               <th className="left">Player</th>
               <th className="left">Pos</th>
               <th className="left">Status</th>
-              <th title="Trade value in auction dollars: draft-day rankings and prices fading into % owned, rest-of-season value in your categories and this season's production">Trade value</th>
+              <th title={`Trade value ${rounds ? 'as a draft round' : 'in auction dollars'}: draft-day rankings and prices fading into % owned, rest-of-season value in your categories and this season's production`}>Trade value</th>
               <th title="Category value: z-scores summed over the league's categories">Cat value</th>
               {onShop && (
                 <th>
@@ -61,7 +63,7 @@ export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
                     {TIERS[p.tier].label}
                   </span>
                 </td>
-                <td>${Math.round(p.perceived_value)}</td>
+                <td>{shortValue(p.perceived_value, rounds)}</td>
                 <td className={p.value > 0 ? 'good' : p.value < 0 ? 'bad' : ''}>
                   {p.value > 0 ? '+' : p.value < 0 ? '−' : ''}
                   {Math.abs(p.value).toFixed(1)}

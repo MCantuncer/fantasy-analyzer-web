@@ -4,6 +4,7 @@ import { fetchTarget } from '../api/client'
 import type { AnalysisReport, TargetOffer, TargetReport, TradeTarget } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { names, pct } from '../lib/format'
+import { shortValue, useRoundValues, valueSentence, valueTitle } from '../lib/tradeValue'
 import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
@@ -30,10 +31,6 @@ function cats(x: number) {
   return `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}`
 }
 
-function dollars(x: number) {
-  return `$${Math.round(x)}`
-}
-
 interface Candidate extends TradeTarget {
   teamName: string
 }
@@ -47,6 +44,7 @@ function Picker({
   selected: number | null
   onPick: (id: number) => void
 }) {
+  const rounds = useRoundValues()
   const [query, setQuery] = useState('')
   const all = useMemo<Candidate[]>(
     () => report.league_rosters.flatMap((t) => t.players.map((p) => ({ ...p, teamName: t.team_name }))),
@@ -95,7 +93,7 @@ function Picker({
                   </span>
                 </span>
                 <span className="target-nums num">
-                  <span title="Trade value in auction dollars">{dollars(c.player.perceived_value)}</span>
+                  <span title={valueTitle(rounds)}>{shortValue(c.player.perceived_value, rounds)}</span>
                   <span
                     className={c.my_cats_gain >= 0.05 ? 'good' : c.my_cats_gain < 0 ? 'bad' : 'muted'}
                     title="Categories won per week if you added him"
@@ -116,6 +114,7 @@ function Picker({
 }
 
 function Fit({ data }: { data: TargetReport }) {
+  const rounds = useRoundValues()
   const fit = FIT[data.fit.label]
   const t = data.target
   return (
@@ -127,7 +126,7 @@ function Fit({ data }: { data: TargetReport }) {
             {t.name}
           </h2>
           <div className="small muted">
-            {t.positions.join('/')} · {data.owner.team_name} · trade value {dollars(t.perceived_value)}
+            {t.positions.join('/')} · {data.owner.team_name} · trade value {shortValue(t.perceived_value, rounds)}
           </div>
         </div>
         <span className={`badge fit-${fit.tone}`}>{fit.label}</span>
@@ -143,6 +142,7 @@ function Fit({ data }: { data: TargetReport }) {
 }
 
 function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: boolean; onToggle: () => void; partner: string }) {
+  const rounds = useRoundValues()
   const acc = ACCEPTANCE[offer.acceptance_label]
   const hero = offer.angle === 'best'
   return (
@@ -188,10 +188,7 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               </>
             )}
             <ul className="reasons">
-              <li>
-                They get {dollars(offer.value_they_get)} of value for {dollars(offer.value_they_give)}, as owners price
-                players.
-              </li>
+              <li>{valueSentence(offer.value_they_get, offer.value_they_give, rounds)}, as owners price players.</li>
               <li>
                 Categories won per week: you {cats(offer.my_cats_gain)}, they {cats(offer.their_cats_gain)}.
               </li>
