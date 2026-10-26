@@ -61,10 +61,16 @@ export function teamAbbrev(teams: FeedTeam[], id: number): string {
 }
 
 /** What the waiver claim beat, e.g. "Won over 1 other bid (Eryaman Lakers, $1)." Nothing when it was uncontested. */
-export function bidLine(item: FeedItem, teams: FeedTeam[]): string | null {
+/** The claims a waiver pickup beat: bids in FAAB leagues, waiver priority otherwise. */
+export function bidLine(item: FeedItem, teams: FeedTeam[], budget?: number | null): string | null {
   if (item.kind !== 'waiver') return null
   const lost = item.losing_bids ?? []
   if (lost.length === 0) return null
+  if (!budget) {
+    return lost.length === 1
+      ? `Won over 1 other claim (${teamName(teams, lost[0].team_id)}) on waiver priority.`
+      : `Won over ${lost.length} other claims on waiver priority.`
+  }
   if (lost.length === 1) return `Won over 1 other bid (${teamName(teams, lost[0].team_id)}, $${lost[0].bid}).`
   return `Won over ${lost.length} other bids, the highest $${lost[0].bid}.`
 }

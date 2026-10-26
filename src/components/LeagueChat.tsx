@@ -243,16 +243,18 @@ function MoveLines({ item }: { item: FeedItem }) {
 }
 
 function Move({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
-  const bids = bidLine(item, ctx.teams)
+  const bids = bidLine(item, ctx.teams, ctx.budget)
   const faab = faabLine(item, ctx.teams, ctx.budget)
   return (
     <article className="card feed-card">
       <header className="feed-head">
         <span className={item.kind === 'waiver' ? 'feed-pill waiver' : 'feed-pill fa'}>
-          {item.kind === 'waiver' ? (
+          {item.kind === 'waiver' && ctx.budget ? (
             <>
               Waiver <span className="num">${item.bid ?? 0}</span>
             </>
+          ) : item.kind === 'waiver' ? (
+            'Waiver claim'
           ) : (
             'Free agent'
           )}

@@ -49,7 +49,8 @@ const post: FeedItem = { id: 'post:1', kind: 'post', at: '2026-10-23T09:00:00Z',
 
 describe('feed lines', () => {
   it('names the bid a claim beat', () => {
-    expect(bidLine(claim, teams)).toBe('Won over 1 other bid (Cayyolu, $1).')
+    expect(bidLine(claim, teams, 100)).toBe('Won over 1 other bid (Cayyolu, $1).')
+    expect(bidLine(claim, teams, null)).toBe('Won over 1 other claim (Cayyolu) on waiver priority.')
     expect(bidLine({ ...claim, losing_bids: [] }, teams)).toBeNull()
     expect(
       bidLine(
@@ -61,6 +62,7 @@ describe('feed lines', () => {
           ],
         },
         teams,
+        100,
       ),
     ).toBe('Won over 2 other bids, the highest $3.')
     expect(bidLine(trade, teams)).toBeNull()
