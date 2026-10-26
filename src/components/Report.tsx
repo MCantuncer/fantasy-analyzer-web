@@ -101,7 +101,12 @@ export function Report({
                 <Trades fair={report.trades} edge={report.edge_trades} />
               </div>
               <div className="narrow">
-                <Pickups pickups={report.pickups} faab={report.faab_remaining} />
+                <Pickups
+                  pickups={report.pickups}
+                  faab={report.faab_remaining}
+                  waiverPriority={report.waiver_priority}
+                  teams={report.league.teams.length}
+                />
               </div>
             </div>
           </div>

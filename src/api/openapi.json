@@ -2167,6 +2167,18 @@
             ],
             "title": "Faab Remaining"
           },
+          "waiver_priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waiver Priority",
+            "description": "Your place in the rolling waiver order (1 = first claim), in leagues without FAAB. A successful claim usually moves you to the back."
+          },
           "assumptions": {
             "$ref": "#/components/schemas/Assumptions"
           },

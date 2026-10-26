@@ -519,6 +519,11 @@ export interface components {
             league_rosters: components["schemas"]["TeamRoster"][];
             /** Faab Remaining */
             faab_remaining: number | null;
+            /**
+             * Waiver Priority
+             * @description Your place in the rolling waiver order (1 = first claim), in leagues without FAAB. A successful claim usually moves you to the back.
+             */
+            waiver_priority?: number | null;
             assumptions: components["schemas"]["Assumptions"];
             /** Generated At */
             generated_at: string;
