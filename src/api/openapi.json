@@ -940,7 +940,7 @@
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           }
         }
       }
@@ -1759,7 +1759,7 @@
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           }
         }
       }
@@ -4467,6 +4467,24 @@
             "title": "Owner Premium",
             "description": "What his owner wants on top of trade value, in auction dollars",
             "default": 0.0
+          },
+          "games_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Games Share",
+            "description": "Expected share of his team's remaining games he plays once back from any current injury, from his games-played record. A typical regular plays about 0.73."
+          },
+          "injury_prone": {
+            "type": "boolean",
+            "title": "Injury Prone",
+            "description": "He has missed many games in recent seasons: valued for fewer games",
+            "default": false
           }
         },
         "type": "object",

@@ -1488,6 +1488,17 @@ export interface components {
              * @default 0
              */
             owner_premium: number;
+            /**
+             * Games Share
+             * @description Expected share of his team's remaining games he plays once back from any current injury, from his games-played record. A typical regular plays about 0.73.
+             */
+            games_share?: number | null;
+            /**
+             * Injury Prone
+             * @description He has missed many games in recent seasons: valued for fewer games
+             * @default false
+             */
+            injury_prone: boolean;
         };
         /** PollTally */
         PollTally: {
@@ -2991,7 +3002,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3428,7 +3439,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;

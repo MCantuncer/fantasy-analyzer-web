@@ -303,11 +303,19 @@ details summary {
 .injury-badge {
   margin-left: 6px;
   vertical-align: middle;
+  /* Narrow table columns: wrap inside the pill rather than spill into the next column. */
+  max-width: 100%;
+  white-space: normal;
 }
 
 .badge-bad {
   background: var(--bad-soft);
   color: var(--bad);
+}
+
+.badge-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 /* Roster tiers. The label always says the tier; color only reinforces it. */
