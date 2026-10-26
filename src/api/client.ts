@@ -43,6 +43,9 @@ export type NewsPlayer = components['schemas']['NewsPlayer']
 export type NewsSourceLink = components['schemas']['NewsSourceLink']
 export type NewsSourceHealth = components['schemas']['NewsSourceHealth']
 export type TrendingPlayer = components['schemas']['TrendingPlayer']
+export type InjuryImpact = components['schemas']['InjuryImpact']
+export type Beneficiary = components['schemas']['Beneficiary']
+export type CategoryGains = components['schemas']['CategoryGains']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -306,4 +309,13 @@ export function fetchScores(
 
 export function fetchNews(leagueId: number, season: number | null, includeHeld: boolean, creds: Credentials | null) {
   return post<NewsPage>('/api/news', { league_id: leagueId, season, include_held: includeHeld }, creds, SCORES_TIMEOUT_MS)
+}
+
+export function fetchInjuryImpact(playerId: number, leagueId: number, season: number | null, creds: Credentials | null) {
+  return post<InjuryImpact>(
+    '/api/injury-impact',
+    { player_id: playerId, league_id: leagueId, season },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
 }

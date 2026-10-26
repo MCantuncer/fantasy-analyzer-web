@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { NewsPage, NewsStory } from '../api/client'
+import type { InjuryImpact, NewsPage, NewsStory } from '../api/client'
 import { News } from './News'
 
 const TEAMS = [
@@ -133,8 +133,51 @@ const PAGE: NewsPage = {
   ],
 }
 
+const IMPACT: InjuryImpact = {
+  player_id: 1,
+  name: 'Jalen Williams',
+  pro_team: 'OKC',
+  minutes: 33.2,
+  games_missed: 11.4,
+  beneficiaries: [
+    {
+      player_id: 4,
+      name: 'Cason Wallace',
+      owner_team_id: 3,
+      minutes_before: 27.1,
+      minutes_after: 32.9,
+      minutes_change: 5.8,
+      error: 2.1,
+      games_without: 9.2,
+      gains: { pts: 2.1, reb: 0.6, ast: 0.8, stl: 0.3, blk: 0.1, tpm: 0.3, to: 0.3, fg_impact: 0.1, ft_impact: 0 },
+      value: 0.9,
+      confidence: 'strong',
+      note: null,
+    },
+    {
+      player_id: 5,
+      name: 'Isaiah Joe',
+      owner_team_id: null,
+      minutes_before: 14.0,
+      minutes_after: 19.5,
+      minutes_change: 5.5,
+      error: 3.4,
+      games_without: 4.1,
+      gains: { pts: 2.6, reb: 0.5, ast: 0.3, stl: 0.1, blk: 0, tpm: 0.9, to: 0.2, fg_impact: 0.2, ft_impact: 0 },
+      value: 0.7,
+      confidence: 'some',
+      note: 'Ajay Mitchell was also out in most of those games, so part of the gain may be his',
+    },
+  ],
+  method: 'Minutes and per-minute stats in games without him.',
+  track_record: 'Checked on 202 past absences.',
+}
+
 function renderNews(myTeamId: number | null = 3) {
-  vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(JSON.stringify(PAGE))))
+  vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+    const body = String(input).includes('/api/injury-impact') ? IMPACT : PAGE
+    return Promise.resolve(new Response(JSON.stringify(body)))
+  })
   return render(
     <QueryClientProvider client={new QueryClient()}>
       <News leagueId={1} season={2027} myTeamId={myTeamId} teams={TEAMS} creds={null} />
@@ -182,5 +225,25 @@ describe('News', () => {
     renderNews(null)
     await screen.findByText('Kris Dunn moves into the starting lineup')
     expect(screen.queryByRole('button', { name: 'My roster' })).not.toBeInTheDocument()
+  })
+  it('shows who gains from an injury, with minutes, evidence and owners', async () => {
+    renderNews()
+    await screen.findByText('Jalen Williams fractures ankle, out indefinitely')
+    // Only injury stories offer it.
+    expect(screen.getAllByRole('button', { name: 'Who gains?' })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Who gains?' }))
+    const wallace = (await screen.findByText('Cason Wallace')).closest('li') as HTMLElement
+    expect(within(wallace).getByText('Your team')).toBeInTheDocument()
+    expect(within(wallace).getByText('Strong evidence')).toBeInTheDocument()
+    expect(within(wallace).getByText('27 → 33 min')).toBeInTheDocument()
+    expect(within(wallace).getByText('(+5.8 ±2.1 min)')).toBeInTheDocument()
+    const joe = screen.getByText('Isaiah Joe').closest('li') as HTMLElement
+    expect(within(joe).getByText('Free agent')).toBeInTheDocument()
+    expect(within(joe).getByText(/Ajay Mitchell was also out/)).toBeInTheDocument()
+    expect(screen.getByText(/about 11 OKC games without him/)).toBeInTheDocument()
+    const call = vi.mocked(fetch).mock.calls.find(([u]) => String(u).includes('/api/injury-impact'))
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ player_id: 1, league_id: 1, season: 2027 })
+    fireEvent.click(screen.getByRole('button', { name: 'Hide' }))
+    expect(screen.queryByText('Cason Wallace')).not.toBeInTheDocument()
   })
 })

@@ -1,9 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { fetchNews } from '../api/client'
-import type { NewsPage, NewsPlayer, NewsSourceHealth, NewsStory, TrendingPlayer } from '../api/client'
+import { fetchInjuryImpact, fetchNews } from '../api/client'
+import type {
+  Beneficiary,
+  InjuryImpact,
+  NewsPage,
+  NewsPlayer,
+  NewsSourceHealth,
+  NewsStory,
+  TrendingPlayer,
+} from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import {
+  CONFIDENCE_LABEL,
   FILTERS,
   KIND_LABEL,
   ago,
@@ -11,9 +20,11 @@ import {
   groupByDay,
   inFilter,
   inScope,
+  minutesChange,
   ownership,
   shortStatus,
   statusText,
+  topGains,
 } from '../lib/news'
 import type { NewsFilter, NewsScope } from '../lib/news'
 
@@ -109,7 +120,16 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
                 <div key={g.day}>
                   <h3 className="news-day">{g.day}</h3>
                   {g.stories.map((s) => (
-                    <Story key={s.id} story={s} now={now} myTeamId={myTeamId} abbrev={abbrev} />
+                    <Story
+                      key={s.id}
+                      story={s}
+                      now={now}
+                      myTeamId={myTeamId}
+                      abbrev={abbrev}
+                      leagueId={leagueId}
+                      season={season}
+                      creds={creds}
+                    />
                   ))}
                 </div>
               ))
@@ -131,17 +151,24 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
   )
 }
 
+interface ImpactContext {
+  leagueId: number
+  season: number | null
+  creds: Credentials | null
+}
+
 function Story({
   story,
   now,
   myTeamId,
   abbrev,
+  ...ctx
 }: {
   story: NewsStory
   now: Date
   myTeamId: number | null
   abbrev: Map<number, string>
-}) {
+} & ImpactContext) {
   const lead = story.sources.find((s) => s.title === story.headline && s.url) ?? story.sources.find((s) => s.url)
   const held = story.status === 'held' || story.status === 'didnt_happen'
   return (
@@ -170,7 +197,14 @@ function Story({
       {story.players.length > 0 && (
         <ul className="news-players">
           {story.players.map((p) => (
-            <PlayerRow key={p.player_id} player={p} myTeamId={myTeamId} abbrev={abbrev} />
+            <PlayerRow
+              key={p.player_id}
+              player={p}
+              myTeamId={myTeamId}
+              abbrev={abbrev}
+              // Only published injury stories, and only for a player on an NBA team.
+              impact={story.kind === 'injury' && !held && p.pro_team ? ctx : null}
+            />
           ))}
         </ul>
       )}
@@ -219,18 +253,132 @@ function PlayerRow({
   player,
   myTeamId,
   abbrev,
+  impact,
 }: {
   player: NewsPlayer
   myTeamId: number | null
   abbrev: Map<number, string>
+  impact: ImpactContext | null
 }) {
+  const [open, setOpen] = useState(false)
   const status = shortStatus(player)
+  const panelId = `gains-${player.player_id}`
   return (
     <li className="news-player">
       <span className="name">{player.name}</span>
       <span className="small muted">{player.pro_team || 'Free agent'}</span>
       {status && <span className="badge badge-bad">ESPN: {status}</span>}
       <OwnerBadge player={player} myTeamId={myTeamId} abbrev={abbrev} />
+      {impact && (
+        <button
+          type="button"
+          className="secondary news-gains-toggle"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? 'Hide' : 'Who gains?'}
+        </button>
+      )}
+      {impact && open && (
+        <div id={panelId} className="news-gains">
+          <WhoGains player={player} myTeamId={myTeamId} abbrev={abbrev} {...impact} />
+        </div>
+      )}
+    </li>
+  )
+}
+
+function WhoGains({
+  player,
+  myTeamId,
+  abbrev,
+  leagueId,
+  season,
+  creds,
+}: {
+  player: NewsPlayer
+  myTeamId: number | null
+  abbrev: Map<number, string>
+} & ImpactContext) {
+  const impact = useQuery({
+    queryKey: ['injury-impact', player.player_id, leagueId, season, creds?.swid ?? null],
+    queryFn: () => fetchInjuryImpact(player.player_id, leagueId, season, creds),
+    retry: false,
+    staleTime: 30 * 60_000,
+  })
+  if (impact.isLoading) {
+    return (
+      <p className="small muted" role="status">
+        Comparing {player.pro_team}'s games with and without {player.name}…
+      </p>
+    )
+  }
+  if (impact.error || !impact.data) {
+    return (
+      <div className="row small">
+        <span>Couldn't work out who gains. {impact.error?.message}</span>
+        <button type="button" className="secondary small" onClick={() => impact.refetch()}>
+          Try again
+        </button>
+      </div>
+    )
+  }
+  return <GainsList data={impact.data} myTeamId={myTeamId} abbrev={abbrev} />
+}
+
+function GainsList({
+  data,
+  myTeamId,
+  abbrev,
+}: {
+  data: InjuryImpact
+  myTeamId: number | null
+  abbrev: Map<number, string>
+}) {
+  const games = Math.round(data.games_missed)
+  return (
+    <div className="stack news-gains-body">
+      <p className="small muted">
+        {games > 0
+          ? `Based on about ${games} ${data.pro_team} game${games === 1 ? '' : 's'} without him (older games count less), compared with games he played (${data.minutes.toFixed(0)} min a game).`
+          : `${data.pro_team} haven't played without him yet, so this is an estimate from positions and minutes.`}
+      </p>
+      {data.beneficiaries.length === 0 ? (
+        <p className="small">No teammate gains clearly enough to matter for fantasy.</p>
+      ) : (
+        <ol className="news-gains-list">
+          {data.beneficiaries.map((b) => (
+            <GainRow key={b.player_id} b={b} myTeamId={myTeamId} abbrev={abbrev} />
+          ))}
+        </ol>
+      )}
+      <details className="footnote">
+        <summary>How this is worked out</summary>
+        <p>{data.method}</p>
+        <p>{data.track_record}</p>
+      </details>
+    </div>
+  )
+}
+
+function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | null; abbrev: Map<number, string> }) {
+  const gains = topGains(b.gains)
+  return (
+    <li className="news-gain">
+      <div className="row news-gain-head">
+        <span className="name">{b.name}</span>
+        <OwnerBadge player={b} myTeamId={myTeamId} abbrev={abbrev} />
+        <span className={`badge confidence-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
+      </div>
+      <div className="row small">
+        <span className="num">
+          {b.minutes_before.toFixed(0)} → {b.minutes_after.toFixed(0)} min
+        </span>
+        <span className="muted num">({minutesChange(b)})</span>
+        {gains.length > 0 && <span className="num">{gains.join(' · ')}</span>}
+      </div>
+      {b.note && <p className="small muted">{b.note}.</p>}
     </li>
   )
 }
