@@ -7,6 +7,7 @@ import { CookieForm } from './components/CookieForm'
 import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
 import { MyLeagues } from './components/MyLeagues'
+import { News } from './components/News'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Status } from './components/Status'
@@ -26,6 +27,7 @@ interface Selection {
 const LEAGUE_TABS = [
   { id: 'overview', label: 'League' },
   { id: 'feed', label: 'Moves feed' },
+  { id: 'news', label: 'NBA News' },
 ] as const
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
@@ -404,6 +406,10 @@ export default function App() {
 
         {overview.data && ref && !verifying && !verified && activeTab === 'feed' && (
           <LeagueChat leagueId={ref.leagueId} season={ref.season} creds={creds} onVerify={() => setVerifying(true)} />
+        )}
+
+        {overview.data && ref && !verifying && !verified && activeTab === 'news' && (
+          <News leagueId={ref.leagueId} season={ref.season} myTeamId={null} teams={overview.data.teams} creds={creds} />
         )}
 
         {!verifying && verified && analysis.isPending && !report && <Status phase="analysis" leagueName={leagueName} />}

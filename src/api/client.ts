@@ -37,6 +37,12 @@ export type ScoreDay = components['schemas']['ScoreDay']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
 export type FixtureDay = components['schemas']['FixtureDay']
+export type NewsPage = components['schemas']['NewsPage']
+export type NewsStory = components['schemas']['NewsStory']
+export type NewsPlayer = components['schemas']['NewsPlayer']
+export type NewsSourceLink = components['schemas']['NewsSourceLink']
+export type NewsSourceHealth = components['schemas']['NewsSourceHealth']
+export type TrendingPlayer = components['schemas']['TrendingPlayer']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -296,4 +302,8 @@ export function fetchScores(
   creds: Credentials | null,
 ) {
   return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
+}
+
+export function fetchNews(leagueId: number, season: number | null, includeHeld: boolean, creds: Credentials | null) {
+  return post<NewsPage>('/api/news', { league_id: leagueId, season, include_held: includeHeld }, creds, SCORES_TIMEOUT_MS)
 }

@@ -6,6 +6,7 @@ import { CategoryOutlook } from './CategoryOutlook'
 import { CategoryTiles } from './CategoryTiles'
 import { LeagueChat } from './LeagueChat'
 import { LeagueOverview } from './LeagueOverview'
+import { News } from './News'
 import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
@@ -24,6 +25,7 @@ export const TABS = [
   { id: 'team', label: 'My team' },
   { id: 'league', label: 'League' },
   { id: 'scores', label: 'Scores' },
+  { id: 'news', label: 'NBA News' },
   { id: 'chat', label: 'League chat' },
 ] as const
 
@@ -149,6 +151,16 @@ export function Report({
         />
       )}
 
+      {tab === 'news' && (
+        <News
+          leagueId={report.league.id}
+          season={report.league.season}
+          myTeamId={report.team_id}
+          teams={report.league.teams}
+          creds={creds}
+        />
+      )}
+
       {tab === 'chat' && <LeagueChat leagueId={report.league.id} season={report.league.season} creds={creds} />}
 
       {keepChanged && (
@@ -159,7 +171,7 @@ export function Report({
         </div>
       )}
 
-      {tab !== 'chat' && tab !== 'park' && tab !== 'scores' && (
+      {tab !== 'chat' && tab !== 'park' && tab !== 'scores' && tab !== 'news' && (
         <details className="footnote">
           <summary>How this works</summary>
           <ul>
