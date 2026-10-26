@@ -44,6 +44,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | | Feature | What you get |
 | --- | --- | --- |
 | 🔁 | **Trade Park** | Pick up to four of your players and see every team's best deal for them, with acceptance odds, a ready-to-send pitch and your playoff odds before and after. |
+| 🧊 | **Injury risk** | Players who keep missing games carry an amber "Injury-prone" tag with their expected games, and every trade's odds count them for fewer games. |
 | 🎯 | **Trade for** | Pick any rostered player: his fit with your build, his owner's needs, and three offers (best, safer, cheaper). |
 | 📊 | **My team** | How often you win each category in an average week (locked, swing or losing), your roster's trade and category value, and keepers that are never offered or dropped. |
 | 🛒 | **Pickups** | Free agents paired with the right drop and their effect on your playoff odds. |
