@@ -4737,3 +4737,24 @@ th .head {
     align-items: flex-start;
   }
 }
+
+/* Trade of the Day: a face beside each player who moves. */
+.totd-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.totd-players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.totd-drop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
