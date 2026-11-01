@@ -1,4 +1,4 @@
-import { useContext, useState, type ReactNode } from 'react'
+import { useContext, useMemo, useState, type ReactNode } from 'react'
 import type { FeedbackSource, TradeIdea } from '../api/client'
 import { names, pct, tradeKey } from '../lib/format'
 import { ImpactBars } from './ImpactBars'
@@ -7,6 +7,8 @@ import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
 import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
+import { RulesBar, useTradeRules } from './TradeRules'
+import { applyRules } from '../lib/tradeRules'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -216,10 +218,33 @@ function cats(x: number) {
   return `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}`
 }
 
-export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] }) {
+interface TradesProps {
+  fair: TradeIdea[]
+  edge: TradeIdea[]
+  categories?: string[]
+  teams?: { id: number; name: string }[]
+  myTeamId?: number
+  keepNames?: string[]
+}
+
+export function Trades({
+  fair: allFair,
+  edge: allEdge,
+  categories = [],
+  teams = [],
+  myTeamId,
+  keepNames = [],
+}: TradesProps) {
+  const { rules } = useTradeRules()
+  const fairSplit = useMemo(() => applyRules(rules, allFair), [rules, allFair])
+  const edgeSplit = useMemo(() => applyRules(rules, allEdge), [rules, allEdge])
+  const fair = fairSplit.kept
+  const edge = edgeSplit.kept
   const [mode, setMode] = useState<Mode>('fair')
+  const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
-  const [open, setOpen] = useState<string | null>(fair[0] ? tradeKey(fair[0]) : null)
+  const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
+  const [open, setOpen] = useState<string | null>(allFair[0] ? tradeKey(allFair[0]) : null)
 
   const choose = (m: Mode) => {
     setMode(m)
@@ -239,8 +264,17 @@ export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] })
           ))}
         </div>
       </div>
+      <RulesBar
+        skipped={skipped.length}
+        showSkipped={showSkipped}
+        onShowSkipped={() => setShowSkipped(!showSkipped)}
+        categories={categories}
+        teams={teams}
+        myTeamId={myTeamId}
+        keepNames={keepNames}
+      />
       <p className="small muted trades-hint">{MODES[mode].hint}. Ranked by your gain and the chance they say yes.</p>
-      {trades.length === 0 ? (
+      {trades.length === 0 && !(showSkipped && skipped.length) ? (
         <p className="empty">{MODES[mode].empty}</p>
       ) : (
         <>
@@ -267,6 +301,23 @@ export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] })
                 />
               )
             })}
+            {showSkipped &&
+              skipped.map(({ idea: t, rule }, i) => {
+                const key = tradeKey(t)
+                const isOpen = open === key
+                return (
+                  <TradeItem
+                    key={key}
+                    trade={t}
+                    id={`trade-skipped-${i}`}
+                    open={isOpen}
+                    onToggle={() => setOpen(isOpen ? null : key)}
+                    why={MODES[mode].why}
+                    tag={<span className="skipped-pill">Skipped: {rule.label}</span>}
+                    feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
+                  />
+                )
+              })}
           </ol>
         </>
       )}
