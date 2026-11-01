@@ -110,3 +110,13 @@ export function flipHint(me: MatchupSide, them: MatchupSide): string | null {
   if (hold.length && me.wins - me.losses <= 2) return `Hold ${list(hold).replace(' or ', ' and ')} to keep the win`
   return null
 }
+
+/** ESPN's public headshot for a player; fantasy player ids are the same ids ESPN uses. */
+export function headshotUrl(playerId: number) {
+  return `https://a.espncdn.com/i/headshots/nba/players/full/${playerId}.png`
+}
+
+/** ESPN's NBA team logo by the pro team abbreviation ESPN uses (LAC, GS, NO, UTAH, WSH). */
+export function teamLogoUrl(abbrev: string) {
+  return `https://a.espncdn.com/i/teamlogos/nba/500/${abbrev.toLowerCase()}.png`
+}

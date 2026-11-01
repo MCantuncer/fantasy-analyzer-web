@@ -1178,7 +1178,7 @@ th .badge {
 }
 
 .pickup-row {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .move-detail {
@@ -4530,4 +4530,73 @@ tr.cutline.playoff th {
     margin-left: 0;
     flex-basis: 100%;
   }
+}
+
+/* ---------- Player headshots ---------- */
+.head {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  background: color-mix(in srgb, var(--muted) 14%, var(--surface));
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--divider);
+  vertical-align: middle;
+}
+
+.head-initials {
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.head-stack {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.head-stack .head + .head {
+  margin-left: -10px;
+}
+
+.swap-side .head-stack {
+  margin: 4px 0 6px;
+}
+
+.team-logo {
+  flex: none;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.news-team,
+.team-abbrev,
+.box-player,
+.news-who,
+.night-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-abbrev {
+  gap: 6px;
+}
+
+.news-player .head,
+.news-gain-head .head {
+  margin-right: 2px;
+}
+
+th .head {
+  margin-right: 6px;
+}
+
+.box-player .head,
+.news-who .head,
+.night-lead .head {
+  margin-right: 0;
 }

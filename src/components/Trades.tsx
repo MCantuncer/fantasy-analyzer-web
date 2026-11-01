@@ -1,6 +1,7 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
 import type { FeedbackSource, TradeIdea } from '../api/client'
 import { names, pct, tradeKey } from '../lib/format'
+import { HeadStack } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
@@ -114,6 +115,7 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
       <button type="button" className="move-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
         <span>
           <span className="label-sm">Give </span>
+          <HeadStack players={t.give} size={28} />
           <strong>
             {names(t.give)}
             {faab > 0 && ` + $${faab} FAAB`}
@@ -122,6 +124,7 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
         </span>
         <span>
           <span className="label-sm">Get </span>
+          <HeadStack players={t.get} size={28} />
           <strong>{names(t.get)}</strong>
           <InjuryBadges players={t.get} />
           {tag}
