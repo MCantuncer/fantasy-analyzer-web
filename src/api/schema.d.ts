@@ -1131,6 +1131,11 @@ export interface components {
              * @enum {string}
              */
             status: "scheduled" | "live" | "final";
+            /**
+             * Clock
+             * @description Live games only: "Q4 2:31", "Half", "End Q3", "OT 0:48"
+             */
+            clock?: string | null;
             away: components["schemas"]["GameSide"];
             home: components["schemas"]["GameSide"];
             /**

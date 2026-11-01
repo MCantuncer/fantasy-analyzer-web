@@ -16,6 +16,7 @@ import {
   tipOff,
 } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
+import './Scores.css'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 const SLOW_AFTER_MS = 8_000
@@ -358,7 +359,12 @@ function GameCard({
         {live ? (
           <span className="live-dot">
             <i aria-hidden="true" />
-            Live{tipping && <span className="muted"> · Tip-off</span>}
+            Live
+            {game.clock ? (
+              <span className="num game-clock"> · {game.clock}</span>
+            ) : (
+              tipping && <span className="muted"> · Tip-off</span>
+            )}
           </span>
         ) : scheduled ? (
           <span className="num tip">{tipOff(game.start)}</span>
@@ -471,7 +477,8 @@ function BoxScore({
           <span className="num">{game.home.score ?? ''}</span>
         </h2>
         <span className="small muted">
-          {game.status === 'live' ? 'Live' : 'Final'} · {dayLabel(date)}. Owner is the fantasy team in this league.
+          {game.status === 'live' ? `Live${game.clock ? ` · ${game.clock}` : ''}` : 'Final'} · {dayLabel(date)}. Owner
+          is the fantasy team in this league.
         </span>
       </div>
       <div className="table-wrap">
