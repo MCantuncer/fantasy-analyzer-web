@@ -4773,3 +4773,9 @@ th .head {
     align-items: flex-start;
   }
 }
+
+/* Best Move puts the injury tags on their own line under the names: align them with the text. */
+.swap-name + .injury-badge,
+.swap-name + .prone-tag {
+  margin-left: 0;
+}
