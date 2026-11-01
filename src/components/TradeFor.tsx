@@ -9,6 +9,7 @@ import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { ACCEPTANCE, CopyButton } from './Trades'
+import { useKeepRowInView } from '../lib/useKeepRowInView'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -217,6 +218,7 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
 
 function Offers({ data, leagueId, season }: { data: TargetReport; leagueId: number; season: number }) {
   const [open, setOpen] = useState<number>(0)
+  const keepRow = useKeepRowInView(open)
   return (
     <section className="card flush" aria-labelledby="offers-title">
       <div className="card-head">
@@ -234,7 +236,7 @@ function Offers({ data, leagueId, season }: { data: TargetReport; leagueId: numb
       {data.offers.length === 0 ? (
         <p className="empty">{data.note ?? 'No realistic offer for him right now.'}</p>
       ) : (
-        <ol className="offer-list">
+        <ol className="offer-list" onClickCapture={keepRow}>
           {data.offers.map((o, i) => (
             <Offer
               key={`${o.give.map((p) => p.id).join('.')}-${o.get.map((p) => p.id).join('.')}`}

@@ -10,6 +10,7 @@ import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
 import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
+import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 
 export const ACCEPTANCE = {
@@ -263,6 +264,7 @@ export function Trades({
   const trades = mode === 'fair' ? fair : edge
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
   const [open, setOpen] = useState<string | null>(allFair[0] ? tradeKey(allFair[0]) : null)
+  const keepRow = useKeepRowInView(open)
 
   const choose = (m: Mode) => {
     setMode(m)
@@ -303,7 +305,7 @@ export function Trades({
             <span>They accept</span>
             <span className="right">Playoff odds</span>
           </div>
-          <ol className="move-list">
+          <ol className="move-list" onClickCapture={keepRow}>
             {trades.map((t, i) => {
               const key = tradeKey(t)
               const isOpen = open === key

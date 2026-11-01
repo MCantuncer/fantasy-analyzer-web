@@ -4,6 +4,7 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { ordinal } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
+import { useKeepRowInView } from '../lib/useKeepRowInView'
 
 interface Props {
   pickups: PickupIdea[]
@@ -15,6 +16,7 @@ interface Props {
 
 export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
   const [open, setOpen] = useState<number | null>(null)
+  const keepRow = useKeepRowInView(open)
 
   return (
     <section className="card flush pickups-panel" aria-labelledby="pickups-title">
@@ -31,7 +33,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
       {pickups.length === 0 ? (
         <p className="empty">No free agent improves your team right now.</p>
       ) : (
-        <ol className="move-list">
+        <ol className="move-list" onClickCapture={keepRow}>
           {pickups.map((p, i) => {
             const isOpen = open === p.add.id
             return (

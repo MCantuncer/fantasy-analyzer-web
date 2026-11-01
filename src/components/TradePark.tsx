@@ -5,6 +5,7 @@ import type { Credentials } from '../lib/credentials'
 import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
 import { TradeItem } from './Trades'
+import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
 
 export const MAX_PICKS = 4
@@ -148,6 +149,7 @@ function Results({ data }: { data: ShopReport }) {
     filter === 'all' ? true : filter === 'every' ? d.uses_all : d.give.some((p) => p.id === filter),
   )
   const [open, setOpen] = useState<string | null>(data.deals[0] ? tradeKey(data.deals[0]) : null)
+  const keepRow = useKeepRowInView(open)
   const best = data.deals[0]
   const many = data.offered.length > 1
   const shopped = data.offered.map((p) => lastName(p.name)).join(' and ')
@@ -241,7 +243,7 @@ function Results({ data }: { data: ShopReport }) {
                 <span>They accept</span>
                 <span className="right">Playoff odds</span>
               </div>
-              <ol className="move-list">
+              <ol className="move-list" onClickCapture={keepRow}>
                 {deals.map((d, i) => {
                   const key = tradeKey(d)
                   const isOpen = open === key
