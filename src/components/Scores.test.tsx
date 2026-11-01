@@ -90,7 +90,8 @@ describe('Scores', () => {
     mockApi()
     renderScores()
     expect(await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)).toBeInTheDocument()
-    expect(screen.getByText('Your night · 1 played')).toBeInTheDocument()
+    expect(screen.getByText('Your night')).toBeInTheDocument()
+    expect(screen.getByText('Your 1 player')).toBeInTheDocument()
     expect(screen.getByRole('button', { pressed: true, name: /HOU/ })).toBeInTheDocument()
 
     const box = screen.getByRole('table')
