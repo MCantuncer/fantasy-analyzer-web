@@ -42,7 +42,7 @@ export function Builds({
             {sorted.map((b) => (
               <tr key={b.team_id} className={b.team_id === myTeamId ? 'mine' : undefined}>
                 <th scope="row">
-                  <span className="box-team">
+                  <span className="crest-name">
                     <TeamCrest name={b.team_name} colour={colours.get(b.team_id)} size={26} />
                     {b.team_name}
                   </span>
