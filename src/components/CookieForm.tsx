@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Credentials } from '../lib/credentials'
 import { parseCookiePaste } from '../lib/cookiePaste'
+import './CookieForm.css'
 
 interface Props {
   onSubmit: (creds: Credentials, remember: boolean) => void
@@ -99,53 +100,53 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
   }
 
   return (
-    <section className="card private-league stack" aria-labelledby="private-title">
-      <header className="private-head">
-        <span className="private-icon">
+    <section className="card pl-private-league stack" aria-labelledby="private-title">
+      <header className="pl-private-head">
+        <span className="pl-private-icon">
           <LockIcon />
         </span>
-        <div className="stack-sm">
+        <div className="pl-stack-sm">
           <h2 id="private-title">This league is private</h2>
           <p className="muted">ESPN keeps private leagues behind a velvet rope. Here are two ways past it.</p>
         </div>
       </header>
 
-      <div className="way-picker" role="radiogroup" aria-label="How to open this league">
+      <div className="pl-way-picker" role="radiogroup" aria-label="How to open this league">
         <button
           type="button"
           role="radio"
           aria-checked={way === 'public'}
-          className="way"
+          className="pl-way"
           onClick={() => setWay('public')}
         >
-          <span className="way-title">Ask the commissioner</span>
+          <span className="pl-way-title">Ask the commissioner</span>
           <span className="small muted">Works on any phone. Costs you one favor.</span>
-          {phone && <span className="tag good way-tag">Best on phone</span>}
+          {phone && <span className="tag good pl-way-tag">Best on phone</span>}
         </button>
         <button
           type="button"
           role="radio"
           aria-checked={way === 'cookies'}
-          className="way"
+          className="pl-way"
           onClick={() => setWay('cookies')}
         >
-          <span className="way-title">Connect with ESPN cookies</span>
+          <span className="pl-way-title">Connect with ESPN cookies</span>
           <span className="small muted">Needs a computer. About 2 minutes.</span>
-          {!phone && <span className="tag good way-tag">Fastest</span>}
+          {!phone && <span className="tag good pl-way-tag">Fastest</span>}
         </button>
       </div>
 
       {way === 'public' && (
-        <div className="stack way-body commish">
+        <div className="stack pl-way-body pl-commish">
           <p>
             Your commissioner holds the keys. One switch on ESPN opens the league to viewers, read only, so nobody
             can sneak a trade through the back door.
           </p>
-          <p className="espn-path" aria-label="Where the setting lives on ESPN">
+          <p className="pl-espn-path" aria-label="Where the setting lives on ESPN">
             {PUBLIC_PATH.map((step, i) => (
               <span key={step}>
-                {i > 0 && <span className="espn-path-sep"> &gt; </span>}
-                <span className={i === PUBLIC_PATH.length - 1 ? 'espn-path-end' : undefined}>{step}</span>
+                {i > 0 && <span className="pl-espn-path-sep"> &gt; </span>}
+                <span className={i === PUBLIC_PATH.length - 1 ? 'pl-espn-path-end' : undefined}>{step}</span>
               </span>
             ))}
           </p>
@@ -153,7 +154,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
             Commissioners answer faster after a win. Picking your moment is half the trade game anyway.
           </p>
           {onRetry && (
-            <div className="check-again">
+            <div className="pl-check-again">
               <button type="button" onClick={onRetry}>
                 Check again
               </button>
@@ -164,7 +165,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
       )}
 
       {way === 'cookies' && phone && (
-        <div className="callout stack-sm">
+        <div className="pl-callout pl-stack-sm">
           <strong>Phones can't show cookies</strong>
           <p className="small">
             Mobile browsers hide them. Open this page on a computer, connect there, and you're set on that device.
@@ -179,30 +180,30 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
 
       {way === 'cookies' && (
         <form
-          className="stack way-body"
+          className="stack pl-way-body"
           onSubmit={(e) => {
             e.preventDefault()
             if (creds) onSubmit(creds, remember)
           }}
         >
-          <div className="segmented browsers" role="group" aria-label="Your browser">
+          <div className="segmented pl-browsers" role="group" aria-label="Your browser">
             {(['chrome', 'firefox', 'safari'] as const).map((b) => (
               <button key={b} type="button" aria-pressed={browser === b} onClick={() => setBrowser(b)}>
                 {b === 'chrome' ? 'Chrome · Edge' : b === 'firefox' ? 'Firefox' : 'Safari'}
               </button>
             ))}
           </div>
-          <ol className="steps">
+          <ol className="pl-steps">
             {STEPS[browser].map((s, i) => (
               <li key={i}>
-                <span className="step-num">{i + 1}</span>
+                <span className="pl-step-num">{i + 1}</span>
                 <p>{s}</p>
               </li>
             ))}
           </ol>
 
           {manual ? (
-            <div className="stack-sm">
+            <div className="pl-stack-sm">
               <label>
                 espn_s2
                 <input value={espnS2} onChange={(e) => setEspnS2(e.target.value)} autoComplete="off" spellCheck={false} />
@@ -219,11 +220,11 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
               </label>
             </div>
           ) : (
-            <div className="stack-sm">
+            <div className="pl-stack-sm">
               <label htmlFor="cookie-paste">Paste here</label>
               <textarea
                 id="cookie-paste"
-                className="cookie-paste"
+                className="pl-cookie-paste"
                 value={paste}
                 onChange={(e) => setPaste(e.target.value)}
                 placeholder="Paste the rows, or both values in any order. We'll find espn_s2 and SWID."
@@ -231,17 +232,17 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
                 autoComplete="off"
                 spellCheck={false}
               />
-              <div className="found" aria-live="polite">
-                <span className={found.espnS2 ? 'found-item ok' : 'found-item'}>
+              <div className="pl-found" aria-live="polite">
+                <span className={found.espnS2 ? 'pl-found-item ok' : 'pl-found-item'}>
                   <Check ok={!!found.espnS2} /> espn_s2
                 </span>
-                <span className={found.swid ? 'found-item ok' : 'found-item'}>
+                <span className={found.swid ? 'pl-found-item ok' : 'pl-found-item'}>
                   <Check ok={!!found.swid} /> SWID
                 </span>
               </div>
             </div>
           )}
-          <button type="button" className="link small self-start" onClick={() => setManual(!manual)}>
+          <button type="button" className="link small pl-self-start" onClick={() => setManual(!manual)}>
             {manual ? 'Paste both at once instead' : 'Enter them one by one instead'}
           </button>
 
@@ -258,7 +259,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
             </button>
           </div>
 
-          <p className="trust small muted">
+          <p className="pl-trust small muted">
             <LockIcon /> Used only to read your league from ESPN. Never saved on our server or logged. They work like
             a password, so only paste them into sites you trust. Logging out of ESPN turns them off.
           </p>
