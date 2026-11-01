@@ -1,0 +1,38 @@
+/* Phones: wide tables (My team roster, League builds, Scores box scores) scroll sideways
+   inside their card. Pin the player or team column so you always know whose numbers
+   you are reading, and tighten the cells so narrower tables (standings) fit outright. */
+@media (max-width: 640px) {
+  .table-wrap th,
+  .table-wrap td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  /* The row label, and the header cell above it (first or second column). */
+  .table-wrap th[scope='row'],
+  .table-wrap table:has(tbody tr > th[scope='row']:first-child) thead th:first-child,
+  .table-wrap table:has(tbody tr > th[scope='row']:nth-child(2)) thead th:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    /* A hairline that reads as "the rest slides under here". */
+    box-shadow: 1px 0 0 var(--divider);
+  }
+
+  .table-wrap tr.mine th[scope='row'] {
+    background: var(--raised);
+  }
+
+  .table-wrap tr.mine > th[scope='row']:first-child {
+    box-shadow:
+      inset 3px 0 0 var(--accent),
+      1px 0 0 var(--divider);
+  }
+
+  /* Long names wrap inside the pinned column instead of making it half the screen. */
+  .table-wrap th[scope='row'] {
+    max-width: 44vw;
+    white-space: normal;
+  }
+}
