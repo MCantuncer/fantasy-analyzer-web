@@ -113,3 +113,21 @@ export function wonVotes(item: FeedItem): { counts: Record<number, number>; tota
   const mineKey = (item.reactions?.mine ?? []).find((k) => k.startsWith('won:'))
   return { counts, total, mine: mineKey ? Number(mineKey.slice(4)) : null }
 }
+
+/** The header of a day in the feed, e.g. "5 moves · $19 spent". Posts don't count as moves. */
+export function daySummary(items: FeedItem[], budget: number | null | undefined): string | null {
+  const moves = items.filter((i) => i.kind !== 'post')
+  if (moves.length === 0) return null
+  const spent = moves.reduce((sum, i) => sum + (i.kind === 'waiver' ? (i.bid ?? 0) : 0), 0)
+  const count = `${moves.length} ${moves.length === 1 ? 'move' : 'moves'}`
+  return budget && spent > 0 ? `${count} · $${spent} spent` : count
+}
+
+/** The one waiver claim with the highest bid, or null when nobody bid or the top bid is shared. */
+export function biggestBidId(items: FeedItem[]): string | null {
+  const bids = items.filter((i) => i.kind === 'waiver' && (i.bid ?? 0) > 0)
+  if (bids.length === 0) return null
+  const top = Math.max(...bids.map((i) => i.bid ?? 0))
+  const at = bids.filter((i) => i.bid === top)
+  return at.length === 1 ? at[0].id : null
+}
