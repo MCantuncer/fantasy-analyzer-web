@@ -192,6 +192,14 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               <li>
                 Categories won per week: you {cats(offer.my_cats_gain)}, they {cats(offer.their_cats_gain)}.
               </li>
+              {[...offer.give, ...offer.get]
+                .filter((p) => p.injury_prone && p.games_share != null)
+                .map((p) => (
+                  <li key={`prone-${p.id}`}>
+                    {p.name} often misses games (durability {Math.round((p.games_share ?? 0) * 100)} of 100, typical 73), so
+                    the odds count him for fewer games.
+                  </li>
+                ))}
               {offer.my_drop && <li>You drop {offer.my_drop.name} to make room.</li>}
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
