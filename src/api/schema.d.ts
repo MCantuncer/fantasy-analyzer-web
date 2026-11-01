@@ -220,8 +220,34 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Analyze */
+        /**
+         * Analyze
+         * @description The whole analysis in one (slow) request. Prefer /api/analyze/job, which never blocks.
+         */
         post: operations["analyze_api_analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/analyze/job": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze Job
+         * @description Start the team's analysis in the background, or say how far along it is.
+         *
+         *     Answers at once. Call again with the same body (every couple of seconds) until
+         *     ``status`` is ``done`` (the report is included) or ``failed``.
+         */
+        post: operations["analyze_job_api_analyze_job_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -505,6 +531,29 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AnalysisJob
+         * @description A team's analysis running in the background. Poll with the same request until it is done.
+         */
+        AnalysisJob: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "done" | "failed";
+            /**
+             * Progress
+             * @description Rough share of the work done, 0 to 1
+             */
+            progress: number;
+            /**
+             * Stage
+             * @default
+             */
+            stage: string;
+            report?: components["schemas"]["AnalysisReport"] | null;
+            error?: components["schemas"]["ErrorBody"] | null;
+        };
         /** AnalysisReport */
         AnalysisReport: {
             league: components["schemas"]["LeagueSummary"];
@@ -1488,6 +1537,17 @@ export interface components {
              * @default 0
              */
             owner_premium: number;
+            /**
+             * Games Share
+             * @description Expected share of his team's remaining games he plays once back from any current injury, from his games-played record. A typical regular plays about 0.73.
+             */
+            games_share?: number | null;
+            /**
+             * Injury Prone
+             * @description He has missed many games in recent seasons: valued for fewer games
+             * @default false
+             */
+            injury_prone: boolean;
         };
         /** PollTally */
         PollTally: {
@@ -2947,6 +3007,61 @@ export interface operations {
             };
         };
     };
+    analyze_job_api_analyze_job_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalyzeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisJob"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     shop_api_shop_post: {
         parameters: {
             query?: never;
@@ -2991,7 +3106,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3428,7 +3543,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
