@@ -21,9 +21,10 @@ describe('InjuryBadges', () => {
   it('marks healthy injury-prone players with their expected games', () => {
     const lavine = player('Zach LaVine', 'ACTIVE', { injury_prone: true, games_share: 0.62 })
     const { container } = render(<InjuryBadges players={[lavine, player('Bam Adebayo', 'ACTIVE')]} />)
-    const chip = within(container).getByText('LaVine: Injury-prone · ~51 of 82 games')
+    const chip = within(container).getByText('LaVine: Injury-prone')
     expect(chip).toHaveClass('badge-warn')
-    expect(chip).toHaveAttribute('title', expect.stringContaining('fewer games'))
+    expect(within(container).getByText('~51/82 games')).toBeInTheDocument()
+    expect(chip.parentElement).toHaveAttribute('title', expect.stringContaining('fewer games'))
   })
 
   it('shows only the injury for a prone player who is already out', () => {

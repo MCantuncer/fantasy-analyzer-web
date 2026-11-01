@@ -28,9 +28,16 @@ export function InjuryBadges({ players }: { players: PlayerRef[] }) {
         </span>
       ))}
       {prone.map((p) => (
-        <span key={p.id} className="badge badge-warn injury-badge" title={PRONE_HINT}>
-          {who(p)}Injury-prone
-          {p.games_share != null && ` · ~${Math.round(p.games_share * SEASON_GAMES)} of ${SEASON_GAMES} games`}
+        <span key={p.id} className="prone-tag" title={PRONE_HINT}>
+          <span className="badge badge-warn">
+            <span className="prone-dot" aria-hidden="true" />
+            {who(p)}Injury-prone
+          </span>
+          {p.games_share != null && (
+            <span className="prone-games tnum">
+              ~{Math.round(p.games_share * SEASON_GAMES)}/{SEASON_GAMES} games
+            </span>
+          )}
         </span>
       ))}
     </>

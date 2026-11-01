@@ -330,9 +330,37 @@ details summary {
 .injury-badge {
   margin-left: 6px;
   vertical-align: middle;
-  /* Narrow table columns: wrap inside the pill rather than spill into the next column. */
+}
+
+/* Injury-prone: a short chip that never breaks, and its games as quieter text beside it.
+   In a narrow column the games note drops under the chip instead of squeezing it. */
+.prone-tag {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
   max-width: 100%;
-  white-space: normal;
+}
+
+.prone-tag .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.prone-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.prone-games {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .badge-bad {

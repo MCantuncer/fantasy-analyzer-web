@@ -16,7 +16,6 @@ const player = {
   injury_prone: false,
   badges: [],
   owner_premium: 0,
-  injury_prone: false,
 } as PlayerRef
 
 describe('Roster trade value', () => {
