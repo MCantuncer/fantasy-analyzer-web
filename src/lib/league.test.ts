@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MatchupSide } from '../api/client'
-import { boxOrder, flipHint, formatStat, initials, isClose, teamColours } from './league'
+import { boxOrder, flipHint, formatStat, initials, isClose, teamColours, tonightMatchup } from './league'
 
 type Cat = [string, number, 'W' | 'L' | 'T']
 
@@ -123,5 +123,24 @@ describe('flip hint', () => {
 
   it('tells a narrow leader which close categories to hold', () => {
     expect(flipHint(side(7, mirror(ME)), side(3, mirror(THEM)))).toBe('Hold REB and FT% to keep the win')
+  })
+})
+
+describe('tonight matchup', () => {
+  it('finds your opponent and the hint from either side of the matchup', () => {
+    const overview = {
+      teams: [
+        { id: 3, name: 'Kucukesat Aspavas' },
+        { id: 7, name: 'Los Avokados' },
+      ],
+      matchups: [{ home: side(7, THEM, 0), away: side(3, ME, 4) }],
+    } as unknown as Parameters<typeof tonightMatchup>[0]
+    expect(tonightMatchup(overview, 3)).toEqual({
+      opponentId: 7,
+      opponentName: 'Los Avokados',
+      hint: "They're done for the week. Your 4 games left can flip REB or FT% to win 5-4-0",
+    })
+    expect(tonightMatchup(overview, 5)).toBeNull()
+    expect(tonightMatchup(overview, null)).toBeNull()
   })
 })

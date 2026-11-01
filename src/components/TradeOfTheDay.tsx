@@ -5,6 +5,7 @@ import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { pct, ptsDiff, signedInt } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
+import './TradeOfTheDay.css'
 import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
 
 interface Props {
