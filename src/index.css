@@ -4741,6 +4741,8 @@ th .head {
 @media (max-width: 640px) {
   .night-totals {
     align-items: flex-start;
+  }
+}
 
 /* League switcher: the league / team crumb in the top bar opens a menu of the account's leagues. */
 .league-switcher {
