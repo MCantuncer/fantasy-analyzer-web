@@ -1,0 +1,56 @@
+/* Phone browser basics: no zoom when typing, room for the notch and home bar, and a
+   toast that fits the screen. */
+
+html {
+  /* Stop iOS enlarging text when the phone turns sideways. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS zooms the page in when a text box under 16px gets focus, and leaves it zoomed. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* viewport-fit=cover lets the page run under the notch and the home bar, so keep content
+   clear of them (they only have size in landscape or a saved home-screen app). */
+.topbar {
+  padding-top: env(safe-area-inset-top);
+}
+
+.topbar-inner,
+.tabs,
+.main {
+  padding-left: max(var(--gutter, 24px), env(safe-area-inset-left));
+  padding-right: max(var(--gutter, 24px), env(safe-area-inset-right));
+}
+
+.main {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 640px) {
+  .topbar-inner,
+  .tabs,
+  .main {
+    --gutter: 16px;
+  }
+
+  /* Centring with left: 50% gave the toast only half the screen, so it wrapped into a
+     tall narrow box over the content. On phones it spans the width above the home bar. */
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    transform: none;
+    max-width: none;
+  }
+
+  .toast > span {
+    flex: 1;
+  }
+}

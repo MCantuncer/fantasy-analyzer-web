@@ -1,0 +1,28 @@
+/* Phones: nothing may make the page wider than the screen. A phone zooms the whole page
+   out to fit anything that pokes past the edge, which squeezes the site into half the
+   screen. */
+
+/* Every sideways scroller is a positioning context, so hidden screen-reader text inside
+   it stays inside it. Without this, that text is placed against the page and widens it
+   by however far the scroller's content runs. */
+.tabs,
+.table-wrap,
+.day-strip,
+.chat-filters,
+.news-filters {
+  position: relative;
+}
+
+.sr-only {
+  margin: -1px;
+  padding: 0;
+  border: 0;
+}
+
+/* Safety net. 'position: relative' makes stray absolutely positioned bits clip here too,
+   and 'clip' (not 'hidden') keeps the sticky top bar working. It sits on #root, not body,
+   because body's overflow is handed to the window and would not catch them. */
+#root {
+  position: relative;
+  overflow-x: clip;
+}

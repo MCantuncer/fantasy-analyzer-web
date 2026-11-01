@@ -1,0 +1,21 @@
+/* Trade of the Day: a face beside each player who moves. Kept next to the component so page
+   changes don't collide in the shared stylesheet. */
+.totd-players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.totd-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.totd-drop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}

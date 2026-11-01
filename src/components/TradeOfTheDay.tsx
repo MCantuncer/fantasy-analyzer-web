@@ -4,6 +4,8 @@ import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { pct, ptsDiff, signedInt } from '../lib/format'
+import { PlayerHead } from './PlayerHead'
+import './TradeOfTheDay.css'
 import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
 
 interface Props {
@@ -100,12 +102,20 @@ function Side({
         <div className="kpi-label">Gets</div>
         <div className="totd-players">
           {gets.sends.map((p) => (
-            <div key={p.id}>
-              {p.name} <span className="totd-pos">{p.positions.join('/')}</span>
+            <div key={p.id} className="totd-player">
+              <PlayerHead player={p} size={44} />
+              <span>
+                {p.name} <span className="totd-pos">{p.positions.join('/')}</span>
+              </span>
             </div>
           ))}
         </div>
-        {side.drop && <div className="small muted">and drops {side.drop.name}</div>}
+        {side.drop && (
+          <div className="small muted totd-drop">
+            <PlayerHead player={side.drop} size={20} />
+            and drops {side.drop.name}
+          </div>
+        )}
       </div>
       <div className="totd-odds">
         <span className="kpi-label">Playoff odds</span>
