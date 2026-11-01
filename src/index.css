@@ -4718,3 +4718,22 @@ th .head {
 .night-lead .head {
   margin-right: 0;
 }
+
+.night-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.night-totals-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .night-totals {
+    align-items: flex-start;
+  }
+}

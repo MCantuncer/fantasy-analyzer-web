@@ -238,7 +238,8 @@ function DayStrip({ data, onPick }: { data: ScoreDay; onPick: (day: number) => v
 function YourNight({ games, teamId }: { games: Game[]; teamId: number }) {
   const t = nightTotals(games, teamId)
   if (t.played === 0) return null
-  const top = best(myLines(games, teamId))
+  const lines = myLines(games, teamId)
+  const top = best(lines)
   const cats: [string, string][] = [
     ['PTS', String(t.pts)],
     ['REB', String(t.reb)],
@@ -255,7 +256,7 @@ function YourNight({ games, teamId }: { games: Game[]; teamId: number }) {
     <section className="card your-night" aria-labelledby="night-title">
       <div className="stack" style={{ gap: 2 }}>
         <span className="eyebrow" id="night-title">
-          Your {live ? 'night so far' : 'night'} · {t.played} played
+          Your {live ? 'night so far' : 'night'}
         </span>
         {top && (
           <span className="night-lead">
@@ -266,14 +267,20 @@ function YourNight({ games, teamId }: { games: Game[]; teamId: number }) {
           </span>
         )}
       </div>
-      <dl className="night-cats">
-        {cats.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd className="num">{v}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="night-totals">
+        <span className="night-totals-label small muted" id="night-totals-label">
+          <HeadStack players={lines.map((l) => ({ id: l.player_id, name: l.name }))} size={22} />
+          {t.played === 1 ? 'Your 1 player' : `All ${t.played} of your players combined`}
+        </span>
+        <dl className="night-cats" aria-labelledby="night-totals-label">
+          {cats.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd className="num">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </section>
   )
 }
