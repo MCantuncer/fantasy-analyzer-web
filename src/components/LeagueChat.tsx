@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { createPost, deletePost, fetchFeed, fetchReplies, react } from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef, Reactions } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -8,6 +9,8 @@ import {
   FILTERS,
   REACTIONS,
   bidLine,
+  biggestBidId,
+  daySummary,
   faabLine,
   groupByDay,
   matches,
@@ -20,6 +23,10 @@ import {
 } from '../lib/feed'
 import type { Filter } from '../lib/feed'
 import { pct } from '../lib/format'
+import { teamColours } from '../lib/league'
+import './LeagueChat.css'
+import { PlayerHead } from './PlayerHead'
+import { TeamCrest } from './TeamCrest'
 
 interface Props {
   leagueId: number
@@ -42,6 +49,10 @@ interface Ctx {
   ref: LeagueRef
   teams: FeedTeam[]
   budget: number | null
+  /** Team id to crest colour; your team is the accent. */
+  colours: Map<number, string>
+  /** The week's single biggest waiver bid, which gets a highlighted card. */
+  bigId: string | null
   link: Poster | null
   creds: Credentials | null
   onReact: (item: FeedItem, reaction: string, on: boolean) => void
@@ -117,6 +128,11 @@ export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
     ref,
     teams,
     budget: first.faab_budget ?? null,
+    colours: teamColours(
+      teams.map((t) => t.id),
+      link?.teamId ?? null,
+    ),
+    bigId: first.faab_budget ? biggestBidId(first.items) : null,
     link,
     creds,
     onReact: (item, r, on) => reaction.mutate({ item, reaction: r, on }),
@@ -159,14 +175,22 @@ export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
           </div>
         )}
 
-        {groupByDay(items).map((g) => (
-          <section key={g.label} className="stack chat-day" aria-label={g.label}>
-            <h3 className="chat-day-label">{g.label}</h3>
-            {g.items.map((item) => (
-              <Item key={item.id} item={item} ctx={ctx} />
-            ))}
-          </section>
-        ))}
+        {groupByDay(items).map((g) => {
+          const summary = daySummary(g.items, ctx.budget)
+          return (
+            <section key={g.label} className="stack chat-day" aria-label={g.label}>
+              <h3 className="chat-day-label feed-day-label">
+                {g.label}
+                {summary && <span className="feed-day-summary"> · {summary}</span>}
+              </h3>
+              <div className="feed-grid">
+                {g.items.map((item) => (
+                  <Item key={item.id} item={item} ctx={ctx} />
+                ))}
+              </div>
+            </section>
+          )
+        })}
 
         {feed.hasNextPage && (
           <button className="secondary" disabled={feed.isFetchingNextPage} onClick={() => feed.fetchNextPage()}>
@@ -223,53 +247,81 @@ function Item({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   return <Move item={item} ctx={ctx} />
 }
 
-function MoveLines({ item }: { item: FeedItem }) {
+function MoveLines({ item, note }: { item: FeedItem; note?: string | null }) {
+  const moves = item.moves ?? []
+  const adds = moves.filter((m) => m.kind !== 'drop')
+  const drops = moves.filter((m) => m.kind === 'drop')
   return (
-    <ul className="feed-moves">
-      {(item.moves ?? []).map((m) => (
-        <li key={`${m.kind}-${m.player.id}`}>
-          <span
-            className={m.kind === 'drop' ? 'feed-sign bad' : 'feed-sign good'}
-            aria-label={m.kind === 'drop' ? 'Dropped' : 'Added'}
-          >
-            {m.kind === 'drop' ? '−' : '+'}
+    <ul className="feed-tile-moves">
+      {adds.map((m, i) => (
+        <li key={`add-${m.player.id}`} className="feed-tile-add">
+          <span className="feed-tile-sign" aria-label="Added">
+            +
           </span>
-          {m.player.name}
-          {m.player.position && <span className="feed-pos">{m.player.position}</span>}
+          <PlayerHead player={m.player} size={36} />
+          <span className="feed-tile-who">
+            <span className="feed-tile-name">
+              {m.player.name}
+              {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
+            </span>
+            {i === 0 && note && <span className="feed-tile-note">{note}</span>}
+          </span>
+        </li>
+      ))}
+      {drops.map((m) => (
+        <li key={`drop-${m.player.id}`} className="feed-tile-drop">
+          <span className="feed-tile-sign" aria-label="Dropped">
+            −
+          </span>
+          <PlayerHead player={m.player} size={26} />
+          <span className="feed-tile-name">
+            {m.player.name}
+            {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
+          </span>
         </li>
       ))}
     </ul>
   )
 }
 
-function Move({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
-  const bids = bidLine(item, ctx.teams, ctx.budget)
-  const faab = faabLine(item, ctx.teams, ctx.budget)
+function TileHead({ ctx, teamId, label, children }: { ctx: Ctx; teamId: number; label: string; children: ReactNode }) {
   return (
-    <article className="card feed-card">
-      <header className="feed-head">
+    <header className="feed-tile-head">
+      <TeamCrest name={label} colour={ctx.colours.get(teamId)} size={28} />
+      <span className="feed-tile-team">{label}</span>
+      {children}
+    </header>
+  )
+}
+
+function Move({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
+  const big = ctx.bigId === item.id
+  const bids = bidLine(item, ctx.teams, ctx.budget)
+  const note = big
+    ? `Biggest bid this week.${bids ? ` ${bids}` : ''}`
+    : (bids ?? (item.kind === 'waiver' ? 'No other claims.' : 'Straight off free agency.'))
+  const faab = faabLine(item, ctx.teams, ctx.budget)
+  const mine = ctx.link?.teamId === item.team_id
+  return (
+    <article className={['card', 'feed-tile', mine && 'mine', big && 'big'].filter(Boolean).join(' ')}>
+      <TileHead ctx={ctx} teamId={item.team_id} label={teamName(ctx.teams, item.team_id)}>
         <span className={item.kind === 'waiver' ? 'feed-pill waiver' : 'feed-pill fa'}>
           {item.kind === 'waiver' && ctx.budget ? (
             <>
               Waiver <span className="num">${item.bid ?? 0}</span>
             </>
           ) : item.kind === 'waiver' ? (
-            'Waiver claim'
+            'Waiver'
           ) : (
             'Free agent'
           )}
         </span>
-        <span className="feed-team">{teamName(ctx.teams, item.team_id)}</span>
         <time className="small muted" dateTime={item.at}>
           {timeLabel(item.at)}
         </time>
-      </header>
-      <MoveLines item={item} />
-      {(bids || faab) && (
-        <p className="feed-take small">
-          {bids} {faab}
-        </p>
-      )}
+      </TileHead>
+      <MoveLines item={item} note={note} />
+      {faab && <p className="feed-tile-faab small muted">{faab}</p>}
       <Social item={item} ctx={ctx} />
     </article>
   )
@@ -278,33 +330,37 @@ function Move({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
 function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const sides = tradeSides(item)
   const votes = wonVotes(item)
+  const mine = ctx.link != null && sides.some((s) => s.teamId === ctx.link!.teamId)
   return (
-    <article className="card feed-card">
-      <header className="feed-head">
+    <article className={['card', 'feed-tile', 'trade', mine && 'mine'].filter(Boolean).join(' ')}>
+      <header className="feed-tile-head">
         <span className="feed-pill trade">Trade</span>
-        <span className="feed-team">{sides.map((s) => teamName(ctx.teams, s.teamId)).join(' ⇄ ')}</span>
         <time className="small muted" dateTime={item.at}>
           {timeLabel(item.at)}
         </time>
       </header>
-      <div className="feed-trade">
-        {sides.map((s) => (
-          <div key={s.teamId}>
-            <div className="kpi-label">{teamName(ctx.teams, s.teamId)} get</div>
-            <ul className="feed-moves">
-              {(s.gets ?? []).map((m) => (
-                <li key={m.player.id}>
-                  <span className="feed-sign good" aria-label="Gets">
-                    +
-                  </span>
+      {sides.map((s) => (
+        <div key={s.teamId} className="feed-tile-side">
+          <span className="feed-tile-gets">
+            <TeamCrest name={teamName(ctx.teams, s.teamId)} colour={ctx.colours.get(s.teamId)} size={22} />
+            <span className="feed-tile-team">{teamName(ctx.teams, s.teamId)} get</span>
+          </span>
+          <ul className="feed-tile-moves">
+            {(s.gets ?? []).map((m) => (
+              <li key={m.player.id} className="feed-tile-add">
+                <span className="feed-tile-sign" aria-label="Gets">
+                  +
+                </span>
+                <PlayerHead player={m.player} size={32} />
+                <span className="feed-tile-name">
                   {m.player.name}
-                  {m.player.position && <span className="feed-pos">{m.player.position}</span>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+                  {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
       {ctx.link && (
         <div className="feed-vote stack">
           <span className="kpi-label">Who won it?</span>
@@ -334,7 +390,7 @@ function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
 function Post({ item, ctx, compact = false }: { item: FeedItem; ctx: Ctx; compact?: boolean }) {
   const mine = ctx.link?.teamId === item.team_id
   return (
-    <article className={compact ? 'feed-post compact' : 'feed-post'}>
+    <article className={compact ? 'feed-post compact' : 'feed-post feed-wide'}>
       <span className="feed-avatar" aria-hidden="true">
         {teamAbbrev(ctx.teams, item.team_id)}
       </span>

@@ -1,0 +1,38 @@
+/* Touch screens: every control gets a finger-sized (44px) hit area, per the design
+   guidelines. Text links keep their look; only the invisible hit area grows. */
+@media (pointer: coarse) {
+  /* Inline text buttons ("Sign in", "View moves", the day link on Scores) were about
+     20px tall. Grow the hit area without moving the text around it. */
+  button.link {
+    padding-block: 12px;
+    margin-block: -12px;
+  }
+
+  /* "How this works" and other disclosure toggles were 19px tall. */
+  details > summary {
+    padding-block: 12px;
+    line-height: 20px;
+  }
+
+  /* Icon buttons were squeezed to half width inside tight rows (the toast's Dismiss). */
+  button.icon,
+  .brand {
+    flex: none;
+    min-width: 44px;
+  }
+
+  /* Checkboxes were 18-20px. Their labels (whole rows, the Keep cell) take the tap too. */
+  input[type='checkbox'] {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* The top bar team name shares the Scores '.team-name' class and was cut mid-letter on
+   phones. End it with an ellipsis instead. */
+.league-switcher .team-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -17,4 +17,15 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - run: npm run build
+      # A stylesheet with a missing brace still builds, but esbuild warns and every rule
+      # after it is lost. Fail the build on any such warning.
+      - name: Build (fails on CSS warnings)
+        shell: bash
+        run: |
+          npm run build 2>&1 | tee build.log
+          if grep -q '\[WARNING\]' build.log; then
+            # Repeat each warning with its context so the cause is at the end of the log.
+            grep -A 12 '\[WARNING\]' build.log
+            echo "::error::The build printed warnings (often a missing } in a CSS file). See above."
+            exit 1
+          fi
