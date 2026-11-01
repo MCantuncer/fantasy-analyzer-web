@@ -1,7 +1,7 @@
 // Pure helpers for the League page: team identity, box-score order and formatting, and the
 // "what can still change this week" hint.
 
-import type { CategoryScore, MatchupSide } from '../api/client'
+import type { CategoryScore, LeagueOverview, MatchupSide } from '../api/client'
 
 /** Team colours are CSS variables (--team-0 … --team-11), defined for both themes in index.css. */
 export const TEAM_COLOURS = 12
@@ -119,4 +119,17 @@ export function headshotUrl(playerId: number) {
 /** ESPN's NBA team logo by the pro team abbreviation ESPN uses (LAC, GS, NO, UTAH, WSH). */
 export function teamLogoUrl(abbrev: string) {
   return `https://a.espncdn.com/i/teamlogos/nba/500/${abbrev.toLowerCase()}.png`
+}
+
+/** This week's opponent of your team and the League page's hint, for the Scores page. */
+export function tonightMatchup(
+  o: Pick<LeagueOverview, 'matchups' | 'teams'>,
+  myTeamId: number | null | undefined,
+): { opponentId: number; opponentName: string; hint: string | null } | null {
+  if (myTeamId == null) return null
+  const m = o.matchups.find((x) => x.home.team_id === myTeamId || x.away.team_id === myTeamId)
+  if (!m) return null
+  const [me, them] = m.home.team_id === myTeamId ? [m.home, m.away] : [m.away, m.home]
+  const name = o.teams.find((t) => t.id === them.team_id)?.name ?? 'your opponent'
+  return { opponentId: them.team_id, opponentName: name, hint: flipHint(me, them) }
 }

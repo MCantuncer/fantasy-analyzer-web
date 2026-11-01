@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ScoreDay } from '../api/client'
 import { game, line } from '../test/fixtures'
-import { Scores } from './Scores'
+import { Scores, type TonightMatchup } from './Scores'
 
 const TEAMS = [
   { id: 3, abbrev: 'KEA', name: 'Kucukesat Aspavas' },
@@ -71,11 +71,11 @@ function mockApi() {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(JSON.stringify(DAY))))
 }
 
-function renderScores() {
+function renderScores(matchup: TonightMatchup | null = null) {
   const client = new QueryClient()
   return render(
     <QueryClientProvider client={client}>
-      <Scores leagueId={1} season={2027} teamId={3} teams={TEAMS} creds={null} />
+      <Scores leagueId={1} season={2027} teamId={3} teams={TEAMS} creds={null} matchup={matchup} />
     </QueryClientProvider>,
   )
 }
@@ -100,6 +100,15 @@ describe('Scores', () => {
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')
     expect(within(box).getByRole('row', { name: /Wembanyama/ })).toHaveTextContent('AVK')
     expect(screen.getByText(/Best free agent in this game/)).toHaveTextContent('Tari Eason')
+  })
+
+  it('puts tonight in your matchup against your opponent', async () => {
+    mockApi()
+    renderScores({ opponentId: 5, opponentName: 'Los Avokados', hint: 'Flip REB to win 5-4-0' })
+    expect(await screen.findByText('Tonight in your matchup · vs Los Avokados')).toBeInTheDocument()
+    expect(screen.getByText('Flip REB to win 5-4-0')).toBeInTheDocument()
+    expect(screen.getByText(/against 2 of theirs/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
   })
 
   it("doesn't offer a box score for a game that hasn't started", async () => {

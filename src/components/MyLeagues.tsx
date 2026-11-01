@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApiError, addLeague, clearNotices, removeLeague } from '../api/client'
 import type { Me, MyLeague } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -11,13 +11,21 @@ interface Props {
   creds: Credentials | null
   onCreds: (creds: Credentials, remember: boolean) => void
   onOpen: (league: MyLeague) => void
+  /** Changes when the top bar asks to add a league: focus the add box. */
+  focusAdd?: number
 }
 
-export function MyLeagues({ me, creds, onCreds, onOpen }: Props) {
+export function MyLeagues({ me, creds, onCreds, onOpen, focusAdd = 0 }: Props) {
   const qc = useQueryClient()
   const [input, setInput] = useState('')
   const [tried, setTried] = useState(false)
   const parsed = parseLeagueInput(input)
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (!focusAdd) return
+    inputRef.current?.focus()
+    inputRef.current?.scrollIntoView({ block: 'center' })
+  }, [focusAdd])
 
   const setMe = (next: Me) => qc.setQueryData(['me'], next)
   const add = useMutation({
@@ -126,6 +134,7 @@ export function MyLeagues({ me, creds, onCreds, onOpen }: Props) {
             <div className="input-row">
               <input
                 id="league-input"
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="744636428 or fantasy.espn.com/…"
