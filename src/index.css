@@ -3897,34 +3897,34 @@ a.news-source:hover {
   margin: 0;
 }
 
-table.box {
+table.matchup-box {
   min-width: 920px;
 }
 
-table.box th,
-table.box td {
+table.matchup-box th,
+table.matchup-box td {
   padding: 6px 3px;
   border-bottom: none;
 }
 
-table.box thead th {
+table.matchup-box thead th {
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 
-table.box thead th.close {
+table.matchup-box thead th.close {
   color: var(--warn);
 }
 
-table.box th[scope='row'] {
+table.matchup-box th[scope='row'] {
   padding-right: 12px;
 }
 
-table.box td.left {
+table.matchup-box td.left {
   padding: 6px 12px;
 }
 
-.box-team {
+.crest-name {
   display: inline-flex;
   align-items: center;
   gap: 10px;

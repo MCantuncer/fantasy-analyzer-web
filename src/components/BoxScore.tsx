@@ -91,7 +91,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
         </ul>
       </div>
       <div className="table-wrap box-wide">
-        <table className="box">
+        <table className="matchup-box">
           <caption className="sr-only">{caption}</caption>
           <thead>
             <tr>
@@ -116,7 +116,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
               return (
                 <tr key={t.side.team_id} style={{ '--team': t.colour } as CSSProperties}>
                   <th scope="row" className="left">
-                    <span className="box-team">
+                    <span className="crest-name">
                       <TeamCrest name={t.name} colour={t.colour} size={32} />
                       <span className="box-name">
                         <span>{t.label ?? t.name}</span>

@@ -75,7 +75,7 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected }:
                 <tr key={t.id} className={rowClass(t.id, i)}>
                   <td className="num rank">{i + 1}</td>
                   <th scope="row" className="left">
-                    <span className="box-team">
+                    <span className="crest-name">
                       <TeamCrest name={t.name} colour={colours.get(t.id)} size={28} />
                       {t.name}
                     </span>
@@ -118,7 +118,7 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected }:
                   >
                     <td className="num rank">{i + 1}</td>
                     <th scope="row" className="left">
-                      <span className="box-team">
+                      <span className="crest-name">
                         <TeamCrest
                           name={nameOf.get(r.team_id) ?? r.team_name}
                           colour={colours.get(r.team_id)}
