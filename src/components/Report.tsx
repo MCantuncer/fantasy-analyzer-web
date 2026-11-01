@@ -11,6 +11,7 @@ import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Scores } from './Scores'
+import { tonightMatchup } from '../lib/league'
 import { Season } from './Season'
 import { TradeFor } from './TradeFor'
 import { TradeOfTheDay } from './TradeOfTheDay'
@@ -171,6 +172,7 @@ export function Report({
             teamId={report.team_id}
             teams={report.league.teams}
             creds={creds}
+            matchup={overview ? tonightMatchup(overview, report.team_id) : null}
           />
         )}
 

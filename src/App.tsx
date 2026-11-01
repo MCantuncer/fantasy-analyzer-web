@@ -22,6 +22,7 @@ import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
+import { tonightMatchup } from './lib/league'
 
 interface Selection {
   leagueId: number
@@ -481,6 +482,7 @@ export default function App() {
                 teamId={myTeamId!}
                 teams={overview.data.teams}
                 creds={creds}
+                matchup={tonightMatchup(overview.data, myTeamId)}
               />
             )}
             {activeTab === 'news' && (
