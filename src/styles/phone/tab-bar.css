@@ -1,12 +1,12 @@
-/* Phones: the section tabs run past the screen edge. Fade the right edge so it reads as
-   "more this way" instead of a clipped word, and leave room so the last tab clears the
-   fade when scrolled to the end. */
+/* Phones: the section tabs run past the screen edge. Fade both edges so a cut-off tab
+   reads as "more this way" instead of a clipped word. The left fade sits over the first
+   tab's own padding, and the right padding lets the last tab clear the right fade. */
 @media (max-width: 640px) {
   .topbar .tabs {
     padding-right: 32px;
     scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 40px), transparent);
   }
 
   .topbar .tabs::-webkit-scrollbar {
