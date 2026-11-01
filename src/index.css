@@ -1762,6 +1762,8 @@ tr.cutline th {
 
 /* Every card has the same anatomy and height: status, two team rows, footer. */
 .game-card {
+  /* Anchors the screen-reader-only text inside, so it can't escape the phone swipe strip. */
+  position: relative;
   display: grid;
   grid-template-rows: 22px 34px 34px 1fr;
   row-gap: 6px;
@@ -4736,4 +4738,51 @@ th .head {
   .night-totals {
     align-items: flex-start;
   }
+}
+
+/* Tonight in your matchup: your totals over your opponent's, tonight's leader in each category bold. */
+.night-head {
+  gap: 6px;
+  min-width: 0;
+}
+
+.your-night.versus {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background:
+    radial-gradient(80% 140% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    var(--surface);
+}
+
+.night-cats dd.them {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.night-cats dd.ahead {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.night-cats dd.them.ahead {
+  color: var(--text);
+}
+
+.night-who {
+  align-items: flex-start !important;
+}
+
+.night-who dd {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--muted);
+  line-height: 30px;
+}
+
+.night-who dd.them {
+  line-height: 22px;
+}
+
+.night-cats:has(.night-who) {
+  grid-template-columns: auto repeat(9, minmax(44px, auto));
 }
