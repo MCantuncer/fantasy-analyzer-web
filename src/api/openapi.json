@@ -3838,6 +3838,18 @@
             ],
             "title": "Status"
           },
+          "clock": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clock",
+            "description": "Live games only: \"Q4 2:31\", \"Half\", \"End Q3\", \"OT 0:48\""
+          },
           "away": {
             "$ref": "#/components/schemas/GameSide"
           },
