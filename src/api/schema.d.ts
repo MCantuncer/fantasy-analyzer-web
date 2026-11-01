@@ -641,6 +641,11 @@ export interface components {
              * @description Edge deals: they get at least equal trade value on paper, you gain clearly more on the court
              */
             edge_trades: components["schemas"]["TradeIdea"][];
+            /**
+             * Vision Trades
+             * @description Vision deals: players off to a slow start the projection expects to fade, worth more by the playoff weeks; you send players who help their owner now
+             */
+            vision_trades?: components["schemas"]["TradeIdea"][];
             /** Pickups */
             pickups: components["schemas"]["PickupIdea"][];
             /** Season */
@@ -1909,6 +1914,11 @@ export interface components {
              */
             playoff_week_cats_after?: number | null;
             /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
+            /**
              * Category Changes
              * @description Change in my weekly win % per category
              */
@@ -2170,6 +2180,11 @@ export interface components {
              * @description The same after the deal
              */
             playoff_week_cats_after?: number | null;
+            /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
             /**
              * Category Changes
              * @description Change in my weekly win % per category
@@ -2522,6 +2537,11 @@ export interface components {
              * @description The same after the deal
              */
             playoff_week_cats_after?: number | null;
+            /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
             /**
              * Category Changes
              * @description Change in my weekly win % per category
