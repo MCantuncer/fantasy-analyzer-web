@@ -1,0 +1,58 @@
+/* Box scores on phones (League page, your matchup and any opened matchup).
+   Can found them cramped and the dashed amber outlines noisy (2026-11-01): more room between rows,
+   taller cells, a clear break between the team header and the categories, and the close button
+   kept on the title line instead of dropping to a row of its own. Close categories are marked
+   by the amber category name alone. */
+@media (max-width: 640px) {
+  .box-compact {
+    gap: 16px;
+  }
+
+  .box-compact-head {
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .box-compact-team {
+    gap: 10px;
+  }
+
+  .box-compact-team .box-games {
+    gap: 12px;
+  }
+
+  .box-compact-rows {
+    gap: 8px;
+  }
+
+  .box-compact-rows li {
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .box-compact-rows .box-cell {
+    min-width: 0;
+    height: 44px;
+  }
+
+  .mu-box .featured-head {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .mu-box .featured-head .eyebrow {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.35;
+  }
+
+  .mu-box .featured-head .icon-button {
+    flex: none;
+  }
+
+  .mu-box {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+}

@@ -35,7 +35,7 @@ function Games({ team }: { team: BoxTeam }) {
 
 /**
  * An ESPN-style box score: both teams on two rows, every category with both numbers, the leader's
- * cell shaded in its team colour, close categories outlined, and each side's W-L-T at the end.
+ * cell shaded in its team colour, close categories named in amber, and each side's W-L-T at the end.
  */
 export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam; caption: string }) {
   const cats = boxOrder(home.side.categories ?? [])
