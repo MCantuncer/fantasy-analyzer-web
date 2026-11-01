@@ -111,6 +111,18 @@ describe('Scores', () => {
     expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
   })
 
+  it('shows the quarter and clock of a live game', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({ ...DAY, live: true, games: [{ ...DAY.games[0], status: 'live', clock: 'Q4 2:31' }] }),
+        ),
+      ),
+    )
+    renderScores()
+    expect((await screen.findAllByText(/Q4 2:31/)).length).toBeGreaterThan(0)
+  })
+
   it("doesn't offer a box score for a game that hasn't started", async () => {
     mockApi()
     renderScores()
