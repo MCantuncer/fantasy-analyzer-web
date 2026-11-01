@@ -12,8 +12,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
-// Phone fixes, one file each, loaded after the base styles so they win ties.
-import.meta.glob('./styles/phone/*.css', { eager: true })
+import './styles/phone'
 import { applyTheme, loadTheme } from './lib/theme'
 
 applyTheme(loadTheme())
