@@ -16,6 +16,7 @@ import {
   tipOff,
   winner,
 } from '../lib/scores'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 
 const SLOW_AFTER_MS = 8_000
 
@@ -255,7 +256,10 @@ function YourNight({ games, teamId }: { games: Game[]; teamId: number }) {
         </span>
         {top && (
           <span className="night-lead">
-            {top.name} led with {statLine(top)}.
+            <PlayerHead player={{ id: top.player_id, name: top.name }} size={36} />
+            <span>
+              {top.name} led with {statLine(top)}.
+            </span>
           </span>
         )}
       </div>
@@ -320,7 +324,8 @@ function GameCard({
 function TeamRow({ side, lead, dim, prefix }: { side: Game['home']; lead: boolean; dim: boolean; prefix: string }) {
   return (
     <span className={`team-row${lead ? ' lead' : ''}${dim ? ' dim' : ''}`}>
-      <span title={side.name}>
+      <span title={side.name} className="team-abbrev">
+        <TeamLogo abbrev={side.abbrev} size={22} />
         {prefix}
         {side.abbrev}
       </span>
@@ -408,7 +413,12 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
   const owner = l.owner_team_id == null ? 'FA' : (abbrev.get(l.owner_team_id) ?? '')
   return (
     <tr className={mine ? 'mine' : undefined}>
-      <th scope="row">{l.name}</th>
+      <th scope="row">
+        <span className="box-player">
+          <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} />
+          {l.name}
+        </span>
+      </th>
       <td className={`left${l.owner_team_id == null ? ' good' : ''}`}>{owner}</td>
       <td className="muted">{l.minutes}</td>
       <td>

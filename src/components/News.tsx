@@ -27,6 +27,7 @@ import {
   topGains,
 } from '../lib/news'
 import type { NewsFilter, NewsScope } from '../lib/news'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 
 const SLOW_AFTER_MS = 8_000
 
@@ -265,8 +266,12 @@ function PlayerRow({
   const panelId = `gains-${player.player_id}`
   return (
     <li className="news-player">
+      <PlayerHead player={{ id: player.player_id, name: player.name }} size={40} />
       <span className="name">{player.name}</span>
-      <span className="small muted">{player.pro_team || 'Free agent'}</span>
+      <span className="small muted news-team">
+        <TeamLogo abbrev={player.pro_team} />
+        {player.pro_team || 'Free agent'}
+      </span>
       {status && <span className="badge badge-bad">ESPN: {status}</span>}
       <OwnerBadge player={player} myTeamId={myTeamId} abbrev={abbrev} />
       {impact && (
@@ -367,6 +372,7 @@ function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | n
   return (
     <li className="news-gain">
       <div className="row news-gain-head">
+        <PlayerHead player={{ id: b.player_id, name: b.name }} size={28} />
         <span className="name">{b.name}</span>
         <OwnerBadge player={b} myTeamId={myTeamId} abbrev={abbrev} />
         <span className={`badge confidence-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
@@ -404,7 +410,10 @@ function Trending({
           {players.slice(0, 8).map((p) => (
             <tr key={p.player_id}>
               <td>
-                <span className="name">{p.name}</span> <span className="small muted">{p.pro_team}</span>
+                <span className="news-who">
+                  <PlayerHead player={{ id: p.player_id, name: p.name }} size={28} />
+                  <span className="name">{p.name}</span> <span className="small muted">{p.pro_team}</span>
+                </span>
               </td>
               <td className="right">
                 <OwnerBadge player={p} myTeamId={myTeamId} abbrev={abbrev} />

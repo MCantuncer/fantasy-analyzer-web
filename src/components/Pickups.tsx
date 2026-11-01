@@ -3,6 +3,7 @@ import type { PickupIdea } from '../api/client'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { ordinal } from '../lib/format'
+import { PlayerHead } from './PlayerHead'
 
 interface Props {
   pickups: PickupIdea[]
@@ -42,6 +43,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                   aria-controls={`pickup-${i}-detail`}
                   onClick={() => setOpen(isOpen ? null : p.add.id)}
                 >
+                  <PlayerHead player={p.add} size={40} />
                   <span>
                     <span className="good" aria-hidden="true">
                       +{' '}
