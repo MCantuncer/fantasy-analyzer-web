@@ -4845,16 +4845,6 @@ button.way[aria-checked='true'] {
   font-variant-numeric: tabular-nums;
 }
 
-.commish-msg {
-  margin: 0;
-  padding: 12px 14px;
-  border-left: 3px solid var(--accent);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 14px;
-  line-height: 1.5;
-}
 
 .browsers {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4941,4 +4931,34 @@ button.way[aria-checked='true'] {
 .browsers button {
   white-space: nowrap;
   font-size: 14px;
+}
+
+.commish p {
+  margin: 0;
+}
+
+.espn-path {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  font-weight: 600;
+  line-height: 1.7;
+  user-select: all;
+}
+
+.espn-path-sep {
+  color: var(--faint);
+  font-weight: 400;
+}
+
+.espn-path-end {
+  color: var(--accent-text);
+}
+
+.check-again {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }

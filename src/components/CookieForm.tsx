@@ -12,10 +12,8 @@ interface Props {
 type Way = 'public' | 'cookies'
 type Browser = 'chrome' | 'firefox' | 'safari'
 
-const COMMISSIONER_MESSAGE =
-  'Hey! Could you make our ESPN league viewable to the public? On ESPN: League > Settings > Basic Settings > ' +
-  '"Make League Viewable to Public" > Yes. People with the link can only view standings and rosters, nobody ' +
-  "can make moves. I'd like to use Fantasy Analyzer for trade ideas. Thanks!"
+// Where the commissioner flips the switch on ESPN. Plain text so it copies cleanly.
+const PUBLIC_PATH = ['League', 'Settings', 'Basic Settings', 'Make League Viewable to Public', 'Yes']
 
 const STEPS: Record<Browser, string[]> = {
   chrome: [
@@ -74,7 +72,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
   const [espnS2, setEspnS2] = useState('')
   const [swid, setSwid] = useState('')
   const [remember, setRemember] = useState(false)
-  const [copied, setCopied] = useState<'message' | 'link' | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const found = parseCookiePaste(paste)
   const creds: Credentials | null = manual
@@ -85,15 +83,16 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
       ? { espnS2: found.espnS2, swid: found.swid }
       : null
 
-  async function share(kind: 'message' | 'link', text: string) {
+  async function sendLink() {
+    const url = window.location.href
     try {
-      if (phone && navigator.share) {
-        await navigator.share(kind === 'link' ? { url: text } : { text })
+      if (navigator.share) {
+        await navigator.share({ url })
         return
       }
-      await navigator.clipboard.writeText(text)
-      setCopied(kind)
-      window.setTimeout(() => setCopied(null), 2000)
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
     } catch {
       // share sheet dismissed or clipboard blocked
     }
@@ -107,7 +106,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
         </span>
         <div className="stack-sm">
           <h2 id="private-title">This league is private</h2>
-          <p className="muted">ESPN only shows private leagues to their members. Pick the quickest way in.</p>
+          <p className="muted">ESPN keeps private leagues behind a velvet rope. Here are two ways past it.</p>
         </div>
       </header>
 
@@ -120,7 +119,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
           onClick={() => setWay('public')}
         >
           <span className="way-title">Ask the commissioner</span>
-          <span className="small muted">Works on any phone. No cookies.</span>
+          <span className="small muted">Works on any phone. Costs you one favor.</span>
           {phone && <span className="tag good way-tag">Best on phone</span>}
         </button>
         <button
@@ -137,35 +136,30 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
       </div>
 
       {way === 'public' && (
-        <div className="stack way-body">
-          <ol className="steps">
-            <li>
-              <span className="step-num">1</span>
-              <div>
-                <strong>Send your commissioner this message</strong>
-                <blockquote className="commish-msg">{COMMISSIONER_MESSAGE}</blockquote>
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => share('message', COMMISSIONER_MESSAGE)}
-                >
-                  {copied === 'message' ? 'Copied' : phone ? 'Share message' : 'Copy message'}
-                </button>
-              </div>
-            </li>
-            <li>
-              <span className="step-num">2</span>
-              <div>
-                <strong>Once they switch it on, come back here</strong>
-                <p className="small muted">Everyone in the league can then use the analyzer without cookies.</p>
-                {onRetry && (
-                  <button type="button" onClick={onRetry}>
-                    Check again
-                  </button>
-                )}
-              </div>
-            </li>
-          </ol>
+        <div className="stack way-body commish">
+          <p>
+            Your commissioner holds the keys. One switch on ESPN opens the league to viewers, read only, so nobody
+            can sneak a trade through the back door.
+          </p>
+          <p className="espn-path" aria-label="Where the setting lives on ESPN">
+            {PUBLIC_PATH.map((step, i) => (
+              <span key={step}>
+                {i > 0 && <span className="espn-path-sep"> &gt; </span>}
+                <span className={i === PUBLIC_PATH.length - 1 ? 'espn-path-end' : undefined}>{step}</span>
+              </span>
+            ))}
+          </p>
+          <p className="small muted">
+            Commissioners answer faster after a win. Picking your moment is half the trade game anyway.
+          </p>
+          {onRetry && (
+            <div className="check-again">
+              <button type="button" onClick={onRetry}>
+                Check again
+              </button>
+              <span className="small muted">Flipped it? We'll knock again.</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -176,8 +170,8 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
             Mobile browsers hide them. Open this page on a computer, connect there, and you're set on that device.
           </p>
           <div className="row">
-            <button type="button" className="secondary" onClick={() => share('link', window.location.href)}>
-              {copied === 'link' ? 'Copied' : 'Send this page to my computer'}
+            <button type="button" className="secondary" onClick={sendLink}>
+              {copied ? 'Copied' : 'Send this page to my computer'}
             </button>
           </div>
         </div>
@@ -271,13 +265,6 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
         </form>
       )}
 
-      {way === 'public' && (
-        <div className="row">
-          <button type="button" className="secondary" onClick={onCancel}>
-            Back
-          </button>
-        </div>
-      )}
     </section>
   )
 }
