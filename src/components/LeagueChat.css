@@ -1,0 +1,182 @@
+/* League feed as cards: moves and trades tile 2–3 per row, chat posts span the full row.
+   Page-owned styles (feed-* prefix); the older shared feed rules in index.css stay untouched. */
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.feed-wide {
+  grid-column: 1 / -1;
+}
+
+.feed-day-summary {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.feed-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 4px;
+  min-width: 0;
+  transition: background-color 0.15s;
+}
+
+.feed-tile:hover {
+  background: var(--surface-2);
+}
+
+.feed-tile.mine {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.feed-tile.big {
+  border-color: var(--warn);
+  background: radial-gradient(90% 120% at 100% 0%, var(--warn-soft), transparent 60%), var(--surface);
+}
+
+.feed-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.feed-tile-head time {
+  flex: none;
+}
+
+.feed-tile-head .feed-pill {
+  flex: none;
+}
+
+.feed-tile.trade .feed-tile-head .feed-pill {
+  margin-right: auto;
+}
+
+.feed-tile-team {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-pill.fa {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.feed-tile-moves {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feed-tile-add,
+.feed-tile-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.feed-tile-sign {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.feed-tile-drop .feed-tile-sign {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.feed-tile-drop {
+  color: var(--muted);
+}
+
+.feed-tile-drop .head {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+.feed-tile-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.feed-tile-name {
+  min-width: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.feed-tile-add .feed-tile-name {
+  font-weight: 600;
+}
+
+.feed-tile-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.feed-tile-faab {
+  margin: 0;
+}
+
+.feed-tile-side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-tile-gets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+/* Footer sits at the bottom so cards in a row line up. Tap targets are thumb-sized. */
+.feed-tile .feed-social {
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--divider);
+  gap: 6px;
+}
+
+.feed-social .chip.sm,
+.feed-social .feed-react,
+.feed-social .feed-reply-toggle {
+  min-height: 44px;
+}
+
+.feed-tile .feed-replies,
+.feed-tile .feed-vote {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-tile {
+    transition: none;
+  }
+}
