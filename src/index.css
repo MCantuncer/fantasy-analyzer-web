@@ -1260,6 +1260,15 @@ th .badge {
   color: var(--muted);
 }
 
+.feedback-read {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
 .feedback-sum {
   margin: 4px 0 0;
   color: var(--text-2);

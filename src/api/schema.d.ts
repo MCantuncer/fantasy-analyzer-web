@@ -480,7 +480,8 @@ export interface paths {
          * Trade Check
          * @description Check a trade idea against today's league: what holds up, what doesn't, and the evidence.
          *
-         *     Every check runs; the ones the quick reasons point at come first.
+         *     Every check runs; the ones the quick reasons point at come first. When the manager has
+         *     given feedback on this deal, the verdicts are kept with it.
          */
         post: operations["trade_check_api_trade_check_post"];
         delete?: never;
@@ -1469,6 +1470,20 @@ export interface components {
              */
             conflict?: string | null;
         };
+        /** NoteRead */
+        NoteRead: {
+            /**
+             * Kind
+             * @description clear: maps onto our reasons and checks; rant: venting; unclear: a point no check covers
+             * @enum {string}
+             */
+            kind: "clear" | "rant" | "unclear";
+            /**
+             * Summary
+             * @description What the note says, in one sentence
+             */
+            summary: string;
+        };
         /** Notice */
         Notice: {
             /** Id */
@@ -2345,6 +2360,8 @@ export interface components {
             stale?: string | null;
             /** Verdicts */
             verdicts: components["schemas"]["CheckVerdict"][];
+            /** @description How the manager's note was read, when it was */
+            read_as?: components["schemas"]["NoteRead"] | null;
         };
         /** TradeCheckRequest */
         TradeCheckRequest: {
