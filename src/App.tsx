@@ -23,6 +23,7 @@ import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
 import { tonightMatchup } from './lib/league'
+import { useTabInView } from './lib/useTabInView'
 
 interface Selection {
   leagueId: number
@@ -168,6 +169,7 @@ export default function App() {
   const tabs: readonly { id: string; label: string }[] = verified ? TABS : LEAGUE_TABS
   const activeTab = tabs.find((t) => t.id === tab)?.id ?? tabs[0].id
   const showTabs = selection && !verifying && overview.data
+  const tabsRef = useTabInView(showTabs ? activeTab : null)
   const waitingForReport = verified && !report
   const firstRun = waitingForReport && analysis.isPending
 
@@ -349,7 +351,7 @@ export default function App() {
           </div>
         </div>
         {showTabs && (
-          <nav className="tabs" role="tablist" aria-label="Sections">
+          <nav ref={tabsRef} className="tabs" role="tablist" aria-label="Sections">
             {tabs.map((t) => (
               <button
                 key={t.id}
