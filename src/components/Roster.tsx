@@ -1,6 +1,7 @@
 import type { PlayerRef } from '../api/client'
 import { PlayerBadges } from './PlayerBadges'
 import { shortValue, useRoundValues } from '../lib/tradeValue'
+import { PlayerHead } from './PlayerHead'
 
 const TIERS: Record<PlayerRef['tier'], { label: string; title: string }> = {
   core: { label: 'Core', title: 'You keep him: never offered or dropped' },
@@ -53,7 +54,7 @@ export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
                   </label>
                 </td>
                 <th scope="row">
-                  {p.name}{' '}
+                  <PlayerHead player={p} size={28} /> {p.name}{' '}
                   {p.injury_status !== 'ACTIVE' && <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>}
                   <PlayerBadges badges={p.badges} />
                 </th>

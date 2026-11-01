@@ -12,7 +12,7 @@ function contentSecurityPolicy(apiUrl: string | undefined): Plugin {
     "default-src 'self'",
     `script-src 'self' ${google}client`,
     `style-src 'self' 'unsafe-inline' ${google}style`,
-    "img-src 'self' data:",
+    "img-src 'self' data: https://a.espncdn.com",
     `connect-src ${connect}`,
     `frame-src ${google}`,
     "base-uri 'none'",

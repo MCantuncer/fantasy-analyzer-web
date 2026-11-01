@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApiError, fetchAnalysis, fetchLeague, fetchMe, fetchOverview, signOut } from './api/client'
-import type { AnalysisReport, AuthResult, MyLeague } from './api/client'
+import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague } from './api/client'
+import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
+import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
 import { CookieForm } from './components/CookieForm'
 import { LeagueChat } from './components/LeagueChat'
@@ -10,6 +12,7 @@ import { MyLeagues } from './components/MyLeagues'
 import { News } from './components/News'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
+import { Scores } from './components/Scores'
 import { Status } from './components/Status'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
@@ -30,6 +33,9 @@ const LEAGUE_TABS = [
   { id: 'feed', label: 'Moves feed' },
   { id: 'news', label: 'NBA News' },
 ] as const
+
+// Tabs that show the analysis; the rest work while it runs.
+const ANALYSIS_TABS = new Set(['moves', 'park', 'trade-for', 'team'])
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
 
@@ -89,6 +95,9 @@ export default function App() {
   const [keep, setKeep] = useState<number[]>([])
   const [appliedKeep, setAppliedKeep] = useState<number[]>([])
   const [report, setReport] = useState<AnalysisReport | null>(null)
+  const [job, setJob] = useState<AnalysisProgress>({ progress: 0, stage: 'Starting' })
+  const [readyToast, setReadyToast] = useState(false)
+  const running = useRef<AbortController | null>(null)
 
   useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
   useEffect(() => applyTheme(theme), [theme])
@@ -124,13 +133,20 @@ export default function App() {
   })
 
   const analysis = useMutation({
-    mutationFn: (args: { teamId: number; keep: number[] }) =>
-      fetchAnalysis(selection!.leagueId, args.teamId, season, args.keep, creds),
+    mutationFn: (args: { teamId: number; keep: number[] }) => {
+      // A newer run (another league, new keepers) replaces the one in flight.
+      running.current?.abort()
+      const controller = new AbortController()
+      running.current = controller
+      setJob({ progress: 0, stage: 'Starting' })
+      return fetchAnalysis(selection!.leagueId, args.teamId, season, args.keep, creds, setJob, controller.signal)
+    },
     onSuccess: (data, args) => {
       setReport(data)
       setAppliedKeep(args.keep)
     },
   })
+  const shownProgress = useSmoothProgress(job.progress, analysis.isPending)
 
   const { mutate } = analysis
   const leagueReady = league.isSuccess && league.data.supported
@@ -147,7 +163,18 @@ export default function App() {
   const verified = myTeamId !== null
   const tabs: readonly { id: string; label: string }[] = verified ? TABS : LEAGUE_TABS
   const activeTab = tabs.find((t) => t.id === tab)?.id ?? tabs[0].id
-  const showTabs = selection && !verifying && overview.data && (!verified || report)
+  const showTabs = selection && !verifying && overview.data
+  const waitingForReport = verified && !report
+  const firstRun = waitingForReport && analysis.isPending
+
+  // Someone who wandered off to another tab hears when their moves are in.
+  const activeRef = useRef(activeTab)
+  activeRef.current = activeTab
+  const wasFirstRun = useRef(false)
+  useEffect(() => {
+    if (wasFirstRun.current && !firstRun && report && !ANALYSIS_TABS.has(activeRef.current)) setReadyToast(true)
+    wasFirstRun.current = firstRun
+  }, [firstRun, report])
 
   function signedInWith(result: AuthResult) {
     saveToken(result.token)
@@ -162,19 +189,26 @@ export default function App() {
     goHome()
   }
 
+  function stopAnalysis() {
+    running.current?.abort()
+    running.current = null
+    analysis.reset()
+    setReadyToast(false)
+  }
+
   function openLeague(l: MyLeague) {
     setSelection({ leagueId: l.league_id, season: l.season })
     setTab('')
     setVerifying(false)
     setReport(null)
-    analysis.reset()
+    stopAnalysis()
   }
 
   function goHome() {
     setSelection(null)
     setVerifying(false)
     setReport(null)
-    analysis.reset()
+    stopAnalysis()
   }
 
   function toggleKeep(id: number) {
@@ -193,16 +227,13 @@ export default function App() {
       <header className="topbar">
         <div className="topbar-inner">
           <button className="brand" onClick={goHome} aria-label="Fantasy Analyzer, my leagues">
-            <svg className="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-              <rect x="1" y="1" width="26" height="26" rx="7" fill="var(--accent)" />
-              <path
-                d="M8 19 L12 13 L16 16 L20 9"
-                stroke="var(--on-accent)"
-                strokeWidth="2.4"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg className="brand-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--accent)" />
+              <g fill="var(--on-accent)" transform="translate(3.6 0) skewX(-13)">
+                <rect x="8.5" y="7" width="4.8" height="18.5" rx="0.8" />
+                <rect x="8.5" y="14.4" width="8.6" height="4.8" rx="0.8" />
+                <path d="M8.5 7H19V3.8l7.2 5.5L19 14.8v-3.2H8.5z" />
+              </g>
             </svg>
             <span className="brand-name">Fantasy Analyzer</span>
           </button>
@@ -235,7 +266,10 @@ export default function App() {
                 Forget ESPN cookies
               </button>
             )}
-            {report && myTeamId && activeTab !== 'chat' && (
+            {analysis.isPending && verified && (
+              <AnalysisPill progress={shownProgress} onClick={() => setTab('moves')} />
+            )}
+            {report && myTeamId && activeTab !== 'chat' && !analysis.isPending && (
               <button
                 className="icon"
                 aria-label="Refresh analysis"
@@ -413,9 +447,54 @@ export default function App() {
           <News leagueId={ref.leagueId} season={ref.season} myTeamId={null} teams={overview.data.teams} creds={creds} />
         )}
 
-        {!verifying && verified && analysis.isPending && !report && <Status phase="analysis" leagueName={leagueName} />}
+        {!verifying && overview.data && ref && firstRun && ANALYSIS_TABS.has(activeTab) && (
+          <AnalysisCard progress={shownProgress} stage={job.stage} onBrowse={(t) => setTab(t)} />
+        )}
 
-        {!verifying && verified && analysis.error && (
+        {!verifying && overview.data && ref && waitingForReport && !ANALYSIS_TABS.has(activeTab) && (
+          <div
+            className="stack"
+            style={{ gap: 24 }}
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            {activeTab === 'league' && (
+              <>
+                <LeagueOverview overview={overview.data} onVerify={() => undefined} />
+                {analysis.isPending && (
+                  <div className="card pending-note">
+                    <div className="progress" aria-hidden="true">
+                      <span style={{ width: percent(shownProgress) }} />
+                    </div>
+                    <span className="muted">Playoff odds and team builds appear here once your analysis finishes.</span>
+                  </div>
+                )}
+              </>
+            )}
+            {activeTab === 'scores' && (
+              <Scores
+                leagueId={ref.leagueId}
+                season={ref.season}
+                teamId={myTeamId!}
+                teams={overview.data.teams}
+                creds={creds}
+              />
+            )}
+            {activeTab === 'news' && (
+              <News
+                leagueId={ref.leagueId}
+                season={ref.season}
+                myTeamId={myTeamId}
+                teams={overview.data.teams}
+                creds={creds}
+              />
+            )}
+            {activeTab === 'chat' && <LeagueChat leagueId={ref.leagueId} season={ref.season} creds={creds} />}
+          </div>
+        )}
+
+        {!verifying && verified && analysis.error && (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
           <div className="card error stack">
             <h2>Something went wrong</h2>
             <p>{analysis.error.message}</p>
@@ -444,6 +523,15 @@ export default function App() {
           </RoundValuesContext.Provider>
         )}
       </main>
+      {readyToast && (
+        <ReadyToast
+          onView={() => {
+            setTab('moves')
+            setReadyToast(false)
+          }}
+          onDismiss={() => setReadyToast(false)}
+        />
+      )}
     </>
   )
 }

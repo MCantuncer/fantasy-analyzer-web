@@ -4,6 +4,7 @@ import { loadToken } from '../lib/session'
 
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
+export type AnalysisJob = components['schemas']['AnalysisJob']
 export type TradeIdea = components['schemas']['TradeIdea']
 export type PickupIdea = components['schemas']['PickupIdea']
 export type PlayerRef = components['schemas']['PlayerRef']
@@ -28,6 +29,9 @@ export type AuthResult = components['schemas']['AuthResult']
 export type AuthConfig = components['schemas']['AuthConfig']
 export type LeagueOverview = components['schemas']['LeagueOverview']
 export type OverviewTeam = components['schemas']['OverviewTeam']
+export type MatchupSide = components['schemas']['MatchupSide']
+export type CategoryScore = components['schemas']['CategoryScore']
+export type WeekGames = components['schemas']['WeekGames']
 export type OverviewMatchup = components['schemas']['OverviewMatchup']
 export type ShopReport = components['schemas']['ShopReport']
 export type ShopDeal = components['schemas']['ShopDeal']
@@ -46,6 +50,16 @@ export type TrendingPlayer = components['schemas']['TrendingPlayer']
 export type InjuryImpact = components['schemas']['InjuryImpact']
 export type Beneficiary = components['schemas']['Beneficiary']
 export type CategoryGains = components['schemas']['CategoryGains']
+export type TradeFeedback = components['schemas']['TradeFeedback']
+export type TradeFeedbackRequest = components['schemas']['TradeFeedbackRequest']
+export type FeedbackSource = TradeFeedbackRequest['source']
+export type FeedbackReason = NonNullable<TradeFeedbackRequest['reasons']>[number]
+export type FeedbackRating = TradeFeedbackRequest['rating']
+export type TradeCheck = components['schemas']['TradeCheck']
+export type CheckVerdict = components['schemas']['CheckVerdict']
+export type NoteRead = components['schemas']['NoteRead']
+export type TradeRule = components['schemas']['TradeRule']
+export type TradeRuleKind = TradeRule['kind']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -156,23 +170,53 @@ export function fetchLeague(leagueId: number, season: number | null, creds: Cred
   return post<LeagueSummary>('/api/league', { league_id: leagueId, season }, creds)
 }
 
-export function fetchAnalysis(
+export interface AnalysisProgress {
+  progress: number
+  stage: string
+}
+
+const POLL_MS = 1500
+
+function wait(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const id = setTimeout(resolve, ms)
+    signal?.addEventListener('abort', () => {
+      clearTimeout(id)
+      reject(new ApiError(0, 'aborted', 'Cancelled.'))
+    })
+  })
+}
+
+/**
+ * Runs the team's analysis as a background job on the server and polls it until the
+ * report is ready, reporting progress along the way. Nothing blocks while it runs.
+ */
+export async function fetchAnalysis(
   leagueId: number,
   teamId: number,
   season: number | null,
   keepPlayerIds: number[],
   creds: Credentials | null,
-) {
-  return post<AnalysisReport>(
-    '/api/analyze',
-    {
-      league_id: leagueId,
-      team_id: teamId,
-      season,
-      keep_player_ids: keepPlayerIds,
-    },
-    creds,
-  )
+  onProgress?: (p: AnalysisProgress) => void,
+  signal?: AbortSignal,
+): Promise<AnalysisReport> {
+  const body = {
+    league_id: leagueId,
+    team_id: teamId,
+    season,
+    keep_player_ids: keepPlayerIds,
+  }
+  for (;;) {
+    if (signal?.aborted) throw new ApiError(0, 'aborted', 'Cancelled.')
+    // Each poll answers at once; the timeout only guards against a stalled connection.
+    const job = await post<AnalysisJob>('/api/analyze/job', body, creds, 90_000)
+    if (job.status === 'done' && job.report) return job.report
+    if (job.status === 'failed') {
+      throw new ApiError(500, job.error?.code ?? 'analysis_failed', job.error?.message ?? 'The analysis failed.')
+    }
+    onProgress?.({ progress: job.progress, stage: job.stage })
+    await wait(POLL_MS, signal)
+  }
 }
 
 export function fetchShop(
@@ -249,15 +293,28 @@ export function fetchFeed(ref: LeagueRef, page: number, creds: Credentials | nul
 }
 
 export function fetchReplies(ref: LeagueRef, target: string) {
-  return post<RepliesPage>('/api/feed/replies', { league_id: ref.leagueId, season: ref.season, target })
+  return post<RepliesPage>('/api/feed/replies', {
+    league_id: ref.leagueId,
+    season: ref.season,
+    target,
+  })
 }
 
 export function createPost(ref: LeagueRef, body: string, target: string | null) {
-  return post<FeedItem>('/api/posts', { league_id: ref.leagueId, season: ref.season, body, target })
+  return post<FeedItem>('/api/posts', {
+    league_id: ref.leagueId,
+    season: ref.season,
+    body,
+    target,
+  })
 }
 
 export function deletePost(ref: LeagueRef, postId: number) {
-  return post<{ ok: boolean }>('/api/posts/delete', { league_id: ref.leagueId, season: ref.season, post_id: postId })
+  return post<{ ok: boolean }>('/api/posts/delete', {
+    league_id: ref.leagueId,
+    season: ref.season,
+    post_id: postId,
+  })
 }
 
 export function react(ref: LeagueRef, target: string, reaction: string, on: boolean, creds: Credentials | null) {
@@ -308,13 +365,98 @@ export function fetchScores(
 }
 
 export function fetchNews(leagueId: number, season: number | null, includeHeld: boolean, creds: Credentials | null) {
-  return post<NewsPage>('/api/news', { league_id: leagueId, season, include_held: includeHeld }, creds, SCORES_TIMEOUT_MS)
+  return post<NewsPage>(
+    '/api/news',
+    { league_id: leagueId, season, include_held: includeHeld },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
 }
 
-export function fetchInjuryImpact(playerId: number, leagueId: number, season: number | null, creds: Credentials | null) {
+export function fetchInjuryImpact(
+  playerId: number,
+  leagueId: number,
+  season: number | null,
+  creds: Credentials | null,
+) {
   return post<InjuryImpact>(
     '/api/injury-impact',
     { player_id: playerId, league_id: leagueId, season },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** Who is giving trade feedback: the verified manager of ``teamId`` in this league. */
+export interface FeedbackSeat extends LeagueRef {
+  teamId: number
+}
+
+export function saveTradeFeedback(
+  seat: FeedbackSeat,
+  feedback: {
+    source: FeedbackSource
+    rating: FeedbackRating
+    reasons: FeedbackReason[]
+    text: string
+    idea: TradeIdea
+  },
+) {
+  return post<TradeFeedback>('/api/trade-feedback', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    ...feedback,
+  })
+}
+
+export function fetchMyTradeFeedback(seat: FeedbackSeat) {
+  return post<{ feedback: TradeFeedback[] }>('/api/trade-feedback/mine', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+  })
+}
+
+export function fetchMyTradeRules(seat: FeedbackSeat) {
+  return post<{ rules: TradeRule[] }>('/api/trade-rules/mine', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+  })
+}
+
+export function addTradeRule(
+  seat: FeedbackSeat,
+  rule: { kind: TradeRuleKind; value?: string; team_name?: string; why?: string },
+) {
+  return post<TradeRule>('/api/trade-rules', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    ...rule,
+  })
+}
+
+export function deleteTradeRule(seat: FeedbackSeat, ruleId: number) {
+  return post<{ rules: TradeRule[] }>('/api/trade-rules/delete', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    rule_id: ruleId,
+  })
+}
+
+export function checkTrade(seat: FeedbackSeat, idea: TradeIdea, reasons: FeedbackReason[], creds: Credentials | null) {
+  return post<TradeCheck>(
+    '/api/trade-check',
+    {
+      league_id: seat.leagueId,
+      season: seat.season,
+      team_id: seat.teamId,
+      idea,
+      reasons,
+    },
     creds,
     SCORES_TIMEOUT_MS,
   )

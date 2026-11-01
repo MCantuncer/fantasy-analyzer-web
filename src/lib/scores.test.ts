@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { game, line } from '../test/fixtures'
-import { best, dayLabel, nightTotals, ratio, statLine, winner } from './scores'
+import { best, dayLabel, leader, nightTotals, ratio, statLine, winner } from './scores'
 
 describe('scores helpers', () => {
   it('adds up only my players, with shooting from makes and attempts', () => {
@@ -24,6 +24,11 @@ describe('scores helpers', () => {
     const giannis = line({ name: 'Giannis Antetokounmpo', pts: 36, reb: 12, ast: 5, stl: 2 })
     expect(best([line({}), giannis])).toBe(giannis)
     expect(statLine(giannis)).toBe('36 pts, 12 reb, 5 ast')
+  })
+
+  it('shows who leads while a game is on, but not before tip-off or when level', () => {
+    expect(leader(game({ status: 'live' }))).toBe('away')
+    expect(leader(game({ status: 'scheduled' }))).toBeNull()
   })
 
   it('shows the winner only once a game is final', () => {
