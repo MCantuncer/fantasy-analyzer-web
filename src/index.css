@@ -399,16 +399,6 @@ th .badge {
   margin-right: 4px;
 }
 
-.trade-warnings {
-  list-style: none;
-  margin: 0 0 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--warn-soft);
-  color: var(--warn);
-  font-size: 14px;
-}
-
 /* Outcome colors. Text always carries the meaning too. */
 .good {
   color: var(--good);

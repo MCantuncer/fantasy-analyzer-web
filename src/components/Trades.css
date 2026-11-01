@@ -1,0 +1,27 @@
+/* Trade cards on Moves and Trade Park. */
+
+/* A quiet caveat (e.g. you give up one of the league's jewels): a small amber mark beside muted
+   text, so it reads as a note on the deal rather than an alarm. */
+.trades-warning {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trades-warning li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.trades-warning svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--warn);
+}
