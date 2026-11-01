@@ -1756,76 +1756,198 @@ tr.cutline th {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
 }
 
+/* Every card has the same anatomy and height: status, two team rows, footer. */
 .game-card {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 6px;
+  display: grid;
+  grid-template-rows: 22px 34px 34px 1fr;
+  row-gap: 6px;
+  align-items: center;
+  justify-content: stretch;
+  height: 160px;
   min-height: 0;
-  padding: 14px 16px;
+  padding: 12px 14px;
   text-align: left;
   font-weight: 400;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 button.game-card:hover {
-  border-color: var(--faint);
+  background: var(--raised);
 }
 
 .game-card.has-mine {
-  border-color: var(--faint);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .game-card[aria-pressed='true'] {
-  border-color: var(--accent);
+  border: 2px solid var(--accent);
+  padding: 11px 13px;
   background: var(--raised);
 }
 
 .game-status {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
-  color: var(--muted);
+  font-size: 12px;
 }
 
-.mine-names {
-  color: var(--accent-text);
-  font-weight: 600;
-  text-align: right;
+.game-status .tip {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bad);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.live-dot i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+.live-dot .muted {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.game-mine .head-stack {
+  margin-right: 0;
+}
+
+.game-mine .head {
+  border-color: var(--surface);
+}
+
+.game-mine .head + .head {
+  margin-left: -6px;
 }
 
 .team-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-weight: 500;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 3.5ch;
+  align-items: center;
+  gap: 10px;
 }
 
-.team-row .score {
-  font-size: 22px;
+.team-logo-slot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+
+.team-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.team-name b {
+  font-size: 15px;
   font-weight: 600;
 }
 
-.team-row.lead {
+.team-nick {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-row .score {
+  font-size: 24px;
   font-weight: 700;
+  text-align: right;
 }
 
-.team-row.dim {
+.team-row.trail .score,
+.team-row.trail .team-name b {
   color: var(--muted);
+  font-weight: 500;
 }
 
-.game-top {
-  border-top: 1px solid var(--divider);
-  padding-top: 8px;
+.team-row.level .score {
   color: var(--text-2);
+  font-weight: 600;
+}
+
+.game-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: end;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--divider);
+  color: var(--text-2);
+}
+
+.game-foot-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-you {
+  margin-left: auto;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot i {
+    animation: none;
+  }
+}
+
+/* Phones: a swipe strip, so the box score stays in view. */
+@media (max-width: 640px) {
+  .game-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 -16px;
+    padding: 0 16px 4px;
+    scroll-padding: 0 16px;
+  }
+
+  .game-grid > * {
+    flex: 0 0 78vw;
+    max-width: 300px;
+    scroll-snap-align: start;
+  }
 }
 
 .badge-live {
@@ -1988,10 +2110,6 @@ tr.box-team th {
 
   .fixture-mine {
     grid-column: 2;
-  }
-
-  .game-card {
-    padding: 12px 14px;
   }
 
   .topbar-inner,

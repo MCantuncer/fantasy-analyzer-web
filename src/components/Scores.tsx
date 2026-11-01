@@ -8,15 +8,16 @@ import {
   dayLabel,
   gamesLeft,
   isOut,
+  leader,
   longDayLabel,
   myLines,
   nightTotals,
   ratio,
   statLine,
   tipOff,
-  winner,
 } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
+type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 const SLOW_AFTER_MS = 8_000
 
@@ -62,6 +63,7 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
     setPicked(null)
   }
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
+  const upcoming = new Map((data.week ?? []).flatMap((d) => d.games.map((f) => [f.id, f.my_players] as const)))
   const games = onlyMine ? data.games.filter((g) => g.lines.some((l) => l.owner_team_id === teamId)) : data.games
   const selected =
     data.games.find((g) => g.id === picked) ??
@@ -91,6 +93,7 @@ export function Scores({ leagueId, season, teamId, teams, creds }: Props) {
               key={g.id}
               game={g}
               teamId={teamId}
+              upcoming={upcoming.get(g.id) ?? []}
               selected={g.id === selected?.id}
               onPick={() => setPicked(g.id)}
             />
@@ -285,38 +288,74 @@ function YourNight({ games, teamId }: { games: Game[]; teamId: number }) {
 function GameCard({
   game,
   teamId,
+  upcoming,
   selected,
   onPick,
 }: {
   game: Game
   teamId: number
+  /** Your players in this game from the week's fixtures, for games that haven't started. */
+  upcoming: FixturePlayer[]
   selected: boolean
   onPick: () => void
 }) {
-  const mine = game.lines.filter((l) => l.owner_team_id === teamId)
-  const win = winner(game)
-  const top = best(game.lines)
   const scheduled = game.status === 'scheduled'
-  const className = `game-card${mine.length ? ' has-mine' : ''}`
+  const live = game.status === 'live'
+  const lines = game.lines.filter((l) => l.owner_team_id === teamId)
+  const mine = scheduled && !lines.length ? upcoming : lines.map((l) => ({ player_id: l.player_id, name: l.name }))
+  const lead = leader(game)
+  const top = best(game.lines)
+  const rostered = game.lines.filter((l) => l.owner_team_id != null).length
+  const tipping = live && !game.away.score && !game.home.score
+  const className = ['game-card', mine.length ? 'has-mine' : ''].filter(Boolean).join(' ')
   const body = (
     <>
-      <span className="game-status small">
-        {game.status === 'live' ? (
-          <span className="badge badge-live">Live</span>
+      <span className="game-status">
+        {live ? (
+          <span className="live-dot">
+            <i aria-hidden="true" />
+            Live{tipping && <span className="muted"> · Tip-off</span>}
+          </span>
         ) : scheduled ? (
-          tipOff(game.start)
+          <span className="num tip">{tipOff(game.start)}</span>
         ) : (
-          'Final'
+          <span className="muted">Final</span>
         )}
-        {mine.length > 0 && <span className="mine-names">Yours: {mine.map((l) => shortName(l.name)).join(', ')}</span>}
+        {mine.length > 0 && (
+          <span className="game-mine">
+            <HeadStack players={mine.map((p) => ({ id: p.player_id, name: p.name }))} size={22} />
+            <span className="sr-only">Your players: {mine.map((p) => p.name).join(', ')}</span>
+          </span>
+        )}
       </span>
-      <TeamRow side={game.away} lead={win === 'away'} dim={win === 'home'} prefix="" />
-      <TeamRow side={game.home} lead={win === 'home'} dim={win === 'away'} prefix="@ " />
-      {top && !scheduled && (
-        <span className="game-top small">
-          {top.name} {statLine(top)}
-        </span>
-      )}
+      <TeamRow
+        side={game.away}
+        state={scheduled ? 'pre' : lead === 'away' ? 'lead' : lead === 'home' ? 'trail' : 'level'}
+      />
+      <TeamRow
+        side={game.home}
+        state={scheduled ? 'pre' : lead === 'home' ? 'lead' : lead === 'away' ? 'trail' : 'level'}
+        home
+      />
+      <span className="game-foot small">
+        {top && !scheduled ? (
+          <>
+            <PlayerHead player={{ id: top.player_id, name: top.name }} size={20} />
+            <span className="game-foot-text">
+              <b>{shortName(top.name)}</b> {statLine(top)}
+            </span>
+            {top.owner_team_id === teamId && <span className="badge badge-you">You</span>}
+          </>
+        ) : mine.length > 0 ? (
+          <span className="game-foot-text">
+            {mine.length === 1 ? 'Yours' : `${mine.length} of yours`}: {mine.map((p) => shortName(p.name)).join(', ')}
+          </span>
+        ) : rostered > 0 ? (
+          <span className="muted">{rostered} rostered in your league</span>
+        ) : (
+          <span className="muted">None of your players</span>
+        )}
+      </span>
     </>
   )
   // A game that hasn't started has no box score to open.
@@ -328,17 +367,35 @@ function GameCard({
   )
 }
 
-function TeamRow({ side, lead, dim, prefix }: { side: Game['home']; lead: boolean; dim: boolean; prefix: string }) {
+function TeamRow({
+  side,
+  state,
+  home = false,
+}: {
+  side: Game['home']
+  state: 'lead' | 'trail' | 'level' | 'pre'
+  home?: boolean
+}) {
   return (
-    <span className={`team-row${lead ? ' lead' : ''}${dim ? ' dim' : ''}`}>
-      <span title={side.name} className="team-abbrev">
-        <TeamLogo abbrev={side.abbrev} size={22} />
-        {prefix}
-        {side.abbrev}
+    <span className={`team-row ${state}`}>
+      <span className="team-logo-slot">
+        <TeamLogo abbrev={side.abbrev} size={28} />
       </span>
-      <span className="num score">{side.score ?? ''}</span>
+      <span className="team-name" title={home ? `${side.name} (home)` : side.name}>
+        <b>{side.abbrev}</b>
+        <span className="team-nick muted">{nickname(side.name)}</span>
+        {home && <span className="sr-only"> (home)</span>}
+      </span>
+      <span className="num score">{state === 'pre' ? '' : (side.score ?? '')}</span>
     </span>
   )
+}
+
+/** "Boston Celtics" → "Celtics", "Portland Trail Blazers" → "Trail Blazers". */
+function nickname(name: string) {
+  const words = name.trim().split(/\s+/)
+  if (words.length < 2) return name
+  return /trail/i.test(words[words.length - 2]) ? words.slice(-2).join(' ') : words[words.length - 1]
 }
 
 function BoxScore({

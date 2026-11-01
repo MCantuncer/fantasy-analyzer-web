@@ -99,6 +99,13 @@ export function winner(g: Game): 'away' | 'home' | null {
   return g.away.score > g.home.score ? 'away' : 'home'
 }
 
+/** Who is ahead right now, live or final; null before tip-off and when level. */
+export function leader(g: Game): 'away' | 'home' | null {
+  if (g.status === 'scheduled' || g.away.score == null || g.home.score == null || g.away.score === g.home.score)
+    return null
+  return g.away.score > g.home.score ? 'away' : 'home'
+}
+
 /** "Sat 24 Oct", for a longer date label. */
 export function longDayLabel(date: string | null | undefined): string {
   if (!date) return ''
