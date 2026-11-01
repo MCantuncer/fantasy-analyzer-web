@@ -467,6 +467,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trade-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Trade Check
+         * @description Check a trade idea against today's league: what holds up, what doesn't, and the evidence.
+         *
+         *     Every check runs; the ones the quick reasons point at come first.
+         */
+        post: operations["trade_check_api_trade_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scores": {
         parameters: {
             query?: never;
@@ -527,6 +549,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trade-feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Trade Feedback
+         * @description Save what a manager thought of a trade idea, with the idea as they saw it.
+         *
+         *     Giving feedback on the same deal again replaces the earlier entry.
+         */
+        post: operations["trade_feedback_api_trade_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-feedback/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * My Trade Feedback
+         * @description The feedback this manager gave in the league, newest first.
+         */
+        post: operations["my_trade_feedback_api_trade_feedback_mine_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -577,6 +641,11 @@ export interface components {
              * @description Edge deals: they get at least equal trade value on paper, you gain clearly more on the court
              */
             edge_trades: components["schemas"]["TradeIdea"][];
+            /**
+             * Vision Trades
+             * @description Vision deals: players off to a slow start the projection expects to fade, worth more by the playoff weeks; you send players who help their owner now
+             */
+            vision_trades?: components["schemas"]["TradeIdea"][];
             /** Pickups */
             pickups: components["schemas"]["PickupIdea"][];
             /** Season */
@@ -746,6 +815,26 @@ export interface components {
              * @enum {string}
              */
             tag: "locked" | "swing" | "lost";
+        };
+        /** CheckVerdict */
+        CheckVerdict: {
+            /**
+             * Check
+             * @description free_pickup, noise, lateral_swap, build_conflict, small_sample, injury, ...
+             */
+            check: string;
+            /** Title */
+            title: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "confirmed" | "not_supported" | "cant_check";
+            /**
+             * Evidence
+             * @description What the data shows, in a sentence
+             */
+            evidence: string;
         };
         /** DeletePostRequest */
         DeletePostRequest: {
@@ -1548,6 +1637,21 @@ export interface components {
              * @default false
              */
             injury_prone: boolean;
+            /**
+             * Games Out
+             * @description Listed out: expected team games he still misses, from how many he has missed in a row
+             */
+            games_out?: number | null;
+            /**
+             * Expected Back
+             * @description Listed out: date of his expected first game back, YYYY-MM-DD
+             */
+            expected_back?: string | null;
+            /**
+             * Out Report
+             * @description Listed out: the news headline games_out rests on, when it reported a timeline
+             */
+            out_report?: string | null;
         };
         /** PollTally */
         PollTally: {
@@ -1717,6 +1821,11 @@ export interface components {
             first_seed_pct: number;
             /** Mean Rank */
             mean_rank: number;
+            /**
+             * Playoff Week Cats
+             * @description Expected categories won per fantasy playoff week against an average team, on that week's games
+             */
+            playoff_week_cats?: number | null;
         };
         /** ShopDeal */
         ShopDeal: {
@@ -1794,6 +1903,21 @@ export interface components {
             playoff_pct_before: number;
             /** Playoff Pct After */
             playoff_pct_after: number;
+            /**
+             * Playoff Week Cats Before
+             * @description My expected categories won per fantasy playoff week against an average team, before the deal
+             */
+            playoff_week_cats_before?: number | null;
+            /**
+             * Playoff Week Cats After
+             * @description The same after the deal
+             */
+            playoff_week_cats_after?: number | null;
+            /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
             /**
              * Category Changes
              * @description Change in my weekly win % per category
@@ -2047,6 +2171,21 @@ export interface components {
             /** Playoff Pct After */
             playoff_pct_after: number;
             /**
+             * Playoff Week Cats Before
+             * @description My expected categories won per fantasy playoff week against an average team, before the deal
+             */
+            playoff_week_cats_before?: number | null;
+            /**
+             * Playoff Week Cats After
+             * @description The same after the deal
+             */
+            playoff_week_cats_after?: number | null;
+            /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
+            /**
              * Category Changes
              * @description Change in my weekly win % per category
              */
@@ -2190,6 +2329,128 @@ export interface components {
             /** Record */
             record: string;
         };
+        /** TradeCheck */
+        TradeCheck: {
+            /**
+             * Playoff Pct Before
+             * @description Today's odds, None when the idea is stale
+             */
+            playoff_pct_before?: number | null;
+            /** Playoff Pct After */
+            playoff_pct_after?: number | null;
+            /**
+             * Stale
+             * @description Why the idea can't be rebuilt from today's rosters
+             */
+            stale?: string | null;
+            /** Verdicts */
+            verdicts: components["schemas"]["CheckVerdict"][];
+        };
+        /** TradeCheckRequest */
+        TradeCheckRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /** @description The idea as it was shown */
+            idea: components["schemas"]["TradeIdea"];
+            /**
+             * Reasons
+             * @description Quick reasons: their checks run first
+             */
+            reasons?: ("fake_gain" | "wont_accept" | "bad_for_build" | "player_concern" | "already_tried" | "other")[];
+            /**
+             * Keep Player Ids
+             * @description Players never suggested as drops
+             */
+            keep_player_ids?: number[];
+        };
+        /** TradeFeedback */
+        TradeFeedback: {
+            /** Id */
+            id: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "trades" | "edge" | "shop" | "trade_for" | "trade_of_day";
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "bad" | "good";
+            /** Reasons */
+            reasons: ("fake_gain" | "wont_accept" | "bad_for_build" | "player_concern" | "already_tried" | "other")[];
+            /** Text */
+            text: string;
+            idea: components["schemas"]["TradeIdea"];
+            /**
+             * Created At
+             * @description When it was given (or last changed), UTC
+             */
+            created_at: string;
+        };
+        /** TradeFeedbackList */
+        TradeFeedbackList: {
+            /**
+             * Feedback
+             * @description This manager's feedback in the league, newest first
+             */
+            feedback: components["schemas"]["TradeFeedback"][];
+        };
+        /** TradeFeedbackListRequest */
+        TradeFeedbackListRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+        };
+        /** TradeFeedbackRequest */
+        TradeFeedbackRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Source
+             * @description Which list the idea was shown in
+             * @enum {string}
+             */
+            source: "trades" | "edge" | "shop" | "trade_for" | "trade_of_day";
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "bad" | "good";
+            /**
+             * Reasons
+             * @description Quick reasons, any order
+             */
+            reasons?: ("fake_gain" | "wont_accept" | "bad_for_build" | "player_concern" | "already_tried" | "other")[];
+            /**
+             * Text
+             * @description What the manager wrote, in their own words
+             * @default
+             */
+            text: string;
+            /** @description The idea exactly as it was shown */
+            idea: components["schemas"]["TradeIdea"];
+        };
         /** TradeIdea */
         TradeIdea: {
             /** Partner Team Id */
@@ -2266,6 +2527,21 @@ export interface components {
             playoff_pct_before: number;
             /** Playoff Pct After */
             playoff_pct_after: number;
+            /**
+             * Playoff Week Cats Before
+             * @description My expected categories won per fantasy playoff week against an average team, before the deal
+             */
+            playoff_week_cats_before?: number | null;
+            /**
+             * Playoff Week Cats After
+             * @description The same after the deal
+             */
+            playoff_week_cats_after?: number | null;
+            /**
+             * Vision
+             * @description Vision trades: why the players you get are worth more later than their owner sees now
+             */
+            vision?: string[];
             /**
              * Category Changes
              * @description Change in my weekly win % per category
@@ -3655,6 +3931,61 @@ export interface operations {
             };
         };
     };
+    trade_check_api_trade_check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeCheck"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     scores_api_scores_post: {
         parameters: {
             query?: never;
@@ -3751,6 +4082,112 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trade_feedback_api_trade_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeFeedback"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_trade_feedback_api_trade_feedback_mine_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeFeedbackListRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeFeedbackList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

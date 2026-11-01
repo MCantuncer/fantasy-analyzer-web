@@ -1175,6 +1175,149 @@ th .badge {
   color: var(--muted);
 }
 
+/* Overview / Feedback tabs inside an opened trade card. */
+.move-tabs {
+  padding: 0 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.move-tabs .tab {
+  margin-bottom: -1px;
+}
+
+.feedback-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.feedback-pill.bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.feedback-pill.good {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.feedback {
+  flex: 1 1 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-q {
+  margin: 0;
+  font-size: 16px;
+}
+
+.feedback-q + p {
+  margin: 0 0 4px;
+}
+
+.feedback-rating {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.feedback-rating button {
+  flex: 1;
+  max-width: 180px;
+}
+
+.feedback-rating button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.feedback-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.feedback-text {
+  font: inherit;
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  resize: vertical;
+}
+
+.feedback-text::placeholder {
+  color: var(--muted);
+}
+
+.feedback-sum {
+  margin: 4px 0 0;
+  color: var(--text-2);
+}
+
+.verdicts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.verdicts li {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--divider);
+  color: var(--text-2);
+}
+
+.verdicts strong {
+  color: var(--text);
+}
+
+.verdict {
+  width: fit-content;
+  height: fit-content;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.verdict-confirmed {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.verdict-not {
+  background: var(--track);
+  color: var(--muted);
+}
+
+.verdict-cant {
+  color: var(--muted);
+  border: 1px dashed var(--border);
+}
+
+@media (max-width: 640px) {
+  .move-tabs {
+    padding: 0 16px;
+  }
+
+  .verdicts li {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pitch {
   padding: 12px 14px;
   background: var(--surface-2);
