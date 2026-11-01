@@ -817,6 +817,24 @@ export interface components {
              */
             tag: "locked" | "swing" | "lost";
         };
+        /** CategoryScore */
+        CategoryScore: {
+            /**
+             * Stat
+             * @description Category code, e.g. PTS or FG%
+             */
+            stat: string;
+            /**
+             * Value
+             * @description Running total this week; a fraction for FG% and FT%
+             */
+            value: number;
+            /**
+             * Result
+             * @description W, L or T for this side so far
+             */
+            result: string;
+        };
         /** CheckVerdict */
         CheckVerdict: {
             /**
@@ -1163,6 +1181,18 @@ export interface components {
             name: string;
             /** Matchup Period */
             matchup_period: number;
+            /**
+             * Week Start
+             * @description Monday of this matchup week, ISO date
+             */
+            week_start?: string | null;
+            /**
+             * Week End
+             * @description Sunday of this matchup week, ISO date
+             */
+            week_end?: string | null;
+            /** Playoff Teams */
+            playoff_teams?: number | null;
             /** Teams */
             teams: components["schemas"]["OverviewTeam"][];
             /** Matchups */
@@ -1263,6 +1293,13 @@ export interface components {
             losses: number;
             /** Ties */
             ties: number;
+            /**
+             * Categories
+             * @description Empty when ESPN sent none
+             */
+            categories?: components["schemas"]["CategoryScore"][];
+            /** @description None when rosters or the NBA calendar are unavailable */
+            games?: components["schemas"]["WeekGames"] | null;
         };
         /** Me */
         Me: {
@@ -1518,6 +1555,31 @@ export interface components {
              * @default false
              */
             mine: boolean;
+            /**
+             * Wins
+             * @default 0
+             */
+            wins: number;
+            /**
+             * Losses
+             * @default 0
+             */
+            losses: number;
+            /**
+             * Ties
+             * @default 0
+             */
+            ties: number;
+            /**
+             * Seed
+             * @description ESPN's current standings place, 1 = first
+             */
+            seed?: number | null;
+            /**
+             * Games Back
+             * @description Category wins behind the leader
+             */
+            games_back?: number | null;
         };
         /** OwnerRead */
         OwnerRead: {
@@ -2754,6 +2816,24 @@ export interface components {
              * @description Random id kept by the browser
              */
             voter: string;
+        };
+        /** WeekGames */
+        WeekGames: {
+            /**
+             * Today
+             * @description Games today (US date) by rostered players outside IR, started or not
+             */
+            today: number;
+            /**
+             * Left
+             * @description Games this week that have not tipped off yet
+             */
+            left: number;
+            /**
+             * Total
+             * @description Every game this week
+             */
+            total: number;
         };
     };
     responses: never;

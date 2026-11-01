@@ -1,0 +1,160 @@
+import type { CSSProperties } from 'react'
+import type { MatchupSide } from '../api/client'
+import { boxOrder, formatStat, isClose, record } from '../lib/league'
+import { TeamCrest } from './TeamCrest'
+
+export interface BoxTeam {
+  side: MatchupSide
+  name: string
+  colour: string | undefined
+  label?: string // e.g. "You · Kucukesat Aspavas"
+  sub?: string // e.g. "Season 4-5-0"
+}
+
+function Games({ team }: { team: BoxTeam }) {
+  const g = team.side.games
+  if (!g) return <span className="muted">–</span>
+  const played = g.total ? ((g.total - g.left) / g.total) * 100 : 0
+  return (
+    <div className="box-games">
+      <span className={`games-today${g.today ? '' : ' none'}`}>
+        <span className="num">{g.today}</span>
+        <span>today</span>
+      </span>
+      <span className="games-week">
+        <span className="small">
+          <b className="num">{g.left}</b> left of {g.total}
+        </span>
+        <span className="games-bar" aria-hidden="true">
+          <span style={{ width: `${played}%` }} />
+        </span>
+      </span>
+    </div>
+  )
+}
+
+/**
+ * An ESPN-style box score: both teams on two rows, every category with both numbers, the leader's
+ * cell shaded in its team colour, close categories outlined, and each side's W-L-T at the end.
+ */
+export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam; caption: string }) {
+  const cats = boxOrder(home.side.categories ?? [])
+  const theirs = new Map((away.side.categories ?? []).map((c) => [c.stat, c]))
+  const close = new Set(
+    cats.filter((c) => theirs.has(c.stat) && isClose(c.stat, c.value, theirs.get(c.stat)!.value)).map((c) => c.stat),
+  )
+  const teams = [home, away]
+
+  const byTeam = teams.map((t) => new Map((t.side.categories ?? []).map((c) => [c.stat, c])))
+  const cellClass = (r: string | undefined, stat: string) =>
+    ['box-cell', r === 'W' ? 'lead' : r === 'T' ? 'tie' : '', close.has(stat) ? 'close' : ''].filter(Boolean).join(' ')
+
+  return (
+    <>
+      {/* Phones: categories run down the page, one row each, your number on the left. */}
+      <div className="box-compact" role="group" aria-label={caption}>
+        <div className="box-compact-head">
+          {teams.map((t) => (
+            <div key={t.side.team_id} className="box-compact-team" style={{ '--team': t.colour } as CSSProperties}>
+              <TeamCrest name={t.name} colour={t.colour} size={36} />
+              <span className="box-name">
+                <span>{t.label ?? t.name}</span>
+                <span className="num box-record">{record(t.side)}</span>
+              </span>
+              <Games team={t} />
+            </div>
+          ))}
+        </div>
+        <ul className="box-compact-rows">
+          {cats.map((c) => (
+            <li key={c.stat}>
+              {teams.map((t, i) => {
+                const cell = byTeam[i].get(c.stat)
+                return (
+                  <span
+                    key={t.side.team_id}
+                    className={`${cellClass(cell?.result, c.stat)} num`}
+                    style={
+                      {
+                        '--team': t.colour,
+                        order: i === 0 ? 0 : 2,
+                      } as CSSProperties
+                    }
+                  >
+                    {cell ? formatStat(c.stat, cell.value) : '–'}
+                  </span>
+                )
+              })}
+              <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>{c.stat}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="table-wrap box-wide">
+        <table className="box">
+          <caption className="sr-only">{caption}</caption>
+          <thead>
+            <tr>
+              <th scope="col" className="left">
+                Team
+              </th>
+              <th scope="col" className="left">
+                Games
+              </th>
+              {cats.map((c) => (
+                <th key={c.stat} scope="col" className={close.has(c.stat) ? 'close' : undefined}>
+                  {c.stat}
+                </th>
+              ))}
+              <th scope="col">W-L-T</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((t, i) => {
+              const mine = i === 0 ? home.side : away.side
+              const byStat = new Map((mine.categories ?? []).map((c) => [c.stat, c]))
+              return (
+                <tr key={t.side.team_id} style={{ '--team': t.colour } as CSSProperties}>
+                  <th scope="row" className="left">
+                    <span className="box-team">
+                      <TeamCrest name={t.name} colour={t.colour} size={32} />
+                      <span className="box-name">
+                        <span>{t.label ?? t.name}</span>
+                        {t.sub && <span className="small muted">{t.sub}</span>}
+                      </span>
+                    </span>
+                  </th>
+                  <td className="left">
+                    <Games team={t} />
+                  </td>
+                  {cats.map((c) => {
+                    const cell = byStat.get(c.stat)
+                    const cls = [
+                      'box-cell',
+                      cell?.result === 'W' ? 'lead' : cell?.result === 'T' ? 'tie' : '',
+                      close.has(c.stat) ? 'close' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                    const what = cell?.result === 'W' ? ', leading' : cell?.result === 'T' ? ', tied' : ''
+                    return (
+                      <td key={c.stat}>
+                        <span
+                          className={`${cls} num`}
+                          aria-label={cell ? `${formatStat(c.stat, cell.value)}${what}` : '–'}
+                        >
+                          {cell ? formatStat(c.stat, cell.value) : '–'}
+                        </span>
+                      </td>
+                    )
+                  })}
+                  <td className="num box-record">{record(t.side)}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
