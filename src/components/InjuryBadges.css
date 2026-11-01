@@ -1,0 +1,9 @@
+.badge-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* Best Move puts the injury tags on their own line under the names: align them with the text. */
+.swap-name + .injury-badge {
+  margin-left: 0;
+}
