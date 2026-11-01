@@ -227,16 +227,13 @@ export default function App() {
       <header className="topbar">
         <div className="topbar-inner">
           <button className="brand" onClick={goHome} aria-label="Fantasy Analyzer, my leagues">
-            <svg className="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-              <rect x="1" y="1" width="26" height="26" rx="7" fill="var(--accent)" />
-              <path
-                d="M8 19 L12 13 L16 16 L20 9"
-                stroke="var(--on-accent)"
-                strokeWidth="2.4"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg className="brand-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--accent)" />
+              <g fill="var(--on-accent)" transform="translate(3.6 0) skewX(-13)">
+                <rect x="8.5" y="7" width="4.8" height="18.5" rx="0.8" />
+                <rect x="8.5" y="14.4" width="8.6" height="4.8" rx="0.8" />
+                <path d="M8.5 7H19V3.8l7.2 5.5L19 14.8v-3.2H8.5z" />
+              </g>
             </svg>
             <span className="brand-name">Fantasy Analyzer</span>
           </button>
