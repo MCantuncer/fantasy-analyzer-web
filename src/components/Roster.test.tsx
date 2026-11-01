@@ -13,6 +13,7 @@ const player = {
   value: 1.2,
   perceived_value: 25,
   tier: 'tradeable',
+  injury_prone: false,
   badges: [],
   owner_premium: 0,
 } as PlayerRef
