@@ -18,6 +18,53 @@ function stepIndex(stage: string) {
   return i < 0 ? 0 : i
 }
 
+const stroke = { stroke: 'currentColor', strokeWidth: 1.6, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+
+const BROWSE: { tab: 'scores' | 'league' | 'news' | 'chat'; label: string; desc: string; icon: React.ReactNode }[] = [
+  {
+    tab: 'scores',
+    label: 'Scores',
+    desc: "Tonight's box scores for every rostered player",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <rect x="2.5" y="3.5" width="13" height="11" rx="2" {...stroke} />
+        <path d="M9 3.5v11M2.5 9h3M12.5 9h3" {...stroke} />
+      </svg>
+    ),
+  },
+  {
+    tab: 'league',
+    label: 'League',
+    desc: "Standings, this week's matchups and the MVP race",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path d="M3 15V9M7.5 15V4M12 15v-4M15.5 15H2" {...stroke} />
+      </svg>
+    ),
+  },
+  {
+    tab: 'news',
+    label: 'NBA News',
+    desc: 'Injuries, returns and who gains minutes',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <rect x="2.5" y="3" width="13" height="12" rx="2" {...stroke} />
+        <path d="M5.5 6.5h7M5.5 9h7M5.5 11.5h4" {...stroke} />
+      </svg>
+    ),
+  },
+  {
+    tab: 'chat',
+    label: 'League chat',
+    desc: 'Trades, waiver claims and banter',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path d="M3 4.5h12v7H8l-3 2.5v-2.5H3z" {...stroke} />
+      </svg>
+    ),
+  },
+]
+
 interface CardProps {
   progress: number
   stage: string
@@ -58,25 +105,32 @@ export function AnalysisCard({ progress, stage, onBrowse }: CardProps) {
           </li>
         ))}
       </ol>
-      <div className="analysis-browse stack">
-        <p className="small muted">
-          This runs on our server, so you can keep using the app. We'll let you know when your moves are ready.
-        </p>
-        <div className="row">
-          <button type="button" className="secondary" onClick={() => onBrowse('scores')}>
-            Scores
-          </button>
-          <button type="button" className="secondary" onClick={() => onBrowse('league')}>
-            League
-          </button>
-          <button type="button" className="secondary" onClick={() => onBrowse('news')}>
-            NBA News
-          </button>
-          <button type="button" className="secondary" onClick={() => onBrowse('chat')}>
-            League chat
-          </button>
+      <nav className="wait-list" aria-labelledby="wait-title">
+        <div className="wait-head">
+          <span className="eyebrow" id="wait-title">
+            While you wait
+          </span>
+          <span className="small muted">We'll let you know when your moves are ready.</span>
         </div>
-      </div>
+        <ul>
+          {BROWSE.map((b) => (
+            <li key={b.tab}>
+              <button type="button" className="wait-item" onClick={() => onBrowse(b.tab)}>
+                <span className="wait-icon" aria-hidden="true">
+                  {b.icon}
+                </span>
+                <span className="wait-text">
+                  <span className="wait-title">{b.label}</span>
+                  <span className="wait-desc">{b.desc}</span>
+                </span>
+                <svg className="wait-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </section>
   )
 }
