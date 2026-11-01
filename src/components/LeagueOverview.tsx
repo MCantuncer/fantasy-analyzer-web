@@ -1,7 +1,8 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import type { LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import { flipHint, teamColours } from '../lib/league'
 import { BoxScore, type BoxTeam } from './BoxScore'
+import './LeagueOverview.css'
 import { Standings } from './Standings'
 import { TeamCrest } from './TeamCrest'
 
@@ -96,6 +97,40 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
   const pulse = o.pulse
   const week = [shortDate(o.week_start), shortDate(o.week_end)].filter(Boolean).join(' – ')
   const openMatchup = o.matchups.find((m) => key(m) === open)
+  // The box score opens right under the card that was tapped; bring it into view on phones.
+  useEffect(() => {
+    if (!open) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('mu-box')?.scrollIntoView?.({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
+  }, [open])
+  const boxPanel = openMatchup && (
+    <div className="card mu-box" id="mu-box">
+      <div className="featured-head">
+        <span className="eyebrow">
+          {nameOf(sides(openMatchup)[0].team_id)} vs {nameOf(sides(openMatchup)[1].team_id)}
+        </span>
+        <button type="button" className="icon-button" aria-label="Close box score" onClick={() => setOpen(null)}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+      <BoxScore
+        home={boxTeam(sides(openMatchup)[0])}
+        away={boxTeam(sides(openMatchup)[1])}
+        caption={`${nameOf(openMatchup.home.team_id)} against ${nameOf(openMatchup.away.team_id)}`}
+      />
+    </div>
+  )
 
   return (
     <div className="overview stack">
@@ -201,54 +236,29 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
                 </>
               )
               return (
-                <li key={key(m)}>
-                  {expandable ? (
-                    <button
-                      type="button"
-                      className={`mu-card${isMine ? ' mine' : ''}`}
-                      aria-expanded={open === key(m)}
-                      aria-controls="mu-box"
-                      onClick={() => setOpen(open === key(m) ? null : key(m))}
-                    >
-                      {body}
-                    </button>
-                  ) : (
-                    <div className={`mu-card${isMine ? ' mine' : ''}`}>{body}</div>
-                  )}
-                </li>
+                <Fragment key={key(m)}>
+                  <li>
+                    {expandable ? (
+                      <button
+                        type="button"
+                        className={`mu-card${isMine ? ' mine' : ''}`}
+                        aria-expanded={open === key(m)}
+                        aria-controls="mu-box"
+                        onClick={() => setOpen(open === key(m) ? null : key(m))}
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div className={`mu-card${isMine ? ' mine' : ''}`}>{body}</div>
+                    )}
+                  </li>
+                  {open === key(m) && boxPanel && <li className="mu-box-slot">{boxPanel}</li>}
+                </Fragment>
               )
             })}
           </ul>
         ) : (
           <span className="muted">No matchups this week.</span>
-        )}
-        {openMatchup && (
-          <div className="card mu-box" id="mu-box">
-            <div className="featured-head">
-              <span className="eyebrow">
-                {nameOf(sides(openMatchup)[0].team_id)} vs {nameOf(sides(openMatchup)[1].team_id)}
-              </span>
-              <button type="button" className="icon-button" aria-label="Close box score" onClick={() => setOpen(null)}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M6 6l12 12M18 6 6 18" />
-                </svg>
-              </button>
-            </div>
-            <BoxScore
-              home={boxTeam(sides(openMatchup)[0])}
-              away={boxTeam(sides(openMatchup)[1])}
-              caption={`${nameOf(openMatchup.home.team_id)} against ${nameOf(openMatchup.away.team_id)}`}
-            />
-          </div>
         )}
       </section>
 
