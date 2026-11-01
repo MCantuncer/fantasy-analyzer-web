@@ -4086,11 +4086,6 @@ table.matchup-box td.left {
   outline-offset: -1.5px;
 }
 
-.box-cell.close:not(.tie) {
-  outline: 1px dashed var(--warn);
-  outline-offset: -1px;
-}
-
 .box-record {
   padding-left: 12px !important;
   font-size: 22px;

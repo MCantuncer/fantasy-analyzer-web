@@ -139,7 +139,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
             )
           })()}
           <p className="small muted box-legend">
-            Shaded cell: leading that category. Outlined: close enough to flip. Grey outline on both rows: tied.
+            Shaded: leading that category. Amber category name: close enough to flip. Grey outline on both rows: tied.
           </p>
         </section>
       )}
