@@ -391,6 +391,10 @@ export default function App() {
               setCreds(loadCredentials() ?? c)
             }}
             onCancel={goHome}
+            onRetry={() => {
+              void overview.refetch()
+              void league.refetch()
+            }}
           />
         )}
 

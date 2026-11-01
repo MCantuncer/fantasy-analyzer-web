@@ -107,6 +107,7 @@ export function MyLeagues({ me, creds, onCreds, onOpen }: Props) {
             add.mutate(c)
           }}
           onCancel={() => add.reset()}
+          onRetry={() => add.mutate(null)}
         />
       ) : (
         <section className="card stack" aria-labelledby="add-title">

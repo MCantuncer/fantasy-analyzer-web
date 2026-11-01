@@ -4737,3 +4737,208 @@ th .head {
     align-items: flex-start;
   }
 }
+
+/* Private league: pick a way in (commissioner makes it public, or ESPN cookies). */
+.private-league {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.private-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.private-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.way-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+button.way {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 76px;
+  padding: 14px 16px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+button.way:hover {
+  background: var(--raised);
+}
+
+button.way[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.way-title {
+  font-weight: 600;
+  padding-right: 92px;
+}
+
+.way-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.private-league .steps {
+  gap: 16px;
+}
+
+.private-league .steps li {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.private-league .steps li > div,
+.private-league .steps li > p {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding-top: 3px;
+}
+
+.step-num {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.commish-msg {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.browsers {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cookie-paste {
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  resize: vertical;
+}
+
+.cookie-paste::placeholder {
+  font-family: inherit;
+  color: var(--muted);
+}
+
+.found {
+  display: flex;
+  gap: 8px;
+}
+
+.found-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.found-item.ok {
+  border-color: transparent;
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.self-start {
+  align-self: flex-start;
+}
+
+.callout {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+}
+
+.callout p {
+  margin: 0;
+}
+
+.trust {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+}
+
+.trust svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+@media (max-width: 560px) {
+  .way-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
+.browsers button {
+  white-space: nowrap;
+  font-size: 14px;
+}
