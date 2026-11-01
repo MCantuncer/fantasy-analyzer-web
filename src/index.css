@@ -106,16 +106,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Safety net: nothing may make the page wider than the screen. Phones zoom the whole
-   page out to fit anything that pokes past the edge, which squeezes the site into half
-   the screen. 'position: relative' makes stray absolutely positioned bits (screen-reader
-   text) clip here too, and 'clip' (not 'hidden') keeps sticky headers working. It sits
-   on #root, not body, because body's overflow would be handed to the window instead. */
-#root {
-  position: relative;
-  overflow-x: clip;
-}
-
 h1,
 h2,
 h3 {
@@ -159,23 +149,9 @@ code {
   position: absolute;
   width: 1px;
   height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-
-/* Every sideways scroller is a positioning context, so hidden screen-reader text inside
-   it stays inside it. Without this, that text is placed against the page and widens it
-   on phones by however far the scroller's content runs. */
-.tabs,
-.table-wrap,
-.day-strip,
-.chat-filters,
-.news-filters {
-  position: relative;
 }
 
 /* ---------- Primitives ---------- */
