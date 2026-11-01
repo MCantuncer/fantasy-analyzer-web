@@ -54,6 +54,7 @@ export type FeedbackReason = NonNullable<TradeFeedbackRequest['reasons']>[number
 export type FeedbackRating = TradeFeedbackRequest['rating']
 export type TradeCheck = components['schemas']['TradeCheck']
 export type CheckVerdict = components['schemas']['CheckVerdict']
+export type NoteRead = components['schemas']['NoteRead']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 

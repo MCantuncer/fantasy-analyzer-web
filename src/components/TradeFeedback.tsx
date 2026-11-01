@@ -9,6 +9,7 @@ import {
   type FeedbackReason,
   type FeedbackSeat,
   type FeedbackSource,
+  type NoteRead,
   type TradeFeedback as Saved,
   type TradeIdea,
 } from '../api/client'
@@ -225,6 +226,7 @@ function Checked({ scope, saved, onChange }: { scope: FeedbackScope; saved: Save
           Thanks, your feedback is saved. The checks aren't available right now.
         </p>
       )}
+      {check.data?.read_as && <p className="small feedback-read">{readAs(check.data.read_as)}</p>}
       {check.data?.stale && <p className="small muted">{check.data.stale} The checks need today's rosters.</p>}
       {check.data && !check.data.stale && (
         <>
@@ -248,6 +250,15 @@ function Checked({ scope, saved, onChange }: { scope: FeedbackScope; saved: Save
       </div>
     </div>
   )
+}
+
+/** How we read the note, said back so the manager can see we listened. */
+export function readAs(r: NoteRead): string {
+  if (r.kind === 'rant')
+    return 'We read your note as frustration with this idea. We count that across managers as a signal.'
+  if (r.kind === 'unclear')
+    return `We read your note as: ${r.summary} None of our checks covers this yet, so we kept it for a closer look.`
+  return `We read your note as: ${r.summary} The checks it points at ran first.`
 }
 
 function summary(verdicts: CheckVerdict[], rating: FeedbackRating): string {
