@@ -1,0 +1,10 @@
+/* League page: a matchup's box score opens in the grid right after the card that was tapped,
+   spanning the full row. Dense flow lets the cards after it fill the rest of that row first. */
+.mu-grid {
+  grid-auto-flow: row dense;
+}
+
+.mu-box-slot {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
