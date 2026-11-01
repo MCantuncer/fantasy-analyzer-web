@@ -24,6 +24,8 @@ jobs:
         run: |
           npm run build 2>&1 | tee build.log
           if grep -q '\[WARNING\]' build.log; then
-            echo "::error::The build printed warnings (often a missing } in a CSS file). See the log above."
+            # Repeat each warning with its context so the cause is at the end of the log.
+            grep -A 12 '\[WARNING\]' build.log
+            echo "::error::The build printed warnings (often a missing } in a CSS file). See above."
             exit 1
           fi
