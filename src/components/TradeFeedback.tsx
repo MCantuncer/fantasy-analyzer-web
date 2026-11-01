@@ -14,6 +14,7 @@ import {
   type TradeIdea,
 } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { SuggestRule } from './TradeRules'
 
 export interface FeedbackScope extends FeedbackSeat {
   creds: Credentials | null
@@ -241,6 +242,7 @@ function Checked({ scope, saved, onChange }: { scope: FeedbackScope; saved: Save
               </li>
             ))}
           </ul>
+          <SuggestRule saved={saved} verdicts={check.data.verdicts} />
         </>
       )}
       <div className="row">

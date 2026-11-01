@@ -490,6 +490,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/feedback/deep-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feedback Deep Read
+         * @description Collects finished closer reads of unclear notes and sends new ones, in batches. Called by a cron.
+         *
+         *     Safe to call often: each note is sent once, and nothing runs more than every few minutes.
+         */
+        get: operations["feedback_deep_read_api_feedback_deep_read_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scores": {
         parameters: {
             query?: never;
@@ -586,6 +608,66 @@ export interface paths {
          * @description The feedback this manager gave in the league, newest first.
          */
         post: operations["my_trade_feedback_api_trade_feedback_mine_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Trade Rule
+         * @description Adds one of this manager's trade rules. Adding a rule they already have returns it unchanged.
+         */
+        post: operations["add_trade_rule_api_trade_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-rules/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * My Trade Rules
+         * @description This manager's trade rules in the league, oldest first.
+         */
+        post: operations["my_trade_rules_api_trade_rules_mine_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trade-rules/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Trade Rule
+         * @description Removes one of this manager's rules and returns the ones left.
+         */
+        post: operations["delete_trade_rule_api_trade_rules_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2695,6 +2777,93 @@ export interface components {
              */
             checked_at?: string | null;
         };
+        /** TradeRule */
+        TradeRule: {
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "protect_category" | "skip_team" | "no_injury_prone";
+            /** Value */
+            value: string;
+            /**
+             * Label
+             * @description How the rule reads, e.g. 'Protect TO'
+             */
+            label: string;
+            /** Why */
+            why: string;
+            /** Created At */
+            created_at: string;
+        };
+        /** TradeRuleDeleteRequest */
+        TradeRuleDeleteRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /** Rule Id */
+            rule_id: number;
+        };
+        /** TradeRuleList */
+        TradeRuleList: {
+            /** Rules */
+            rules: components["schemas"]["TradeRule"][];
+        };
+        /** TradeRuleListRequest */
+        TradeRuleListRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+        };
+        /** TradeRuleRequest */
+        TradeRuleRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "protect_category" | "skip_team" | "no_injury_prone";
+            /**
+             * Value
+             * @description Category name for protect_category, team id for skip_team, else empty
+             * @default
+             */
+            value: string;
+            /**
+             * Team Name
+             * @description For skip_team: the team's name, for the label
+             * @default
+             */
+            team_name: string;
+            /**
+             * Why
+             * @description Where the rule came from, in a sentence
+             * @default
+             */
+            why: string;
+        };
         /** TradeSide */
         TradeSide: {
             /** Team Id */
@@ -4083,6 +4252,28 @@ export interface operations {
             };
         };
     };
+    feedback_deep_read_api_feedback_deep_read_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     scores_api_scores_post: {
         parameters: {
             query?: never;
@@ -4272,6 +4463,174 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TradeFeedbackList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_trade_rule_api_trade_rules_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeRule"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_trade_rules_api_trade_rules_mine_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeRuleListRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeRuleList"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_trade_rule_api_trade_rules_delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeRuleDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeRuleList"];
                 };
             };
             /** @description Unauthorized */
