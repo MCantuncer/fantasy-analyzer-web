@@ -1,0 +1,147 @@
+/* Durability score: a tappable amber chip for injury-prone players and its small explainer. */
+.dur-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.dur-chip:hover,
+.dur-chip[aria-expanded='true'] {
+  border-color: currentColor;
+}
+
+.dur-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dur-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dur-pop {
+  position: fixed;
+  z-index: 1000;
+  padding: 14px 16px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: normal;
+  text-align: left;
+}
+
+.dur-pop:focus {
+  outline: none;
+}
+
+.dur-pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dur-pop-name {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dur-pop-score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--warn);
+}
+
+.dur-pop-of {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.dur-pop-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dur-pop-close:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.dur-scale {
+  margin: 12px 0 10px;
+}
+
+.dur-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--raised);
+  border: 1px solid var(--border);
+}
+
+.dur-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--warn);
+}
+
+.dur-typical {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text-2);
+  border-radius: 1px;
+}
+
+.dur-scale-labels {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.dur-typical-label {
+  position: absolute;
+  transform: translateX(-50%);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.dur-pop-text {
+  margin: 0 0 6px;
+}
+
+.dur-pop-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+}
+
+.dur-pop-list li + li {
+  margin-top: 2px;
+}

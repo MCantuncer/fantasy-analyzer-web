@@ -196,8 +196,8 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
                 .filter((p) => p.injury_prone && p.games_share != null)
                 .map((p) => (
                   <li key={`prone-${p.id}`}>
-                    {p.name} has missed many games in recent seasons: the odds count him for about{' '}
-                    {Math.round((p.games_share ?? 0) * 82)} of 82 games.
+                    {p.name} often misses games (durability {Math.round((p.games_share ?? 0) * 100)} of 100, typical 73), so
+                    the odds count him for fewer games.
                   </li>
                 ))}
               {offer.my_drop && <li>You drop {offer.my_drop.name} to make room.</li>}

@@ -8,6 +8,7 @@ import { Auth } from './components/Auth'
 import { CookieForm } from './components/CookieForm'
 import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
+import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
 import { News } from './components/News'
 import { Report, TABS } from './components/Report'
@@ -21,6 +22,7 @@ import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
+import { tonightMatchup } from './lib/league'
 
 interface Selection {
   leagueId: number
@@ -98,6 +100,8 @@ export default function App() {
   const [job, setJob] = useState<AnalysisProgress>({ progress: 0, stage: 'Starting' })
   const [readyToast, setReadyToast] = useState(false)
   const running = useRef<AbortController | null>(null)
+  // Bumped by the top bar's "Add a league" so My leagues focuses its add box.
+  const [focusAdd, setFocusAdd] = useState(0)
 
   useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
   useEffect(() => applyTheme(theme), [theme])
@@ -206,6 +210,7 @@ export default function App() {
 
   function goHome() {
     setSelection(null)
+    setFocusAdd(0)
     setVerifying(false)
     setReport(null)
     stopAnalysis()
@@ -238,21 +243,18 @@ export default function App() {
             <span className="brand-name">Fantasy Analyzer</span>
           </button>
           {selection && leagueName && (
-            <div className="switcher">
-              <span className="league-name" title={leagueName}>
-                {leagueName}
-              </span>
-              {teamName && (
-                <>
-                  <span className="crumb-sep" aria-hidden="true">
-                    /
-                  </span>
-                  <span className="team-name" title={teamName}>
-                    {teamName}
-                  </span>
-                </>
-              )}
-            </div>
+            <LeagueSwitcher
+              leagues={me.data?.leagues ?? []}
+              current={{ leagueId: selection.leagueId, season }}
+              leagueName={leagueName}
+              teamName={teamName}
+              onOpen={openLeague}
+              onAdd={() => {
+                goHome()
+                setFocusAdd((n) => n + 1)
+              }}
+              onManage={goHome}
+            />
           )}
           <div className="topbar-actions">
             {creds && (
@@ -379,6 +381,7 @@ export default function App() {
               setCreds(loadCredentials() ?? c)
             }}
             onOpen={openLeague}
+            focusAdd={focusAdd}
           />
         )}
 
@@ -479,6 +482,7 @@ export default function App() {
                 teamId={myTeamId!}
                 teams={overview.data.teams}
                 creds={creds}
+                matchup={tonightMatchup(overview.data, myTeamId)}
               />
             )}
             {activeTab === 'news' && (
