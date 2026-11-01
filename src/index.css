@@ -3916,3 +3916,142 @@ a.news-source:hover {
     transition: none;
   }
 }
+
+/* Trade rules: chips above the trade list, the editor, and the offer in the Feedback tab. */
+.rules-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--divider);
+}
+
+.rules-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.rule-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  padding-left: 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rule-chip button {
+  min-height: 36px;
+  min-width: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  position: relative;
+}
+
+/* 44px hit area around the 36px × */
+.rule-chip button::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.rule-chip button:hover {
+  color: var(--bad);
+}
+
+.rules-skipped {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.rules-skipped button.link {
+  min-height: 44px;
+}
+
+.rules-editor {
+  padding: 4px 20px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--divider);
+}
+
+.rules-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.rules-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--divider);
+}
+
+.rules-kind {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+.rules-add .row {
+  flex-wrap: nowrap;
+}
+
+.rules-add select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+}
+
+.skipped-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.rule-suggest {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+
+.rule-suggest .row {
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .rules-bar,
+  .rules-editor {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .rules-skipped {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}

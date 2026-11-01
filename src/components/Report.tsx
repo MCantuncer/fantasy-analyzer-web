@@ -106,7 +106,14 @@ export function Report({
               </div>
               <div className="split">
                 <div className="wide">
-                  <Trades fair={report.trades} edge={report.edge_trades} />
+                  <Trades
+                    fair={report.trades}
+                    edge={report.edge_trades}
+                    categories={report.league.categories}
+                    teams={report.league.teams}
+                    myTeamId={report.team_id}
+                    keepNames={report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)}
+                  />
                 </div>
                 <div className="narrow">
                   <Pickups

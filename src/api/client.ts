@@ -55,6 +55,8 @@ export type FeedbackRating = TradeFeedbackRequest['rating']
 export type TradeCheck = components['schemas']['TradeCheck']
 export type CheckVerdict = components['schemas']['CheckVerdict']
 export type NoteRead = components['schemas']['NoteRead']
+export type TradeRule = components['schemas']['TradeRule']
+export type TradeRuleKind = TradeRule['kind']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -410,6 +412,35 @@ export function fetchMyTradeFeedback(seat: FeedbackSeat) {
     league_id: seat.leagueId,
     season: seat.season,
     team_id: seat.teamId,
+  })
+}
+
+export function fetchMyTradeRules(seat: FeedbackSeat) {
+  return post<{ rules: TradeRule[] }>('/api/trade-rules/mine', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+  })
+}
+
+export function addTradeRule(
+  seat: FeedbackSeat,
+  rule: { kind: TradeRuleKind; value?: string; team_name?: string; why?: string },
+) {
+  return post<TradeRule>('/api/trade-rules', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    ...rule,
+  })
+}
+
+export function deleteTradeRule(seat: FeedbackSeat, ruleId: number) {
+  return post<{ rules: TradeRule[] }>('/api/trade-rules/delete', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    rule_id: ruleId,
   })
 }
 
