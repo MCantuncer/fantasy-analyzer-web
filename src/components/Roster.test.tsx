@@ -10,6 +10,7 @@ const player = {
   positions: ['SG'],
   injury_status: 'ACTIVE',
   percent_owned: 90,
+  injury_prone: false,
   value: 1.2,
   perceived_value: 25,
   tier: 'tradeable',

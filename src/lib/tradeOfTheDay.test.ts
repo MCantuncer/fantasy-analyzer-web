@@ -12,6 +12,7 @@ function side(team_name: string, sends: string[], before: number, after: number)
       name,
       positions: ['PG'],
       injury_status: 'ACTIVE',
+      injury_prone: false,
       percent_owned: 90,
       value: 1,
       perceived_value: 10,

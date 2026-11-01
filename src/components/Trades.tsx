@@ -1,11 +1,12 @@
-import { useState, type ReactNode } from 'react'
-import type { TradeIdea } from '../api/client'
+import { useContext, useState, type ReactNode } from 'react'
+import type { FeedbackSource, TradeIdea } from '../api/client'
 import { names, pct, tradeKey } from '../lib/format'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
 import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
+import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -44,12 +45,68 @@ interface ItemProps {
   faab?: number
   tag?: ReactNode
   extra?: ReactNode
+  /** Which list the card is in. With a verified manager's scope, the card gets a Feedback tab. */
+  feedbackSource?: FeedbackSource
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
-export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, extra }: ItemProps) {
+export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, extra, feedbackSource }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
+  const scope = useContext(FeedbackContext)
+  const tabs = scope !== null && feedbackSource !== undefined
+  const [panel, setPanel] = useState<'overview' | 'feedback'>('overview')
+  const saved = useMyFeedback(tabs ? feedbackSource : undefined, t)
+  const overview = (
+    <>
+      <div>
+        {t.warnings && t.warnings.length > 0 && (
+          <ul className="trade-warnings">
+            {t.warnings.map((w) => (
+              <li key={w}>{w} Only shown because the deal is one of the best of the day.</li>
+            ))}
+          </ul>
+        )}
+        <div className="detail-label">Your pitch to {t.partner_team_name}</div>
+        <p className="pitch">{t.pitch}</p>
+        {t.reasons.length > 0 && (
+          <>
+            <div className="detail-label">{why}</div>
+            <ul className="reasons">
+              {t.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        <ul className="reasons">
+          <li>
+            {valueSentence(t.value_they_get, t.value_they_give, rounds)}, as owners price players
+            {t.owner_premium >= 0.5
+              ? `, including a ${premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what they send.`
+              : '.'}
+          </li>
+          <li>
+            Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
+          </li>
+          {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
+          {t.my_add && (
+            <li>
+              You send more than you get back: pick up {t.my_add.name} from free agency for the open spot. The odds
+              above include him.
+            </li>
+          )}
+          {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
+          {extra}
+        </ul>
+        <BadgeNotes players={t.get} />
+        <div className="row">
+          <CopyButton text={t.pitch} />
+        </div>
+      </div>
+      <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
+    </>
+  )
   return (
     <li id={id} className={open ? 'move open' : 'move'}>
       <button type="button" className="move-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
@@ -81,54 +138,57 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
         </span>
         <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
       </button>
-      {open && (
+      {open && !tabs && (
         <div className="move-detail" id={`${id}-detail`}>
-          <div>
-            {t.warnings && t.warnings.length > 0 && (
-              <ul className="trade-warnings">
-                {t.warnings.map((w) => (
-                  <li key={w}>{w} Only shown because the deal is one of the best of the day.</li>
-                ))}
-              </ul>
-            )}
-            <div className="detail-label">Your pitch to {t.partner_team_name}</div>
-            <p className="pitch">{t.pitch}</p>
-            {t.reasons.length > 0 && (
-              <>
-                <div className="detail-label">{why}</div>
-                <ul className="reasons">
-                  {t.reasons.map((r) => (
-                    <li key={r}>{r}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <ul className="reasons">
-              <li>
-                {valueSentence(t.value_they_get, t.value_they_give, rounds)}, as owners price players
-                {t.owner_premium >= 0.5
-                  ? `, including a ${premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what they send.`
-                  : '.'}
-              </li>
-              <li>
-                Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
-              </li>
-              {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
-              {t.my_add && (
-                <li>
-                  You send more than you get back: pick up {t.my_add.name} from free agency for the open spot. The odds
-                  above include him.
-                </li>
-              )}
-              {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
-              {extra}
-            </ul>
-            <BadgeNotes players={t.get} />
-            <div className="row">
-              <CopyButton text={t.pitch} />
-            </div>
+          {overview}
+        </div>
+      )}
+      {open && tabs && (
+        <div id={`${id}-detail`}>
+          <div className="move-tabs tabs" role="tablist" aria-label="Trade details">
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              id={`${id}-tab-overview`}
+              aria-selected={panel === 'overview'}
+              aria-controls={`${id}-panel-overview`}
+              onClick={() => setPanel('overview')}
+            >
+              Overview
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tab"
+              id={`${id}-tab-feedback`}
+              aria-selected={panel === 'feedback'}
+              aria-controls={`${id}-panel-feedback`}
+              onClick={() => setPanel('feedback')}
+            >
+              Feedback
+              {saved && <span className={`feedback-pill ${saved.rating}`}>{ratingLabel(saved.rating)}</span>}
+            </button>
           </div>
-          <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
+          {panel === 'overview' ? (
+            <div
+              className="move-detail"
+              role="tabpanel"
+              id={`${id}-panel-overview`}
+              aria-labelledby={`${id}-tab-overview`}
+            >
+              {overview}
+            </div>
+          ) : (
+            <div
+              className="move-detail"
+              role="tabpanel"
+              id={`${id}-panel-feedback`}
+              aria-labelledby={`${id}-tab-feedback`}
+            >
+              <TradeFeedback trade={t} source={feedbackSource} />
+            </div>
+          )}
         </div>
       )}
     </li>
@@ -203,6 +263,7 @@ export function Trades({ fair, edge }: { fair: TradeIdea[]; edge: TradeIdea[] })
                   open={isOpen}
                   onToggle={() => setOpen(isOpen ? null : key)}
                   why={MODES[mode].why}
+                  feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                 />
               )
             })}

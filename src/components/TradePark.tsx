@@ -255,6 +255,7 @@ function Results({ data }: { data: ShopReport }) {
                       why="Why it works"
                       faab={d.faab}
                       tag={<KindPill kind={d.kind} />}
+                      feedbackSource="shop"
                     />
                   )
                 })}

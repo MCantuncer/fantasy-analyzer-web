@@ -46,6 +46,13 @@ export type TrendingPlayer = components['schemas']['TrendingPlayer']
 export type InjuryImpact = components['schemas']['InjuryImpact']
 export type Beneficiary = components['schemas']['Beneficiary']
 export type CategoryGains = components['schemas']['CategoryGains']
+export type TradeFeedback = components['schemas']['TradeFeedback']
+export type TradeFeedbackRequest = components['schemas']['TradeFeedbackRequest']
+export type FeedbackSource = TradeFeedbackRequest['source']
+export type FeedbackReason = NonNullable<TradeFeedbackRequest['reasons']>[number]
+export type FeedbackRating = TradeFeedbackRequest['rating']
+export type TradeCheck = components['schemas']['TradeCheck']
+export type CheckVerdict = components['schemas']['CheckVerdict']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -315,6 +322,52 @@ export function fetchInjuryImpact(playerId: number, leagueId: number, season: nu
   return post<InjuryImpact>(
     '/api/injury-impact',
     { player_id: playerId, league_id: leagueId, season },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** Who is giving trade feedback: the verified manager of ``teamId`` in this league. */
+export interface FeedbackSeat extends LeagueRef {
+  teamId: number
+}
+
+export function saveTradeFeedback(
+  seat: FeedbackSeat,
+  feedback: {
+    source: FeedbackSource
+    rating: FeedbackRating
+    reasons: FeedbackReason[]
+    text: string
+    idea: TradeIdea
+  },
+) {
+  return post<TradeFeedback>('/api/trade-feedback', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    ...feedback,
+  })
+}
+
+export function fetchMyTradeFeedback(seat: FeedbackSeat) {
+  return post<{ feedback: TradeFeedback[] }>('/api/trade-feedback/mine', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+  })
+}
+
+export function checkTrade(seat: FeedbackSeat, idea: TradeIdea, reasons: FeedbackReason[], creds: Credentials | null) {
+  return post<TradeCheck>(
+    '/api/trade-check',
+    {
+      league_id: seat.leagueId,
+      season: seat.season,
+      team_id: seat.teamId,
+      idea,
+      reasons,
+    },
     creds,
     SCORES_TIMEOUT_MS,
   )
