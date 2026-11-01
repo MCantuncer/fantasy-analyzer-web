@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { FeedItem, FeedTeam } from '../api/client'
-import { bidLine, dayLabel, faabLine, groupByDay, matches, tradeSides, wonVotes } from './feed'
+import {
+  biggestBidId,
+  bidLine,
+  dayLabel,
+  daySummary,
+  faabLine,
+  groupByDay,
+  matches,
+  tradeSides,
+  wonVotes,
+} from './feed'
 
 const teams: FeedTeam[] = [
   { id: 3, name: 'Kucukesat Aspavas', abbrev: 'KEA', faab_spent: 2 },
@@ -114,5 +124,24 @@ describe('filters and days', () => {
       ['Today', 2],
       ['Yesterday', 1],
     ])
+  })
+})
+
+describe('day summary and biggest bid', () => {
+  const post: FeedItem = { ...claim, id: 'post:1', kind: 'post', bid: null, moves: [], body: 'hi' }
+  const fa: FeedItem = { ...claim, id: 'tx:f', kind: 'free_agent', bid: null }
+  const small: FeedItem = { ...claim, id: 'tx:s', bid: 1 }
+
+  it('counts moves and adds up waiver bids', () => {
+    expect(daySummary([claim, fa, small, post], 100)).toBe('3 moves · $5 spent')
+    expect(daySummary([fa], 100)).toBe('1 move')
+    expect(daySummary([claim], null)).toBe('1 move')
+    expect(daySummary([post], 100)).toBeNull()
+  })
+
+  it('picks the one highest bid, never a tie or a $0 claim', () => {
+    expect(biggestBidId([claim, small, fa])).toBe('tx:a')
+    expect(biggestBidId([claim, { ...small, bid: 4 }])).toBeNull()
+    expect(biggestBidId([{ ...claim, bid: 0 }, fa])).toBeNull()
   })
 })
