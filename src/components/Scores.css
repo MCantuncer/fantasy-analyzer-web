@@ -5,3 +5,20 @@
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* The score column sizes to the score itself, so a bold three-digit score ("108") never clips.
+   min-width is in the score's own font, so two- and three-digit scores still line up. */
+.game-card .team-row {
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+}
+
+.game-card .team-row .score {
+  min-width: 3ch;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A picked card already gets the accent border; the "your players" edge on top of it read as a doubled border. */
+.game-card.has-mine[aria-pressed='true'] {
+  box-shadow: none;
+}
