@@ -143,11 +143,16 @@ button.pc-chip:focus-visible {
 
 .pc-watermark {
   position: absolute;
-  right: -8px;
-  top: -24px;
-  font: 700 150px/1 var(--font-num);
-  letter-spacing: -4px;
-  color: rgb(255 255 255 / 0.07);
+  right: -34px;
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  object-fit: contain;
+  transform: translateY(-50%) rotate(-8deg);
+  /* The real logo, faded into the team colour and fading out towards the name. */
+  opacity: 0.3;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
   pointer-events: none;
   user-select: none;
 }
@@ -196,11 +201,30 @@ button.pc-chip:focus-visible {
 }
 
 .pc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgb(255 255 255 / 0.8);
+}
+
+.pc-eyebrow-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+
+.pc-eyebrow-logo:empty {
+  display: none;
 }
 
 .pc-name {
@@ -456,8 +480,10 @@ button.pc-chip:focus-visible {
   gap: 10px;
 }
 
-.pc-bar-labels span {
+.pc-bar-labels > span {
+  display: flex;
   flex: 1;
+  justify-content: center;
   text-align: center;
   font: 600 11px var(--font-num);
   color: var(--muted);
@@ -541,6 +567,29 @@ table.pc-table {
 
 .pc-opp {
   font-weight: 700;
+}
+
+.pc-game {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Opponent logo with a small "@" or "vs" before it. */
+.pc-opp-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pc-opp-logo img {
+  flex: none;
+  object-fit: contain;
+}
+
+.pc-opp-at {
+  font: 600 11px var(--font-num);
+  color: var(--muted);
 }
 
 .pc-legend {
