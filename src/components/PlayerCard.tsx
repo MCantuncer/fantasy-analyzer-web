@@ -25,7 +25,8 @@ import {
 import type { FormTile } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer } from '../lib/playerCard'
-import { PlayerHead } from './PlayerHead'
+import { teamLogoUrl } from '../lib/league'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 import './PlayerCard.css'
 
 interface HostProps {
@@ -196,11 +197,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
       <div ref={dialog} className="pc-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={trap}>
         <header className={colour ? 'pc-hero pc-hero-team' : 'pc-hero'} style={heroStyle}>
           <div className="pc-grab" aria-hidden="true" />
-          {abbrev && (
-            <span className="pc-watermark" aria-hidden="true">
-              {abbrev}
-            </span>
-          )}
+          <TeamWatermark abbrev={abbrev} />
           <span className="pc-face">
             <PlayerHead player={player} size={88} />
             {card?.position && <span className="pc-face-pos">{card.position}</span>}
@@ -208,6 +205,11 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
           <div className="pc-who">
             {card && (
               <span className="pc-eyebrow">
+                {card.pro_team && (
+                  <span className="pc-eyebrow-logo">
+                    <TeamLogo abbrev={card.pro_team} size={18} />
+                  </span>
+                )}
                 {[teamName(card.pro_team || null), card.position].filter(Boolean).join(' · ')}
               </span>
             )}
@@ -453,7 +455,9 @@ function MinutesChart({ games, average: avg }: { games: PlayerGame[]; average: n
       </div>
       <div className="pc-bar-labels" aria-hidden="true">
         {shown.map((g) => (
-          <span key={g.game_id}>{opponent(g)}</span>
+          <span key={g.game_id}>
+            <Opponent game={g} size={20} />
+          </span>
         ))}
       </div>
     </div>
@@ -509,7 +513,10 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
   return (
     <tr>
       <th scope="row" className="pc-first">
-        <span className="pc-date">{gameDate(g.date)}</span> <span className="pc-opp">{opponent(g)}</span>
+        <span className="pc-game">
+          <span className="pc-date">{gameDate(g.date)}</span>
+          <Opponent game={g} size={22} />
+        </span>
       </th>
       <td>{Math.round(s.minutes)}</td>
       <td title={shootingPct(s.fgm, s.fga)}>
@@ -539,5 +546,50 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         )
       })}
     </tr>
+  )
+}
+
+/** The NBA team's logo, big and faded behind the header; nothing when ESPN has no logo for the team. */
+function TeamWatermark({ abbrev }: { abbrev: string }) {
+  const [failed, setFailed] = useState<string | null>(null)
+  if (!abbrev || failed === abbrev) return null
+  return (
+    <img
+      className="pc-watermark"
+      src={teamLogoUrl(abbrev)}
+      alt=""
+      aria-hidden="true"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(abbrev)}
+    />
+  )
+}
+
+/**
+ * The opponent as box scores show it, with the team's logo in place of the letters: "@" away, "vs" at home.
+ * The letters stay for screen readers, and come back if ESPN has no logo for the team.
+ */
+function Opponent({ game: g, size }: { game: Pick<PlayerGame, 'opponent' | 'home'>; size: number }) {
+  const [failed, setFailed] = useState<string | null>(null)
+  if (!g.opponent) return <span className="pc-opp">–</span>
+  if (failed === g.opponent) return <span className="pc-opp">{opponent(g)}</span>
+  return (
+    <span className="pc-opp pc-opp-logo" title={`${g.home === false ? 'at' : 'vs'} ${teamName(g.opponent)}`}>
+      <span className="pc-opp-at" aria-hidden="true">
+        {g.home === false ? '@' : 'vs'}
+      </span>
+      <img
+        src={teamLogoUrl(g.opponent)}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(g.opponent)}
+      />
+      <span className="sr-only">{opponent(g)}</span>
+    </span>
   )
 }
