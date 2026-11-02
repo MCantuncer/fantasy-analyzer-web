@@ -1,0 +1,23 @@
+/* Category tiles: the outcome tag is a tinted pill so Winning, Swing and Losing differ by
+   background as well as text color (they read too alike as plain colored text on white). */
+.cattiles-tag {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  line-height: 18px;
+}
+
+.cattiles-good {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.cattiles-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.cattiles-bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
