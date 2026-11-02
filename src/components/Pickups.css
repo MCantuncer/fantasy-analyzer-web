@@ -1,0 +1,62 @@
+/* FA Targets: one shared-drop line instead of repeating it on every row. */
+.pk-shared {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bad-soft);
+  font-size: 13px;
+}
+
+.pk-shared .pk-from {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.pk-gain {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  max-width: 120px;
+  border-radius: 3px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.pk-gain > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--good);
+}
+
+.pk-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pk-facts > li {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--track);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pk-facts > li.pk-fa {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.pk-facts > li.pk-waivers {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
