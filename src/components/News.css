@@ -1,0 +1,511 @@
+/* NBA News: league-wide stories, each checked against several sources.
+   Player first, then the headline, then one quiet line of details. Your team is marked
+   with a small accent touch (a tinted chip and a bar), never a big pill. */
+
+.news-head h2 {
+  margin: 0;
+}
+
+.news-head p {
+  margin: 4px 0 0;
+}
+
+/* One toolbar: whose players, then what kind of news. Never wraps into a block. */
+.news-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.news-scope {
+  display: grid;
+  grid-template-columns: repeat(var(--news-scope-count, 3), auto);
+  flex: none;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--track);
+}
+
+.news-scope button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.news-scope button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+.news-filters {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.news-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.news-filter {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.news-filter .num {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.news-filter[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.news-filter[aria-pressed='true'] .num {
+  color: var(--accent-text);
+}
+
+/* Feed */
+.news-day {
+  margin: 0;
+  padding: 8px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--divider);
+}
+
+.news-story {
+  display: grid;
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.news-story:last-child {
+  border-bottom: 0;
+}
+
+/* A story about one of your players: a thin accent bar on the left edge. */
+.news-story[data-mine] {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.news-story[data-status='held'],
+.news-story[data-status='didnt_happen'] {
+  opacity: 0.75;
+}
+
+.news-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.news-player {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.news-player-id {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 1px;
+}
+
+.news-player-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.news-player-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.news-injury {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Fantasy owner: the same chip for every team. Yours: accent tint + dot. */
+.news-owner {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  min-width: 44px;
+  justify-content: center;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--track);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.news-owner-mine {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.news-owner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.news-owner-free {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.news-headline {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.news-headline a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.news-headline a:hover {
+  text-decoration: underline;
+}
+
+.news-summary {
+  margin: 0;
+  color: var(--text-2);
+  max-width: 68ch;
+}
+
+.news-conflict {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--bad);
+  border-radius: var(--radius-sm);
+  background: var(--bad-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* One quiet line: kind · how well confirmed · when · where from. */
+.news-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+  color: var(--muted);
+}
+
+/* The dot trails each item, so a wrapped line never starts with one. */
+.news-meta > :not(:last-child)::after {
+  content: '·';
+  margin: 0 8px;
+  color: var(--faint);
+}
+
+.news-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.news-kind::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--faint);
+}
+
+.news-kind-injury::before {
+  background: var(--bad);
+}
+
+.news-kind-return::before {
+  background: var(--good);
+}
+
+.news-kind-trade::before,
+.news-kind-signing::before,
+.news-kind-waive::before {
+  background: var(--accent);
+}
+
+.news-kind-rumor::before,
+.news-kind-role::before {
+  background: var(--warn);
+}
+
+.news-status {
+  font-weight: 500;
+}
+
+.news-status-confirmed {
+  color: var(--good);
+}
+
+.news-status-reported {
+  color: var(--warn);
+}
+
+.news-status-held,
+.news-status-didnt_happen,
+.news-status-conflict {
+  color: var(--bad);
+}
+
+.news-source-item + .news-source-item::before {
+  content: ', ';
+  color: var(--muted);
+}
+
+.news-source {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+a.news-source:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+.news-src-tip {
+  font-style: italic;
+}
+
+.news-held {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+.news-empty {
+  padding: 24px 20px;
+  gap: 4px;
+}
+
+.news-empty p {
+  margin: 0;
+}
+
+/* Right rail */
+.news-side h3 {
+  margin: 0;
+}
+
+.news-side p {
+  margin: 4px 0 0;
+}
+
+.news-trending {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.news-trend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--divider);
+}
+
+.news-trend:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.news-trend-change {
+  flex: none;
+  min-width: 36px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--good);
+}
+
+.news-health-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.news-health-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.news-health-card > summary::after {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.news-health-card[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.news-health-title {
+  font-weight: 600;
+}
+
+.news-health {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--divider);
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.news-health li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.news-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--faint);
+}
+
+.news-dot.ok {
+  background: var(--good);
+}
+
+.news-dot.down {
+  background: var(--bad);
+}
+
+/* Who gains from an injury: opens under the injured player. */
+.news-gains-toggle {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.news-gains {
+  flex-basis: 100%;
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.news-gains-body {
+  gap: 8px;
+}
+
+.news-gains-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.news-gain {
+  display: grid;
+  gap: 2px;
+}
+
+.news-gain-head {
+  gap: 6px 8px;
+}
+
+.news-gain p {
+  margin: 0;
+}
+
+.news-conf {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.news-conf-strong {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.news-conf-some {
+  background: var(--track);
+  color: var(--text);
+}
+
+.news-conf-estimate {
+  color: var(--muted);
+  border: 1px dashed var(--border);
+}
+
+/* .news-kind is a flex row with a gap, so its trailing dot needs less margin. */
+.news-meta > .news-kind::after {
+  margin-left: 2px;
+}
