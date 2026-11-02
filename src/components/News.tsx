@@ -28,6 +28,7 @@ import {
 } from '../lib/news'
 import type { NewsFilter, NewsScope } from '../lib/news'
 import { PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerLink } from './PlayerCard'
 
 const SLOW_AFTER_MS = 8_000
 
@@ -266,8 +267,12 @@ function PlayerRow({
   const panelId = `gains-${player.player_id}`
   return (
     <li className="news-player">
-      <PlayerHead player={{ id: player.player_id, name: player.name }} size={40} />
-      <span className="name">{player.name}</span>
+      <PlayerLink player={{ id: player.player_id, name: player.name }} decorative>
+        <PlayerHead player={{ id: player.player_id, name: player.name }} size={40} />
+      </PlayerLink>
+      <span className="name">
+        <PlayerLink player={{ id: player.player_id, name: player.name }} />
+      </span>
       <span className="small muted news-team">
         <TeamLogo abbrev={player.pro_team} />
         {player.pro_team || 'Free agent'}
@@ -372,8 +377,12 @@ function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | n
   return (
     <li className="news-gain">
       <div className="row news-gain-head">
-        <PlayerHead player={{ id: b.player_id, name: b.name }} size={28} />
-        <span className="name">{b.name}</span>
+        <PlayerLink player={{ id: b.player_id, name: b.name }} decorative>
+          <PlayerHead player={{ id: b.player_id, name: b.name }} size={28} />
+        </PlayerLink>
+        <span className="name">
+          <PlayerLink player={{ id: b.player_id, name: b.name }} />
+        </span>
         <OwnerBadge player={b} myTeamId={myTeamId} abbrev={abbrev} />
         <span className={`badge confidence-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
       </div>
@@ -411,8 +420,13 @@ function Trending({
             <tr key={p.player_id}>
               <td>
                 <span className="news-who">
-                  <PlayerHead player={{ id: p.player_id, name: p.name }} size={28} />
-                  <span className="name">{p.name}</span> <span className="small muted">{p.pro_team}</span>
+                  <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
+                    <PlayerHead player={{ id: p.player_id, name: p.name }} size={28} />
+                  </PlayerLink>
+                  <span className="name">
+                    <PlayerLink player={{ id: p.player_id, name: p.name }} />
+                  </span>{' '}
+                  <span className="small muted">{p.pro_team}</span>
                 </span>
               </td>
               <td className="right">
