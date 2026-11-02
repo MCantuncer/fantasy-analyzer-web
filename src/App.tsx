@@ -24,7 +24,6 @@ import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
-import { Status } from './components/Status'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
@@ -198,6 +197,15 @@ export default function App() {
   const tabsRef = useTabInView(showTabs ? activeTab : null)
   const waitingForReport = verified && !report
   const firstRun = waitingForReport && analysis.isPending
+  // Between the league answering and the analysis starting there is nothing new to show,
+  // so the loading card stays up instead of blanking the page for a moment.
+  const preparing =
+    waitingForReport &&
+    ANALYSIS_TABS.has(activeTab) &&
+    !analysis.error &&
+    !league.error &&
+    league.data?.supported !== false &&
+    (league.isLoading || analysis.isPending || analysis.isIdle)
 
   // Someone who wandered off to another tab hears when their moves are in.
   const activeRef = useRef(activeTab)
@@ -399,7 +407,7 @@ export default function App() {
       <main className="main">
         {!signedIn && <Auth theme={theme} onSignedIn={signedInWith} />}
 
-        {signedIn && me.isPending && <div className="card muted">Loading your account…</div>}
+        {signedIn && me.isPending && !selection && <div className="card muted">Loading your account…</div>}
 
         {signedIn && me.data && !selection && (
           <MyLeagues
@@ -414,7 +422,17 @@ export default function App() {
           />
         )}
 
-        {signedIn && selection && overview.isLoading && <Status phase="league" />}
+        {/* One loading card from the first second to the report: the server waking, the league
+            loading and the analysis all show in the same card, so nothing swaps under the user. */}
+        {signedIn && selection && !verifying && (overview.isLoading || (overview.data && preparing)) && (
+          <AnalysisCard
+            progress={overview.data ? shownProgress : 0}
+            stage={overview.data ? job.stage : 'Starting'}
+            onBrowse={(t) => setTab(t)}
+            waking={!overview.data}
+            title={overview.isLoading && me.data && !mine?.team_id ? 'Loading your league' : undefined}
+          />
+        )}
 
         {signedIn && selection && needsCookies && (
           <CookieForm
@@ -491,10 +509,6 @@ export default function App() {
 
         {overview.data && ref && !verifying && !verified && activeTab === 'news' && (
           <News leagueId={ref.leagueId} season={ref.season} myTeamId={null} teams={overview.data.teams} creds={creds} />
-        )}
-
-        {!verifying && overview.data && ref && firstRun && ANALYSIS_TABS.has(activeTab) && (
-          <AnalysisCard progress={shownProgress} stage={job.stage} onBrowse={(t) => setTab(t)} />
         )}
 
         {!verifying && overview.data && ref && waitingForReport && !ANALYSIS_TABS.has(activeTab) && (
