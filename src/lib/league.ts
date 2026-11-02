@@ -50,12 +50,13 @@ export function formatStat(stat: string, value: number): string {
 
 /**
  * A category is close when it could still flip this week: counting stats within 11% of each other,
- * shooting percentages within .022.
+ * shooting percentages within .022. Nothing is close at 0-0: no one has played yet.
  */
 export function isClose(stat: string, a: number, b: number): boolean {
-  if (isRatio(stat)) return Math.abs(a - b) <= 0.022
   const top = Math.max(Math.abs(a), Math.abs(b))
-  return top === 0 || Math.abs(a - b) / top <= 0.11
+  if (top === 0) return false
+  if (isRatio(stat)) return Math.abs(a - b) <= 0.022
+  return Math.abs(a - b) / top <= 0.11
 }
 
 export function record(side: Pick<MatchupSide, 'wins' | 'losses' | 'ties'>): string {

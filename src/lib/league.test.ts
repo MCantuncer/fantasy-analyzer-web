@@ -81,6 +81,8 @@ describe('box score', () => {
     expect(isClose('FG%', 0.4977, 0.4739)).toBe(false)
     expect(isClose('REB', 212, 237)).toBe(true)
     expect(isClose('PTS', 562, 740)).toBe(false)
+    expect(isClose('PTS', 0, 0)).toBe(false)
+    expect(isClose('FG%', 0, 0)).toBe(false)
   })
 })
 
