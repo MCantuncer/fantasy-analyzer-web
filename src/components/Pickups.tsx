@@ -5,6 +5,7 @@ import { OddsChange } from './OddsChange'
 import { ordinal } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
+import { PlayerChips } from './PlayerCard'
 
 interface Props {
   pickups: PickupIdea[]
@@ -66,6 +67,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                 {isOpen && (
                   <div className="move-detail" id={`pickup-${i}-detail`}>
                     <div>
+                      <PlayerChips players={[p.add, p.drop]} label="Players in this move" />
                       <ul className="reasons">
                         <li>
                           {p.add.name}: {p.add.positions.join('/')}, {p.add.percent_owned}% owned,{' '}
