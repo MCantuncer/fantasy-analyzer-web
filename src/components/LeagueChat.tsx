@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FeedSkeleton } from './Skeleton'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
@@ -103,7 +104,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
   })
 
   if (feed.isPending) {
-    return <div className="card muted">Loading the league feed…</div>
+    return <FeedSkeleton />
   }
   if (feed.isError || !first) {
     return (
