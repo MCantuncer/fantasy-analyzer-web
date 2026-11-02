@@ -1,0 +1,176 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { PlayerCard, PlayerGame, PlayerMove } from '../api/client'
+import { average, dealPlayers, gameDate, healthStatus, moveText, opponent, ownerText } from '../lib/playerCard'
+import { PlayerCardHost, PlayerChips, PlayerLink } from './PlayerCard'
+
+const teams = new Map([
+  [3, 'Kucukesat Aspavas'],
+  [8, 'Bench Mob'],
+])
+
+function move(m: Partial<PlayerMove>): PlayerMove {
+  return { id: 'x', kind: 'add', via: 'free_agent', at: '2026-10-24T14:00:00Z', from_team_id: 0, to_team_id: 8, ...m }
+}
+
+function game(pts: number, extra: Partial<PlayerGame> = {}): PlayerGame {
+  return {
+    game_id: pts,
+    season: 2027,
+    day: 1,
+    date: '2026-10-31T23:30:00Z',
+    opponent: 'BOS',
+    home: false,
+    stats: { minutes: 30, pts, reb: 5, ast: 3, stl: 1, blk: 0, tpm: 2, to: 2, fgm: 6, fga: 12, ftm: 2, fta: 2 },
+    ...extra,
+  }
+}
+
+describe('player card text', () => {
+  it('describes each kind of move', () => {
+    expect(moveText(move({ kind: 'draft', via: 'draft', bid: 14, to_team_id: 3 }), teams, null)).toBe(
+      'Drafted by Kucukesat Aspavas for $14',
+    )
+    expect(moveText(move({ kind: 'draft', via: 'draft', pick: 30 }), teams, null)).toBe('Drafted by Bench Mob, pick 30')
+    expect(moveText(move({ via: 'waiver', bid: 5 }), teams, null)).toBe('Claimed off waivers by Bench Mob for $5')
+    expect(moveText(move({ via: 'waiver' }), teams, null)).toBe('Claimed off waivers by Bench Mob')
+    expect(moveText(move({}), teams, 8)).toBe('Picked up by you')
+    expect(moveText(move({ kind: 'drop', from_team_id: 8, to_team_id: 0 }), teams, null)).toBe('Dropped by Bench Mob')
+    expect(moveText(move({ kind: 'trade', via: 'trade', from_team_id: 8, to_team_id: 3 }), teams, 3)).toBe(
+      'Traded from Bench Mob to you',
+    )
+  })
+
+  it('says who has him', () => {
+    expect(ownerText({ owner_team_id: null, on_waivers: false }, teams, 3)).toBe('Free agent')
+    expect(ownerText({ owner_team_id: null, on_waivers: true }, teams, 3)).toBe('On waivers')
+    expect(ownerText({ owner_team_id: 3, on_waivers: false }, teams, 3)).toBe('On your team')
+    expect(ownerText({ owner_team_id: 8, on_waivers: false }, teams, 3)).toBe('On Bench Mob')
+  })
+
+  it('labels health in plain words', () => {
+    expect(healthStatus('ACTIVE')).toEqual({ label: 'Healthy', tone: 'good' })
+    expect(healthStatus('DAY_TO_DAY').label).toBe('Day-to-day')
+    expect(healthStatus('OUT').tone).toBe('bad')
+  })
+
+  it('uses the US date and box-score opponent', () => {
+    // 23:30 UTC on Oct 31 is still Oct 31 in New York; 00:30 UTC Nov 1 is too.
+    expect(gameDate('2026-11-01T00:30:00Z')).toBe('Oct 31')
+    expect(opponent({ opponent: 'BOS', home: false })).toBe('@BOS')
+    expect(opponent({ opponent: 'BOS', home: true })).toBe('BOS')
+    expect(opponent({ opponent: '', home: null })).toBe('–')
+  })
+
+  it('averages games', () => {
+    expect(average([game(10), game(20)])?.pts).toBe(15)
+    expect(average([])).toBeNull()
+  })
+
+  it('lists everyone a deal moves once', () => {
+    const a = { id: 1, name: 'A' }
+    const b = { id: 2, name: 'B' }
+    const c = { id: 3, name: 'C' }
+    expect(dealPlayers({ give: [a], get: [b], my_drop: c, my_add: null }).map((p) => p.id)).toEqual([1, 2, 3])
+  })
+})
+
+const card: PlayerCard = {
+  player_id: 7,
+  name: 'Jaden McDaniels',
+  position: 'SF',
+  pro_team: 'MIN',
+  injury_status: 'DAY_TO_DAY',
+  owner_team_id: 8,
+  on_waivers: false,
+  percent_owned: 87.9,
+  season_line: {
+    season: 2027,
+    games: 7,
+    per_game: { ...game(17).stats, pts: 17.3 },
+    fg_pct: 0.553,
+    ft_pct: 0.778,
+  },
+  games: [game(19), game(23, { game_id: 2, home: true, opponent: 'LAC' }), game(11, { game_id: 3 })],
+  news: [
+    {
+      id: 'n1',
+      kind: 'injury',
+      status: 'confirmed',
+      headline: 'McDaniels (ankle) questionable Friday',
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      source: 'RotoWire',
+      url: 'https://example.com/n1',
+      severity: 1,
+    },
+  ],
+  moves: [move({ kind: 'draft', via: 'draft', pick: 102, to_team_id: 8 })],
+}
+
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
+
+function renderHost(
+  ui: React.ReactNode,
+  leagueRef: { leagueId: number; season: number } | null = { leagueId: 1, season: 2027 },
+) {
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      {ui}
+      <PlayerCardHost leagueRef={leagueRef} creds={null} teams={[{ id: 8, name: 'Bench Mob' }]} myTeamId={3} />
+    </QueryClientProvider>,
+  )
+}
+
+describe('PlayerCard', () => {
+  it('opens from a name with games, health, news and moves, and closes on Escape', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(card), { status: 200 }))
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    const link = screen.getByRole('button', { name: 'Jaden McDaniels' })
+    link.focus()
+    fireEvent.click(link)
+
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    expect(await within(dialog).findByText('Day-to-day')).toBeInTheDocument()
+    expect(within(dialog).getByText('On Bench Mob')).toBeInTheDocument()
+    expect(within(dialog).getByText('Last 3 games')).toBeInTheDocument()
+    expect(within(dialog).getByText('Season · 7 G')).toBeInTheDocument()
+    expect(within(dialog).getByText('Last 5', { exact: false })).toBeInTheDocument()
+    expect(within(dialog).getAllByText('@BOS')).toHaveLength(2)
+    expect(within(dialog).getAllByText('McDaniels (ankle) questionable Friday').length).toBeGreaterThan(0)
+    expect(within(dialog).getByText('Drafted by Bench Mob, pick 102')).toBeInTheDocument()
+
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body))
+    expect(body).toEqual({ league_id: 1, season: 2027, player_id: 7 })
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(link)
+  })
+
+  it('keeps names as plain text outside a league', () => {
+    renderHost(
+      <>
+        <PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />
+        <PlayerChips players={[{ id: 7, name: 'Jaden McDaniels' }]} />
+      </>,
+      null,
+    )
+    expect(screen.getByText('Jaden McDaniels')).toBeInTheDocument()
+    expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('opens from a chip and shows an error with a retry', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ detail: { code: 'no_player', message: 'No such NBA player.' } }), { status: 404 }),
+    )
+    renderHost(<PlayerChips players={[{ id: 9, name: 'Nobody' }]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Nobody' }))
+    expect(await screen.findByText('No such NBA player.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+})

@@ -1,0 +1,436 @@
+/* The shared player card (PlayerCard.tsx): a centered dialog here, a bottom sheet on phones
+   (src/styles/phone/player-card.css). Every class is prefixed pc-. */
+
+/* A player's name that opens his card: reads as the name, with a dotted underline as the hint. */
+button.pc-link {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+/* A headshot beside a linked name: same card, no underline. */
+button.pc-link.pc-link-face {
+  display: inline-flex;
+  flex: none;
+  text-decoration: none;
+  border-radius: 50%;
+}
+
+button.pc-link:hover {
+  color: var(--accent-text);
+  text-decoration-color: currentColor;
+}
+
+button.pc-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Chips under an opened trade or pickup, where the row itself is the expand button. */
+.pc-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pc-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button.pc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.pc-chip:hover {
+  border-color: var(--accent);
+}
+
+button.pc-chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pc-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pc-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(5 8 14 / 0.6);
+  animation: pc-fade 0.15s ease-out;
+}
+
+.pc-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  max-height: min(88vh, 860px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: pc-rise 0.18s ease-out;
+}
+
+.pc-grab {
+  display: none;
+}
+
+.pc-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.pc-head .head {
+  flex: none;
+}
+
+.pc-who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pc-name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.pc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.pc-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pc-owner {
+  color: var(--muted);
+}
+
+.pc-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.badge.pc-good {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.badge.pc-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.badge.pc-bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.pc-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pc-close:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.pc-close:focus-visible {
+  outline: 2px solid var(--focus);
+}
+
+.pc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 20px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pc-injury {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+  font-size: 13px;
+}
+
+.pc-injury-label {
+  font-weight: 700;
+  color: var(--warn);
+}
+
+.pc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pc-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pc-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.pc-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+}
+
+.pc-table-wrap:focus-visible {
+  outline: 2px solid var(--focus);
+}
+
+table.pc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-num);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.pc-table th,
+.pc-table td {
+  padding: 8px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--divider);
+}
+
+.pc-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pc-table tbody tr:last-child th,
+.pc-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pc-table .pc-first {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background: var(--surface);
+  font-weight: 500;
+}
+
+.pc-table thead .pc-first {
+  z-index: 2;
+  background: var(--surface-2);
+}
+
+.pc-table .pc-avg th,
+.pc-table .pc-avg td {
+  background: var(--raised);
+  font-weight: 700;
+}
+
+.pc-table .pc-avg + tr:not(.pc-avg) th,
+.pc-table .pc-avg + tr:not(.pc-avg) td {
+  border-top: 2px solid var(--border);
+}
+
+.pc-swipe {
+  display: none;
+  margin: 0;
+}
+
+.pc-date {
+  color: var(--muted);
+}
+
+.pc-opp {
+  font-weight: 600;
+}
+
+.pc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pc-news {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pc-news a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pc-news a:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+.pc-move {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.pc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.pc-dot-good {
+  background: var(--good);
+}
+
+.pc-dot-bad {
+  background: var(--bad);
+}
+
+.pc-dot-accent {
+  background: var(--accent);
+}
+
+.pc-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pc-skeleton {
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--track);
+  animation: pc-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.pc-skeleton:first-of-type {
+  height: 140px;
+}
+
+.pc-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pc-error p {
+  margin: 0;
+}
+
+@keyframes pc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes pc-pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-backdrop,
+  .pc-sheet,
+  .pc-skeleton {
+    animation: none;
+  }
+}
+
+/* Overlapping linked headshots (best move): the overlap moves to the link wrappers. */
+.head-stack .pc-link-face + .pc-link-face {
+  margin-left: -10px;
+}
