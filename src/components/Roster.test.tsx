@@ -1,5 +1,5 @@
-import { render, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerRef } from '../api/client'
 import { RoundValuesContext } from '../lib/tradeValue'
 import { Roster } from './Roster'
@@ -32,5 +32,26 @@ describe('Roster trade value', () => {
     )
     expect(within(container).getByText('Rd 3')).toBeInTheDocument()
     expect(within(container).queryByText('$25')).toBeNull()
+  })
+})
+
+describe('Roster on phones', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('shows a list with a Keep toggle instead of the table', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(max-width: 640px)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    const toggled: number[] = []
+    const { container } = render(<Roster roster={[player]} keep={[]} onToggleKeep={(id) => toggled.push(id)} />)
+    expect(container.querySelector('table')).toBeNull()
+    expect(within(container).getByText('$25')).toBeInTheDocument()
+    expect(within(container).getByText('+1.2 cat')).toBeInTheDocument()
+    const keep = within(container).getByRole('button', { name: 'Keep Jalen Green' })
+    expect(keep).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(keep)
+    expect(toggled).toEqual([1])
   })
 })
