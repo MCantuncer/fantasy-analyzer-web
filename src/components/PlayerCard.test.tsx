@@ -184,6 +184,12 @@ describe('PlayerCard', () => {
     expect(within(dialog).getAllByText('McDaniels (ankle) questionable Friday').length).toBeGreaterThan(0)
     expect(within(dialog).getByText('Drafted by Bench Mob, pick 102')).toBeInTheDocument()
 
+    // Opponents show as logos, and fall back to the letters when ESPN has no logo.
+    const logos = dialog.querySelectorAll<HTMLImageElement>('.pc-opp-logo img[src$="/lac.png"]')
+    expect(logos.length).toBe(2) // minutes chart and game log
+    fireEvent.error(logos[0])
+    expect(dialog.querySelectorAll('.pc-opp-logo img[src$="/lac.png"]').length).toBe(1)
+
     const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body))
     expect(body).toEqual({ league_id: 1, season: 2027, player_id: 7 })
 
