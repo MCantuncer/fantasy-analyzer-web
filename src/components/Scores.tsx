@@ -17,6 +17,7 @@ import {
 } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import './Scores.css'
+import { PlayerLink } from './PlayerCard'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 const SLOW_AFTER_MS = 8_000
@@ -166,7 +167,7 @@ function ThisWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day: number) 
                       {g.my_players.map((p, i) => (
                         <span key={p.player_id} className={isOut(p.injury_status) ? 'muted' : undefined}>
                           {i > 0 && ', '}
-                          {shortName(p.name)}
+                          <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
                           {isOut(p.injury_status) && ' (out)'}
                         </span>
                       ))}
@@ -289,9 +290,11 @@ function YourNight({
         </span>
         {top && (
           <span className="night-lead">
-            <PlayerHead player={{ id: top.player_id, name: top.name }} size={36} />
+            <PlayerLink player={{ id: top.player_id, name: top.name }} decorative>
+              <PlayerHead player={{ id: top.player_id, name: top.name }} size={36} />
+            </PlayerLink>
             <span>
-              {top.name} led with {statLine(top)}.
+              <PlayerLink player={{ id: top.player_id, name: top.name }} /> led with {statLine(top)}.
             </span>
           </span>
         )}
@@ -517,7 +520,11 @@ function BoxScore({
       </div>
       {fa && (
         <p className="small muted box-foot">
-          Best free agent in this game: <strong>{fa.name}</strong>, {statLine(fa)} ({fa.fgm}-{fa.fga} FG).
+          Best free agent in this game:{' '}
+          <strong>
+            <PlayerLink player={{ id: fa.player_id, name: fa.name }} />
+          </strong>
+          , {statLine(fa)} ({fa.fgm}-{fa.fga} FG).
         </p>
       )}
     </section>
@@ -530,8 +537,10 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
     <tr className={mine ? 'mine' : undefined}>
       <th scope="row">
         <span className="box-player">
-          <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} />
-          {l.name}
+          <PlayerLink player={{ id: l.player_id, name: l.name }} decorative>
+            <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} />
+          </PlayerLink>
+          <PlayerLink player={{ id: l.player_id, name: l.name }} />
         </span>
       </th>
       <td className={`left${l.owner_team_id == null ? ' good' : ''}`}>{owner}</td>

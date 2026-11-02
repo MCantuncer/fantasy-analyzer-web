@@ -9,7 +9,9 @@ import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { ACCEPTANCE, CopyButton } from './Trades'
+import { dealPlayers } from '../lib/playerCard'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
+import { PlayerChips, PlayerLink } from './PlayerCard'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -124,7 +126,7 @@ function Fit({ data }: { data: TargetReport }) {
         <div>
           <span className="eyebrow">Trade for</span>
           <h2 id="target-title" className="target-name">
-            {t.name}
+            <PlayerLink player={t} />
           </h2>
           <div className="small muted">
             {t.positions.join('/')} · {data.owner.team_name} · trade value {shortValue(t.perceived_value, rounds)}
@@ -205,6 +207,7 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
             </ul>
+            <PlayerChips players={dealPlayers(offer)} label="Players in this deal" />
             <div className="row">
               <CopyButton text={offer.pitch} />
             </div>
@@ -290,7 +293,9 @@ function Owner({ data }: { data: TargetReport }) {
             {o.would_value.map((w) => (
               <li key={w.player.id}>
                 <span>
-                  <strong>{w.player.name}</strong>
+                  <strong>
+                    <PlayerLink player={w.player} />
+                  </strong>
                   {w.helps.length > 0 && <span className="small muted"> · helps their {w.helps.join(', ')}</span>}
                 </span>
                 <span className="num good">{cats(w.their_cats_gain)}</span>

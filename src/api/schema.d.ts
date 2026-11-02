@@ -572,6 +572,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/player-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Player Card
+         * @description One player at a glance: his latest games, health, news and every move of him in this league.
+         */
+        post: operations["player_card_api_player_card_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trade-feedback": {
         parameters: {
             query?: never;
@@ -1196,6 +1216,33 @@ export interface components {
              */
             score?: number | null;
         };
+        /** GameStats */
+        GameStats: {
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Tpm */
+            tpm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+        };
         /** GoogleSignIn */
         GoogleSignIn: {
             /**
@@ -1751,6 +1798,166 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** PlayerCard */
+        PlayerCard: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @description Main position, e.g. PG
+             */
+            position: string;
+            /**
+             * Pro Team
+             * @description NBA team abbreviation; empty for a free agent
+             */
+            pro_team: string;
+            /**
+             * Injury Status
+             * @description ESPN's current status, e.g. ACTIVE, DAY_TO_DAY, OUT
+             */
+            injury_status: string;
+            /**
+             * Owner Team Id
+             * @description Fantasy team in this league; none = free agent
+             */
+            owner_team_id?: number | null;
+            /**
+             * On Waivers
+             * @default false
+             */
+            on_waivers: boolean;
+            /** Percent Owned */
+            percent_owned: number;
+            season_line?: components["schemas"]["PlayerSeasonLine"] | null;
+            /**
+             * Games
+             * @description Latest games he played, newest first; last season's when none yet
+             */
+            games: components["schemas"]["PlayerGame"][];
+            /**
+             * News
+             * @description Recent stories about him, newest first
+             */
+            news: components["schemas"]["PlayerNews"][];
+            /**
+             * Moves
+             * @description Every move of him in this league this season, newest first
+             */
+            moves: components["schemas"]["PlayerMove"][];
+        };
+        /** PlayerCardRequest */
+        PlayerCardRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Player Id */
+            player_id: number;
+        };
+        /** PlayerGame */
+        PlayerGame: {
+            /** Game Id */
+            game_id: number;
+            /** Season */
+            season: number;
+            /**
+             * Day
+             * @description Scoring period (day of the season)
+             */
+            day: number;
+            /**
+             * Date
+             * @description Tip-off, UTC; none when the calendar lacks the game
+             */
+            date?: string | null;
+            /**
+             * Opponent
+             * @description Opponent's abbreviation; empty when unknown
+             */
+            opponent: string;
+            /** Home */
+            home?: boolean | null;
+            stats: components["schemas"]["GameStats"];
+        };
+        /** PlayerMove */
+        PlayerMove: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "draft" | "add" | "drop" | "trade";
+            /**
+             * Via
+             * @enum {string}
+             */
+            via: "draft" | "waiver" | "free_agent" | "trade";
+            /**
+             * At
+             * @description When ESPN processed it, UTC
+             */
+            at: string;
+            /**
+             * From Team Id
+             * @description 0 = free agency
+             */
+            from_team_id: number;
+            /**
+             * To Team Id
+             * @description 0 = free agency
+             */
+            to_team_id: number;
+            /**
+             * Bid
+             * @description FAAB paid on a waiver claim; price in an auction draft
+             */
+            bid?: number | null;
+            /**
+             * Pick
+             * @description Overall pick, on a draft
+             */
+            pick?: number | null;
+        };
+        /** PlayerNews */
+        PlayerNews: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "injury" | "return" | "trade" | "rumor" | "signing" | "waive" | "role" | "other";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "confirmed" | "reported" | "held" | "didnt_happen";
+            /** Headline */
+            headline: string;
+            /** Published At */
+            published_at: string;
+            /** Updated At */
+            updated_at: string;
+            /**
+             * Source
+             * @description The latest source's name
+             */
+            source: string;
+            /** Url */
+            url: string;
+            /**
+             * Severity
+             * @default 0
+             */
+            severity: number;
+        };
         /** PlayerRef */
         PlayerRef: {
             /** Id */
@@ -1816,6 +2023,18 @@ export interface components {
              * @description Listed out: the news headline games_out rests on, when it reported a timeline
              */
             out_report?: string | null;
+        };
+        /** PlayerSeasonLine */
+        PlayerSeasonLine: {
+            /** Season */
+            season: number;
+            /** Games */
+            games: number;
+            per_game: components["schemas"]["GameStats"];
+            /** Fg Pct */
+            fg_pct?: number | null;
+            /** Ft Pct */
+            ft_pct?: number | null;
         };
         /** PollTally */
         PollTally: {
@@ -4375,6 +4594,61 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    player_card_api_player_card_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerCard"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

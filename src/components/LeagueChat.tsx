@@ -27,6 +27,7 @@ import { teamColours } from '../lib/league'
 import './LeagueChat.css'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
+import { PlayerLink } from './PlayerCard'
 
 interface Props {
   leagueId: number
@@ -258,10 +259,12 @@ function MoveLines({ item, note }: { item: FeedItem; note?: string | null }) {
           <span className="feed-tile-sign" aria-label="Added">
             +
           </span>
-          <PlayerHead player={m.player} size={36} />
+          <PlayerLink player={m.player} decorative>
+            <PlayerHead player={m.player} size={36} />
+          </PlayerLink>
           <span className="feed-tile-who">
             <span className="feed-tile-name">
-              {m.player.name}
+              <PlayerLink player={m.player} />
               {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
             </span>
             {i === 0 && note && <span className="feed-tile-note">{note}</span>}
@@ -273,9 +276,11 @@ function MoveLines({ item, note }: { item: FeedItem; note?: string | null }) {
           <span className="feed-tile-sign" aria-label="Dropped">
             −
           </span>
-          <PlayerHead player={m.player} size={26} />
+          <PlayerLink player={m.player} decorative>
+            <PlayerHead player={m.player} size={26} />
+          </PlayerLink>
           <span className="feed-tile-name">
-            {m.player.name}
+            <PlayerLink player={m.player} />
             {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
           </span>
         </li>
@@ -351,9 +356,11 @@ function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
                 <span className="feed-tile-sign" aria-label="Gets">
                   +
                 </span>
-                <PlayerHead player={m.player} size={32} />
+                <PlayerLink player={m.player} decorative>
+                  <PlayerHead player={m.player} size={32} />
+                </PlayerLink>
                 <span className="feed-tile-name">
-                  {m.player.name}
+                  <PlayerLink player={m.player} />
                   {m.player.position && <span className="feed-pos"> {m.player.position}</span>}
                 </span>
               </li>
