@@ -52,6 +52,37 @@ button.pc-link:focus-visible {
   list-style: none;
 }
 
+/* A trade's players grouped by role, first thing in an opened trade: role on the left, chips wrap beside it. */
+.pc-chips.pc-deal {
+  margin-bottom: 16px;
+}
+
+.pc-deal-groups {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.pc-deal-group {
+  display: contents;
+}
+
+.pc-deal-role {
+  align-self: start;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pc-deal-group dd {
+  margin: 0;
+  min-width: 0;
+}
+
 button.pc-chip {
   display: inline-flex;
   align-items: center;

@@ -142,7 +142,7 @@ export function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-interface Deal {
+export interface Deal {
   give: CardPlayer[]
   get: CardPlayer[]
   my_drop?: CardPlayer | null
@@ -152,7 +152,24 @@ interface Deal {
 
 /** Everyone a deal moves, for the player-card chips: what you give and get, then the drops and adds. */
 export function dealPlayers(t: Deal): CardPlayer[] {
-  return [...t.give, ...t.get, t.my_drop, t.my_add, t.their_drop].filter((p): p is CardPlayer => p != null)
+  return dealGroups(t).flatMap((g) => g.players)
+}
+
+export interface DealGroup {
+  label: string
+  players: CardPlayer[]
+}
+
+/** A deal's players by role (give, get, then roster moves), leaving out empty roles. */
+export function dealGroups(t: Deal): DealGroup[] {
+  const one = (p: CardPlayer | null | undefined) => (p ? [p] : [])
+  return [
+    { label: 'Give', players: t.give },
+    { label: 'Get', players: t.get },
+    { label: 'You drop', players: one(t.my_drop) },
+    { label: 'You add', players: one(t.my_add) },
+    { label: 'They drop', players: one(t.their_drop) },
+  ].filter((g) => g.players.length > 0)
 }
 
 export type CatKey = 'pts' | 'reb' | 'ast' | 'stl' | 'blk' | 'tpm' | 'to'
