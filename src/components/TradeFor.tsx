@@ -10,9 +10,8 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { HeadStack, PlayerHead } from './PlayerHead'
 import { ACCEPTANCE, CopyButton } from './Trades'
-import { dealPlayers } from '../lib/playerCard'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
-import { PlayerChips, PlayerLink } from './PlayerCard'
+import { DealChips, PlayerLink } from './PlayerCard'
 import './TradeFor.css'
 
 const FIT = {
@@ -184,6 +183,7 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
       {open && (
         <div className="move-detail">
           <div>
+            <DealChips deal={offer} />
             <div className="detail-label">Your pitch to {partner}</div>
             <p className="pitch">{offer.pitch}</p>
             {offer.reasons.length > 0 && (
@@ -213,7 +213,6 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
             </ul>
-            <PlayerChips players={dealPlayers(offer)} label="Players in this deal" />
             <div className="row">
               <CopyButton text={offer.pitch} />
             </div>

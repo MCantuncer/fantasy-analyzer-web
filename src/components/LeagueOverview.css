@@ -8,3 +8,16 @@
   grid-column: 1 / -1;
   min-width: 0;
 }
+
+/* Your matchup is marked by an icon in its tag, not a border: the outline belongs only to
+   the card whose box score is open, so one card looks selected at a time. */
+.mu-tag.mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mu-mine-icon {
+  flex: none;
+  fill: currentColor;
+}

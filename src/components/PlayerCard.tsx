@@ -9,6 +9,7 @@ import { ago } from '../lib/news'
 import {
   CATS,
   average,
+  dealGroups,
   formTiles,
   gameDate,
   healthStatus,
@@ -25,7 +26,7 @@ import {
 } from '../lib/playerCard'
 import type { FormTile } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
-import type { CardPlayer } from '../lib/playerCard'
+import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './PlayerCard.css'
@@ -149,10 +150,31 @@ export function PlayerLink({
   )
 }
 
+/** One head-and-name chip that opens the player's card. */
+function PlayerChip({ player, card }: { player: CardPlayer; card: PlayerCardApi }) {
+  return (
+    <button
+      type="button"
+      className="pc-chip"
+      aria-haspopup="dialog"
+      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(player)}
+      onPointerDown={() => card.prefetch(player)}
+      onClick={() => card.open(player)}
+    >
+      <PlayerHead player={player} size={24} />
+      <span>{player.name}</span>
+    </button>
+  )
+}
+
+function linkable(players: CardPlayer[]): CardPlayer[] {
+  return players.filter((p, i) => p.id > 0 && players.findIndex((q) => q.id === p.id) === i)
+}
+
 /** Head-and-name chips that open each player's card, for places where the name itself can't be a button. */
 export function PlayerChips({ players, label = 'Players' }: { players: CardPlayer[]; label?: string }) {
   const card = usePlayerCard()
-  const unique = players.filter((p, i) => p.id > 0 && players.findIndex((q) => q.id === p.id) === i)
+  const unique = linkable(players)
   if (!card || !unique.length) return null
   return (
     <div className="pc-chips">
@@ -160,21 +182,44 @@ export function PlayerChips({ players, label = 'Players' }: { players: CardPlaye
       <ul className="pc-chip-list">
         {unique.map((p) => (
           <li key={p.id}>
-            <button
-              type="button"
-              className="pc-chip"
-              aria-haspopup="dialog"
-              onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(p)}
-              onPointerDown={() => card.prefetch(p)}
-              onClick={() => card.open(p)}
-            >
-              <PlayerHead player={p} size={24} />
-              <span>{p.name}</span>
-            </button>
+            <PlayerChip player={p} card={card} />
           </li>
         ))}
       </ul>
     </div>
+  )
+}
+
+/**
+ * A trade's players as chips grouped by role (Give, Get, the drops and adds), shown first in an
+ * opened trade so each player can be checked before the pitch.
+ */
+export function DealChips({ deal, label = 'Players in this deal' }: { deal: Deal; label?: string }) {
+  const card = usePlayerCard()
+  const groups = dealGroups(deal)
+    .map((g) => ({ ...g, players: linkable(g.players) }))
+    .filter((g) => g.players.length > 0)
+  if (!card || !groups.length) return null
+  return (
+    <section className="pc-chips pc-deal" aria-label={label}>
+      <span className="detail-label pc-chips-label">{label}</span>
+      <dl className="pc-deal-groups">
+        {groups.map((g) => (
+          <div className="pc-deal-group" key={g.label}>
+            <dt className="pc-deal-role">{g.label}</dt>
+            <dd>
+              <ul className="pc-chip-list">
+                {g.players.map((p) => (
+                  <li key={p.id}>
+                    <PlayerChip player={p} card={card} />
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   )
 }
 
