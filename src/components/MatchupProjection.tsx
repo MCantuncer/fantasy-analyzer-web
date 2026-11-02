@@ -63,7 +63,7 @@ function CrowdRows({ who, days }: { who: string; days: CrowdedDay[] }) {
                 {g.days.map((d) => dayLabel(d.date)).join(' & ')}
               </span>
               <span className="proj-crowd-count">
-                <b className="num">{first.playing}</b> playing for <b className="num">{first.slots}</b> spots
+                <b className="num">{first.playing}</b> playing
               </span>
             </div>
             <div className="proj-crowd-bench">
@@ -131,10 +131,7 @@ export function ProjectionView({ data, me, them }: { data: Projection; me: Side;
       </ul>
       {crowded && (
         <div className="proj-crowd">
-          <div className="proj-crowd-head">
-            <h4 className="eyebrow">Crowded days</h4>
-            <span className="small muted">More players with games than lineup spots</span>
-          </div>
+          <h4 className="eyebrow">Crowded days</h4>
           <ul className="proj-crowd-list">
             <CrowdRows who="You" days={data.my_crowded} />
             <CrowdRows who={them.name} days={data.their_crowded} />

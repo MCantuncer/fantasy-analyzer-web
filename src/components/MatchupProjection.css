@@ -86,12 +86,6 @@
   flex-direction: column;
   gap: 8px;
 }
-.proj-crowd-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-}
 .proj-crowd-row {
   display: flex;
   flex-direction: column;
