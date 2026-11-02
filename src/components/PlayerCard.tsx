@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { fetchPlayerCard } from '../api/client'
+import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { ago } from '../lib/news'
@@ -21,6 +21,7 @@ import {
   shortDate,
   spotlight,
   usePlayerCard,
+  withExtras,
 } from '../lib/playerCard'
 import type { FormTile } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
@@ -42,8 +43,35 @@ interface HostProps {
  * card: his latest games with the nine categories and minutes, health, news and this
  * league's moves of him. A centered dialog on wide screens, a bottom sheet on phones.
  */
+// A card stays fresh for two minutes, so a second look (or a prefetch then a tap) is instant.
+const CARD_STALE_MS = 2 * 60_000
+
+function coreQuery(ref: LeagueRef, playerId: number, creds: Credentials | null) {
+  return {
+    queryKey: ['player-card', ref.leagueId, ref.season, playerId, creds?.swid ?? null],
+    queryFn: () => fetchPlayerCard(ref, playerId, creds),
+    retry: false,
+    staleTime: CARD_STALE_MS,
+  }
+}
+
+function extrasQuery(ref: LeagueRef, playerId: number, creds: Credentials | null) {
+  return {
+    queryKey: ['player-card-extras', ref.leagueId, ref.season, playerId, creds?.swid ?? null],
+    queryFn: () => fetchPlayerCardExtras(ref, playerId, creds),
+    retry: false,
+    staleTime: CARD_STALE_MS,
+  }
+}
+
 export function PlayerCardHost({ leagueRef, creds, teams, myTeamId }: HostProps) {
   const [player, setPlayer] = useState<CardPlayer | null>(null)
+  const client = useQueryClient()
+  // The latest league and cookies for prefetches, without re-registering the host on each change.
+  const ctx = useRef({ leagueRef, creds })
+  useEffect(() => {
+    ctx.current = { leagueRef, creds }
+  })
   const opener = useRef<HTMLElement | null>(null)
   const leagueKey = leagueRef ? `${leagueRef.leagueId}:${leagueRef.season}` : null
 
@@ -55,9 +83,15 @@ export function PlayerCardHost({ leagueRef, creds, teams, myTeamId }: HostProps)
         opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
         setPlayer({ id: p.id, name: p.name })
       },
+      prefetch: (p: CardPlayer) => {
+        const { leagueRef: ref, creds: c } = ctx.current
+        if (!ref || p.id <= 0) return
+        void client.prefetchQuery(coreQuery(ref, p.id, c))
+        void client.prefetchQuery(extrasQuery(ref, p.id, c))
+      },
     })
     return () => setPlayerCardHost(null)
-  }, [leagueKey])
+  }, [leagueKey, client])
 
   const close = useCallback(() => {
     setPlayer(null)
@@ -106,6 +140,8 @@ export function PlayerLink({
       aria-haspopup={decorative ? undefined : 'dialog'}
       aria-hidden={decorative || undefined}
       tabIndex={decorative ? -1 : undefined}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(player)}
+      onPointerDown={() => card.prefetch(player)}
       onClick={() => card.open(player)}
     >
       {children ?? player.name}
@@ -124,7 +160,14 @@ export function PlayerChips({ players, label = 'Players' }: { players: CardPlaye
       <ul className="pc-chip-list">
         {unique.map((p) => (
           <li key={p.id}>
-            <button type="button" className="pc-chip" aria-haspopup="dialog" onClick={() => card.open(p)}>
+            <button
+              type="button"
+              className="pc-chip"
+              aria-haspopup="dialog"
+              onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(p)}
+              onPointerDown={() => card.prefetch(p)}
+              onClick={() => card.open(p)}
+            >
               <PlayerHead player={p} size={24} />
               <span>{p.name}</span>
             </button>
@@ -148,12 +191,9 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
   const titleId = useId()
   const dialog = useRef<HTMLDivElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
-  const q = useQuery({
-    queryKey: ['player-card', leagueRef.leagueId, leagueRef.season, player.id, creds?.swid ?? null],
-    queryFn: () => fetchPlayerCard(leagueRef, player.id, creds),
-    retry: false,
-    staleTime: 2 * 60_000,
-  })
+  // The core (header, form, games, moves) shows as soon as it lands; news fills in after.
+  const q = useQuery(coreQuery(leagueRef, player.id, creds))
+  const extras = useQuery(extrasQuery(leagueRef, player.id, creds))
 
   useEffect(() => {
     closeBtn.current?.focus()
@@ -186,7 +226,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
     }
   }
 
-  const card = q.data
+  const card = useMemo(() => (q.data ? withExtras(q.data, extras.data) : undefined), [q.data, extras.data])
   const status = card ? healthStatus(card.injury_status) : null
   const abbrev = card?.pro_team ?? ''
   const colour = teamColour(abbrev)
@@ -244,7 +284,15 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
               </button>
             </div>
           )}
-          {card && <CardBody card={card} season={leagueRef.season} teams={teams} myTeamId={myTeamId} />}
+          {card && (
+            <CardBody
+              card={card}
+              season={leagueRef.season}
+              teams={teams}
+              myTeamId={myTeamId}
+              news={extras.isPending ? 'loading' : extras.isError ? 'failed' : 'ready'}
+            />
+          )}
         </div>
       </div>
     </div>,
@@ -255,7 +303,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
 function Loading() {
   return (
     <div className="pc-loading" role="status">
-      <span className="sr-only">Loading his games, news and moves…</span>
+      <span className="sr-only">Loading his games and moves…</span>
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="pc-skeleton" aria-hidden="true" />
       ))}
@@ -268,6 +316,8 @@ interface BodyProps {
   season: number
   teams: Map<number, string>
   myTeamId: number | null
+  /** News arrives after the rest of the card. */
+  news: 'loading' | 'ready' | 'failed'
 }
 
 function Section({
@@ -294,7 +344,7 @@ function Section({
   )
 }
 
-function CardBody({ card, season, teams, myTeamId }: BodyProps) {
+function CardBody({ card, season, teams, myTeamId, news }: BodyProps) {
   const now = new Date()
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
@@ -359,7 +409,15 @@ function CardBody({ card, season, teams, myTeamId }: BodyProps) {
 
       <div className="pc-two">
         <Section id="pc-news-title" title="News">
-          {card.news.length ? (
+          {news === 'loading' ? (
+            <div className="pc-news-loading" role="status">
+              <span className="sr-only">Loading his news…</span>
+              <span className="pc-skeleton pc-skeleton-line" aria-hidden="true" />
+              <span className="pc-skeleton pc-skeleton-line pc-skeleton-short" aria-hidden="true" />
+            </div>
+          ) : news === 'failed' ? (
+            <p className="pc-quiet">His news didn't load. Open the card again to retry.</p>
+          ) : card.news.length ? (
             <ul className="pc-list">
               {card.news.map((n) => (
                 <li key={n.id} className="pc-news">

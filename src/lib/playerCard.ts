@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { GameStats, PlayerCard, PlayerGame, PlayerMove } from '../api/client'
+import type { GameStats, PlayerCard, PlayerCardExtras, PlayerGame, PlayerMove } from '../api/client'
 
 /** Enough to open a player's card: the name shows while the rest loads. */
 export interface CardPlayer {
@@ -9,6 +9,8 @@ export interface CardPlayer {
 
 export interface PlayerCardApi {
   open: (player: CardPlayer) => void
+  /** Starts loading his card before the tap lands (hover, press), so it opens with data. */
+  prefetch: (player: CardPlayer) => void
 }
 
 // The one mounted PlayerCardHost registers here while a league is open. A module store rather
@@ -219,4 +221,18 @@ export function formTiles(
   tiles.push(pctTile('fg', 'FG%', last5.fgm, last5.fga, fgSeason))
   tiles.push(pctTile('ft', 'FT%', last5.ftm, last5.fta, ftSeason))
   return tiles
+}
+
+/** The card with the extras filled in once they arrive: his news, and the names of who moved with him. */
+export function withExtras(card: PlayerCard, extras: PlayerCardExtras | undefined): PlayerCard {
+  if (!extras) return card
+  const names = extras.names
+  return {
+    ...card,
+    news: extras.news,
+    moves: card.moves.map((m) => ({
+      ...m,
+      others: (m.others ?? []).map((o) => (o.name ? o : { ...o, name: names[String(o.player_id)] ?? '' })),
+    })),
+  }
 }
