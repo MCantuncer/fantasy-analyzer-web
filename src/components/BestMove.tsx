@@ -1,14 +1,28 @@
 import type { AnalysisReport, PlayerRef } from '../api/client'
 import { pct, ptsDiff, signedInt } from '../lib/format'
 import { InjuryBadges } from './InjuryBadges'
-import { HeadStack } from './PlayerHead'
+import { PlayerHead } from './PlayerHead'
+import { PlayerLink } from './PlayerCard'
 
 export function Side({ label, tone, players, note }: { label: string; tone: 'good' | 'bad'; players: PlayerRef[]; note: string }) {
   return (
     <div className="swap-side">
       <div className={`swap-label ${tone}`}>{label}</div>
-      <HeadStack players={players} size={44} />
-      <div className="swap-name">{players.map((p) => p.name).join(' + ')}</div>
+      <span className="head-stack">
+        {players.slice(0, 3).map((p) => (
+          <PlayerLink key={p.id} player={p} decorative>
+            <PlayerHead player={p} size={44} />
+          </PlayerLink>
+        ))}
+      </span>
+      <div className="swap-name">
+        {players.map((p, i) => (
+          <span key={p.id}>
+            {i > 0 && ' + '}
+            <PlayerLink player={p} />
+          </span>
+        ))}
+      </div>
       <InjuryBadges players={players} />
       <div className="small muted">{note}</div>
     </div>
