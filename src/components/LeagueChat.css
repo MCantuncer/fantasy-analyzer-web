@@ -180,3 +180,21 @@
     transition: none;
   }
 }
+
+/* Reactions are emoji chips; the meaning is in each chip's accessible name and title. */
+.feed-social .feed-reaction {
+  min-width: 44px;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+}
+
+.feed-reaction-emoji {
+  font-size: 20px;
+  line-height: 1;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+.feed-social .feed-reaction[aria-pressed='true'] {
+  background: var(--accent-soft);
+}

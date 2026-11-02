@@ -431,15 +431,23 @@ function Social({ item, ctx, canReply = true }: { item: FeedItem; ctx: Ctx; canR
             <button
               key={x.key}
               type="button"
-              className="chip sm"
+              className="chip sm feed-reaction"
               aria-pressed={on}
+              aria-label={n > 0 ? `${x.label}, ${n}` : x.label}
+              title={x.label}
               onClick={() => {
                 ctx.onReact(item, x.key, !on)
                 setPicking(false)
               }}
             >
-              {x.label}
-              {n > 0 && <span className="num">{n}</span>}
+              <span className="feed-reaction-emoji" aria-hidden="true">
+                {x.emoji}
+              </span>
+              {n > 0 && (
+                <span className="num" aria-hidden="true">
+                  {n}
+                </span>
+              )}
             </button>
           )
         })}

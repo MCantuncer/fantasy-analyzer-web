@@ -1,10 +1,11 @@
 import type { FeedItem, FeedTeam } from '../api/client'
 
 export const REACTIONS = [
-  { key: 'steal', label: 'Steal' },
-  { key: 'smart', label: 'Smart' },
-  { key: 'overpay', label: 'Overpay' },
-  { key: 'lol', label: 'LOL' },
+  // Shown as the emoji alone; the label is the accessible name and the hover title.
+  { key: 'steal', emoji: '🥷', label: 'Steal' },
+  { key: 'smart', emoji: '🧠', label: 'Smart move' },
+  { key: 'overpay', emoji: '💸', label: 'Overpay' },
+  { key: 'lol', emoji: '😂', label: 'LOL' },
 ] as const
 
 export const FILTERS = [
