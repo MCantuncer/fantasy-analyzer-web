@@ -1,0 +1,19 @@
+/* Trade rules on phones: full-width gutters, the skipped count on its own line, and the
+   group hint under its title instead of beside it. */
+@media (max-width: 480px) {
+  .rules-bar,
+  .rules-editor {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .rules-skipped {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+
+  .rules-group-hint {
+    display: block;
+    margin: 2px 0 0;
+  }
+}
