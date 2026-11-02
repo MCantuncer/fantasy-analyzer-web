@@ -219,6 +219,12 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
               const body = (
                 <>
                   <span className={`mu-tag${isMine ? ' mine' : tag === 'Coin flip' ? ' close' : tag ? ' star' : ''}`}>
+                    {isMine && (
+                      <svg className="mu-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 21a8 8 0 0 1 16 0z" />
+                      </svg>
+                    )}
                     {tag ?? '\u00a0'}
                   </span>
                   {[a, b].map((s, i) => {
@@ -241,7 +247,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
                     {expandable ? (
                       <button
                         type="button"
-                        className={`mu-card${isMine ? ' mine' : ''}`}
+                        className="mu-card"
                         aria-expanded={open === key(m)}
                         aria-controls="mu-box"
                         onClick={() => setOpen(open === key(m) ? null : key(m))}
@@ -249,7 +255,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
                         {body}
                       </button>
                     ) : (
-                      <div className={`mu-card${isMine ? ' mine' : ''}`}>{body}</div>
+                      <div className="mu-card">{body}</div>
                     )}
                   </li>
                   {open === key(m) && boxPanel && <li className="mu-box-slot">{boxPanel}</li>}
