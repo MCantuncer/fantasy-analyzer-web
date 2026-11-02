@@ -10,6 +10,7 @@ import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
 import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
+import './Trades.css'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -35,6 +36,17 @@ export function CopyButton({ text }: { text: string }) {
     >
       {copied ? 'Copied' : 'Copy pitch'}
     </button>
+  )
+}
+
+/** Small amber mark for a caveat on a deal. Decorative: the text says it. */
+function WarningMark() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8 6v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="8" cy="11.75" r="0.9" fill="currentColor" />
+    </svg>
   )
 }
 
@@ -64,9 +76,12 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
     <>
       <div>
         {t.warnings && t.warnings.length > 0 && (
-          <ul className="trade-warnings">
+          <ul className="trades-warning">
             {t.warnings.map((w) => (
-              <li key={w}>{w} Only shown because the deal is one of the best of the day.</li>
+              <li key={w}>
+                <WarningMark />
+                <span>{w} Shown because it's one of the best deals of the day.</span>
+              </li>
             ))}
           </ul>
         )}

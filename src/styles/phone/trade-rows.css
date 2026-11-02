@@ -1,0 +1,63 @@
+/* Trade rows (Moves, Trade Park) on phones. The tablet layout keeps the playoff odds in their own
+   column on the right for every line, so on a phone the names and the "they accept" bar get
+   squeezed into the left half and the space under the odds stays empty. Here the names take the
+   full width, a long two-player "Get" wraps inside its own column instead of under the faces, and
+   the accept bar shares the last line with the odds. Give and Get share columns (subgrid) so both
+   names start at the same x whatever the number of faces. */
+@media (max-width: 640px) {
+  .move-row:not(.pickup-row) {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: none;
+    column-gap: 8px;
+    row-gap: 8px;
+    padding: 14px 16px;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(1),
+  .move-row:not(.pickup-row) > :nth-child(2) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    row-gap: 4px;
+    align-items: center;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(1) {
+    grid-row: 1;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(2) {
+    grid-row: 2;
+  }
+
+  .move-row:not(.pickup-row) .head-stack {
+    margin-right: 0;
+  }
+
+  /* The name, then any injury badge or tag under it, never under the label. */
+  .move-row:not(.pickup-row) > :nth-child(1) > :nth-child(n + 3),
+  .move-row:not(.pickup-row) > :nth-child(2) > :nth-child(n + 3) {
+    grid-column: 3 / -1;
+    justify-self: start;
+    margin-left: 0;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(4) {
+    grid-column: 1 / 4;
+    grid-row: 4;
+    max-width: none;
+    margin-right: 8px;
+    align-self: end;
+  }
+
+  .move-row:not(.pickup-row) > :nth-child(5) {
+    grid-column: 4;
+    grid-row: 4;
+    align-self: end;
+  }
+}
