@@ -1,0 +1,123 @@
+/* My Team > Your categories: grouped by status, one line per category. */
+.co-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.co-help {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.co-help[aria-expanded='true'] {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.co-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.co-legend-mid {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  background: var(--faint);
+}
+
+.co-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.co-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.co-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.co-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.co-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.co-row {
+  display: grid;
+  grid-template-columns: 40px 36px minmax(0, 1fr) 40px 40px;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.co-cat {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.co-rank {
+  padding: 2px 0;
+  border-radius: 4px;
+  background: var(--track);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.co-legend .co-rank {
+  padding: 1px 6px;
+}
+
+.co-pct {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.co-avg {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* The global .bar-track names a grid area for .bar-row; here it is a plain cell. */
+.co-row .bar-track {
+  grid-area: auto;
+}
+
+.co-group-head .co-hint {
+  font-family: var(--font-ui);
+}
