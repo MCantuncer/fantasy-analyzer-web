@@ -1,0 +1,11 @@
+/* League switcher menu rows: the league name with its verified seal beside it. */
+.switcher-item-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.switcher-item-title .switcher-item-name {
+  min-width: 0;
+}
