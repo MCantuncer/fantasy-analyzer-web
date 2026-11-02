@@ -1611,39 +1611,6 @@ tr.cutline th {
   font-weight: 600;
 }
 
-.status {
-  flex: 1 1 340px;
-  max-width: 560px;
-  min-width: 0;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.steps li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.steps li.todo {
-  color: var(--muted);
-}
-
-.steps li.now {
-  font-weight: 600;
-}
-
 .spinner {
   animation: spin 1s linear infinite;
 }
@@ -3536,6 +3503,44 @@ button.menu-item.danger {
   color: var(--text);
 }
 
+.analysis-note {
+  margin: -8px 0 0;
+}
+
+/* Until the server answers there is no progress to show: a bar that slides instead. */
+.analysis-card.waking .progress > span {
+  width: 30%;
+  animation: progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.analysis-card.waking .analysis-pct {
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.wait-item:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.wait-item:disabled:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.wait-item:disabled .wait-chevron {
+  visibility: hidden;
+}
+
 .analysis-pill {
   display: inline-flex;
   align-items: center;
@@ -3594,6 +3599,11 @@ button.menu-item.danger {
 @media (prefers-reduced-motion: reduce) {
   .progress > span {
     transition: none;
+  }
+  .analysis-card.waking .progress > span {
+    animation: none;
+    width: 100%;
+    opacity: 0.35;
   }
 }
 

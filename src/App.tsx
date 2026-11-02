@@ -15,7 +15,6 @@ import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
-import { Status } from './components/Status'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
@@ -381,7 +380,7 @@ export default function App() {
       <main className="main">
         {!signedIn && <Auth theme={theme} onSignedIn={signedInWith} />}
 
-        {signedIn && me.isPending && <div className="card muted">Loading your account…</div>}
+        {signedIn && me.isPending && !selection && <div className="card muted">Loading your account…</div>}
 
         {signedIn && me.data && !selection && (
           <MyLeagues
@@ -396,7 +395,15 @@ export default function App() {
           />
         )}
 
-        {signedIn && selection && overview.isLoading && <Status phase="league" />}
+        {signedIn && selection && overview.isLoading && (
+          <AnalysisCard
+            progress={0}
+            stage="Starting"
+            onBrowse={(t) => setTab(t)}
+            waking
+            title={me.data && !mine?.team_id ? 'Loading your league' : undefined}
+          />
+        )}
 
         {signedIn && selection && needsCookies && (
           <CookieForm
