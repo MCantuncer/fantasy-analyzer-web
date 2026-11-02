@@ -39,7 +39,7 @@
   white-space: nowrap;
 }
 
-.news-scope button[aria-pressed="true"] {
+.news-scope button[aria-pressed='true'] {
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
@@ -79,14 +79,14 @@
   font-weight: 600;
 }
 
-.news-filter[aria-pressed="true"] {
+.news-filter[aria-pressed='true'] {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--text);
   font-weight: 600;
 }
 
-.news-filter[aria-pressed="true"] .num {
+.news-filter[aria-pressed='true'] .num {
   color: var(--accent-text);
 }
 
@@ -119,8 +119,8 @@
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-.news-story[data-status="held"],
-.news-story[data-status="didnt_happen"] {
+.news-story[data-status='held'],
+.news-story[data-status='didnt_happen'] {
   opacity: 0.75;
 }
 
@@ -251,7 +251,7 @@
 
 /* The dot trails each item, so a wrapped line never starts with one. */
 .news-meta > :not(:last-child)::after {
-  content: "·";
+  content: '·';
   margin: 0 8px;
   color: var(--faint);
 }
@@ -265,7 +265,7 @@
 }
 
 .news-kind::before {
-  content: "";
+  content: '';
   width: 8px;
   height: 8px;
   border-radius: 2px;
@@ -310,7 +310,7 @@
 }
 
 .news-source-item + .news-source-item::before {
-  content: ", ";
+  content: ', ';
   color: var(--muted);
 }
 
@@ -393,7 +393,7 @@ a.news-source:hover {
 }
 
 .news-health-card > summary::after {
-  content: "";
+  content: '';
   flex: none;
   width: 8px;
   height: 8px;
