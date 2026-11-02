@@ -1,22 +1,36 @@
 import { useEffect, useState } from 'react'
 import { percent } from '../lib/progress'
 
+// ``short`` names the dot on the stepper; ``label`` is the line under the heading.
 const STEPS = [
+  { short: 'Server', label: 'Waking up the server', stages: [] as string[] },
   {
+    short: 'League',
     label: 'Loading your league',
     stages: ['Starting', 'Loading your league', 'Reading rosters'],
   },
   {
+    short: 'Trades',
     label: 'Screening trades',
     stages: ['Screening trades', 'Screening edge trades'],
   },
-  { label: 'Screening pickups', stages: ['Screening pickups'] },
-  { label: 'Simulating the season', stages: ['Simulating the season'] },
+  { short: 'Pickups', label: 'Screening pickups', stages: ['Screening pickups'] },
+  { short: 'Season', label: 'Simulating the season', stages: ['Simulating the season'] },
 ]
 
 function stepIndex(stage: string) {
   const i = STEPS.findIndex((s) => s.stages.includes(stage))
-  return i < 0 ? 0 : i
+  return i < 0 ? 1 : i
+}
+
+function StepDot({ state }: { state: 'done' | 'now' | 'todo' }) {
+  if (state === 'done')
+    return (
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+        <path d="M3 6.2l2 2 4-4.4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      </svg>
+    )
+  return null
 }
 
 const stroke = { stroke: 'currentColor', strokeWidth: 1.6, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const
@@ -90,7 +104,7 @@ function useSeconds(running: boolean) {
 
 export function AnalysisCard({ progress, stage, onBrowse, waking = false, title = 'Finding your best moves' }: CardProps) {
   const wakingFor = useSeconds(waking)
-  const now = stepIndex(stage)
+  const now = waking ? 0 : stepIndex(stage)
   const pct = percent(progress)
   return (
     <section className={`card analysis-card stack${waking ? ' waking' : ''}`} aria-labelledby="analysis-title">
@@ -98,7 +112,7 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
           <h2 id="analysis-title">{title}</h2>
           <span className="small muted" aria-live="polite">
-            {waking ? 'Waking up the server…' : `${STEPS[now].label}…`}
+            {STEPS[now].label}…
           </span>
         </div>
         <span className="analysis-pct num tnum" aria-hidden="true">
@@ -121,12 +135,21 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
       >
         <span style={waking ? undefined : { width: pct }} />
       </div>
-      <ol className="analysis-steps" aria-label="Steps">
-        {STEPS.map((s, i) => (
-          <li key={s.label} className={waking ? (i === 0 ? 'now' : 'todo') : i < now ? 'done' : i === now ? 'now' : 'todo'}>
-            {waking && i === 0 ? 'Waking up the server' : s.label}
-          </li>
-        ))}
+      <ol className="stepper" aria-label="Steps">
+        {STEPS.map((s, i) => {
+          const state = i < now ? 'done' : i === now ? 'now' : 'todo'
+          return (
+            <li key={s.short} className={state} aria-current={state === 'now' ? 'step' : undefined}>
+              <span className="stepper-dot">
+                <StepDot state={state} />
+              </span>
+              <span className="stepper-label">{s.short}</span>
+              <span className="sr-only">
+                {state === 'done' ? ', done' : state === 'now' ? ', in progress' : ''}
+              </span>
+            </li>
+          )
+        })}
       </ol>
       <nav className="wait-list" aria-labelledby="wait-title">
         <div className="wait-head">
