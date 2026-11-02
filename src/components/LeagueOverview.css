@@ -21,3 +21,32 @@
   flex: none;
   fill: currentColor;
 }
+
+/* Box score key: drawn with the real cell styles instead of a sentence. */
+.lo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.lo-legend > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lo-legend .box-cell {
+  --team: var(--accent);
+  min-width: 34px;
+  height: 24px;
+  font-size: 13px;
+}
+
+.lo-legend-close {
+  color: var(--warn);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
