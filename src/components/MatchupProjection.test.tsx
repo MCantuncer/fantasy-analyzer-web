@@ -57,7 +57,9 @@ describe('projected final', () => {
   it('folds crowded days that bench the same players into one row', () => {
     const { container } = render(<ProjectionView data={data()} me={me} them={opp} />)
     expect(container.querySelectorAll('.proj-crowd-row')).toHaveLength(1)
-    expect(screen.getByRole('img', { name: '13 players with games for 10 lineup spots' })).toBeInTheDocument()
+    const row = container.querySelector('.proj-crowd-row')!
+    expect(row.querySelector('.proj-crowd-when')?.textContent).toBe('YouMon, Nov 2 & Wed, Nov 4')
+    expect(row.querySelector('.proj-crowd-count')?.textContent).toBe('13 playing for 10 spots')
     expect(screen.getByText('Davion Mitchell')).toBeInTheDocument()
     expect(screen.getByText('D. Mitchell')).toBeInTheDocument()
   })

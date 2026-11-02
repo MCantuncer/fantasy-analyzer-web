@@ -45,61 +45,44 @@ function grouped(days: CrowdedDay[]) {
   return out
 }
 
-function DayChip({ iso }: { iso: string }) {
+function dayLabel(iso: string) {
   const d = new Date(`${iso}T12:00:00Z`)
-  const wd = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
-  const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })
-  return (
-    <span className="proj-daychip" title={label}>
-      <span className="proj-daychip-wd">{wd}</span>
-      <span className="num proj-daychip-d">{d.getUTCDate()}</span>
-      <span className="sr-only">{label}</span>
-    </span>
-  )
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })
 }
 
-/** One dot per player with a game: filled ones start, hollow ones sit. */
-function Seats({ playing, slots }: { playing: number; slots: number }) {
-  return (
-    <span className="proj-seats" role="img" aria-label={`${playing} players with games for ${slots} lineup spots`}>
-      <span className="proj-dots" aria-hidden="true">
-        {Array.from({ length: playing }, (_, i) => (
-          <span key={i} className={i < slots ? 'on' : 'off'} />
-        ))}
-      </span>
-      <span className="num proj-seats-n" aria-hidden="true">
-        {playing}
-        <span className="muted">/{slots}</span>
-      </span>
-    </span>
-  )
-}
-
-function CrowdRows({ side, days }: { side: Side; days: CrowdedDay[] }) {
+function CrowdRows({ who, days }: { who: string; days: CrowdedDay[] }) {
   return (
     <>
-      {grouped(days).map((g) => (
-        <li key={`${side.name}-${g.days[0].date}`} className="proj-crowd-row">
-          <TeamCrest name={side.name} colour={side.colour} size={28} />
-          <span className="proj-days">
-            {g.days.map((d) => (
-              <DayChip key={d.date} iso={d.date} />
-            ))}
-          </span>
-          <Seats playing={g.days[0].playing} slots={g.days[0].slots} />
-          <ul className="proj-bench" aria-label={`${side.name} bench`}>
-            {g.days[0].sit.map((p) => (
-              <li key={p.id}>
-                <PlayerLink player={p} className="proj-benched">
-                  <PlayerHead player={p} size={24} />
-                  <span aria-hidden="true">{shortName(p.name)}</span>
-                  <span className="sr-only">{p.name}</span>
-                </PlayerLink>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
+      {grouped(days).map((g) => {
+        const first = g.days[0]
+        return (
+          <li key={`${who}-${first.date}`} className="proj-crowd-row">
+            <div className="proj-crowd-top">
+              <span className="proj-crowd-when">
+                <span className="proj-crowd-who">{who}</span>
+                {g.days.map((d) => dayLabel(d.date)).join(' & ')}
+              </span>
+              <span className="proj-crowd-count">
+                <b className="num">{first.playing}</b> playing for <b className="num">{first.slots}</b> spots
+              </span>
+            </div>
+            <div className="proj-crowd-bench">
+              <span className="proj-bench-label">Bench</span>
+              <ul className="proj-bench" aria-label={`${who} bench`}>
+                {first.sit.map((p) => (
+                  <li key={p.id}>
+                    <PlayerLink player={p} className="proj-benched">
+                      <PlayerHead player={p} size={24} />
+                      <span aria-hidden="true">{shortName(p.name)}</span>
+                      <span className="sr-only">{p.name}</span>
+                    </PlayerLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        )
+      })}
     </>
   )
 }
@@ -148,10 +131,13 @@ export function ProjectionView({ data, me, them }: { data: Projection; me: Side;
       </ul>
       {crowded && (
         <div className="proj-crowd">
-          <h4 className="eyebrow">Crowded days</h4>
+          <div className="proj-crowd-head">
+            <h4 className="eyebrow">Crowded days</h4>
+            <span className="small muted">More players with games than lineup spots</span>
+          </div>
           <ul className="proj-crowd-list">
-            <CrowdRows side={me} days={data.my_crowded} />
-            <CrowdRows side={them} days={data.their_crowded} />
+            <CrowdRows who="You" days={data.my_crowded} />
+            <CrowdRows who={them.name} days={data.their_crowded} />
           </ul>
         </div>
       )}

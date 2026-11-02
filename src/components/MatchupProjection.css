@@ -86,64 +86,54 @@
   flex-direction: column;
   gap: 8px;
 }
+.proj-crowd-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .proj-crowd-row {
-  display: grid;
-  grid-template-columns: auto auto auto 1fr;
-  align-items: center;
-  gap: 8px 16px;
-  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
   background: var(--raised);
 }
-.proj-days {
+.proj-crowd-top {
   display: flex;
-  gap: 4px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  flex-wrap: wrap;
 }
-.proj-daychip {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 40px;
-  padding: 2px 6px 4px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  line-height: 1.1;
-}
-.proj-daychip-wd {
-  font-size: 0.625rem;
+.proj-crowd-when {
   font-weight: 600;
+}
+.proj-crowd-who {
+  color: var(--accent-text);
+  margin-right: 8px;
+}
+.proj-crowd-count {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.proj-crowd-count b {
+  color: var(--text);
+  font-weight: 700;
+}
+.proj-crowd-bench {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+.proj-bench-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent-text);
-}
-.proj-daychip-d {
-  font-size: 1rem;
-  font-weight: 700;
-}
-.proj-seats {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.proj-dots {
-  display: grid;
-  grid-template-columns: repeat(7, 8px);
-  gap: 3px;
-}
-.proj-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.proj-dots .on {
-  background: var(--good);
-}
-.proj-dots .off {
-  border: 1.5px solid var(--warn-fill);
-}
-.proj-seats-n {
-  font-weight: 700;
+  color: var(--warn);
 }
 .proj-bench {
   list-style: none;
@@ -174,11 +164,5 @@ button.pc-link.proj-benched:hover {
 @media (max-width: 640px) {
   .proj-cats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .proj-crowd-row {
-    grid-template-columns: auto 1fr auto;
-  }
-  .proj-bench {
-    grid-column: 1 / -1;
   }
 }
