@@ -14,7 +14,7 @@ const STEPS = [
     label: 'Screening trades',
     stages: ['Screening trades', 'Screening edge trades'],
   },
-  { short: 'Pickups', label: 'Screening pickups', stages: ['Screening pickups'] },
+  { short: 'FAs', label: 'Screening free agents', stages: ['Screening pickups'] },
   { short: 'Season', label: 'Simulating the season', stages: ['Simulating the season'] },
 ]
 
