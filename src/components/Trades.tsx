@@ -11,7 +11,9 @@ import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './Tr
 import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
+import { dealPlayers } from '../lib/playerCard'
 import './Trades.css'
+import { PlayerChips } from './PlayerCard'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -119,6 +121,7 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
           {extra}
         </ul>
         <BadgeNotes players={t.get} />
+        <PlayerChips players={dealPlayers(t)} label="Players in this deal" />
         <div className="row">
           <CopyButton text={t.pitch} />
         </div>

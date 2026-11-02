@@ -29,6 +29,7 @@ import {
 } from '../lib/news'
 import type { NewsFilter, NewsScope } from '../lib/news'
 import { PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerLink } from './PlayerCard'
 import './News.css'
 
 const SLOW_AFTER_MS = 8_000
@@ -290,9 +291,13 @@ function PlayerRow({
   const panelId = `gains-${player.player_id}`
   return (
     <li className="news-player">
-      <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} />
+      <PlayerLink player={{ id: player.player_id, name: player.name }} decorative>
+        <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} />
+      </PlayerLink>
       <span className="news-player-id">
-        <span className="news-player-name">{player.name}</span>
+        <span className="news-player-name">
+          <PlayerLink player={{ id: player.player_id, name: player.name }} />
+        </span>
         <span className="news-player-sub small muted">
           <TeamLogo abbrev={player.pro_team} size={16} />
           {player.pro_team || 'Free agent'}
@@ -398,8 +403,12 @@ function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | n
   return (
     <li className="news-gain">
       <div className="row news-gain-head">
-        <PlayerHead player={{ id: b.player_id, name: b.name }} size={28} />
-        <span className="name">{b.name}</span>
+        <PlayerLink player={{ id: b.player_id, name: b.name }} decorative>
+          <PlayerHead player={{ id: b.player_id, name: b.name }} size={28} />
+        </PlayerLink>
+        <span className="name">
+          <PlayerLink player={{ id: b.player_id, name: b.name }} />
+        </span>
         <OwnerChip player={b} myTeamId={myTeamId} abbrev={abbrev} />
         <span className={`news-conf news-conf-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
       </div>
@@ -434,9 +443,13 @@ function Trending({
       <ol className="news-trending">
         {players.slice(0, 8).map((p) => (
           <li key={p.player_id} className="news-trend">
-            <PlayerHead player={{ id: p.player_id, name: p.name }} size={32} />
+            <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
+              <PlayerHead player={{ id: p.player_id, name: p.name }} size={32} />
+            </PlayerLink>
             <span className="news-player-id">
-              <span className="news-player-name">{p.name}</span>
+              <span className="news-player-name">
+                <PlayerLink player={{ id: p.player_id, name: p.name }} />
+              </span>
               <span className="news-player-sub small muted">
                 <TeamLogo abbrev={p.pro_team} size={14} />
                 {p.pro_team || 'Free agent'} · <span className="num">{p.percent_owned.toFixed(0)}%</span> rostered

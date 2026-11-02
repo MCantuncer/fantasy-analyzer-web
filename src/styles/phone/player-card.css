@@ -1,0 +1,60 @@
+/* The player card as a bottom sheet on phones: full width, anchored to the bottom edge with a
+   grab bar, and room for the thumb (44px close button on the title line, safe-area padding). */
+@media (max-width: 640px) {
+  .pc-layer {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .pc-sheet {
+    width: 100%;
+    max-height: 90vh;
+    max-height: 90dvh;
+    border-width: 1px 0 0;
+    border-radius: 16px 16px 0 0;
+    animation-name: pc-sheet-up;
+  }
+
+  .pc-grab {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  .pc-head {
+    gap: 12px;
+    padding: 12px 16px 16px;
+  }
+
+  .pc-name {
+    font-size: 18px;
+  }
+
+  .pc-body {
+    gap: 24px;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .pc-table th,
+  .pc-table td {
+    padding: 10px 8px;
+  }
+
+  .pc-list {
+    gap: 14px;
+  }
+
+  /* The table holds 11 columns and a phone shows about seven: say the rest are a swipe away. */
+  .pc-swipe {
+    display: block;
+  }
+}
+
+@keyframes pc-sheet-up {
+  from {
+    transform: translateY(40%);
+  }
+}
