@@ -12,6 +12,7 @@ import {
 } from './api/client'
 import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague } from './api/client'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
+import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
 import { CookieForm } from './components/CookieForm'
@@ -407,7 +408,7 @@ export default function App() {
       <main className="main">
         {!signedIn && <Auth theme={theme} onSignedIn={signedInWith} />}
 
-        {signedIn && me.isPending && !selection && <div className="card muted">Loading your account…</div>}
+        {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
         {signedIn && me.data && !selection && (
           <MyLeagues

@@ -154,3 +154,79 @@ export function FeedSkeleton() {
     </Frame>
   )
 }
+
+function TradeSideBones() {
+  return (
+    <span className="sk-col sk-side">
+      <Bone w={90} h={10} />
+      {[0, 1].map((i) => (
+        <span key={i} className="sk-row sk-center">
+          <Bone w={28} h={28} round />
+          <span className="sk-col">
+            <Bone w={i ? 84 : 112} h={12} />
+            <Bone w={56} h={9} />
+          </span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/** Trade Park while every roster is checked: deal cards with two sides. */
+export function DealsSkeleton() {
+  return (
+    <Frame label="Checking every roster for deals">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="card sk-card">
+          <div className="sk-between">
+            <Bone w={150} h={14} />
+            <Bone w={58} h={24} className="sk-r6" />
+          </div>
+          <div className="sk-sides">
+            <TradeSideBones />
+            <TradeSideBones />
+          </div>
+          <Bone w="70%" h={10} />
+        </div>
+      ))}
+    </Frame>
+  )
+}
+
+/** Trade of the day's body while today's pick is worked out. */
+export function TradeOfTheDaySkeleton() {
+  return (
+    <div className="sk stack" aria-hidden="true">
+      <div className="sk-sides">
+        <TradeSideBones />
+        <TradeSideBones />
+      </div>
+      <div className="sk-row">
+        <Bone w={96} h={36} className="sk-r8" />
+        <Bone w={96} h={36} className="sk-r8" />
+      </div>
+    </div>
+  )
+}
+
+/** My leagues while the account loads. */
+export function LeaguesSkeleton() {
+  return (
+    <Frame label="Loading your account">
+      <Bone w={160} h={22} />
+      <div className="card flush sk-list">
+        {[0, 1].map((i) => (
+          <div key={i} className="sk-story sk-row sk-center">
+            <Bone w={40} h={40} className="sk-r8" />
+            <span className="sk-col sk-grow-col">
+              <Bone w={i ? 150 : 190} h={14} />
+              <Bone w={110} h={10} />
+            </span>
+            <Bone w={16} h={16} className="sk-end" />
+          </div>
+        ))}
+      </div>
+      <Bone h={44} className="sk-r10" />
+    </Frame>
+  )
+}

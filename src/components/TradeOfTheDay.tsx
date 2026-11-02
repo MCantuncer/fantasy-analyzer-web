@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { TradeOfTheDaySkeleton } from './Skeleton'
 import { useState } from 'react'
 import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
@@ -205,12 +206,10 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
         <span className="eyebrow totd-eyebrow" id="totd-title">
           Trade of the day
         </span>
-        <div className="row">
-          <svg className="spinner" width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="10" cy="10" r="8" stroke="var(--accent)" strokeWidth="2" fill="none" strokeDasharray="30 20" />
-          </svg>
-          <span className="muted">Checking every pair of teams for today's best win-win trade…</span>
-        </div>
+        <TradeOfTheDaySkeleton />
+        <span className="small muted" role="status">
+          Checking every pair of teams for today's best win-win trade…
+        </span>
       </section>
     )
   }
