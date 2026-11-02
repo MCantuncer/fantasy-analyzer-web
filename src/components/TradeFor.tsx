@@ -10,7 +10,9 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { HeadStack, PlayerHead } from './PlayerHead'
 import { ACCEPTANCE, CopyButton } from './Trades'
+import { dealPlayers } from '../lib/playerCard'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
+import { PlayerChips, PlayerLink } from './PlayerCard'
 import './TradeFor.css'
 
 const FIT = {
@@ -128,7 +130,7 @@ function Fit({ data }: { data: TargetReport }) {
         <div className="target-head-text">
           <span className="eyebrow">Trade For</span>
           <h2 id="target-title" className="target-name">
-            {t.name}
+            <PlayerLink player={t} />
           </h2>
           <div className="small muted">
             {t.positions.join('/')} · {data.owner.team_name} · trade value {shortValue(t.perceived_value, rounds)}
@@ -211,6 +213,7 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
             </ul>
+            <PlayerChips players={dealPlayers(offer)} label="Players in this deal" />
             <div className="row">
               <CopyButton text={offer.pitch} />
             </div>
@@ -297,7 +300,9 @@ function Owner({ data }: { data: TargetReport }) {
               <li key={w.player.id}>
                 <span className="tradefor-want">
                   <PlayerHead player={w.player} size={28} />
-                  <strong>{w.player.name}</strong>
+                  <strong>
+                    <PlayerLink player={w.player} />
+                  </strong>
                   {w.helps.length > 0 && <span className="small muted"> · helps their {w.helps.join(', ')}</span>}
                 </span>
                 <span className="num good">{cats(w.their_cats_gain)}</span>
