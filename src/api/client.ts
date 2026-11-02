@@ -194,6 +194,22 @@ export function isTransient(e: unknown) {
   return e.status === 0 ? e.code !== 'aborted' : e.status === 502 || e.status === 503 || e.status === 504
 }
 
+// Loading the account and the league rides out the same dropped requests: a phone that
+// switches apps while the free server wakes up cuts the request, and Render can answer
+// 502/503 while it starts. React Query holds a retry while the page is hidden and sends
+// it as soon as the page is back, so only misses with the page open count.
+const LOAD_RETRIES = 4
+
+/** React Query ``retry`` for the account and league loads: ask again after a dropped request. */
+export function retryDropped(failureCount: number, error: unknown) {
+  return failureCount < LOAD_RETRIES && isTransient(error)
+}
+
+/** React Query ``retryDelay`` that backs off like the analysis poll. */
+export function retryDroppedDelay(attempt: number) {
+  return RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)]
+}
+
 function pageHidden() {
   return typeof document !== 'undefined' && document.visibilityState === 'hidden'
 }
