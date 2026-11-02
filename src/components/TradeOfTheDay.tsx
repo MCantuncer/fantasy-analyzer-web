@@ -7,6 +7,7 @@ import { pct, ptsDiff, signedInt } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import './TradeOfTheDay.css'
 import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
+import { PlayerLink } from './PlayerCard'
 
 interface Props {
   leagueId: number
@@ -103,9 +104,11 @@ function Side({
         <div className="totd-players">
           {gets.sends.map((p) => (
             <div key={p.id} className="totd-player">
-              <PlayerHead player={p} size={44} />
+              <PlayerLink player={p} decorative>
+                <PlayerHead player={p} size={44} />
+              </PlayerLink>
               <span>
-                {p.name} <span className="totd-pos">{p.positions.join('/')}</span>
+                <PlayerLink player={p} /> <span className="totd-pos">{p.positions.join('/')}</span>
               </span>
             </div>
           ))}
@@ -113,7 +116,7 @@ function Side({
         {side.drop && (
           <div className="small muted totd-drop">
             <PlayerHead player={side.drop} size={20} />
-            and drops {side.drop.name}
+            and drops <PlayerLink player={side.drop} />
           </div>
         )}
       </div>

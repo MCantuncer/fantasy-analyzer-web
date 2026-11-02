@@ -60,6 +60,11 @@ export type CheckVerdict = components['schemas']['CheckVerdict']
 export type NoteRead = components['schemas']['NoteRead']
 export type TradeRule = components['schemas']['TradeRule']
 export type TradeRuleKind = TradeRule['kind']
+export type PlayerCard = components['schemas']['PlayerCard']
+export type PlayerGame = components['schemas']['PlayerGame']
+export type PlayerMove = components['schemas']['PlayerMove']
+export type PlayerNews = components['schemas']['PlayerNews']
+export type GameStats = components['schemas']['GameStats']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -382,6 +387,15 @@ export function fetchInjuryImpact(
   return post<InjuryImpact>(
     '/api/injury-impact',
     { player_id: playerId, league_id: leagueId, season },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+export function fetchPlayerCard(ref: LeagueRef, playerId: number, creds: Credentials | null) {
+  return post<PlayerCard>(
+    '/api/player-card',
+    { league_id: ref.leagueId, season: ref.season, player_id: playerId },
     creds,
     SCORES_TIMEOUT_MS,
   )

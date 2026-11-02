@@ -11,6 +11,7 @@ import { LeagueOverview } from './components/LeagueOverview'
 import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
 import { News } from './components/News'
+import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
@@ -533,6 +534,12 @@ export default function App() {
           </RoundValuesContext.Provider>
         )}
       </main>
+      <PlayerCardHost
+        leagueRef={verifying ? null : ref}
+        creds={creds}
+        teams={overview.data?.teams ?? []}
+        myTeamId={myTeamId}
+      />
       {readyToast && (
         <ReadyToast
           onView={() => {
