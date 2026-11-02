@@ -22,7 +22,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
   return (
     <section className="card flush pickups-panel" aria-labelledby="pickups-title">
       <div className="card-head">
-        <h2 id="pickups-title">Pickups</h2>
+        <h2 id="pickups-title">FA Targets</h2>
         {faab != null && <span className="small muted">${faab} FAAB left</span>}
         {faab == null && waiverPriority != null && (
           <span className="small muted">

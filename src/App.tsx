@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { ApiError, fetchAnalysis, fetchLeague, fetchMe, fetchOverview, signOut } from './api/client'
+import {
+  ApiError,
+  fetchAnalysis,
+  fetchLeague,
+  fetchMe,
+  fetchOverview,
+  retryDropped,
+  retryDroppedDelay,
+  signOut,
+} from './api/client'
 import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague } from './api/client'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
 import { percent, useSmoothProgress } from './lib/progress'
@@ -108,7 +117,14 @@ export default function App() {
   useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
   useEffect(() => applyTheme(theme), [theme])
 
-  const me = useQuery({ queryKey: ['me'], queryFn: fetchMe, enabled: signedIn, retry: false, staleTime: 60_000 })
+  const me = useQuery({
+    queryKey: ['me'],
+    queryFn: fetchMe,
+    enabled: signedIn,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
+    staleTime: 60_000,
+  })
   // A session the server no longer knows (signed out elsewhere, expired): back to sign-in.
   useEffect(() => {
     if (me.error instanceof ApiError && me.error.status === 401) endSession()
@@ -123,7 +139,8 @@ export default function App() {
     queryKey: ['overview', selection?.leagueId, season, creds?.swid ?? null],
     queryFn: () => fetchOverview({ leagueId: selection!.leagueId, season: season! }, creds),
     enabled: signedIn && selection !== null,
-    retry: false,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
     staleTime: 2 * 60_000,
   })
   const myTeamId = overview.data?.my_team_id ?? null
@@ -134,7 +151,8 @@ export default function App() {
     queryKey: ['league', selection?.leagueId, season, creds?.swid ?? null],
     queryFn: () => fetchLeague(selection!.leagueId, season, creds),
     enabled: myTeamId !== null,
-    retry: false,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
     staleTime: 5 * 60_000,
   })
 
@@ -424,6 +442,16 @@ export default function App() {
             <h2>Couldn't load that league</h2>
             <p>{loadError.message}</p>
             <div className="row">
+              {loadError.status === 0 && (
+                <button
+                  onClick={() => {
+                    if (overview.error) void overview.refetch()
+                    if (league.error) void league.refetch()
+                  }}
+                >
+                  Try again
+                </button>
+              )}
               <button className="secondary" onClick={goHome}>
                 Back to my leagues
               </button>
