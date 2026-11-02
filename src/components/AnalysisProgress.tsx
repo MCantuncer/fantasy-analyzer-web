@@ -112,7 +112,7 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
           <h2 id="analysis-title">{title}</h2>
           <span className="small muted" aria-live="polite">
-            {STEPS[now].label}…
+            {waking && wakingFor < 4 ? 'Reaching the server' : STEPS[now].label}…
           </span>
         </div>
         <span className="analysis-pct num tnum" aria-hidden="true">
