@@ -8,10 +8,12 @@ import { shortValue, useRoundValues, valueSentence, valueTitle } from '../lib/tr
 import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
+import { HeadStack, PlayerHead } from './PlayerHead'
 import { ACCEPTANCE, CopyButton } from './Trades'
 import { dealPlayers } from '../lib/playerCard'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { PlayerChips, PlayerLink } from './PlayerCard'
+import './TradeFor.css'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -89,6 +91,7 @@ function Picker({
                 aria-pressed={c.player.id === selected}
                 onClick={() => onPick(c.player.id)}
               >
+                <PlayerHead player={c.player} size={40} />
                 <span className="target-who">
                   <strong>{c.player.name}</strong>
                   <span className="small muted">
@@ -123,8 +126,9 @@ function Fit({ data }: { data: TargetReport }) {
   return (
     <section className="card best" aria-labelledby="target-title">
       <div className="target-head">
-        <div>
-          <span className="eyebrow">Trade for</span>
+        <PlayerHead player={t} size={64} />
+        <div className="target-head-text">
+          <span className="eyebrow">Trade For</span>
           <h2 id="target-title" className="target-name">
             <PlayerLink player={t} />
           </h2>
@@ -158,10 +162,12 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
         <span className="offer-swap">
           <span>
             <span className="label-sm">Give </span>
+            <HeadStack players={offer.give} size={24} />
             <strong>{names(offer.give)}</strong>
           </span>
           <span>
             <span className="label-sm">Get </span>
+            <HeadStack players={offer.get} size={24} />
             <strong>{names(offer.get)}</strong>
           </span>
         </span>
@@ -292,7 +298,8 @@ function Owner({ data }: { data: TargetReport }) {
           <ul className="owner-wants">
             {o.would_value.map((w) => (
               <li key={w.player.id}>
-                <span>
+                <span className="tradefor-want">
+                  <PlayerHead player={w.player} size={28} />
                   <strong>
                     <PlayerLink player={w.player} />
                   </strong>
@@ -333,7 +340,7 @@ export function TradeFor({ report, keep, creds }: Props) {
       <div className="wide stack" style={{ gap: 16 }} aria-live="polite">
         {playerId === null && (
           <section className="card stack">
-            <span className="eyebrow">Trade for</span>
+            <span className="eyebrow">Trade For</span>
             <h2>Who do you want?</h2>
             <p className="muted" style={{ margin: 0 }}>
               Pick any player on another team. You'll see how he fits your build, what his owner needs, and the best
