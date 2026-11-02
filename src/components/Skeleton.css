@@ -1,4 +1,4 @@
-/* Loading placeholders (sk-). A soft band sweeps across each block. */
+/* Loading placeholders (sk-). The blocks fade in and out gently while the page loads. */
 
 .sk {
   gap: 12px;
@@ -9,14 +9,8 @@
   flex: none;
   max-width: 100%;
   border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--border) 0%,
-    color-mix(in srgb, var(--border), var(--muted) 22%) 45%,
-    var(--border) 90%
-  );
-  background-size: 300% 100%;
-  animation: sk-sweep 1.6s ease-in-out infinite;
+  background: var(--border);
+  animation: sk-pulse 1.4s ease-in-out infinite;
 }
 
 .sk-bone.sk-round {
@@ -35,13 +29,24 @@
   border-radius: 10px;
 }
 
-@keyframes sk-sweep {
-  from {
-    background-position: 100% 0;
+@keyframes sk-pulse {
+  50% {
+    opacity: 0.45;
   }
-  to {
-    background-position: -50% 0;
-  }
+}
+
+/* Each card breathes a beat after the one above, so the page reads top to bottom. */
+.sk > :nth-child(3) .sk-bone {
+  animation-delay: 0.15s;
+}
+
+.sk > :nth-child(4) .sk-bone {
+  animation-delay: 0.3s;
+}
+
+.sk > :nth-child(5) .sk-bone,
+.sk > :nth-child(6) .sk-bone {
+  animation-delay: 0.45s;
 }
 
 .card.sk-card {
@@ -145,7 +150,6 @@
 @media (prefers-reduced-motion: reduce) {
   .sk-bone {
     animation: none;
-    background: var(--border);
-    opacity: 0.6;
+    opacity: 0.7;
   }
 }
