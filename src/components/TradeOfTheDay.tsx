@@ -207,8 +207,8 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
           Trade of the day
         </span>
         <TradeOfTheDaySkeleton />
-        <span className="small muted" role="status">
-          Checking every pair of teams for today's best win-win trade…
+        <span className="sr-only" role="status">
+          Finding today's trade
         </span>
       </section>
     )
