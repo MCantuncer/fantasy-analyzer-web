@@ -1,26 +1,31 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { fetchPlayerCard } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { ago } from '../lib/news'
 import {
+  CATS,
   average,
+  formTiles,
   gameDate,
   healthStatus,
+  moveOthers,
   moveText,
-  moveTone,
   opponent,
   ownerText,
-  shootingPct,
   setPlayerCardHost,
+  shootingPct,
   shortDate,
+  spotlight,
   usePlayerCard,
 } from '../lib/playerCard'
+import type { FormTile } from '../lib/playerCard'
+import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer } from '../lib/playerCard'
-import { PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerHead } from './PlayerHead'
 import './PlayerCard.css'
 
 interface HostProps {
@@ -182,30 +187,41 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
 
   const card = q.data
   const status = card ? healthStatus(card.injury_status) : null
+  const abbrev = card?.pro_team ?? ''
+  const colour = teamColour(abbrev)
+  const heroStyle = colour ? ({ '--pc-team': colour } as CSSProperties) : undefined
   return createPortal(
     <div className="pc-layer">
       <div className="pc-backdrop" onClick={onClose} aria-hidden="true" />
       <div ref={dialog} className="pc-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={trap}>
-        <div className="pc-grab" aria-hidden="true" />
-        <header className="pc-head">
-          <PlayerHead player={player} size={56} />
+        <header className={colour ? 'pc-hero pc-hero-team' : 'pc-hero'} style={heroStyle}>
+          <div className="pc-grab" aria-hidden="true" />
+          {abbrev && (
+            <span className="pc-watermark" aria-hidden="true">
+              {abbrev}
+            </span>
+          )}
+          <span className="pc-face">
+            <PlayerHead player={player} size={88} />
+            {card?.position && <span className="pc-face-pos">{card.position}</span>}
+          </span>
           <div className="pc-who">
+            {card && (
+              <span className="pc-eyebrow">
+                {[teamName(card.pro_team || null), card.position].filter(Boolean).join(' · ')}
+              </span>
+            )}
             <h2 id={titleId} className="pc-name">
               {card?.name || player.name}
             </h2>
-            {card && (
-              <div className="pc-meta">
-                <span className="pc-team">
-                  <TeamLogo abbrev={card.pro_team} size={16} />
-                  {[card.position, card.pro_team || 'No NBA team'].filter(Boolean).join(' · ')}
-                </span>
-                <span className="pc-owner">{ownerText(card, teams, myTeamId)}</span>
-              </div>
-            )}
             {card && status && (
-              <div className="pc-status-row">
-                <span className={`badge pc-status pc-${status.tone}`}>{status.label}</span>
-                <span className="small muted tnum">{card.percent_owned}% owned in ESPN leagues</span>
+              <div className="pc-pills">
+                <span className={`pc-pill pc-health pc-${status.tone}`}>
+                  <i aria-hidden="true" />
+                  {status.label}
+                </span>
+                <span className="pc-pill">{ownerText(card, teams, myTeamId)}</span>
+                <span className="pc-pill tnum">{card.percent_owned}% owned</span>
               </div>
             )}
           </div>
@@ -252,10 +268,37 @@ interface BodyProps {
   myTeamId: number | null
 }
 
+function Section({
+  id,
+  title,
+  aside,
+  children,
+}: {
+  id: string
+  title: string
+  aside?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section className="pc-section" aria-labelledby={id}>
+      <div className="pc-section-head">
+        <h3 id={id} className="pc-title">
+          {title}
+        </h3>
+        {aside && <span className="pc-aside">{aside}</span>}
+      </div>
+      {children}
+    </section>
+  )
+}
+
 function CardBody({ card, season, teams, myTeamId }: BodyProps) {
   const now = new Date()
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
+  const recent = card.games.slice(0, 5)
+  const last5 = recent.length >= 3 ? average(recent) : null
+  const line = card.season_line
   return (
     <>
       {injury && card.injury_status !== 'ACTIVE' && (
@@ -265,84 +308,161 @@ function CardBody({ card, season, teams, myTeamId }: BodyProps) {
         </p>
       )}
 
-      <section className="pc-section" aria-labelledby="pc-games-title">
-        <h3 id="pc-games-title" className="pc-title">
-          {card.games.length ? `Last ${card.games.length} games` : 'Games'}
-          {lastSeason && <span className="muted"> · last season</span>}
-        </h3>
-        {card.games.length || card.season_line ? (
-          <>
+      {!card.games.length && !line ? (
+        <p className="pc-empty">No games played yet this season.</p>
+      ) : (
+        <>
+          {last5 && (
+            <Section
+              id="pc-form-title"
+              title={`Form · last ${recent.length} games`}
+              aside={line && !lastSeason ? '▲▼ vs his season average' : undefined}
+            >
+              <FormTiles
+                tiles={formTiles(
+                  last5,
+                  line && !lastSeason ? line.per_game : null,
+                  line?.fg_pct ?? null,
+                  line?.ft_pct ?? null,
+                )}
+              />
+            </Section>
+          )}
+          {card.games.length > 1 && (
+            <Section
+              id="pc-minutes-title"
+              title="Minutes"
+              aside={line ? `dashed line: season ${line.per_game.minutes.toFixed(1)} a game` : undefined}
+            >
+              <MinutesChart games={card.games} average={line?.per_game.minutes ?? null} />
+            </Section>
+          )}
+          <Section
+            id="pc-games-title"
+            title={lastSeason ? 'Game log · last season' : 'Game log'}
+            aside={line ? `season ${line.games} G` : undefined}
+          >
             <GameTable card={card} />
-            <p className="pc-swipe small muted" aria-hidden="true">
-              Swipe the table for all nine categories.
+            <p className="pc-legend small muted">
+              <span className="pc-legend-glow" aria-hidden="true" /> a big night for him
+              <span className="pc-legend-quiet" aria-hidden="true">
+                0
+              </span>{' '}
+              a quiet one
+              <span className="pc-swipe"> · swipe for all categories</span>
             </p>
-          </>
-        ) : (
-          <p className="pc-empty">No games played yet this season.</p>
-        )}
-      </section>
+          </Section>
+        </>
+      )}
 
-      <section className="pc-section" aria-labelledby="pc-news-title">
-        <h3 id="pc-news-title" className="pc-title">
-          News
-        </h3>
-        {card.news.length ? (
-          <ul className="pc-list">
-            {card.news.map((n) => (
-              <li key={n.id} className="pc-news">
-                <a href={n.url} target="_blank" rel="noopener noreferrer">
-                  {n.headline}
-                </a>
-                <span className="small muted">
-                  {n.source} · {ago(n.updated_at, now)}
-                  {n.status === 'reported' && ' · one source'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="pc-empty">No news about him in the last few days.</p>
-        )}
-      </section>
+      <div className="pc-two">
+        <Section id="pc-news-title" title="News">
+          {card.news.length ? (
+            <ul className="pc-list">
+              {card.news.map((n) => (
+                <li key={n.id} className="pc-news">
+                  <a href={n.url} target="_blank" rel="noopener noreferrer">
+                    {n.headline}
+                  </a>
+                  <span className="small muted">
+                    {n.source} · {ago(n.updated_at, now)}
+                    {n.status === 'reported' && ' · one source'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="pc-quiet">Quiet: no news about him in the last few days.</p>
+          )}
+        </Section>
 
-      <section className="pc-section" aria-labelledby="pc-moves-title">
-        <h3 id="pc-moves-title" className="pc-title">
-          Moves in this league
-        </h3>
-        {card.moves.length ? (
-          <ol className="pc-list">
-            {card.moves.map((m) => (
-              <li key={m.id} className="pc-move">
-                <span className={`pc-dot pc-dot-${moveTone(m)}`} aria-hidden="true" />
-                <span className="pc-move-text">{moveText(m, teams, myTeamId)}</span>
-                <time className="small muted tnum" dateTime={m.at}>
-                  {shortDate(m.at)}
-                </time>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="pc-empty">No one in this league has drafted, added, dropped or traded him.</p>
-        )}
-      </section>
+        <Section id="pc-moves-title" title="Moves in this league">
+          {card.moves.length ? (
+            <ol className="pc-timeline">
+              {card.moves.map((m) => (
+                <li key={m.id} className={`pc-step pc-step-${m.kind}`}>
+                  <span className="pc-step-text">
+                    {moveText(m, teams, myTeamId)}
+                    {m.bid ? <span className="pc-bid tnum">${m.bid}</span> : null}
+                  </span>
+                  <span className="pc-step-meta small muted">
+                    <time dateTime={m.at}>{shortDate(m.at)}</time>
+                    {moveOthers(m) && ` · ${moveOthers(m)}`}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="pc-quiet">No one in this league has drafted, added, dropped or traded him.</p>
+          )}
+        </Section>
+      </div>
     </>
   )
 }
 
-const CATS: { key: keyof GameStats; label: string }[] = [
-  { key: 'pts', label: 'PTS' },
-  { key: 'reb', label: 'REB' },
-  { key: 'ast', label: 'AST' },
-  { key: 'stl', label: 'STL' },
-  { key: 'blk', label: 'BLK' },
-  { key: 'tpm', label: '3PM' },
-  { key: 'to', label: 'TO' },
-]
+function FormTiles({ tiles }: { tiles: FormTile[] }) {
+  return (
+    <ul className="pc-tiles">
+      {tiles.map((t) => {
+        const moved = t.delta != null && Math.abs(t.delta) >= 0.05
+        return (
+          <li key={t.key} className={moved && t.better ? 'pc-tile pc-tile-up' : 'pc-tile'}>
+            <span className="pc-tile-label">{t.label}</span>
+            <span className="pc-tile-value tnum">
+              {t.value}
+              {t.value !== '–' && (t.key === 'fg' || t.key === 'ft') && <small>%</small>}
+            </span>
+            <span className="pc-tile-delta tnum">
+              {t.delta == null ? (
+                (t.note ?? '')
+              ) : moved ? (
+                <>
+                  <span aria-hidden="true">{t.delta > 0 ? '▲' : '▼'}</span>
+                  <span className="sr-only">{t.delta > 0 ? 'up' : 'down'}</span> {Math.abs(t.delta).toFixed(1)}
+                </>
+              ) : (
+                'same'
+              )}
+            </span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+// Share of the chart's height a full-length bar may take; the rest holds the number above it.
+const BAR_ROOM = 80
+
+/** One bar per game, oldest left, against a dashed line at his season average. */
+function MinutesChart({ games, average: avg }: { games: PlayerGame[]; average: number | null }) {
+  const shown = [...games].reverse()
+  const top = Math.max(36, ...shown.map((g) => g.stats.minutes))
+  const label = shown.map((g) => `${gameDate(g.date)} ${opponent(g)} ${Math.round(g.stats.minutes)}`).join(', ')
+  return (
+    <div className="pc-minutes" role="img" aria-label={`Minutes by game: ${label}`}>
+      <div className="pc-bars">
+        {avg != null && <span className="pc-avg-line" style={{ bottom: `${(avg / top) * BAR_ROOM}%` }} />}
+        {shown.map((g) => (
+          <span key={g.game_id} className="pc-bar">
+            <span className="pc-bar-value tnum">{Math.round(g.stats.minutes)}</span>
+            <span className="pc-bar-fill" style={{ height: `${(g.stats.minutes / top) * BAR_ROOM}%` }} />
+          </span>
+        ))}
+      </div>
+      <div className="pc-bar-labels" aria-hidden="true">
+        {shown.map((g) => (
+          <span key={g.game_id}>{opponent(g)}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function GameTable({ card }: { card: Card }) {
-  const recent = card.games.slice(0, 5)
-  const last5 = recent.length >= 3 ? average(recent) : null
-  const season = card.season_line
+  const line = card.season_line
+  const base = line?.per_game ?? average(card.games)
   return (
     <div className="pc-table-wrap" tabIndex={0} role="region" aria-label="Game log">
       <table className="pc-table tnum">
@@ -362,24 +482,21 @@ function GameTable({ card }: { card: Card }) {
           </tr>
         </thead>
         <tbody>
-          {season && (
-            <AverageRow
-              label={`Season · ${season.games} G`}
-              stats={season.per_game}
-              fg={season.fg_pct}
-              ft={season.ft_pct}
-            />
-          )}
-          {last5 && (
-            <AverageRow
-              label="Last 5"
-              stats={last5}
-              fg={last5.fga ? last5.fgm / last5.fga : null}
-              ft={last5.fta ? last5.ftm / last5.fta : null}
-            />
+          {line && (
+            <tr className="pc-avg">
+              <th scope="row" className="pc-first">
+                Season avg
+              </th>
+              <td>{line.per_game.minutes.toFixed(1)}</td>
+              <td>{line.fg_pct == null ? '–' : `${(line.fg_pct * 100).toFixed(1)}%`}</td>
+              <td>{line.ft_pct == null ? '–' : `${(line.ft_pct * 100).toFixed(1)}%`}</td>
+              {CATS.map((c) => (
+                <td key={c.key}>{line.per_game[c.key].toFixed(1)}</td>
+              ))}
+            </tr>
           )}
           {card.games.map((g) => (
-            <GameRow key={g.game_id} game={g} />
+            <GameRow key={g.game_id} game={g} base={base} />
           ))}
         </tbody>
       </table>
@@ -387,34 +504,7 @@ function GameTable({ card }: { card: Card }) {
   )
 }
 
-function AverageRow({
-  label,
-  stats,
-  fg,
-  ft,
-}: {
-  label: string
-  stats: GameStats
-  fg?: number | null
-  ft?: number | null
-}) {
-  const pct = (x: number | null | undefined) => (x == null ? '–' : `${(x * 100).toFixed(1)}%`)
-  return (
-    <tr className="pc-avg">
-      <th scope="row" className="pc-first">
-        {label}
-      </th>
-      <td>{stats.minutes.toFixed(1)}</td>
-      <td>{pct(fg)}</td>
-      <td>{pct(ft)}</td>
-      {CATS.map((c) => (
-        <td key={c.key}>{stats[c.key].toFixed(1)}</td>
-      ))}
-    </tr>
-  )
-}
-
-function GameRow({ game: g }: { game: PlayerGame }) {
+function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }) {
   const s = g.stats
   return (
     <tr>
@@ -428,9 +518,26 @@ function GameRow({ game: g }: { game: PlayerGame }) {
       <td title={shootingPct(s.ftm, s.fta)}>
         {s.ftm}-{s.fta}
       </td>
-      {CATS.map((c) => (
-        <td key={c.key}>{s[c.key]}</td>
-      ))}
+      {CATS.map((c) => {
+        const glow = base ? spotlight(c.key, s[c.key], base[c.key]) : 0
+        if (glow > 0) {
+          return (
+            <td
+              key={c.key}
+              className="pc-glow"
+              style={{ '--pc-glow': (0.18 + glow * 0.3).toFixed(2) } as CSSProperties}
+            >
+              {s[c.key]}
+              <span className="sr-only"> (big night)</span>
+            </td>
+          )
+        }
+        return (
+          <td key={c.key} className={glow < 0 ? 'pc-quiet-cell' : undefined}>
+            {s[c.key]}
+          </td>
+        )
+      })}
     </tr>
   )
 }

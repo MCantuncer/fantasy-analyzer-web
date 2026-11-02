@@ -61,17 +61,16 @@ function team(id: number, teams: Map<number, string>, myTeamId: number | null): 
   return teams.get(id) ?? `Team ${id}`
 }
 
-/** One line for a move of him in this league, e.g. "Claimed off waivers by Aspavas for $5". */
+/** One line for a move of him in this league, e.g. "Claimed off waivers by Aspavas"; the bid shows as a badge. */
 export function moveText(m: PlayerMove, teams: Map<number, string>, myTeamId: number | null): string {
   const to = team(m.to_team_id, teams, myTeamId)
   const from = team(m.from_team_id, teams, myTeamId)
   switch (m.kind) {
     case 'draft':
-      if (m.bid) return `Drafted by ${to} for $${m.bid}`
-      return m.pick ? `Drafted by ${to}, pick ${m.pick}` : `Drafted by ${to}`
+      // An auction price shows as the badge beside the line.
+      return m.pick && !m.bid ? `Drafted by ${to}, pick ${m.pick}` : `Drafted by ${to}`
     case 'add':
-      if (m.via === 'waiver')
-        return m.bid ? `Claimed off waivers by ${to} for $${m.bid}` : `Claimed off waivers by ${to}`
+      if (m.via === 'waiver') return `Claimed off waivers by ${to}`
       return `Picked up by ${to}`
     case 'drop':
       return `Dropped by ${from}`
@@ -80,8 +79,22 @@ export function moveText(m: PlayerMove, teams: Map<number, string>, myTeamId: nu
   }
 }
 
-export function moveTone(m: PlayerMove): 'good' | 'bad' | 'accent' {
-  return m.kind === 'drop' ? 'bad' : m.kind === 'trade' ? 'accent' : 'good'
+/** Who else moved with him: "Kyle Kuzma dropped", or the rest of a trade. */
+export function moveOthers(m: Pick<PlayerMove, 'kind' | 'others' | 'from_team_id'>): string {
+  const others = (m.others ?? []).filter((o) => o.name)
+  if (!others.length) return ''
+  if (m.kind === 'trade') {
+    const back = others.filter((o) => o.to_team_id === m.from_team_id).map((o) => o.name)
+    const along = others.filter((o) => o.to_team_id !== m.from_team_id).map((o) => o.name)
+    return [back.length ? `for ${back.join(', ')}` : '', along.length ? `with ${along.join(', ')}` : '']
+      .filter(Boolean)
+      .join(' · ')
+  }
+  const drops = others.filter((o) => o.kind === 'drop').map((o) => o.name)
+  const adds = others.filter((o) => o.kind === 'add').map((o) => o.name)
+  return [drops.length ? `${drops.join(', ')} dropped` : '', adds.length ? `${adds.join(', ')} added` : '']
+    .filter(Boolean)
+    .join(' · ')
 }
 
 /** Who has him in this league. */
@@ -138,4 +151,72 @@ interface Deal {
 /** Everyone a deal moves, for the player-card chips: what you give and get, then the drops and adds. */
 export function dealPlayers(t: Deal): CardPlayer[] {
   return [...t.give, ...t.get, t.my_drop, t.my_add, t.their_drop].filter((p): p is CardPlayer => p != null)
+}
+
+export type CatKey = 'pts' | 'reb' | 'ast' | 'stl' | 'blk' | 'tpm' | 'to'
+
+export const CATS: { key: CatKey; label: string }[] = [
+  { key: 'pts', label: 'PTS' },
+  { key: 'reb', label: 'REB' },
+  { key: 'ast', label: 'AST' },
+  { key: 'stl', label: 'STL' },
+  { key: 'blk', label: 'BLK' },
+  { key: 'tpm', label: '3PM' },
+  { key: 'to', label: 'TO' },
+]
+
+// How far a single game must be from his average to count as a big or quiet night, per category,
+// in that category's units. About one game-to-game spread for a rotation player.
+const GAME_SPREAD: Record<CatKey, number> = { pts: 7, reb: 3, ast: 2.2, stl: 1, blk: 1, tpm: 2, to: 1.5 }
+
+/**
+ * A game's number against his average: 0 is a normal night, up to 1 a big one, and -1 a quiet one.
+ * Turnovers count the other way. Only one colour shows it (the accent glow), so a quiet night just fades.
+ */
+export function spotlight(cat: CatKey, value: number, avg: number): number {
+  const better = cat === 'to' ? avg - value : value - avg
+  const z = better / GAME_SPREAD[cat]
+  if (z >= 0.75) return Math.min(1, z / 1.5)
+  if (z <= -0.75) return -1
+  return 0
+}
+
+export interface FormTile {
+  key: string
+  label: string
+  value: string
+  /** Last 5 minus season, signed; null without a comparison. */
+  delta: number | null
+  /** The change helps him (turnovers going down count as better). */
+  better: boolean
+  note?: string
+}
+
+/** The nine categories over his last five games, each against his season average. */
+export function formTiles(
+  last5: GameStats,
+  season: GameStats | null,
+  fgSeason: number | null,
+  ftSeason: number | null,
+): FormTile[] {
+  const tiles: FormTile[] = CATS.map(({ key, label }) => {
+    const d = season ? last5[key] - season[key] : null
+    return { key, label, value: last5[key].toFixed(1), delta: d, better: d != null && (key === 'to' ? d < 0 : d > 0) }
+  })
+  const pctTile = (key: string, label: string, made: number, att: number, base: number | null): FormTile => {
+    if (att <= 0) return { key, label, value: '–', delta: null, better: false, note: 'no attempts' }
+    const v = (made / att) * 100
+    const d = base != null ? v - base * 100 : null
+    return {
+      key,
+      label,
+      value: v.toFixed(1),
+      delta: d,
+      better: d != null && d > 0,
+      note: `${made.toFixed(1)}/${att.toFixed(1)} a game`,
+    }
+  }
+  tiles.push(pctTile('fg', 'FG%', last5.fgm, last5.fga, fgSeason))
+  tiles.push(pctTile('ft', 'FT%', last5.ftm, last5.fta, ftSeason))
+  return tiles
 }
