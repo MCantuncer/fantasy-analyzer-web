@@ -25,3 +25,8 @@
   margin-top: 2px;
   color: var(--warn);
 }
+
+/* Overview / Feedback tabs inside an open trade sit centred over the details. */
+.move-tabs {
+  justify-content: center;
+}
