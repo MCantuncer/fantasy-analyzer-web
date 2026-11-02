@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerCard, PlayerGame, PlayerMove } from '../api/client'
 import {
   average,
+  dealGroups,
   dealPlayers,
   formTiles,
   moveOthers,
@@ -15,7 +16,7 @@ import {
   opponent,
   ownerText,
 } from '../lib/playerCard'
-import { PlayerCardHost, PlayerChips, PlayerLink } from './PlayerCard'
+import { DealChips, PlayerCardHost, PlayerChips, PlayerLink } from './PlayerCard'
 
 const teams = new Map([
   [3, 'Kucukesat Aspavas'],
@@ -131,6 +132,23 @@ describe('player card text', () => {
     const b = { id: 2, name: 'B' }
     const c = { id: 3, name: 'C' }
     expect(dealPlayers({ give: [a], get: [b], my_drop: c, my_add: null }).map((p) => p.id)).toEqual([1, 2, 3])
+  })
+
+  it('groups a deal by role and leaves out empty roles', () => {
+    const a = { id: 1, name: 'A' }
+    const b = { id: 2, name: 'B' }
+    const c = { id: 3, name: 'C' }
+    const d = { id: 4, name: 'D' }
+    expect(
+      dealGroups({ give: [a], get: [b, c], my_drop: null, my_add: null, their_drop: d }).map((g) => [
+        g.label,
+        g.players.map((p) => p.id),
+      ]),
+    ).toEqual([
+      ['Give', [1]],
+      ['Get', [2, 3]],
+      ['They drop', [4]],
+    ])
   })
 })
 
@@ -249,6 +267,20 @@ describe('PlayerCard', () => {
     )
     expect(screen.getByText('Jaden McDaniels')).toBeInTheDocument()
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('shows the players of a deal under their roles, each opening his card', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(card), { status: 200 }))
+    renderHost(
+      <DealChips
+        deal={{ give: [{ id: 5, name: 'Amen Thompson' }], get: [{ id: 7, name: 'Jaden McDaniels' }], my_drop: null }}
+      />,
+    )
+    const deal = screen.getByRole('region', { name: 'Players in this deal' })
+    expect(deal).toHaveTextContent(/Give.*Amen Thompson.*Get.*Jaden McDaniels/)
+    expect(deal).not.toHaveTextContent('You drop')
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
   it('opens from a chip and shows an error with a retry', async () => {
