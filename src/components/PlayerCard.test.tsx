@@ -8,6 +8,7 @@ import {
   formTiles,
   moveOthers,
   spotlight,
+  withExtras,
   gameDate,
   healthStatus,
   moveText,
@@ -107,6 +108,24 @@ describe('player card text', () => {
     expect(moveOthers({ kind: 'trade', from_team_id: 8, others: trade })).toBe('for A · with B')
   })
 
+  it('fills news and move names in once the extras land', () => {
+    const base: PlayerCard = {
+      player_id: 1,
+      on_waivers: false,
+      name: 'A',
+      position: 'C',
+      pro_team: 'NY',
+      injury_status: 'ACTIVE',
+      percent_owned: 1,
+      games: [],
+      news: [],
+      moves: [move({ others: [{ player_id: 5, name: '', kind: 'drop', to_team_id: 0 }] })],
+    }
+    expect(withExtras(base, undefined)).toBe(base)
+    const full = withExtras(base, { news: [], names: { '5': 'Kyle Kuzma' } })
+    expect(full.moves[0].others?.[0].name).toBe('Kyle Kuzma')
+  })
+
   it('lists everyone a deal moves once', () => {
     const a = { id: 1, name: 'A' }
     const b = { id: 2, name: 'B' }
@@ -167,7 +186,15 @@ function renderHost(
 
 describe('PlayerCard', () => {
   it('opens from a name with games, health, news and moves, and closes on Escape', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(card), { status: 200 }))
+    let releaseNews = () => {}
+    const newsGate = new Promise<void>((r) => (releaseNews = r))
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (String(url).endsWith('/extras')) {
+        await newsGate // the core shows before the news lands
+        return new Response(JSON.stringify({ news: card.news, names: {} }), { status: 200 })
+      }
+      return new Response(JSON.stringify({ ...card, news: [] }), { status: 200 })
+    })
     renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
     const link = screen.getByRole('button', { name: 'Jaden McDaniels' })
     link.focus()
@@ -181,8 +208,10 @@ describe('PlayerCard', () => {
     expect(within(dialog).getByText('Orlando Magic', { exact: false })).toBeInTheDocument()
     expect(within(dialog).getByRole('img', { name: /Minutes by game/ })).toBeInTheDocument()
     expect(within(dialog).getAllByText('@BOS').length).toBeGreaterThanOrEqual(2)
-    expect(within(dialog).getAllByText('McDaniels (ankle) questionable Friday').length).toBeGreaterThan(0)
     expect(within(dialog).getByText('Drafted by Bench Mob, pick 102')).toBeInTheDocument()
+    expect(within(dialog).getByText('Loading his news…')).toBeInTheDocument()
+    releaseNews()
+    expect((await within(dialog).findAllByText('McDaniels (ankle) questionable Friday')).length).toBeGreaterThan(0)
 
     // Opponents show as logos, and fall back to the letters when ESPN has no logo.
     const logos = dialog.querySelectorAll<HTMLImageElement>('.pc-opp-logo img[src$="/lac.png"]')
@@ -190,12 +219,24 @@ describe('PlayerCard', () => {
     fireEvent.error(logos[0])
     expect(dialog.querySelectorAll('.pc-opp-logo img[src$="/lac.png"]').length).toBe(1)
 
-    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body))
-    expect(body).toEqual({ league_id: 1, season: 2027, player_id: 7 })
+    const calls = vi.mocked(fetch).mock.calls.map(([url, init]) => [String(url), JSON.parse(String(init?.body))])
+    expect(calls).toContainEqual([
+      expect.stringMatching(/\/api\/player-card$/),
+      { league_id: 1, season: 2027, player_id: 7, core: true },
+    ])
+    expect(calls).toContainEqual([expect.stringMatching(/\/extras$/), { league_id: 1, season: 2027, player_id: 7 }])
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(document.activeElement).toBe(link)
+  })
+
+  it('starts loading a card when a name is pressed, before the tap opens it', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(card), { status: 200 }))
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    expect(fetch).toHaveBeenCalledTimes(2) // core and extras
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('keeps names as plain text outside a league', () => {

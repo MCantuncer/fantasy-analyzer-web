@@ -572,6 +572,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/player-card/extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Player Card Extras
+         * @description The part of a player card that may take longer: his news, and the names of who moved with him.
+         */
+        post: operations["player_card_extras_api_player_card_extras_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/player-card": {
         parameters: {
             query?: never;
@@ -1848,6 +1868,24 @@ export interface components {
              */
             moves: components["schemas"]["PlayerMove"][];
         };
+        /**
+         * PlayerCardExtras
+         * @description The slower part of a player card, loaded while the core shows.
+         */
+        PlayerCardExtras: {
+            /**
+             * News
+             * @description Recent stories about him, newest first
+             */
+            news: components["schemas"]["PlayerNews"][];
+            /**
+             * Names
+             * @description Names of the other players in his moves, by player id
+             */
+            names: {
+                [key: string]: string;
+            };
+        };
         /** PlayerCardRequest */
         PlayerCardRequest: {
             /** League Id */
@@ -1859,6 +1897,12 @@ export interface components {
             season?: number | null;
             /** Player Id */
             player_id: number;
+            /**
+             * Core
+             * @description Only what the card shows first: no news, and names in moves only when already known. Fetch /api/player-card/extras alongside for the rest.
+             * @default false
+             */
+            core: boolean;
         };
         /** PlayerGame */
         PlayerGame: {
@@ -4616,6 +4660,61 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    player_card_extras_api_player_card_extras_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerCardExtras"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -61,6 +61,7 @@ export type NoteRead = components['schemas']['NoteRead']
 export type TradeRule = components['schemas']['TradeRule']
 export type TradeRuleKind = TradeRule['kind']
 export type PlayerCard = components['schemas']['PlayerCard']
+export type PlayerCardExtras = components['schemas']['PlayerCardExtras']
 export type PlayerGame = components['schemas']['PlayerGame']
 export type PlayerMove = components['schemas']['PlayerMove']
 export type PlayerNews = components['schemas']['PlayerNews']
@@ -449,9 +450,20 @@ export function fetchInjuryImpact(
   )
 }
 
+/** What a player card shows first: header, form, games and moves. News comes from ``fetchPlayerCardExtras``. */
 export function fetchPlayerCard(ref: LeagueRef, playerId: number, creds: Credentials | null) {
   return post<PlayerCard>(
     '/api/player-card',
+    { league_id: ref.leagueId, season: ref.season, player_id: playerId, core: true },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** The rest of a player card, loaded alongside the core: his news and the names of who moved with him. */
+export function fetchPlayerCardExtras(ref: LeagueRef, playerId: number, creds: Credentials | null) {
+  return post<PlayerCardExtras>(
+    '/api/player-card/extras',
     { league_id: ref.leagueId, season: ref.season, player_id: playerId },
     creds,
     SCORES_TIMEOUT_MS,
