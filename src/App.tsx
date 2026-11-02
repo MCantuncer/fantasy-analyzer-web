@@ -19,6 +19,7 @@ import { Status } from './components/Status'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
+import { clearSavedReports, loadSavedReport, saveReport } from './lib/savedReport'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
@@ -139,7 +140,8 @@ export default function App() {
   })
 
   const analysis = useMutation({
-    mutationFn: (args: { teamId: number; keep: number[] }) => {
+    // ``quiet`` runs refresh a saved report that is already on screen.
+    mutationFn: (args: { teamId: number; keep: number[]; quiet?: boolean }) => {
       // A newer run (another league, new keepers) replaces the one in flight.
       running.current?.abort()
       const controller = new AbortController()
@@ -150,6 +152,7 @@ export default function App() {
     onSuccess: (data, args) => {
       setReport(data)
       setAppliedKeep(args.keep)
+      saveReport(data.league.id, args.teamId, args.keep, data)
     },
   })
   const shownProgress = useSmoothProgress(job.progress, analysis.isPending)
@@ -160,8 +163,12 @@ export default function App() {
     if (!selection || !myTeamId || !leagueReady) return
     const stored = loadKeep(selection.leagueId, myTeamId)
     setKeep(stored)
-    setReport(null)
-    mutate({ teamId: myTeamId, keep: stored })
+    // A refresh shows the last finished report at once; only an old one is worked out again, quietly.
+    const saved = loadSavedReport(selection.leagueId, myTeamId, selection.season, stored)
+    setReport(saved?.report ?? null)
+    if (saved) setAppliedKeep(stored)
+    if (saved?.fresh) return
+    mutate({ teamId: myTeamId, keep: stored, quiet: saved !== null })
   }, [selection, myTeamId, leagueReady, mutate])
 
   const loadError = [overview.error, league.error].find((e) => e instanceof ApiError) as ApiError | undefined
@@ -191,6 +198,7 @@ export default function App() {
 
   function endSession() {
     clearToken()
+    clearSavedReports()
     qc.clear()
     setSignedIn(false)
     goHome()
@@ -505,7 +513,12 @@ export default function App() {
           </div>
         )}
 
-        {!verifying && verified && analysis.error && (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
+        {/* A quiet refresh that fails leaves the saved report up instead of covering it with an error. */}
+        {!verifying &&
+          verified &&
+          analysis.error &&
+          !analysis.variables?.quiet &&
+          (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
           <div className="card error stack">
             <h2>Something went wrong</h2>
             <p>{analysis.error.message}</p>
