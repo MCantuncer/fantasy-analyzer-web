@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import type { LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
+import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
+import type { Credentials } from '../lib/credentials'
 import { flipHint, teamColours } from '../lib/league'
+import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
@@ -11,6 +13,9 @@ interface Props {
   onVerify: () => void
   /** Season simulation rows for the Projected standings tab; undefined while the analysis runs. */
   projected?: SeasonRow[] | null
+  /** For your matchup's Projected final; left out, the card shows today's box score only. */
+  leagueRef?: LeagueRef
+  creds?: Credentials | null
 }
 
 function shortDate(iso: string | null | undefined) {
@@ -59,7 +64,7 @@ function Tile({ icon, value, label, tone }: { icon: string; value: ReactNode; la
 }
 
 /** The League page: your matchup as a box score, the league's pulse, every matchup and the standings. */
-export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
+export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, creds }: Props) {
   const verified = o.my_team_id != null
   const colours = useMemo(
     () =>
@@ -176,6 +181,19 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
           <p className="small muted box-legend">
             Shaded: leading that category. Amber category name: close enough to flip. Grey outline on both rows: tied.
           </p>
+          {mine &&
+            leagueRef &&
+            (() => {
+              const [me, them] = sides(mine)
+              return (
+                <MatchupProjection
+                  leagueRef={leagueRef}
+                  creds={creds ?? null}
+                  me={{ name: nameOf(me.team_id), colour: colours.get(me.team_id) }}
+                  them={{ name: nameOf(them.team_id), colour: colours.get(them.team_id) }}
+                />
+              )
+            })()}
         </section>
       )}
 

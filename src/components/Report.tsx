@@ -157,7 +157,13 @@ export function Report({
         {tab === 'league' && (
           <>
             {overview ? (
-              <LeagueOverview overview={overview} onVerify={() => undefined} projected={report.season} />
+              <LeagueOverview
+                overview={overview}
+                onVerify={() => undefined}
+                projected={report.season}
+                leagueRef={{ leagueId: overview.league_id, season: overview.season }}
+                creds={creds}
+              />
             ) : (
               <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
             )}
