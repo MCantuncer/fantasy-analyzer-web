@@ -102,7 +102,7 @@ export function Report({
                   Trades · {report.trades.length}
                 </button>
                 <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
-                  Free Agent Adds · {report.pickups.length}
+                  FA Targets · {report.pickups.length}
                 </button>
               </div>
               <div className="split">

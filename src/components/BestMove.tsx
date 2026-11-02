@@ -119,7 +119,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
             Make the claim on ESPN
           </a>
           <a className="button ghost" href="#pickup-0">
-            All free agent adds
+            All FA targets
           </a>
           <span className="small muted">{topChanges(pickup.category_changes)}</span>
         </div>

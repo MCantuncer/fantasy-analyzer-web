@@ -277,7 +277,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
           </span>
           <ul className="locked">
             {[
-              'Your best trades and free agent adds',
+              'Your best trades and FA targets',
               'Your playoff odds and category outlook',
               'League Chat, reactions and votes',
             ].map((t) => (
