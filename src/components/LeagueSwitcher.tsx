@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { MyLeague } from '../api/client'
+import './LeagueSwitcher.css'
+import { VerifiedBadge } from './VerifiedBadge'
 
 interface Props {
   leagues: MyLeague[]
@@ -77,16 +79,14 @@ export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen,
                   onClick={close(() => (here ? undefined : onOpen(l)))}
                 >
                   <span className="switcher-item-text">
-                    <span className="switcher-item-name">{l.name}</span>
+                    <span className="switcher-item-title">
+                      <span className="switcher-item-name">{l.name}</span>
+                      {l.team_id ? <VerifiedBadge /> : null}
+                    </span>
                     <span className="small muted">
                       {here && teamName ? teamName : l.team_id ? 'Verified manager' : 'League view only'}
                     </span>
                   </span>
-                  {l.team_id ? (
-                    <span className="tag good">Verified</span>
-                  ) : (
-                    <span className="tag warn">Not verified</span>
-                  )}
                   <svg className="check" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     {here && <path d="m3.5 8.5 3 3 6-7" stroke="currentColor" strokeWidth="1.8" fill="none" />}
                   </svg>
