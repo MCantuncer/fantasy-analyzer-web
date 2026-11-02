@@ -1,5 +1,6 @@
 /* The player card as a bottom sheet on phones: full width, anchored to the bottom edge with a
-   grab bar, and room for the thumb (44px close button on the title line, safe-area padding). */
+   grab bar, form tiles in rows of three, news and moves stacked, and room for the thumb
+   (44px close button on the title line, safe-area padding). */
 @media (max-width: 640px) {
   .pc-layer {
     align-items: flex-end;
@@ -8,29 +9,42 @@
 
   .pc-sheet {
     width: 100%;
-    max-height: 90vh;
-    max-height: 90dvh;
+    max-height: 92vh;
+    max-height: 92dvh;
     border-width: 1px 0 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: 18px 18px 0 0;
     animation-name: pc-sheet-up;
   }
 
   .pc-grab {
     display: block;
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    left: 50%;
     width: 40px;
     height: 4px;
-    margin: 8px auto 0;
+    margin-left: -20px;
     border-radius: 2px;
-    background: var(--border);
+    background: rgb(255 255 255 / 0.5);
   }
 
-  .pc-head {
-    gap: 12px;
-    padding: 12px 16px 16px;
+  .pc-hero {
+    gap: 14px;
+    padding: 26px 56px 16px 16px;
+  }
+
+  .pc-face .head {
+    width: 72px !important;
+    height: 72px !important;
   }
 
   .pc-name {
-    font-size: 18px;
+    font-size: 25px;
+  }
+
+  .pc-watermark {
+    font-size: 110px;
   }
 
   .pc-body {
@@ -38,18 +52,22 @@
     padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
   }
 
+  .pc-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pc-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .pc-table th,
   .pc-table td {
     padding: 10px 8px;
   }
 
-  .pc-list {
-    gap: 14px;
-  }
-
-  /* The table holds 11 columns and a phone shows about seven: say the rest are a swipe away. */
+  /* Eleven columns don't fit: say the rest are a swipe away. */
   .pc-swipe {
-    display: block;
+    display: inline;
   }
 }
 

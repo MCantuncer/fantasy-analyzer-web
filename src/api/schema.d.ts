@@ -1924,6 +1924,28 @@ export interface components {
              * @description Overall pick, on a draft
              */
             pick?: number | null;
+            /**
+             * Others
+             * @description Other players in the same move, e.g. the drop that made room
+             */
+            others?: components["schemas"]["PlayerMoveOther"][];
+        };
+        /** PlayerMoveOther */
+        PlayerMoveOther: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "add" | "drop" | "trade";
+            /**
+             * To Team Id
+             * @description 0 = free agency
+             */
+            to_team_id: number;
         };
         /** PlayerNews */
         PlayerNews: {

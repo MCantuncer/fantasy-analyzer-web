@@ -2,7 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerCard, PlayerGame, PlayerMove } from '../api/client'
-import { average, dealPlayers, gameDate, healthStatus, moveText, opponent, ownerText } from '../lib/playerCard'
+import {
+  average,
+  dealPlayers,
+  formTiles,
+  moveOthers,
+  spotlight,
+  gameDate,
+  healthStatus,
+  moveText,
+  opponent,
+  ownerText,
+} from '../lib/playerCard'
 import { PlayerCardHost, PlayerChips, PlayerLink } from './PlayerCard'
 
 const teams = new Map([
@@ -30,10 +41,10 @@ function game(pts: number, extra: Partial<PlayerGame> = {}): PlayerGame {
 describe('player card text', () => {
   it('describes each kind of move', () => {
     expect(moveText(move({ kind: 'draft', via: 'draft', bid: 14, to_team_id: 3 }), teams, null)).toBe(
-      'Drafted by Kucukesat Aspavas for $14',
+      'Drafted by Kucukesat Aspavas',
     )
     expect(moveText(move({ kind: 'draft', via: 'draft', pick: 30 }), teams, null)).toBe('Drafted by Bench Mob, pick 30')
-    expect(moveText(move({ via: 'waiver', bid: 5 }), teams, null)).toBe('Claimed off waivers by Bench Mob for $5')
+    expect(moveText(move({ via: 'waiver', bid: 5 }), teams, null)).toBe('Claimed off waivers by Bench Mob')
     expect(moveText(move({ via: 'waiver' }), teams, null)).toBe('Claimed off waivers by Bench Mob')
     expect(moveText(move({}), teams, 8)).toBe('Picked up by you')
     expect(moveText(move({ kind: 'drop', from_team_id: 8, to_team_id: 0 }), teams, null)).toBe('Dropped by Bench Mob')
@@ -68,6 +79,34 @@ describe('player card text', () => {
     expect(average([])).toBeNull()
   })
 
+  it('spotlights big nights and fades quiet ones, turnovers the other way', () => {
+    expect(spotlight('pts', 23, 14.8)).toBeGreaterThan(0)
+    expect(spotlight('pts', 15, 14.8)).toBe(0)
+    expect(spotlight('pts', 5, 14.8)).toBe(-1)
+    expect(spotlight('to', 0, 2)).toBeGreaterThan(0)
+    expect(spotlight('to', 4, 2)).toBe(-1)
+  })
+
+  it('builds nine form tiles against the season', () => {
+    const last5 = { ...game(15).stats, to: 1 }
+    const season = { ...game(14).stats, to: 2 }
+    const tiles = formTiles(last5, season, 0.5, null)
+    expect(tiles.map((t) => t.label)).toEqual(['PTS', 'REB', 'AST', 'STL', 'BLK', '3PM', 'TO', 'FG%', 'FT%'])
+    expect(tiles[0]).toMatchObject({ value: '15.0', better: true })
+    expect(tiles[6]).toMatchObject({ better: true }) // fewer turnovers
+    expect(tiles[7].delta).toBeCloseTo(0)
+  })
+
+  it('names who moved with him', () => {
+    const others = [{ player_id: 5, name: 'Kyle Kuzma', kind: 'drop' as const, to_team_id: 0 }]
+    expect(moveOthers({ kind: 'add', from_team_id: 0, others })).toBe('Kyle Kuzma dropped')
+    const trade = [
+      { player_id: 6, name: 'A', kind: 'trade' as const, to_team_id: 8 },
+      { player_id: 7, name: 'B', kind: 'trade' as const, to_team_id: 3 },
+    ]
+    expect(moveOthers({ kind: 'trade', from_team_id: 8, others: trade })).toBe('for A · with B')
+  })
+
   it('lists everyone a deal moves once', () => {
     const a = { id: 1, name: 'A' }
     const b = { id: 2, name: 'B' }
@@ -80,7 +119,7 @@ const card: PlayerCard = {
   player_id: 7,
   name: 'Jaden McDaniels',
   position: 'SF',
-  pro_team: 'MIN',
+  pro_team: 'ORL',
   injury_status: 'DAY_TO_DAY',
   owner_team_id: 8,
   on_waivers: false,
@@ -137,10 +176,11 @@ describe('PlayerCard', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
     expect(await within(dialog).findByText('Day-to-day')).toBeInTheDocument()
     expect(within(dialog).getByText('On Bench Mob')).toBeInTheDocument()
-    expect(within(dialog).getByText('Last 3 games')).toBeInTheDocument()
-    expect(within(dialog).getByText('Season · 7 G')).toBeInTheDocument()
-    expect(within(dialog).getByText('Last 5', { exact: false })).toBeInTheDocument()
-    expect(within(dialog).getAllByText('@BOS')).toHaveLength(2)
+    expect(within(dialog).getByText('Form · last 3 games')).toBeInTheDocument()
+    expect(within(dialog).getByText('season 7 G')).toBeInTheDocument()
+    expect(within(dialog).getByText('Orlando Magic', { exact: false })).toBeInTheDocument()
+    expect(within(dialog).getByRole('img', { name: /Minutes by game/ })).toBeInTheDocument()
+    expect(within(dialog).getAllByText('@BOS').length).toBeGreaterThanOrEqual(2)
     expect(within(dialog).getAllByText('McDaniels (ankle) questionable Friday').length).toBeGreaterThan(0)
     expect(within(dialog).getByText('Drafted by Bench Mob, pick 102')).toBeInTheDocument()
 
