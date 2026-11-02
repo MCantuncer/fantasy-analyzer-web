@@ -11,6 +11,7 @@ import {
 } from '../api/client'
 import { suggestRule } from '../lib/tradeRules'
 import { FeedbackContext, type FeedbackScope } from './TradeFeedback'
+import './TradeRules.css'
 
 function rulesKey(s: FeedbackScope) {
   return ['trade-rules', s.leagueId, s.season, s.teamId] as const
@@ -56,156 +57,178 @@ interface BarProps {
 export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, teams, myTeamId, keepNames }: BarProps) {
   const { enabled, rules, remove } = useTradeRules()
   const [editing, setEditing] = useState(false)
-  if (!enabled || (rules.length === 0 && !editing)) {
-    return enabled ? (
+  const editorId = useId()
+  if (!enabled) return null
+  if (editing) {
+    return (
+      <RulesEditor
+        id={editorId}
+        rules={rules}
+        categories={categories}
+        teams={teams.filter((t) => t.id !== myTeamId)}
+        keepNames={keepNames}
+        onDone={() => setEditing(false)}
+      />
+    )
+  }
+  if (rules.length === 0) {
+    return (
       <div className="rules-bar">
-        <span className="small muted">No trade rules yet. Mark an idea in its Feedback tab to add one.</span>
-        <button type="button" className="ghost" onClick={() => setEditing(true)}>
+        <span className="small muted">No trade rules yet. Mark an idea in its Feedback tab, or</span>
+        <button type="button" className="ghost" aria-expanded={false} onClick={() => setEditing(true)}>
           Add a rule
         </button>
       </div>
-    ) : null
+    )
   }
   return (
-    <>
-      <div className="rules-bar">
-        <span className="rules-title">Your rules</span>
-        {rules.map((r) => (
-          <span key={r.id} className="rule-chip">
-            {r.label}
-            <button
-              type="button"
-              aria-label={`Remove rule ${r.label}`}
-              disabled={remove.isPending}
-              onClick={() => remove.mutate(r.id)}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <button type="button" className="ghost" aria-expanded={editing} onClick={() => setEditing(!editing)}>
-          {editing ? 'Done' : 'Edit'}
-        </button>
-        {skipped > 0 && (
-          <span className="rules-skipped small">
-            {skipped} {skipped === 1 ? 'idea' : 'ideas'} skipped by your rules ·{' '}
-            <button type="button" className="link" aria-pressed={showSkipped} onClick={onShowSkipped}>
-              {showSkipped ? 'Hide them' : 'Show them'}
-            </button>
-          </span>
-        )}
-      </div>
-      {editing && (
-        <RulesEditor
-          rules={rules}
-          categories={categories}
-          teams={teams.filter((t) => t.id !== myTeamId)}
-          keepNames={keepNames}
-        />
+    <div className="rules-bar">
+      <span className="rules-title">Your rules</span>
+      {rules.map((r) => (
+        <span key={r.id} className="rule-chip" title={r.why || undefined}>
+          {r.label}
+          <button
+            type="button"
+            aria-label={`Remove rule ${r.label}`}
+            disabled={remove.isPending}
+            onClick={() => remove.mutate(r.id)}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <button type="button" className="ghost" aria-expanded={false} onClick={() => setEditing(true)}>
+        Edit
+      </button>
+      {skipped > 0 && (
+        <span className="rules-skipped small">
+          {skipped} {skipped === 1 ? 'idea' : 'ideas'} skipped by your rules ·{' '}
+          <button type="button" className="link" aria-pressed={showSkipped} onClick={onShowSkipped}>
+            {showSkipped ? 'Hide them' : 'Show them'}
+          </button>
+        </span>
       )}
-    </>
+    </div>
   )
 }
 
-const KIND: Record<TradeRuleKind, string> = {
-  protect_category: 'Category',
-  skip_team: 'Team',
-  no_injury_prone: 'Players',
+interface Option {
+  key: string
+  label: string
+  kind: TradeRuleKind
+  value: string
+  teamName?: string
 }
 
+/**
+ * The rule editor: every possible rule is a toggle chip, grouped by what it does. One tap adds
+ * a rule, another removes it, so there is no dropdown to open and no separate Add button.
+ */
 function RulesEditor({
+  id,
   rules,
   categories,
   teams,
   keepNames,
+  onDone,
 }: {
+  id: string
   rules: TradeRule[]
   categories: string[]
   teams: { id: number; name: string }[]
   keepNames: string[]
+  onDone: () => void
 }) {
   const { add, remove } = useTradeRules()
-  const id = useId()
-  const [choice, setChoice] = useState('')
-  const options = [
-    ...categories.map((c) => ({ key: `c:${c}`, label: `Protect ${c}`, kind: 'protect_category' as const, value: c })),
-    ...teams.map((t) => ({
-      key: `t:${t.id}`,
-      label: `Skip ${t.name}`,
-      kind: 'skip_team' as const,
-      value: String(t.id),
-      name: t.name,
-    })),
-    { key: 'i', label: 'No injury-prone players in', kind: 'no_injury_prone' as const, value: '' },
-  ].filter((o) => !rules.some((r) => r.kind === o.kind && r.value === o.value))
-  const picked = options.find((o) => o.key === choice)
+  const busy = add.isPending || remove.isPending
+  const ruleFor = (o: Option) => rules.find((r) => r.kind === o.kind && (r.value ?? '') === o.value)
+  const toggle = (o: Option) => {
+    const on = ruleFor(o)
+    if (on) remove.mutate(on.id)
+    else add.mutate({ kind: o.kind, value: o.value, team_name: o.teamName, why: 'Added by hand.' })
+  }
+  const groups: { title: string; hint: string; options: Option[] }[] = [
+    {
+      title: 'Protect a category',
+      hint: 'Skip ideas that make you weaker here.',
+      options: categories.map((c) => ({ key: `c:${c}`, label: c, kind: 'protect_category', value: c })),
+    },
+    {
+      title: 'Skip a team',
+      hint: 'No ideas with these owners.',
+      options: teams.map((t) => ({
+        key: `t:${t.id}`,
+        label: t.name,
+        kind: 'skip_team',
+        value: String(t.id),
+        teamName: t.name,
+      })),
+    },
+    {
+      title: 'Players',
+      hint: 'Skip ideas that bring in these players.',
+      options: [{ key: 'i', label: 'Injury-prone players', kind: 'no_injury_prone', value: '' }],
+    },
+  ]
+  const err = add.error ?? remove.error
 
   return (
-    <div className="rules-editor">
-      <ul className="rules-list">
-        {rules.map((r) => (
-          <li key={r.id}>
-            <div>
-              <div className="rules-kind">{KIND[r.kind]}</div>
-              <strong>{r.label}</strong>
-              {r.why && <div className="small muted">{r.why}</div>}
-            </div>
-            <button type="button" className="secondary" onClick={() => remove.mutate(r.id)} disabled={remove.isPending}>
-              Remove
-            </button>
-          </li>
-        ))}
-        {keepNames.length > 0 && (
-          <li>
-            <div>
-              <div className="rules-kind">Players</div>
-              <strong>Keep {keepNames.join(', ')}</strong>
-              <div className="small muted">
-                Your keep list: never suggested as trades or drops. Change it in My team.
-              </div>
-            </div>
-          </li>
-        )}
-      </ul>
-      <form
-        className="rules-add"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!picked) return
-          add.mutate(
-            {
-              kind: picked.kind,
-              value: picked.value,
-              team_name: 'name' in picked ? picked.name : undefined,
-              why: 'Added by hand.',
-            },
-            { onSuccess: () => setChoice('') },
-          )
-        }}
-      >
-        <label className="detail-label" htmlFor={`${id}-rule`}>
-          Add a rule
-        </label>
-        <div className="row">
-          <select id={`${id}-rule`} value={choice} onChange={(e) => setChoice(e.target.value)}>
-            <option value="">Choose a rule…</option>
-            {options.map((o) => (
-              <option key={o.key} value={o.key}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <button type="submit" disabled={!picked || add.isPending}>
-            Add
-          </button>
-        </div>
-        {add.isError && (
-          <p className="error small" role="alert">
-            {add.error instanceof Error ? add.error.message : 'Could not add the rule.'}
+    <section className="rules-editor" id={id} aria-labelledby={`${id}-title`}>
+      <div className="rules-editor-head">
+        <div>
+          <h3 id={`${id}-title`} className="rules-editor-title">
+            Your rules
+          </h3>
+          <p className="small muted rules-editor-sub">
+            Trade ideas that break a rule are skipped. Tap to add or remove.
           </p>
-        )}
-      </form>
-    </div>
+        </div>
+        <button type="button" className="secondary rules-done" onClick={onDone}>
+          Done
+        </button>
+      </div>
+      {groups.map((g) =>
+        g.options.length === 0 ? null : (
+          <fieldset key={g.title} className="rules-group">
+            <legend className="rules-group-title">
+              {g.title} <span className="rules-group-hint">{g.hint}</span>
+            </legend>
+            <div className="rules-options">
+              {g.options.map((o) => {
+                const rule = ruleFor(o)
+                return (
+                  <button
+                    key={o.key}
+                    type="button"
+                    className="rules-option"
+                    aria-pressed={!!rule}
+                    disabled={busy}
+                    title={rule?.why || undefined}
+                    onClick={() => toggle(o)}
+                  >
+                    <span className="rules-option-mark" aria-hidden="true">
+                      {rule ? '✓' : '+'}
+                    </span>
+                    {o.label}
+                  </button>
+                )
+              })}
+            </div>
+          </fieldset>
+        ),
+      )}
+      {keepNames.length > 0 && (
+        <p className="small muted rules-keep">
+          <strong>Always kept:</strong> {keepNames.join(', ')}. Never suggested as trades or drops; change the list
+          in My Team.
+        </p>
+      )}
+      {err && (
+        <p className="error small" role="alert">
+          {err instanceof Error ? err.message : 'Could not save the rule.'}
+        </p>
+      )}
+    </section>
   )
 }
 
