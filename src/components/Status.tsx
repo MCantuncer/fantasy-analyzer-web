@@ -44,13 +44,13 @@ export function Status({ phase, leagueName }: { phase: 'league' | 'analysis'; le
           { label: waking ? 'Waking up the server' : 'Reaching the server', state: 'now' },
           { label: 'Loading your league', state: 'todo' },
           { label: 'Simulating the season', state: 'todo' },
-          { label: 'Screening every trade and pickup', state: 'todo' },
+          { label: 'Screening every trade and free agent', state: 'todo' },
         ]
       : [
           { label: 'Server awake', state: 'done' },
           { label: leagueName ? `League loaded · ${leagueName}` : 'League loaded', state: 'done' },
           { label: 'Simulating the season', state: seconds < 3 ? 'now' : 'done' },
-          { label: 'Screening every trade and pickup', state: seconds < 3 ? 'todo' : 'now' },
+          { label: 'Screening every trade and free agent', state: seconds < 3 ? 'todo' : 'now' },
         ]
 
   return (

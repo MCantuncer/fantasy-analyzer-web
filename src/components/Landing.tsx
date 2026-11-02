@@ -64,7 +64,7 @@ export function Landing({ initial, onSubmit }: { initial: string; onSubmit: (inp
             <span className="small muted">valued on production, not just draft prices</span>
           </li>
           <li>
-            <strong>Smart pickups</strong>
+            <strong>Smart FA targets</strong>
             <span className="small muted">only players you can afford to cut</span>
           </li>
         </ul>
