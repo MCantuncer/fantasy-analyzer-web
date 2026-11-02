@@ -1,0 +1,45 @@
+/* NBA News on phones: the scope control takes the full width with equal segments (it
+   used to wrap into a two-row block), and the kind filters scroll sideways under it. */
+@media (max-width: 720px) {
+  .news-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .news-scope {
+    grid-template-columns: repeat(var(--news-scope-count, 3), minmax(0, 1fr));
+  }
+
+  .news-scope button {
+    min-height: 40px;
+    padding: 0 8px;
+  }
+
+  .news-filter {
+    min-height: 40px;
+  }
+
+  .news-story {
+    padding: 14px 16px;
+  }
+
+  .news-day {
+    padding: 8px 16px;
+  }
+
+  /* Sources get their own line, so the details line never starts with a stray dot. */
+  .news-meta > .news-sources {
+    flex-basis: 100%;
+  }
+
+  .news-meta > :nth-last-child(2)::after {
+    content: none;
+  }
+
+  /* "Who gains?" drops under the player instead of squeezing the name. */
+  .news-gains-toggle {
+    min-height: 40px;
+    margin-left: 46px;
+  }
+}

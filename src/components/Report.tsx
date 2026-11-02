@@ -23,12 +23,12 @@ import type { Credentials } from '../lib/credentials'
 export const TABS = [
   { id: 'moves', label: 'Moves' },
   { id: 'park', label: 'Trade Park' },
-  { id: 'trade-for', label: 'Trade for' },
-  { id: 'team', label: 'My team' },
+  { id: 'trade-for', label: 'Trade For' },
+  { id: 'team', label: 'My Team' },
   { id: 'league', label: 'League' },
   { id: 'scores', label: 'Scores' },
   { id: 'news', label: 'NBA News' },
-  { id: 'chat', label: 'League chat' },
+  { id: 'chat', label: 'League Chat' },
 ] as const
 
 export type Tab = (typeof TABS)[number]['id']
