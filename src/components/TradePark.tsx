@@ -4,8 +4,10 @@ import { fetchShop, type AnalysisReport, type ShopDeal, type ShopReport } from '
 import type { Credentials } from '../lib/credentials'
 import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
+import { PlayerHead } from './PlayerHead'
 import { TradeItem } from './Trades'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
+import './TradePark.css'
 import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
 
 export const MAX_PICKS = 4
@@ -81,6 +83,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
               <li key={p.id}>
                 <label className={on ? 'pick on' : full ? 'pick off' : 'pick'}>
                   <input type="checkbox" checked={on} disabled={full} onChange={() => toggle(p.id)} />
+                  <PlayerHead player={p} size={36} />
                   <span className="pick-name">
                     <strong>{p.name}</strong>
                     <span className="small muted">

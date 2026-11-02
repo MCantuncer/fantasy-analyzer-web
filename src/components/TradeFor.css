@@ -1,0 +1,52 @@
+/* Trade For: faces in the player picker, the target card, the offers and the owner's wants. */
+.trade-for .target-row {
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  min-height: 64px;
+}
+
+.trade-for .target-head {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.trade-for .target-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.trade-for .target-head > .badge {
+  align-self: flex-start;
+}
+
+.trade-for .offer-swap > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.trade-for .offer-swap .head-stack {
+  margin-right: 0;
+}
+
+.trade-for .offer-swap .label-sm {
+  min-width: 30px;
+}
+
+.trade-for .offer-swap strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tradefor-want {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The face takes ~52px from the name column; widen the picker so names fit. */
+.split.trade-for > .narrow {
+  flex-basis: 390px;
+}
