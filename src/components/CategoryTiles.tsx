@@ -1,5 +1,6 @@
 import type { CategoryOutlook } from '../api/client'
 import { ordinal, pct } from '../lib/format'
+import './CategoryTiles.css'
 
 export const TAG = {
   locked: { label: 'Winning', tone: 'good' },
@@ -28,7 +29,7 @@ export function CategoryTiles({ categories }: { categories: CategoryOutlook[] })
               <div className="meter" aria-hidden="true">
                 <span className={`fill-${tag.tone}`} style={{ width: pct(c.win_pct) }} />
               </div>
-              <div className={`tile-tag ${tag.tone}`}>{tag.label}</div>
+              <div className={`tile-tag cattiles-tag cattiles-${tag.tone}`}>{tag.label}</div>
             </li>
           )
         })}

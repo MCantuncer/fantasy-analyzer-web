@@ -18,6 +18,7 @@
   --focus: #9da8ff;
   --good: #3dd68c;
   --warn: #f5b841;
+  --warn-fill: #f5b841;
   --bad: #ff8a8a;
   --good-soft: rgb(61 214 140 / 0.14);
   --warn-soft: rgb(245 184 65 / 0.14);
@@ -71,10 +72,13 @@
   --on-accent: #ffffff;
   --focus: #3442d9;
   --good: #0f7a45;
-  --warn: #8a5300;
+  /* Golden amber, far from --bad in hue: text 4.6:1 on white and on --warn-soft. */
+  --warn: #946200;
+  /* Bars and dots: brighter amber, 3:1 on white (non-text contrast). */
+  --warn-fill: #c58a00;
   --bad: #b42323;
   --good-soft: #e2f3ea;
-  --warn-soft: #faf0dc;
+  --warn-soft: #fdf2c8;
   --bad-soft: #fbe7e7;
   --on-good: #ffffff;
   --shadow: 0 8px 24px rgb(14 19 32 / 0.16);
@@ -417,7 +421,7 @@ th .badge {
 }
 
 .fill-warn {
-  background: var(--warn);
+  background: var(--warn-fill);
 }
 
 .fill-bad {
