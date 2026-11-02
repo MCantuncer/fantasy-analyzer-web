@@ -205,6 +205,11 @@ describe('News', () => {
     expect(within(jw).getByText('KVK')).toBeInTheDocument()
     expect(screen.getAllByText('1 source · Reported')).toHaveLength(2)
     expect(screen.getAllByText('Free agent').length).toBeGreaterThan(0)
+    // Your player keeps the team's abbreviation, marked as yours.
+    const dm = screen.getByText('Davion Mitchell drawing trade interest').closest('article') as HTMLElement
+    expect(dm).toHaveAttribute('data-mine')
+    expect(within(dm).getByTitle('Your team')).toHaveTextContent('KEA')
+    expect(jw).not.toHaveAttribute('data-mine')
     expect(screen.getByText('+10.3')).toBeInTheDocument()
     expect(screen.getByText(/Not answering/)).toBeInTheDocument()
   })

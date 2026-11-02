@@ -55,7 +55,7 @@ const BROWSE: { tab: 'scores' | 'league' | 'news' | 'chat'; label: string; desc:
   },
   {
     tab: 'chat',
-    label: 'League chat',
+    label: 'League Chat',
     desc: 'Trades, waiver claims and banter',
     icon: (
       <svg width="18" height="18" viewBox="0 0 18 18">

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
   Beneficiary,
@@ -29,6 +30,7 @@ import {
 import type { NewsFilter, NewsScope } from '../lib/news'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import './News.css'
 
 const SLOW_AFTER_MS = 8_000
 
@@ -73,48 +75,52 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const scoped = data.stories.filter((s) => inScope(s, scope, myTeamId))
   const shown = scoped.filter((s) => inFilter(s, filter))
+  const scopes: { id: NewsScope; label: string }[] = [
+    { id: 'nba', label: 'All NBA' },
+    { id: 'league', label: 'In my league' },
+    ...(myTeamId !== null ? [{ id: 'mine' as const, label: 'My roster' }] : []),
+  ]
 
   return (
     <div className="stack news">
-      <div className="news-head">
-        <div>
-          <h2>NBA News</h2>
-          <p className="small muted">
-            Injuries, trades and role changes from around the NBA, checked against several sources before they show.
-          </p>
-        </div>
-        <div className="segmented" role="group" aria-label="Which players">
-          <button type="button" aria-pressed={scope === 'nba'} onClick={() => setScope('nba')}>
-            All NBA
-          </button>
-          <button type="button" aria-pressed={scope === 'league'} onClick={() => setScope('league')}>
-            In my league
-          </button>
-          {myTeamId !== null && (
-            <button type="button" aria-pressed={scope === 'mine'} onClick={() => setScope('mine')}>
-              My roster
-            </button>
-          )}
-        </div>
-      </div>
+      <header className="news-head">
+        <h2>NBA News</h2>
+        <p className="small muted">
+          Injuries, trades and role changes from around the NBA, checked against several sources before they show.
+        </p>
+      </header>
 
-      <div className="row news-filters" role="group" aria-label="Kind of news">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className="chip"
-            aria-pressed={filter === f.id}
-            onClick={() => setFilter(f.id)}
-          >
-            {f.label} <span className="num">{countBy(scoped, f.id)}</span>
-          </button>
-        ))}
+      <div className="news-toolbar">
+        <div
+          className="news-scope"
+          role="group"
+          aria-label="Which players"
+          style={{ '--news-scope-count': scopes.length } as CSSProperties}
+        >
+          {scopes.map((s) => (
+            <button key={s.id} type="button" aria-pressed={scope === s.id} onClick={() => setScope(s.id)}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="news-filters" role="group" aria-label="Kind of news">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className="news-filter"
+              aria-pressed={filter === f.id}
+              onClick={() => setFilter(f.id)}
+            >
+              {f.label} <span className="num">{countBy(scoped, f.id)}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="split">
         <div className="wide">
-          <section className="card flush" aria-label="Stories">
+          <section className="card flush news-feed" aria-label="Stories">
             {shown.length === 0 ? (
               <EmptyNews data={data} />
             ) : (
@@ -142,7 +148,7 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
             Show stories seen only on social sites (not published)
           </label>
         </div>
-        <div className="narrow stack">
+        <div className="narrow stack news-rail">
           <Trending players={data.trending} myTeamId={myTeamId} abbrev={abbrev} />
           <Sources sources={data.sources} updatedAt={data.updated_at ?? null} now={now} />
         </div>
@@ -173,14 +179,23 @@ function Story({
 } & ImpactContext) {
   const lead = story.sources.find((s) => s.title === story.headline && s.url) ?? story.sources.find((s) => s.url)
   const held = story.status === 'held' || story.status === 'didnt_happen'
+  const mine = myTeamId !== null && story.players.some((p) => p.owner_team_id === myTeamId)
   return (
-    <article className="news-story" data-status={story.status}>
-      <div className="row news-meta">
-        <span className={`news-kind kind-${story.kind}`}>{KIND_LABEL[story.kind]}</span>
-        <span className={`news-status status-${story.status}`}>{statusText(story)}</span>
-        {story.conflict && <span className="news-status status-conflict">Sources disagree</span>}
-        <span className="small muted">{ago(story.updated_at, now)}</span>
-      </div>
+    <article className="news-story" data-status={story.status} data-mine={mine || undefined}>
+      {story.players.length > 0 && (
+        <ul className="news-players">
+          {story.players.map((p) => (
+            <PlayerRow
+              key={p.player_id}
+              player={p}
+              myTeamId={myTeamId}
+              abbrev={abbrev}
+              // Only published injury stories, and only for a player on an NBA team.
+              impact={story.kind === 'injury' && !held && p.pro_team ? ctx : null}
+            />
+          ))}
+        </ul>
+      )}
       <h4 className="news-headline">
         {lead ? (
           <a href={lead.url} target="_blank" rel="noopener noreferrer">
@@ -196,46 +211,40 @@ function Story({
           {story.conflict} Treat the worse version as true until the official injury report settles it.
         </p>
       )}
-      {story.players.length > 0 && (
-        <ul className="news-players">
-          {story.players.map((p) => (
-            <PlayerRow
-              key={p.player_id}
-              player={p}
-              myTeamId={myTeamId}
-              abbrev={abbrev}
-              // Only published injury stories, and only for a player on an NBA team.
-              impact={story.kind === 'injury' && !held && p.pro_team ? ctx : null}
-            />
-          ))}
-        </ul>
-      )}
-      <div className="row news-sources small">
-        <span className="muted">{held ? 'Seen on' : 'Sources'}</span>
-        {story.sources.map((s, i) =>
-          s.url ? (
-            <a
-              key={`${s.source_id}-${i}`}
-              className={`news-source source-${s.kind}`}
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={s.title}
-            >
-              {s.name}
-            </a>
-          ) : (
-            <span key={`${s.source_id}-${i}`} className={`news-source source-${s.kind}`} title={s.title}>
-              {s.name}
+      <div className="news-meta small">
+        <span className={`news-kind news-kind-${story.kind}`}>{KIND_LABEL[story.kind]}</span>
+        <span className={`news-status news-status-${story.status}`}>{statusText(story)}</span>
+        {story.conflict && <span className="news-status news-status-conflict">Sources disagree</span>}
+        <span className="muted">{ago(story.updated_at, now)}</span>
+        <span className="news-sources">
+          <span className="muted">{held ? 'Seen on' : 'via'}</span>{' '}
+          {story.sources.map((s, i) => (
+            <span key={`${s.source_id}-${i}`} className="news-source-item">
+              {s.url ? (
+                <a
+                  className={`news-source news-src-${s.kind}`}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={s.title}
+                >
+                  {s.name}
+                </a>
+              ) : (
+                <span className={`news-source news-src-${s.kind}`} title={s.title}>
+                  {s.name}
+                </span>
+              )}
             </span>
-          ),
-        )}
+          ))}
+        </span>
       </div>
     </article>
   )
 }
 
-function OwnerBadge({
+/** Fantasy owner as one compact chip: always the team's abbreviation; yours gets an accent tint and a dot. */
+function OwnerChip({
   player,
   myTeamId,
   abbrev,
@@ -246,9 +255,24 @@ function OwnerBadge({
 }) {
   const own = ownership(player, myTeamId, abbrev.size > 0)
   if (own === 'none') return null
-  if (own === 'mine') return <span className="badge own-mine">Your team</span>
-  if (own === 'free') return <span className="badge own-free">Free agent</span>
-  return <span className="badge own-rival">{abbrev.get(player.owner_team_id ?? 0) ?? 'Rival'}</span>
+  if (own === 'free') {
+    return (
+      <span className="news-owner news-owner-free" title="Free agent">
+        FA<span className="sr-only">Free agent</span>
+      </span>
+    )
+  }
+  const code = abbrev.get(player.owner_team_id ?? 0) ?? 'Rival'
+  if (own === 'mine') {
+    return (
+      <span className="news-owner news-owner-mine" title="Your team">
+        <span className="news-owner-dot" aria-hidden="true" />
+        {code}
+        <span className="sr-only">Your team</span>
+      </span>
+    )
+  }
+  return <span className="news-owner">{code}</span>
 }
 
 function PlayerRow({
@@ -268,17 +292,19 @@ function PlayerRow({
   return (
     <li className="news-player">
       <PlayerLink player={{ id: player.player_id, name: player.name }} decorative>
-        <PlayerHead player={{ id: player.player_id, name: player.name }} size={40} />
+        <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} />
       </PlayerLink>
-      <span className="name">
-        <PlayerLink player={{ id: player.player_id, name: player.name }} />
+      <span className="news-player-id">
+        <span className="news-player-name">
+          <PlayerLink player={{ id: player.player_id, name: player.name }} />
+        </span>
+        <span className="news-player-sub small muted">
+          <TeamLogo abbrev={player.pro_team} size={16} />
+          {player.pro_team || 'Free agent'}
+          {status && <span className="news-injury">ESPN: {status}</span>}
+        </span>
       </span>
-      <span className="small muted news-team">
-        <TeamLogo abbrev={player.pro_team} />
-        {player.pro_team || 'Free agent'}
-      </span>
-      {status && <span className="badge badge-bad">ESPN: {status}</span>}
-      <OwnerBadge player={player} myTeamId={myTeamId} abbrev={abbrev} />
+      <OwnerChip player={player} myTeamId={myTeamId} abbrev={abbrev} />
       {impact && (
         <button
           type="button"
@@ -383,8 +409,8 @@ function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | n
         <span className="name">
           <PlayerLink player={{ id: b.player_id, name: b.name }} />
         </span>
-        <OwnerBadge player={b} myTeamId={myTeamId} abbrev={abbrev} />
-        <span className={`badge confidence-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
+        <OwnerChip player={b} myTeamId={myTeamId} abbrev={abbrev} />
+        <span className={`news-conf news-conf-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
       </div>
       <div className="row small">
         <span className="num">
@@ -412,46 +438,55 @@ function Trending({
     <section className="card stack news-side" aria-labelledby="trending-h">
       <div>
         <h3 id="trending-h">Trending pickups</h3>
-        <p className="small muted">Biggest rise in % of ESPN leagues rostering him, today.</p>
+        <p className="small muted">Biggest rise today in % of ESPN leagues rostering him.</p>
       </div>
-      <table className="news-table">
-        <tbody>
-          {players.slice(0, 8).map((p) => (
-            <tr key={p.player_id}>
-              <td>
-                <span className="news-who">
-                  <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
-                    <PlayerHead player={{ id: p.player_id, name: p.name }} size={28} />
-                  </PlayerLink>
-                  <span className="name">
-                    <PlayerLink player={{ id: p.player_id, name: p.name }} />
-                  </span>{' '}
-                  <span className="small muted">{p.pro_team}</span>
-                </span>
-              </td>
-              <td className="right">
-                <OwnerBadge player={p} myTeamId={myTeamId} abbrev={abbrev} />
-              </td>
-              <td className="right num good">{`${p.percent_change >= 0 ? '+' : '−'}${Math.abs(p.percent_change).toFixed(1)}`}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ol className="news-trending">
+        {players.slice(0, 8).map((p) => (
+          <li key={p.player_id} className="news-trend">
+            <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
+              <PlayerHead player={{ id: p.player_id, name: p.name }} size={32} />
+            </PlayerLink>
+            <span className="news-player-id">
+              <span className="news-player-name">
+                <PlayerLink player={{ id: p.player_id, name: p.name }} />
+              </span>
+              <span className="news-player-sub small muted">
+                <TeamLogo abbrev={p.pro_team} size={14} />
+                {p.pro_team || 'Free agent'} · <span className="num">{p.percent_owned.toFixed(0)}%</span> rostered
+              </span>
+            </span>
+            <OwnerChip player={p} myTeamId={myTeamId} abbrev={abbrev} />
+            <span className="num news-trend-change">{`${p.percent_change >= 0 ? '+' : '−'}${Math.abs(p.percent_change).toFixed(1)}`}</span>
+          </li>
+        ))}
+      </ol>
     </section>
   )
 }
 
+/** Source health, folded into one line: it matters when something looks thin, not on every visit. */
 function Sources({ sources, updatedAt, now }: { sources: NewsSourceHealth[]; updatedAt: string | null; now: Date }) {
+  const answering = sources.filter((s) => s.ok === true).length
+  const down = sources.filter((s) => s.ok === false).length
   return (
-    <section className="card stack news-side" aria-labelledby="sources-h">
-      <div>
-        <h3 id="sources-h">Sources</h3>
-        <p className="small muted">{updatedAt ? `All checked ${ago(updatedAt, now)}.` : 'Not checked yet.'}</p>
-      </div>
+    <details className="card news-side news-health-card">
+      <summary>
+        <span className={`news-dot ${down > 0 ? 'down' : answering > 0 ? 'ok' : 'idle'}`} aria-hidden="true" />
+        <span className="grow">
+          <span className="news-health-title">Sources</span>{' '}
+          <span className="small muted">
+            {answering} of {sources.length} answering
+            {updatedAt ? ` · checked ${ago(updatedAt, now)}` : ' · not checked yet'}
+          </span>
+        </span>
+      </summary>
       <ul className="news-health">
         {sources.map((s) => (
           <li key={s.source_id}>
-            <span className={`dot ${s.ok === true ? 'ok' : s.ok === false ? 'down' : 'idle'}`} aria-hidden="true" />
+            <span
+              className={`news-dot ${s.ok === true ? 'ok' : s.ok === false ? 'down' : 'idle'}`}
+              aria-hidden="true"
+            />
             <span className="grow">
               {s.name}
               {s.kind === 'tip' && <span className="small muted"> (tips only)</span>}
@@ -466,7 +501,7 @@ function Sources({ sources, updatedAt, now }: { sources: NewsSourceHealth[]; upd
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   )
 }
 

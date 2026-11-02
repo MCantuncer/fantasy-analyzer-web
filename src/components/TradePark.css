@@ -1,0 +1,16 @@
+/* Trade Park: a face on each player in the "Who are you shopping?" picker. */
+.park .pick {
+  grid-template-columns: 20px 36px minmax(0, 1fr) auto auto;
+  min-height: 56px;
+}
+
+.park .pick.off .head {
+  filter: grayscale(1);
+}
+
+/* The face takes ~44px from the name column; widen the picker so full names still fit. */
+@media (min-width: 901px) {
+  div.park {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+}
