@@ -107,3 +107,72 @@
 .tw-chasing svg {
   color: var(--warn);
 }
+
+/* Fireside: a warm light in the corner of the card, and each side on its team's colour
+   (a soft tint with a 6px edge in the team hue, crest beside the name). */
+.card.totd {
+  border-color: var(--border);
+  background:
+    radial-gradient(60% 120% at 100% 0%, var(--glow, rgb(255 190 130 / 0.07)), transparent 65%),
+    var(--surface);
+}
+
+.card.totd.involved {
+  border-color: var(--accent);
+}
+
+.totd .totd-side {
+  border: none;
+  border-left: 6px solid var(--team);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--team) 13%, var(--surface));
+}
+
+.totd .totd-side.me {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.totd .totd-team {
+  gap: 10px;
+}
+
+/* The swap between the sides: a plain round button-like disc with a soft shadow. */
+.totd .totd-swap {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--shadow);
+}
+
+/* Deltas and gains as plain coloured numbers with a small triangle, no pills. */
+.totd-delta {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.totd .totd-gains li {
+  padding: 0;
+  background: none;
+  color: var(--text-2);
+}
+
+.totd .totd-gains {
+  gap: 4px 14px;
+}
+
+/* Poll buttons sit on the tinted side, so give them the card surface. */
+.totd .totd-side .totd-poll-buttons button:not([aria-pressed='true']) {
+  background: var(--surface);
+}
+
+.totd .totd-poll {
+  border-top-color: color-mix(in srgb, var(--team) 25%, var(--divider));
+}
+
+@media (max-width: 720px) {
+  .totd .totd-swap {
+    justify-self: center;
+  }
+}
