@@ -26,6 +26,7 @@ const DAY: ScoreDay = {
     {
       day: 5,
       date: '2026-10-24',
+      sits: [13],
       games: [
         {
           id: 9,
@@ -33,8 +34,9 @@ const DAY: ScoreDay = {
           away: { pro_team_id: 14, abbrev: 'MIA', name: 'Miami Heat', score: null },
           home: { pro_team_id: 30, abbrev: 'CHA', name: 'Charlotte Hornets', score: null },
           my_players: [
-            { player_id: 11, name: 'Giannis Antetokounmpo', injury_status: 'ACTIVE' },
-            { player_id: 12, name: 'Davion Mitchell', injury_status: 'OUT' },
+            { player_id: 11, name: 'Giannis Antetokounmpo', injury_status: 'ACTIVE', pro_team_id: 14 },
+            { player_id: 12, name: 'Davion Mitchell', injury_status: 'OUT', pro_team_id: 30 },
+            { player_id: 13, name: 'Kris Dunn', injury_status: 'ACTIVE', pro_team_id: 30 },
           ],
         },
         {
@@ -94,7 +96,7 @@ describe('Scores', () => {
     expect(screen.getByText('Your 1 player')).toBeInTheDocument()
     expect(screen.getByRole('button', { pressed: true, name: /HOU/ })).toBeInTheDocument()
 
-    const box = screen.getByRole('table')
+    const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
     const amen = within(box).getByRole('row', { name: /Amen Thompson/ })
     expect(amen).toHaveClass('mine')
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')
@@ -139,13 +141,19 @@ describe('Scores', () => {
     expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ league_id: 1, day: 5 })
   })
 
-  it("lists this week's games still to play, with my players and who is out", async () => {
+  it("draws this week's games as a grid: opponent per cell, who is out and who sits", async () => {
     mockApi()
     renderScores()
     const week = await screen.findByRole('region', { name: 'Still to play this week' })
-    expect(week).toHaveTextContent('MIA @ CHA')
-    expect(week).toHaveTextContent('G. Antetokounmpo, D. Mitchell (out)')
-    expect(week).toHaveTextContent('Your players have 1 game left before Monday.')
+    expect(week).toHaveTextContent('1 start left · 1 player sits on full days')
+    expect(within(week).getByRole('columnheader', { name: 'Sat 24, 1 sit' })).toBeInTheDocument()
+    const row = (name: string) => within(week).getByRole('rowheader', { name }).parentElement as HTMLElement
+    expect(within(row('G. Antetokounmpo')).getByText('Plays CHA')).toBeInTheDocument()
+    expect(within(row('D. Mitchell')).getByText('Out, vs MIA')).toBeInTheDocument()
+    expect(within(row('K. Dunn')).getByText('Sits, vs MIA')).toBeInTheDocument()
+    // The full list of NBA games is one tap away.
+    fireEvent.click(within(week).getByRole('button', { name: 'All 2 NBA games' }))
+    expect(week).toHaveTextContent('NO@DEN')
   })
 
   it('jumps to any day of the season from the picker', async () => {

@@ -1,0 +1,240 @@
+/* Scores: "Still to play this week" as a player x day grid. */
+.sw {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sw-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.sw-sum {
+  margin: 0;
+}
+
+.sw-sum-n {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sw-warn {
+  color: var(--warn);
+}
+
+.sw-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sw-row {
+  display: grid;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.sw-days {
+  align-items: start;
+  margin-bottom: 4px;
+}
+
+.sw-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sw-day-name {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.sw-day-mark {
+  display: flex;
+  align-items: center;
+  height: 16px;
+}
+
+.sw-day-sit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sw-starts-h {
+  align-self: end;
+  text-align: right;
+}
+
+.sw-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sw-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.sw-play {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.sw-out {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--muted) 22%, transparent) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.sw-out-text {
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.sw-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sw-logo:has(img) .sw-abbrev {
+  display: none;
+}
+
+.sw-abbrev {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sw-sit .sw-logo {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.sw-bench {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--warn);
+  color: var(--bg);
+}
+
+.sw-cell .sw-bench {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 19px);
+  box-shadow: 0 0 0 2px var(--surface-2);
+}
+
+.sw-starts {
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.sw-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.sw-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sw-all {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-all-day {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sw-all-games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 6px 12px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-all-games > li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .sw-name {
+    font-size: 12px;
+  }
+
+  .sw-day {
+    font-size: 11px;
+  }
+
+  .sw-day-name {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    line-height: 1.2;
+  }
+
+  .sw-sit-word {
+    display: none;
+  }
+
+  .sw-cell .sw-bench {
+    right: 1px;
+  }
+}
