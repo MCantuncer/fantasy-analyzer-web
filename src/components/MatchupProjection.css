@@ -1,0 +1,172 @@
+/* Projected final: the "Your matchup" card's look ahead to Sunday. */
+.proj {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.proj-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.proj .eyebrow {
+  margin: 0;
+}
+.proj-verdict {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--team, var(--accent)) 14%, transparent);
+}
+.proj-verdict-who {
+  font-weight: 600;
+}
+.proj-verdict-score {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.proj-cats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 8px;
+}
+.proj-cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  border-top: 3px solid var(--team, var(--border));
+}
+.proj-stat {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.proj-cat.close .proj-stat {
+  color: var(--warn);
+}
+.proj-totals {
+  display: flex;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.proj-totals b {
+  font-weight: 500;
+}
+.proj-totals b.lead {
+  color: var(--text);
+  font-weight: 700;
+}
+.proj-crowd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.proj-crowd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.proj-crowd-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+}
+.proj-crowd-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+}
+.proj-crowd-when {
+  font-weight: 600;
+}
+.proj-crowd-who {
+  color: var(--accent-text);
+  margin-right: 8px;
+}
+.proj-crowd-count {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.proj-crowd-count b {
+  color: var(--text);
+  font-weight: 700;
+}
+/* More players than lineup spots: the count pill turns amber. */
+.proj-crowd-count.over {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.proj-crowd-count.over b {
+  color: var(--warn);
+}
+.proj-crowd-bench {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+.proj-bench-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+}
+.proj-bench {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.proj-benched,
+button.pc-link.proj-benched {
+  display: inline-flex;
+  text-decoration: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 2px 10px 2px 2px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+button.pc-link.proj-benched:hover {
+  border-color: var(--accent);
+}
+@media (max-width: 640px) {
+  .proj-cats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -30,6 +30,8 @@ export type AuthConfig = components['schemas']['AuthConfig']
 export type LeagueOverview = components['schemas']['LeagueOverview']
 export type OverviewTeam = components['schemas']['OverviewTeam']
 export type MatchupSide = components['schemas']['MatchupSide']
+export type MatchupProjection = components['schemas']['MatchupProjection']
+export type CrowdedDay = components['schemas']['CrowdedDay']
 export type CategoryScore = components['schemas']['CategoryScore']
 export type WeekGames = components['schemas']['WeekGames']
 export type OverviewMatchup = components['schemas']['OverviewMatchup']
@@ -170,6 +172,10 @@ export function removeLeague(ref: LeagueRef) {
 
 export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
   return post<LeagueOverview>('/api/league-overview', { league_id: ref.leagueId, season: ref.season }, creds)
+}
+
+export function fetchMatchupProjection(ref: LeagueRef, creds: Credentials | null) {
+  return post<MatchupProjection | null>('/api/matchup-projection', { league_id: ref.leagueId, season: ref.season }, creds)
 }
 
 export function fetchLeague(leagueId: number, season: number | null, creds: Credentials | null) {

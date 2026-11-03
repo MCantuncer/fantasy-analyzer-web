@@ -526,7 +526,12 @@ export default function App() {
           >
             {activeTab === 'league' && (
               <>
-                <LeagueOverview overview={overview.data} onVerify={() => undefined} />
+                <LeagueOverview
+                  overview={overview.data}
+                  onVerify={() => undefined}
+                  leagueRef={ref ?? undefined}
+                  creds={creds}
+                />
                 {analysis.isPending && (
                   <div className="card pending-note">
                     <div className="progress" aria-hidden="true">

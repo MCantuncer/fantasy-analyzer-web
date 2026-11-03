@@ -430,6 +430,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/matchup-projection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Matchup Projection
+         * @description Your matchup projected to its last day: who takes each category, and who sits on crowded days.
+         *
+         *     Each day the best healthy players with a game fill the lineup slots, for both teams.
+         *     Null without the NBA calendar or a matchup this week.
+         */
+        post: operations["matchup_projection_api_matchup_projection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/league-overview": {
         parameters: {
             query?: never;
@@ -841,6 +864,13 @@ export interface components {
             token: string;
             me: components["schemas"]["Me"];
         };
+        /** BenchedPlayer */
+        BenchedPlayer: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
         /** Beneficiary */
         Beneficiary: {
             /** Player Id */
@@ -976,6 +1006,29 @@ export interface components {
              * @description What the data shows, in a sentence
              */
             evidence: string;
+        };
+        /** CrowdedDay */
+        CrowdedDay: {
+            /**
+             * Date
+             * @description ISO date (US)
+             */
+            date: string;
+            /**
+             * Playing
+             * @description Healthy players with a game that day
+             */
+            playing: number;
+            /**
+             * Slots
+             * @description Lineup slots
+             */
+            slots: number;
+            /**
+             * Sit
+             * @description Players with a game who don't make the best lineup
+             */
+            sit: components["schemas"]["BenchedPlayer"][];
         };
         /** DeletePostRequest */
         DeletePostRequest: {
@@ -1436,6 +1489,27 @@ export interface components {
             team_id: number;
             /** Team Name */
             team_name: string;
+        };
+        /** MatchupProjection */
+        MatchupProjection: {
+            /** Opponent Id */
+            opponent_id: number;
+            /**
+             * Wins
+             * @description Categories you're projected to take
+             */
+            wins: number;
+            /** Losses */
+            losses: number;
+            /** Categories */
+            categories: components["schemas"]["ProjectedCategory"][];
+            /**
+             * My Crowded
+             * @description Your days left with more players than slots
+             */
+            my_crowded: components["schemas"]["CrowdedDay"][];
+            /** Their Crowded */
+            their_crowded: components["schemas"]["CrowdedDay"][];
         };
         /** MatchupSide */
         MatchupSide: {
@@ -2131,6 +2205,29 @@ export interface components {
              * @description None = chat
              */
             target?: string | null;
+        };
+        /** ProjectedCategory */
+        ProjectedCategory: {
+            /** Stat */
+            stat: string;
+            /**
+             * Mine
+             * @description Your projected total by the last day of the week (percentages as fractions)
+             */
+            mine: number;
+            /** Theirs */
+            theirs: number;
+            /**
+             * Winner
+             * @description Who is projected to take the category
+             * @enum {string}
+             */
+            winner: "me" | "them";
+            /**
+             * Close
+             * @description Close to a coin flip: could go either way
+             */
+            close: boolean;
         };
         /** ReactRequest */
         ReactRequest: {
@@ -4382,6 +4479,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    matchup_projection_api_matchup_projection_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchupProjection"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
