@@ -32,3 +32,22 @@ describe('Pickups waiver priority', () => {
     expect(view.queryByText(/Waiver priority/)).toBeNull()
   })
 })
+
+describe('Pickups shared drop', () => {
+  it('names a drop shared by every idea once, above the list', () => {
+    const other = { ...pickup, add: ref(3, 'Neemias Queta'), playoff_pct_after: 0.18 } as PickupIdea
+    const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
+    const view = within(container)
+    expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
+    expect(view.getAllByText('Aaron Wiggins')).toHaveLength(1)
+    expect(view.getByText('from 14%')).toBeInTheDocument()
+  })
+
+  it('keeps the drop on each row when the drops differ', () => {
+    const other = { ...pickup, add: ref(3, 'Neemias Queta'), drop: ref(4, 'Kris Dunn') } as PickupIdea
+    const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
+    const view = within(container)
+    expect(view.queryByText(/Each one replaces/)).toBeNull()
+    expect(view.getByText('Kris Dunn')).toBeInTheDocument()
+  })
+})
