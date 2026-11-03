@@ -46,16 +46,22 @@ function RosterList({ roster, keep, onToggleKeep, onShop }: Props) {
         const kept = keep.includes(p.id)
         return (
           <li key={p.id} className={kept ? 'rl-row rl-kept' : 'rl-row'}>
-            <PlayerLink player={p} decorative className="rl-head">
-              <PlayerHead player={p} size={40} />
-            </PlayerLink>
+            <span className="rl-head">
+              <PlayerLink player={p} decorative>
+                <PlayerHead player={p} size={40} />
+              </PlayerLink>
+            </span>
             <div className="rl-name">
               <PlayerLink player={p} />
-              {p.injury_status !== 'ACTIVE' && (
-                <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>
-              )}
-              <PlayerBadges badges={p.badges} />
             </div>
+            {(p.injury_status !== 'ACTIVE' || !!p.badges?.length) && (
+              <div className="rl-badges">
+                {p.injury_status !== 'ACTIVE' && (
+                  <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>
+                )}
+                <PlayerBadges badges={p.badges} />
+              </div>
+            )}
             <span className="rl-trade num">{shortValue(p.perceived_value, rounds)}</span>
             <div className="rl-meta small">
               <span className="muted">{p.positions.join('/')}</span>
