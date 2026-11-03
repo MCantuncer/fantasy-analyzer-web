@@ -27,7 +27,8 @@ describe('InjuryBadges', () => {
       </div>,
     )
     const chip = within(container).getByRole('button', { name: /LaVine: Durability 62 out of 100/ })
-    expect(chip).toHaveClass('badge-warn')
+    expect(chip).toHaveTextContent('62')
+    expect(chip).not.toHaveTextContent('Durability')
     expect(chip).toHaveAttribute('aria-expanded', 'false')
 
     fireEvent.click(chip)

@@ -21,10 +21,10 @@ export function Side({ label, tone, players, note }: { label: string; tone: 'goo
           <span key={p.id}>
             {i > 0 && ' + '}
             <PlayerLink player={p} />
+            <InjuryBadges players={[p]} />
           </span>
         ))}
       </div>
-      <InjuryBadges players={players} />
       <div className="small muted">{note}</div>
     </div>
   )

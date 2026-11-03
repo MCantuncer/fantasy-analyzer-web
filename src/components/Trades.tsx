@@ -1,10 +1,10 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
 import type { FeedbackSource, TradeIdea } from '../api/client'
-import { names, pct, tradeKey } from '../lib/format'
+import { pct, tradeKey } from '../lib/format'
 import { HeadStack } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
-import { InjuryBadges } from './InjuryBadges'
+import { NamesWithSignals } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
 import { premiumValue, useRoundValues } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
@@ -133,16 +133,16 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
           <span className="label-sm">Give </span>
           <HeadStack players={t.give} size={28} />
           <strong>
-            {names(t.give)}
+            <NamesWithSignals players={t.give} />
             {faab > 0 && ` + $${faab} FAAB`}
           </strong>
-          <InjuryBadges players={t.give} />
         </span>
         <span>
           <span className="label-sm">Get </span>
           <HeadStack players={t.get} size={28} />
-          <strong>{names(t.get)}</strong>
-          <InjuryBadges players={t.get} />
+          <strong>
+            <NamesWithSignals players={t.get} />
+          </strong>
           {tag}
         </span>
         <span>
