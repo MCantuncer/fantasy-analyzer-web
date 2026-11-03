@@ -142,6 +142,32 @@ describe('flip hint', () => {
     expect(flipHint(side(3, cats), side(7, them))).toBe('Flip STL to level it at 4-4-1')
   })
 
+  it('only names a record every flip lands on (a lost AST and a tied STL at 4-4-1)', () => {
+    const cats: Cat[] = [
+      ['PTS', 166, 'W'],
+      ['REB', 47, 'L'],
+      ['AST', 36, 'L'],
+      ['STL', 11, 'T'],
+      ['BLK', 7, 'W'],
+      ['3PM', 11, 'L'],
+      ['FG%', 0.533, 'W'],
+      ['FT%', 0.788, 'W'],
+      ['TO', 20, 'L'],
+    ]
+    const them: Cat[] = [
+      ['PTS', 155, 'L'],
+      ['REB', 61, 'W'],
+      ['AST', 37, 'W'],
+      ['STL', 11, 'T'],
+      ['BLK', 3, 'L'],
+      ['3PM', 16, 'W'],
+      ['FG%', 0.442, 'L'],
+      ['FT%', 0.786, 'L'],
+      ['TO', 15, 'W'],
+    ]
+    expect(flipHint(side(3, cats), side(4, them))).toBe('Flip AST or STL to win the week')
+  })
+
   it('stays quiet when nothing in reach changes the result', () => {
     const far: Cat[] = ME.map(([s, v, r]) => [s, v, r])
     const them = THEM.map(([s, v, r]): Cat => [s, s === 'REB' ? 400 : s === 'FT%' ? 0.9 : v, r])
@@ -154,7 +180,7 @@ describe('flip hint', () => {
 })
 
 describe('tonight matchup', () => {
-  it('finds your opponent and the hint from either side of the matchup', () => {
+  it('finds your opponent from either side of the matchup, with no week hint', () => {
     const overview = {
       teams: [
         { id: 3, name: 'Kucukesat Aspavas' },
@@ -165,7 +191,6 @@ describe('tonight matchup', () => {
     expect(tonightMatchup(overview, 3)).toEqual({
       opponentId: 7,
       opponentName: 'Los Avokados',
-      hint: "They're done for the week. Your 4 games left can flip REB or FT% to win 5-4-0",
     })
     expect(tonightMatchup(overview, 5)).toBeNull()
     expect(tonightMatchup(overview, null)).toBeNull()
