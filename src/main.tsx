@@ -1,3 +1,5 @@
+// Variable Inter with the optical-size axis: Display shapes for big numbers and headings.
+import '@fontsource-variable/inter/opsz.css'
 import '@fontsource/inter/latin-400.css'
 import '@fontsource/inter/latin-500.css'
 import '@fontsource/inter/latin-600.css'

@@ -23,8 +23,9 @@
   justify-content: center;
   min-height: 40px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .ol-pip.ol-locked {
