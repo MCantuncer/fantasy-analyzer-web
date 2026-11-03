@@ -1,5 +1,5 @@
 import type { CategoryOutlook } from '../api/client'
-import { ordinal, pct } from '../lib/format'
+import { ordinal } from '../lib/format'
 import './CategoryTiles.css'
 
 export const TAG = {
@@ -8,28 +8,40 @@ export const TAG = {
   lost: { label: 'Losing', tone: 'bad' },
 } as const
 
+/** Shape per outcome, so the tag reads without colour: ■ winning, ◆ swing, ▼ losing. */
+const GLYPH = { good: '■', warn: '◆', bad: '▼' } as const
+
 export function CategoryTiles({ categories }: { categories: CategoryOutlook[] }) {
   const sorted = [...categories].sort((a, b) => b.win_pct - a.win_pct)
   return (
     <section aria-labelledby="tiles-title">
       <div className="section-head">
         <h2 id="tiles-title">How often you win each category</h2>
-        <span className="small muted">League rank in brackets. Moves aim at the swing categories.</span>
+        <span className="small muted">League rank in the corner. Moves aim at the swing categories.</span>
       </div>
-      <ul className="tiles">
+      <ul className="ct-grid">
         {sorted.map((c) => {
           const tag = TAG[c.tag]
+          const win = Math.round(c.win_pct * 100)
           return (
-            <li key={c.category} className="tile">
-              <div className="tile-head">
+            <li key={c.category} className={`ct-tile ct-${tag.tone}`}>
+              <div className="ct-head">
                 <strong>{c.category}</strong>
-                <span className="small muted">({ordinal(c.league_rank)})</span>
+                <span className="ct-rank num" title={`${ordinal(c.league_rank)} in the league`}>
+                  <span aria-hidden="true">{GLYPH[tag.tone]}</span>
+                  <span className="sr-only">League rank </span>
+                  {ordinal(c.league_rank)}
+                </span>
               </div>
-              <div className="tile-value num">{pct(c.win_pct)}</div>
-              <div className="meter" aria-hidden="true">
-                <span className={`fill-${tag.tone}`} style={{ width: pct(c.win_pct) }} />
+              <div className="ct-value num">
+                {win}
+                <small>%</small>
               </div>
-              <div className={`tile-tag cattiles-tag cattiles-${tag.tone}`}>{tag.label}</div>
+              <div className="ct-meter" aria-hidden="true">
+                <span className="ct-fill" style={{ width: `${win}%` }} />
+                <span className="ct-notch" />
+              </div>
+              <div className="ct-tag">{tag.label}</div>
             </li>
           )
         })}
