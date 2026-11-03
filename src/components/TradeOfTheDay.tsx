@@ -4,8 +4,12 @@ import { useState } from 'react'
 import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import type { CSSProperties } from 'react'
 import { ordinal, pct, ptsDiff, signedInt } from '../lib/format'
+import { teamColours } from '../lib/league'
+import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
+import { TeamCrest } from './TeamCrest'
 import './TradeOfTheDay.css'
 import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
 import { PlayerLink } from './PlayerCard'
@@ -15,6 +19,8 @@ interface Props {
   season: number
   leagueName: string
   myTeamId: number
+  /** Every team in the league, so each side gets the same colour as on the League page. */
+  teamIds: number[]
   creds: Credentials | null
 }
 
@@ -81,6 +87,7 @@ function Side({
   side,
   gets,
   isMe,
+  colour,
   pick,
   onVote,
   busy,
@@ -88,6 +95,7 @@ function Side({
   side: TradeSide
   gets: TradeSide
   isMe: boolean
+  colour: string | undefined
   pick: Pick
   onVote: (take: boolean) => void
   busy: boolean
@@ -96,8 +104,9 @@ function Side({
   const needCats = new Set((side.pitch_needs ?? []).map((n) => n.category))
   const gains = topGains(side.category_changes).filter((g) => !needCats.has(g.category))
   return (
-    <div className={isMe ? 'totd-side me' : 'totd-side'}>
+    <div className={isMe ? 'totd-side me' : 'totd-side'} style={{ '--team': colour ?? 'var(--muted)' } as CSSProperties}>
       <div className="totd-team">
+        <TeamCrest name={side.team_name} colour={colour} size={28} tilt />
         <span className="totd-team-name">{side.team_name}</span>
         {isMe && <span className="badge totd-you">You</span>}
       </div>
@@ -130,14 +139,20 @@ function Side({
             →
           </span>
           <strong>{pct(side.playoff_pct_after)}</strong>
-          <span className="delta-pill sm">{signedInt(diff)}</span>
+          <span className={diff >= 0 ? 'totd-delta good' : 'totd-delta bad'}>
+            <Delta value={diff} />
+            <span className="sr-only"> points</span>
+          </span>
         </span>
       </div>
       {gains.length > 0 && (
         <ul className="totd-gains" aria-label="Biggest category gains, in points of weekly win chance">
           {gains.map((g) => (
             <li key={g.category} className="num">
-              {g.category} <span className="good">{signedInt(g.pts)}</span>
+              {g.category}{' '}
+              <span className="good">
+                <Delta value={g.pts} />
+              </span>
             </li>
           ))}
         </ul>
@@ -258,7 +273,7 @@ function SwapIcon() {
   )
 }
 
-export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }: Props) {
+export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds, creds }: Props) {
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
@@ -312,6 +327,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
   }
 
   const [a, b] = pick.sides
+  const colours = teamColours(teamIds, myTeamId)
   const me = pick.sides.find((s) => s.team_id === myTeamId)
   const other = me ? pick.sides.find((s) => s.team_id !== myTeamId) : undefined
   const url = `${window.location.origin}/?league=${leagueId}&season=${season}`
@@ -355,6 +371,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
           side={a}
           gets={b}
           isMe={a.team_id === myTeamId}
+          colour={colours.get(a.team_id)}
           pick={pick}
           onVote={onVote(a.team_id)}
           busy={vote.isPending}
@@ -364,6 +381,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, creds }:
           side={b}
           gets={a}
           isMe={b.team_id === myTeamId}
+          colour={colours.get(b.team_id)}
           pick={pick}
           onVote={onVote(b.team_id)}
           busy={vote.isPending}

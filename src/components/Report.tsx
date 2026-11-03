@@ -85,6 +85,7 @@ export function Report({
               season={report.league.season}
               leagueName={report.league.name}
               myTeamId={report.team_id}
+              teamIds={report.season.map((r) => r.team_id)}
               creds={creds}
             />
             <div className="split">
