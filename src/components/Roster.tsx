@@ -1,5 +1,5 @@
 import type { PlayerRef } from '../api/client'
-import { PlayerBadges } from './PlayerBadges'
+import { InjuryTag, PlayerBadges } from './PlayerBadges'
 import { shortValue, useRoundValues } from '../lib/tradeValue'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
@@ -53,15 +53,9 @@ function RosterList({ roster, keep, onToggleKeep, onShop }: Props) {
             </span>
             <div className="rl-name">
               <PlayerLink player={p} />
+              <InjuryTag status={p.injury_status} />
+              <PlayerBadges badges={p.badges} />
             </div>
-            {(p.injury_status !== 'ACTIVE' || !!p.badges?.length) && (
-              <div className="rl-badges">
-                {p.injury_status !== 'ACTIVE' && (
-                  <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>
-                )}
-                <PlayerBadges badges={p.badges} />
-              </div>
-            )}
             <span className="rl-trade num">{shortValue(p.perceived_value, rounds)}</span>
             <div className="rl-meta small">
               <span className="muted">{p.positions.join('/')}</span>
@@ -145,10 +139,8 @@ export function Roster(props: Props) {
                     <PlayerLink player={p} decorative>
                       <PlayerHead player={p} size={28} />
                     </PlayerLink>{' '}
-                    <PlayerLink player={p} />{' '}
-                    {p.injury_status !== 'ACTIVE' && (
-                      <span className="badge badge-bad">{p.injury_status.replace(/_/g, ' ')}</span>
-                    )}
+                    <PlayerLink player={p} />
+                    <InjuryTag status={p.injury_status} />
                     <PlayerBadges badges={p.badges} />
                   </th>
                   <td className="left muted">{p.positions.join('/')}</td>
