@@ -14,7 +14,8 @@ function durabilityScore(p: PlayerRef): number | null {
 }
 
 /**
- * "Durability 62": a score chip for injury-prone players that opens a short explainer.
+ * A bandage icon and the score (e.g. 62) for injury-prone players, on the name's own line. A tap opens a short
+ * explainer; the screen-reader label says "Durability 62 out of 100".
  * The chip can sit inside a clickable trade row, so it stops the click from reaching the
  * row, and the explainer renders in a portal so it isn't nested inside that row.
  */
@@ -83,7 +84,7 @@ export function DurabilityScore({ player, prefix = '' }: { player: PlayerRef; pr
         ref={chip}
         role="button"
         tabIndex={0}
-        className="badge badge-warn dur-chip injury-badge"
+        className="dur-chip injury-badge"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
@@ -93,8 +94,9 @@ export function DurabilityScore({ player, prefix = '' }: { player: PlayerRef; pr
           if (e.key === 'Enter' || e.key === ' ') toggle(e)
         }}
       >
-        <span className="dur-dot" aria-hidden="true" />
-        {prefix}Durability <span className="tnum">{score}</span>
+        {prefix && <span className="dur-who">{prefix.replace(/: $/, '')}</span>}
+        <BandageIcon />
+        <span className="dur-num">{score}</span>
       </span>
       {open &&
         createPortal(
@@ -153,5 +155,15 @@ function DurabilityScale({ score }: { score: number }) {
         <span>100</span>
       </div>
     </div>
+  )
+}
+
+/** A bandage: the site's mark for "often misses games". */
+function BandageIcon() {
+  return (
+    <svg className="dur-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="1.5" y="8" width="21" height="8" rx="4" transform="rotate(-45 12 12)" />
+      <path d="M10 12h.01M12 10h.01M12 14h.01M14 12h.01" />
+    </svg>
   )
 }
