@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { NewsSkeleton } from './Skeleton'
+import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
@@ -32,7 +33,6 @@ import { PlayerHead, TeamLogo } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import './News.css'
 
-const SLOW_AFTER_MS = 8_000
 
 interface Props {
   leagueId: number
@@ -55,7 +55,7 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
     refetchInterval: (q) => (q.state.data?.refreshing ? 15_000 : 300_000),
   })
 
-  if (news.isLoading) return <LoadingNews />
+  if (news.isLoading) return <NewsSkeleton />
   if (news.error || !news.data) {
     return (
       <div className="card error stack">
@@ -558,18 +558,3 @@ function HowItWorks() {
   )
 }
 
-function LoadingNews() {
-  const [slow, setSlow] = useState(false)
-  useEffect(() => {
-    const timer = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
-    return () => clearTimeout(timer)
-  }, [])
-  return (
-    <section className="card stack" aria-busy="true" style={{ gap: 4 }}>
-      <p className="muted" role="status">
-        Loading NBA news…
-      </p>
-      {slow && <p className="small muted">The server may be waking up. This can take up to a minute.</p>}
-    </section>
-  )
-}

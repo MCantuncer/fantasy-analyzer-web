@@ -1,0 +1,59 @@
+/* Verified seal: a green check-seal beside a name, with a "Verified" bubble on hover or tap. */
+.verified-badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  /* A 16px seal with a 28px hit area for taps, pulled back so it doesn't push the text around. */
+  width: 28px;
+  height: 28px;
+  margin: -6px -6px -6px -4px;
+  border-radius: 999px;
+  cursor: help;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.verified-badge svg {
+  display: block;
+}
+
+.verified-badge-seal {
+  fill: var(--good);
+}
+
+.verified-badge-check {
+  fill: none;
+  stroke: var(--bg);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.verified-badge-tip {
+  position: fixed;
+  z-index: 100;
+  transform: translate(-50%, calc(-100% - 6px));
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  animation: verified-badge-in 0.12s ease-out;
+}
+
+@keyframes verified-badge-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verified-badge-tip {
+    animation: none;
+  }
+}

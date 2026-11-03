@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { GameStats, PlayerCard, PlayerGame, PlayerMove } from '../api/client'
+import type { GameStats, PlayerCard, PlayerCardExtras, PlayerGame, PlayerMove } from '../api/client'
 
 /** Enough to open a player's card: the name shows while the rest loads. */
 export interface CardPlayer {
@@ -9,6 +9,8 @@ export interface CardPlayer {
 
 export interface PlayerCardApi {
   open: (player: CardPlayer) => void
+  /** Starts loading his card before the tap lands (hover, press), so it opens with data. */
+  prefetch: (player: CardPlayer) => void
 }
 
 // The one mounted PlayerCardHost registers here while a league is open. A module store rather
@@ -140,7 +142,7 @@ export function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-interface Deal {
+export interface Deal {
   give: CardPlayer[]
   get: CardPlayer[]
   my_drop?: CardPlayer | null
@@ -150,7 +152,24 @@ interface Deal {
 
 /** Everyone a deal moves, for the player-card chips: what you give and get, then the drops and adds. */
 export function dealPlayers(t: Deal): CardPlayer[] {
-  return [...t.give, ...t.get, t.my_drop, t.my_add, t.their_drop].filter((p): p is CardPlayer => p != null)
+  return dealGroups(t).flatMap((g) => g.players)
+}
+
+export interface DealGroup {
+  label: string
+  players: CardPlayer[]
+}
+
+/** A deal's players by role (give, get, then roster moves), leaving out empty roles. */
+export function dealGroups(t: Deal): DealGroup[] {
+  const one = (p: CardPlayer | null | undefined) => (p ? [p] : [])
+  return [
+    { label: 'Give', players: t.give },
+    { label: 'Get', players: t.get },
+    { label: 'You drop', players: one(t.my_drop) },
+    { label: 'You add', players: one(t.my_add) },
+    { label: 'They drop', players: one(t.their_drop) },
+  ].filter((g) => g.players.length > 0)
 }
 
 export type CatKey = 'pts' | 'reb' | 'ast' | 'stl' | 'blk' | 'tpm' | 'to'
@@ -219,4 +238,18 @@ export function formTiles(
   tiles.push(pctTile('fg', 'FG%', last5.fgm, last5.fga, fgSeason))
   tiles.push(pctTile('ft', 'FT%', last5.ftm, last5.fta, ftSeason))
   return tiles
+}
+
+/** The card with the extras filled in once they arrive: his news, and the names of who moved with him. */
+export function withExtras(card: PlayerCard, extras: PlayerCardExtras | undefined): PlayerCard {
+  if (!extras) return card
+  const names = extras.names
+  return {
+    ...card,
+    news: extras.news,
+    moves: card.moves.map((m) => ({
+      ...m,
+      others: (m.others ?? []).map((o) => (o.name ? o : { ...o, name: names[String(o.player_id)] ?? '' })),
+    })),
+  }
 }

@@ -102,7 +102,7 @@ export function Report({
                   Trades · {report.trades.length}
                 </button>
                 <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
-                  Pickups · {report.pickups.length}
+                  FA Targets · {report.pickups.length}
                 </button>
               </div>
               <div className="split">
@@ -157,7 +157,13 @@ export function Report({
         {tab === 'league' && (
           <>
             {overview ? (
-              <LeagueOverview overview={overview} onVerify={() => undefined} projected={report.season} />
+              <LeagueOverview
+                overview={overview}
+                onVerify={() => undefined}
+                projected={report.season}
+                leagueRef={{ leagueId: overview.league_id, season: overview.season }}
+                creds={creds}
+              />
             ) : (
               <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
             )}

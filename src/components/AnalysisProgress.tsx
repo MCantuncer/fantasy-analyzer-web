@@ -1,21 +1,36 @@
+import { useEffect, useState } from 'react'
 import { percent } from '../lib/progress'
 
+// ``short`` names the dot on the stepper; ``label`` is the line under the heading.
 const STEPS = [
+  { short: 'Server', label: 'Waking up the server', stages: [] as string[] },
   {
+    short: 'League',
     label: 'Loading your league',
     stages: ['Starting', 'Loading your league', 'Reading rosters'],
   },
   {
+    short: 'Trades',
     label: 'Screening trades',
     stages: ['Screening trades', 'Screening edge trades'],
   },
-  { label: 'Screening pickups', stages: ['Screening pickups'] },
-  { label: 'Simulating the season', stages: ['Simulating the season'] },
+  { short: 'FAs', label: 'Screening free agents', stages: ['Screening pickups'] },
+  { short: 'Season', label: 'Simulating the season', stages: ['Simulating the season'] },
 ]
 
 function stepIndex(stage: string) {
   const i = STEPS.findIndex((s) => s.stages.includes(stage))
-  return i < 0 ? 0 : i
+  return i < 0 ? 1 : i
+}
+
+function StepDot({ state }: { state: 'done' | 'now' | 'todo' }) {
+  if (state === 'done')
+    return (
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+        <path d="M3 6.2l2 2 4-4.4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      </svg>
+    )
+  return null
 }
 
 const stroke = { stroke: 'currentColor', strokeWidth: 1.6, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const
@@ -69,53 +84,86 @@ interface CardProps {
   progress: number
   stage: string
   onBrowse: (tab: 'scores' | 'news' | 'chat' | 'league') => void
+  /** True until the (possibly sleeping) server answers with the league. */
+  waking?: boolean
+  /** Heading while waking, for a league whose moves this account won't get. */
+  title?: string
 }
 
 /** Shown in place of a tab that needs the analysis while it runs. */
-export function AnalysisCard({ progress, stage, onBrowse }: CardProps) {
-  const now = stepIndex(stage)
+function useSeconds(running: boolean) {
+  const [seconds, setSeconds] = useState(0)
+  useEffect(() => {
+    if (!running) return
+    const start = Date.now()
+    const id = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000)
+    return () => clearInterval(id)
+  }, [running])
+  return seconds
+}
+
+export function AnalysisCard({ progress, stage, onBrowse, waking = false, title }: CardProps) {
+  const wakingFor = useSeconds(waking)
+  const now = waking ? 0 : stepIndex(stage)
   const pct = percent(progress)
   return (
-    <section className="card analysis-card stack" aria-labelledby="analysis-title">
+    <section className={`card analysis-card stack${waking ? ' waking' : ''}`} aria-labelledby="analysis-title">
       <div className="analysis-head">
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
-          <h2 id="analysis-title">Finding your best moves</h2>
+          <h2 id="analysis-title">{title ?? (now <= 1 ? 'Getting your league ready' : 'Finding your best moves')}</h2>
           <span className="small muted" aria-live="polite">
-            {STEPS[now].label}…
+            {waking && wakingFor < 4 ? 'Reaching the server' : STEPS[now].label}…
           </span>
         </div>
         <span className="analysis-pct num tnum" aria-hidden="true">
-          {pct}
+          {waking ? (wakingFor >= 4 ? `${wakingFor}s` : '') : pct}
         </span>
       </div>
+      {waking && wakingFor >= 4 && (
+        <p className="small muted analysis-note">
+          The free server naps when nobody uses it. The first load can take up to a minute; after that it's quick.
+        </p>
+      )}
       <div
         className="progress"
         role="progressbar"
         aria-label="Analysis progress"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={Math.floor(progress * 100)}
+        aria-valuenow={waking ? undefined : Math.floor(progress * 100)}
+        aria-valuetext={waking ? 'Waking up the server' : undefined}
       >
-        <span style={{ width: pct }} />
+        <span style={waking ? undefined : { width: pct }} />
       </div>
-      <ol className="analysis-steps" aria-label="Steps">
-        {STEPS.map((s, i) => (
-          <li key={s.label} className={i < now ? 'done' : i === now ? 'now' : 'todo'}>
-            {s.label}
-          </li>
-        ))}
+      <ol className="stepper" aria-label="Steps">
+        {STEPS.map((s, i) => {
+          const state = i < now ? 'done' : i === now ? 'now' : 'todo'
+          return (
+            <li key={s.short} className={state} aria-current={state === 'now' ? 'step' : undefined}>
+              <span className="stepper-dot">
+                <StepDot state={state} />
+              </span>
+              <span className="stepper-label">{s.short}</span>
+              <span className="sr-only">
+                {state === 'done' ? ', done' : state === 'now' ? ', in progress' : ''}
+              </span>
+            </li>
+          )
+        })}
       </ol>
       <nav className="wait-list" aria-labelledby="wait-title">
         <div className="wait-head">
           <span className="eyebrow" id="wait-title">
             While you wait
           </span>
-          <span className="small muted">We'll let you know when your moves are ready.</span>
+          <span className="small muted">
+            {waking ? 'These open as soon as the server is up.' : "We'll let you know when your moves are ready."}
+          </span>
         </div>
         <ul>
           {BROWSE.map((b) => (
             <li key={b.tab}>
-              <button type="button" className="wait-item" onClick={() => onBrowse(b.tab)}>
+              <button type="button" className="wait-item" disabled={waking} onClick={() => onBrowse(b.tab)}>
                 <span className="wait-icon" aria-hidden="true">
                   {b.icon}
                 </span>

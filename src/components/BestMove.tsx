@@ -3,6 +3,7 @@ import { pct, ptsDiff, signedInt } from '../lib/format'
 import { InjuryBadges } from './InjuryBadges'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import './BestMove.css'
 
 export function Side({ label, tone, players, note }: { label: string; tone: 'good' | 'bad'; players: PlayerRef[]; note: string }) {
   return (
@@ -29,17 +30,26 @@ export function Side({ label, tone, players, note }: { label: string; tone: 'goo
   )
 }
 
-function topChanges(changes: Record<string, number>) {
+/** The two biggest gains and costs in weekly win chance, as signed chips (not a sentence). */
+function TopChanges({ changes }: { changes: Record<string, number> }) {
   const moved = Object.entries(changes)
     .map(([c, v]) => [c, Math.round(v * 100)] as const)
     .filter(([, v]) => Math.abs(v) >= 2)
   const gains = moved.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2)
   const costs = moved.filter(([, v]) => v < 0).sort((a, b) => a[1] - b[1]).slice(0, 2)
-  const fmt = (xs: readonly (readonly [string, number])[]) => xs.map(([c, v]) => `${c} ${signedInt(v)}`).join(', ')
-  const parts = []
-  if (gains.length) parts.push(`Gains ${fmt(gains)} pts of weekly win chance`)
-  if (costs.length) parts.push(`costs ${fmt(costs)}`)
-  return parts.join('; ')
+  if (!gains.length && !costs.length) return null
+  const chip = ([c, v]: readonly [string, number]) => (
+    <li key={c} className={v > 0 ? 'bm-chip up' : 'bm-chip down'}>
+      {c} <span className="num">{signedInt(v)}</span>
+    </li>
+  )
+  return (
+    <ul className="bm-chips" aria-label="Weekly win chance, in points" title="Weekly win chance, in points">
+      {gains.map(chip)}
+      {gains.length > 0 && costs.length > 0 && <li className="bm-sep" aria-hidden="true" />}
+      {costs.map(chip)}
+    </ul>
+  )
 }
 
 export function OddsMeter({ before, after }: { before: number; after: number }) {
@@ -86,7 +96,9 @@ export function BestMove({ report }: { report: AnalysisReport }) {
       <section className="card best">
         <span className="eyebrow">Your best move</span>
         <h2>Hold for now</h2>
-        <p className="muted">No single trade or pickup clearly raises your playoff odds right now. Check back after the next games.</p>
+        <p className="muted">
+          No single trade or pickup clearly raises your playoff odds right now. Check back after the next games.
+        </p>
       </section>
     )
   }
@@ -106,7 +118,12 @@ export function BestMove({ report }: { report: AnalysisReport }) {
             players={[pickup.add]}
             note={`${pickup.add.positions.join('/')} · ${pickup.availability === 'WAIVERS' ? 'on waivers' : 'free agent'} · ${Math.round(pickup.add.percent_owned)}% owned`}
           />
-          <Side label="− DROP" tone="bad" players={[pickup.drop]} note={`${pickup.drop.positions.join('/')} · on your roster`} />
+          <Side
+            label="− DROP"
+            tone="bad"
+            players={[pickup.drop]}
+            note={`${pickup.drop.positions.join('/')} · on your roster`}
+          />
         </div>
         <OddsMeter before={pickup.playoff_pct_before} after={pickup.playoff_pct_after} />
         <div className="row">
@@ -119,9 +136,9 @@ export function BestMove({ report }: { report: AnalysisReport }) {
             Make the claim on ESPN
           </a>
           <a className="button ghost" href="#pickup-0">
-            All pickups
+            All FA targets
           </a>
-          <span className="small muted">{topChanges(pickup.category_changes)}</span>
+          <TopChanges changes={pickup.category_changes} />
         </div>
       </section>
     )
@@ -135,7 +152,12 @@ export function BestMove({ report }: { report: AnalysisReport }) {
         </span>
       </div>
       <div className="swap">
-        <Side label="YOU GIVE" tone="bad" players={trade.give} note={trade.my_drop ? `You also drop ${trade.my_drop.name}` : 'From your roster'} />
+        <Side
+          label="YOU GIVE"
+          tone="bad"
+          players={trade.give}
+          note={trade.my_drop ? `You also drop ${trade.my_drop.name}` : 'From your roster'}
+        />
         <Side
           label="YOU GET"
           tone="good"
@@ -160,7 +182,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
         <a className="button ghost" href="#trade-0">
           See the pitch
         </a>
-        <span className="small muted">{topChanges(trade.category_changes)}</span>
+        <TopChanges changes={trade.category_changes} />
       </div>
     </section>
   )

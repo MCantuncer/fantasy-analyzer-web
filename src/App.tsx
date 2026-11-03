@@ -1,8 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { ApiError, fetchAnalysis, fetchLeague, fetchMe, fetchOverview, signOut } from './api/client'
+import {
+  ApiError,
+  fetchAnalysis,
+  fetchLeague,
+  fetchMe,
+  fetchOverview,
+  retryDropped,
+  retryDroppedDelay,
+  signOut,
+} from './api/client'
 import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague } from './api/client'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
+import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
 import { CookieForm } from './components/CookieForm'
@@ -15,10 +25,10 @@ import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
-import { Status } from './components/Status'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
+import { clearSavedReports, loadSavedReport, saveReport } from './lib/savedReport'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
@@ -108,7 +118,14 @@ export default function App() {
   useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
   useEffect(() => applyTheme(theme), [theme])
 
-  const me = useQuery({ queryKey: ['me'], queryFn: fetchMe, enabled: signedIn, retry: false, staleTime: 60_000 })
+  const me = useQuery({
+    queryKey: ['me'],
+    queryFn: fetchMe,
+    enabled: signedIn,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
+    staleTime: 60_000,
+  })
   // A session the server no longer knows (signed out elsewhere, expired): back to sign-in.
   useEffect(() => {
     if (me.error instanceof ApiError && me.error.status === 401) endSession()
@@ -123,7 +140,8 @@ export default function App() {
     queryKey: ['overview', selection?.leagueId, season, creds?.swid ?? null],
     queryFn: () => fetchOverview({ leagueId: selection!.leagueId, season: season! }, creds),
     enabled: signedIn && selection !== null,
-    retry: false,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
     staleTime: 2 * 60_000,
   })
   const myTeamId = overview.data?.my_team_id ?? null
@@ -134,12 +152,14 @@ export default function App() {
     queryKey: ['league', selection?.leagueId, season, creds?.swid ?? null],
     queryFn: () => fetchLeague(selection!.leagueId, season, creds),
     enabled: myTeamId !== null,
-    retry: false,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
     staleTime: 5 * 60_000,
   })
 
   const analysis = useMutation({
-    mutationFn: (args: { teamId: number; keep: number[] }) => {
+    // ``quiet`` runs refresh a saved report that is already on screen.
+    mutationFn: (args: { teamId: number; keep: number[]; quiet?: boolean }) => {
       // A newer run (another league, new keepers) replaces the one in flight.
       running.current?.abort()
       const controller = new AbortController()
@@ -150,6 +170,7 @@ export default function App() {
     onSuccess: (data, args) => {
       setReport(data)
       setAppliedKeep(args.keep)
+      saveReport(data.league.id, args.teamId, args.keep, data)
     },
   })
   const shownProgress = useSmoothProgress(job.progress, analysis.isPending)
@@ -160,8 +181,12 @@ export default function App() {
     if (!selection || !myTeamId || !leagueReady) return
     const stored = loadKeep(selection.leagueId, myTeamId)
     setKeep(stored)
-    setReport(null)
-    mutate({ teamId: myTeamId, keep: stored })
+    // A refresh shows the last finished report at once; only an old one is worked out again, quietly.
+    const saved = loadSavedReport(selection.leagueId, myTeamId, selection.season, stored)
+    setReport(saved?.report ?? null)
+    if (saved) setAppliedKeep(stored)
+    if (saved?.fresh) return
+    mutate({ teamId: myTeamId, keep: stored, quiet: saved !== null })
   }, [selection, myTeamId, leagueReady, mutate])
 
   const loadError = [overview.error, league.error].find((e) => e instanceof ApiError) as ApiError | undefined
@@ -169,10 +194,23 @@ export default function App() {
   const verified = myTeamId !== null
   const tabs: readonly { id: string; label: string }[] = verified ? TABS : LEAGUE_TABS
   const activeTab = tabs.find((t) => t.id === tab)?.id ?? tabs[0].id
-  const showTabs = selection && !verifying && overview.data
-  const tabsRef = useTabInView(showTabs ? activeTab : null)
   const waitingForReport = verified && !report
+  // Until the first report is in, the analysis tabs have nothing to show: the loading card
+  // stands alone, and browsing from it offers only the pages that work meanwhile.
+  const browseTabs = waitingForReport ? tabs.filter((t) => !ANALYSIS_TABS.has(t.id)) : tabs
+  const showTabs =
+    selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
+  const tabsRef = useTabInView(showTabs ? activeTab : null)
   const firstRun = waitingForReport && analysis.isPending
+  // Between the league answering and the analysis starting there is nothing new to show,
+  // so the loading card stays up instead of blanking the page for a moment.
+  const preparing =
+    waitingForReport &&
+    ANALYSIS_TABS.has(activeTab) &&
+    !analysis.error &&
+    !league.error &&
+    league.data?.supported !== false &&
+    (league.isLoading || analysis.isPending || analysis.isIdle)
 
   // Someone who wandered off to another tab hears when their moves are in.
   const activeRef = useRef(activeTab)
@@ -191,6 +229,7 @@ export default function App() {
 
   function endSession() {
     clearToken()
+    clearSavedReports()
     qc.clear()
     setSignedIn(false)
     goHome()
@@ -353,7 +392,7 @@ export default function App() {
         </div>
         {showTabs && (
           <nav ref={tabsRef} className="tabs" role="tablist" aria-label="Sections">
-            {tabs.map((t) => (
+            {browseTabs.map((t) => (
               <button
                 key={t.id}
                 id={`tab-${t.id}`}
@@ -373,7 +412,7 @@ export default function App() {
       <main className="main">
         {!signedIn && <Auth theme={theme} onSignedIn={signedInWith} />}
 
-        {signedIn && me.isPending && <div className="card muted">Loading your account…</div>}
+        {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
         {signedIn && me.data && !selection && (
           <MyLeagues
@@ -388,7 +427,17 @@ export default function App() {
           />
         )}
 
-        {signedIn && selection && overview.isLoading && <Status phase="league" />}
+        {/* One loading card from the first second to the report: the server waking, the league
+            loading and the analysis all show in the same card, so nothing swaps under the user. */}
+        {signedIn && selection && !verifying && (overview.isLoading || (overview.data && preparing)) && (
+          <AnalysisCard
+            progress={overview.data ? shownProgress : 0}
+            stage={overview.data ? job.stage : 'Starting'}
+            onBrowse={(t) => setTab(t)}
+            waking={!overview.data}
+            title={overview.isLoading && me.data && !mine?.team_id ? 'Loading your league' : undefined}
+          />
+        )}
 
         {signedIn && selection && needsCookies && (
           <CookieForm
@@ -409,6 +458,16 @@ export default function App() {
             <h2>Couldn't load that league</h2>
             <p>{loadError.message}</p>
             <div className="row">
+              {loadError.status === 0 && (
+                <button
+                  onClick={() => {
+                    if (overview.error) void overview.refetch()
+                    if (league.error) void league.refetch()
+                  }}
+                >
+                  Try again
+                </button>
+              )}
               <button className="secondary" onClick={goHome}>
                 Back to my leagues
               </button>
@@ -457,10 +516,6 @@ export default function App() {
           <News leagueId={ref.leagueId} season={ref.season} myTeamId={null} teams={overview.data.teams} creds={creds} />
         )}
 
-        {!verifying && overview.data && ref && firstRun && ANALYSIS_TABS.has(activeTab) && (
-          <AnalysisCard progress={shownProgress} stage={job.stage} onBrowse={(t) => setTab(t)} />
-        )}
-
         {!verifying && overview.data && ref && waitingForReport && !ANALYSIS_TABS.has(activeTab) && (
           <div
             className="stack"
@@ -471,7 +526,12 @@ export default function App() {
           >
             {activeTab === 'league' && (
               <>
-                <LeagueOverview overview={overview.data} onVerify={() => undefined} />
+                <LeagueOverview
+                  overview={overview.data}
+                  onVerify={() => undefined}
+                  leagueRef={ref ?? undefined}
+                  creds={creds}
+                />
                 {analysis.isPending && (
                   <div className="card pending-note">
                     <div className="progress" aria-hidden="true">
@@ -505,7 +565,12 @@ export default function App() {
           </div>
         )}
 
-        {!verifying && verified && analysis.error && (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
+        {/* A quiet refresh that fails leaves the saved report up instead of covering it with an error. */}
+        {!verifying &&
+          verified &&
+          analysis.error &&
+          !analysis.variables?.quiet &&
+          (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
           <div className="card error stack">
             <h2>Something went wrong</h2>
             <p>{analysis.error.message}</p>

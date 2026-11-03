@@ -1,9 +1,11 @@
 import type { PlayerBadge, PlayerRef } from '../api/client'
+import './PlayerBadges.css'
 
 const LABELS: Record<PlayerBadge['kind'], string> = {
   jewel: 'Jewel',
   keystone: 'Keystone',
   fresh_signing: 'Fresh signing',
+  hot: 'Hot',
   not_for_sale: 'Not for sale',
   on_the_block: 'On the block',
 }

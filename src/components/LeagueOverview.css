@@ -8,3 +8,45 @@
   grid-column: 1 / -1;
   min-width: 0;
 }
+
+/* Your matchup is marked by an icon in its tag, not a border: the outline belongs only to
+   the card whose box score is open, so one card looks selected at a time. */
+.mu-tag.mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mu-mine-icon {
+  flex: none;
+  fill: currentColor;
+}
+
+/* Box score key: drawn with the real cell styles instead of a sentence. */
+.lo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.lo-legend > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lo-legend .box-cell {
+  --team: var(--accent);
+  min-width: 34px;
+  height: 24px;
+  font-size: 13px;
+}
+
+.lo-legend-close {
+  color: var(--warn);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

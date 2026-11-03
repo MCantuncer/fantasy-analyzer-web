@@ -32,7 +32,7 @@ export function initials(name: string): string {
 // The order ESPN shows categories in a box score.
 const ORDER = ['PTS', 'REB', 'AST', 'STL', 'BLK', '3PM', 'FG%', 'FT%', 'TO']
 
-export function boxOrder(cats: CategoryScore[]): CategoryScore[] {
+export function boxOrder<T extends { stat: string }>(cats: T[]): T[] {
   const rank = (s: string) => {
     const i = ORDER.indexOf(s)
     return i === -1 ? ORDER.length : i
@@ -50,12 +50,13 @@ export function formatStat(stat: string, value: number): string {
 
 /**
  * A category is close when it could still flip this week: counting stats within 11% of each other,
- * shooting percentages within .022.
+ * shooting percentages within .022. Nothing is close at 0-0: no one has played yet.
  */
 export function isClose(stat: string, a: number, b: number): boolean {
-  if (isRatio(stat)) return Math.abs(a - b) <= 0.022
   const top = Math.max(Math.abs(a), Math.abs(b))
-  return top === 0 || Math.abs(a - b) / top <= 0.11
+  if (top === 0) return false
+  if (isRatio(stat)) return Math.abs(a - b) <= 0.022
+  return Math.abs(a - b) / top <= 0.11
 }
 
 export function record(side: Pick<MatchupSide, 'wins' | 'losses' | 'ties'>): string {
@@ -70,11 +71,13 @@ function list(stats: string[]): string {
 /**
  * One line on what you can still change in your matchup, or null when nothing is in reach.
  * It only names categories whose single flip would change the result (a close loss, or a tie),
- * and says when the other side has no games left.
+ * and says when the other side has no games left. A tie at 0 on both sides is no stats yet, not a swing
+ * category, so at the start of a week (everything 0-0) it says nothing.
  */
 export function flipHint(me: MatchupSide, them: MatchupSide): string | null {
   const theirs = new Map((them.categories ?? []).map((c) => [c.stat, c.value]))
   const close = (c: CategoryScore) => theirs.has(c.stat) && isClose(c.stat, c.value, theirs.get(c.stat)!)
+  const unplayed = (c: CategoryScore) => c.value === 0 && (theirs.get(c.stat) ?? 0) === 0
   const outcome = (w: number, l: number) => Math.sign(w - l) // 1 win, 0 level, -1 loss
   const now = outcome(me.wins, me.losses)
   const myLeft = me.games?.left ?? null
@@ -90,7 +93,7 @@ export function flipHint(me: MatchupSide, them: MatchupSide): string | null {
       const flip =
         c.result === 'L' && close(c)
           ? { wins: me.wins + 1, losses: me.losses - 1, ties: me.ties }
-          : c.result === 'T'
+          : c.result === 'T' && !unplayed(c)
             ? { wins: me.wins + 1, losses: me.losses, ties: me.ties - 1 }
             : null
       if (!flip) continue

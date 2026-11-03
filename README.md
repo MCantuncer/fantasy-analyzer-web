@@ -35,7 +35,7 @@
 
 ## Overview
 
-The web client for Fantasy Analyzer, built for ESPN **9-category head-to-head** leagues. Enter a league ID (or paste your ESPN team page URL), verify your team, and every move is ranked by how much it changes your playoff odds: trades the other owner should accept, free-agent pickups with the right drop, and where your categories stand.
+The web client for Fantasy Analyzer, built for ESPN **9-category head-to-head** leagues. Enter a league ID (or paste your ESPN team page URL), verify your team, and every move is ranked by how much it changes your playoff odds: trades the other owner should accept, free agents paired with the right drop, and where your categories stand.
 
 All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantuncer/fantasy-analyzer-api). This app presents it.
 
@@ -47,9 +47,10 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 🧊 | **Injury risk** | Players who keep missing games carry an amber durability score (tap it for what it means), and every trade's odds count them for fewer games. |
 | 🎯 | **Trade for** | Pick any rostered player: his fit with your build, his owner's needs, and three offers (best, safer, cheaper). |
 | 📊 | **My team** | How often you win each category in an average week (locked, swing or losing), your roster's trade and category value, and keepers that are never offered or dropped. |
-| 🛒 | **Pickups** | Free agents paired with the right drop and their effect on your playoff odds. |
+| 🛒 | **FA Targets** | Free agents paired with the right drop and their effect on your playoff odds. |
 | 🏆 | **League** | Every team's build and punts, and simulated standings and playoff odds. |
 | ⭐ | **Trade of the day** | One league-wide win-win trade between any two teams, the same for everyone that day, with a "Would you take it?" poll. |
+| 📅 | **Projected final** | Who wins your matchup and each category by Sunday, and who to bench on crowded days when more players have games than you have lineup spots. |
 | 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. |
 | 📰 | **NBA News** | Injuries, trades and role changes checked against several sources, and who gains minutes when a player is out. |
 | 💬 | **Moves feed and league chat** | Claims, bids, adds, drops and trades, with reactions, replies and trade votes for verified managers. |

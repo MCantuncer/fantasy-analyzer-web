@@ -430,6 +430,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/matchup-projection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Matchup Projection
+         * @description Your matchup projected to its last day: who takes each category, and who sits on crowded days.
+         *
+         *     Each day the best healthy players with a game fill the lineup slots, for both teams.
+         *     Null without the NBA calendar or a matchup this week.
+         */
+        post: operations["matchup_projection_api_matchup_projection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/league-overview": {
         parameters: {
             query?: never;
@@ -566,6 +589,26 @@ export interface paths {
          * @description NBA news from many sources, checked against ESPN's player data and each other before it shows.
          */
         post: operations["news_api_news_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/player-card/extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Player Card Extras
+         * @description The part of a player card that may take longer: his news, and the names of who moved with him.
+         */
+        post: operations["player_card_extras_api_player_card_extras_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -821,6 +864,13 @@ export interface components {
             token: string;
             me: components["schemas"]["Me"];
         };
+        /** BenchedPlayer */
+        BenchedPlayer: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
         /** Beneficiary */
         Beneficiary: {
             /** Player Id */
@@ -956,6 +1006,29 @@ export interface components {
              * @description What the data shows, in a sentence
              */
             evidence: string;
+        };
+        /** CrowdedDay */
+        CrowdedDay: {
+            /**
+             * Date
+             * @description ISO date (US)
+             */
+            date: string;
+            /**
+             * Playing
+             * @description Healthy players with a game that day
+             */
+            playing: number;
+            /**
+             * Slots
+             * @description Lineup slots
+             */
+            slots: number;
+            /**
+             * Sit
+             * @description Players with a game who don't make the best lineup
+             */
+            sit: components["schemas"]["BenchedPlayer"][];
         };
         /** DeletePostRequest */
         DeletePostRequest: {
@@ -1417,6 +1490,27 @@ export interface components {
             /** Team Name */
             team_name: string;
         };
+        /** MatchupProjection */
+        MatchupProjection: {
+            /** Opponent Id */
+            opponent_id: number;
+            /**
+             * Wins
+             * @description Categories you're projected to take
+             */
+            wins: number;
+            /** Losses */
+            losses: number;
+            /** Categories */
+            categories: components["schemas"]["ProjectedCategory"][];
+            /**
+             * My Crowded
+             * @description Your days left with more players than slots
+             */
+            my_crowded: components["schemas"]["CrowdedDay"][];
+            /** Their Crowded */
+            their_crowded: components["schemas"]["CrowdedDay"][];
+        };
         /** MatchupSide */
         MatchupSide: {
             /** Team Id */
@@ -1782,14 +1876,32 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /**
+         * PitchNeed
+         * @description A category the deal helps them in, as the pitch names it.
+         */
+        PitchNeed: {
+            /** Category */
+            category: string;
+            /**
+             * League Rank
+             * @description Their rank in the category now, 1 is best
+             */
+            league_rank: number;
+            /**
+             * Per Game
+             * @description What the deal adds a game, counting stats only
+             */
+            per_game?: number | null;
+        };
         /** PlayerBadge */
         PlayerBadge: {
             /**
              * Kind
-             * @description jewel: star name. keystone: carries a category for his team. fresh_signing: just traded for or picked up. not_for_sale: untouchable. on_the_block: on his owner's ESPN trade block.
+             * @description jewel: star name. keystone: carries a category for his team. fresh_signing: just traded for or picked up. hot: ESPN ranks him far higher over the last 15 days than before the season. not_for_sale: untouchable. on_the_block: on his owner's ESPN trade block.
              * @enum {string}
              */
-            kind: "jewel" | "keystone" | "fresh_signing" | "not_for_sale" | "on_the_block";
+            kind: "jewel" | "keystone" | "fresh_signing" | "hot" | "not_for_sale" | "on_the_block";
             /**
              * Category
              * @description The category a keystone carries
@@ -1848,6 +1960,24 @@ export interface components {
              */
             moves: components["schemas"]["PlayerMove"][];
         };
+        /**
+         * PlayerCardExtras
+         * @description The slower part of a player card, loaded while the core shows.
+         */
+        PlayerCardExtras: {
+            /**
+             * News
+             * @description Recent stories about him, newest first
+             */
+            news: components["schemas"]["PlayerNews"][];
+            /**
+             * Names
+             * @description Names of the other players in his moves, by player id
+             */
+            names: {
+                [key: string]: string;
+            };
+        };
         /** PlayerCardRequest */
         PlayerCardRequest: {
             /** League Id */
@@ -1859,6 +1989,12 @@ export interface components {
             season?: number | null;
             /** Player Id */
             player_id: number;
+            /**
+             * Core
+             * @description Only what the card shows first: no news, and names in moves only when already known. Fetch /api/player-card/extras alongside for the rest.
+             * @default false
+             */
+            core: boolean;
         };
         /** PlayerGame */
         PlayerGame: {
@@ -2088,6 +2224,29 @@ export interface components {
              */
             target?: string | null;
         };
+        /** ProjectedCategory */
+        ProjectedCategory: {
+            /** Stat */
+            stat: string;
+            /**
+             * Mine
+             * @description Your projected total by the last day of the week (percentages as fractions)
+             */
+            mine: number;
+            /** Theirs */
+            theirs: number;
+            /**
+             * Winner
+             * @description Who is projected to take the category
+             * @enum {string}
+             */
+            winner: "me" | "them";
+            /**
+             * Close
+             * @description Close to a coin flip: could go either way
+             */
+            close: boolean;
+        };
         /** ReactRequest */
         ReactRequest: {
             /** League Id */
@@ -2124,6 +2283,67 @@ export interface components {
             /** Target */
             target: string;
             reactions: components["schemas"]["Reactions"];
+        };
+        /**
+         * ReasonFact
+         * @description One reason as data, so the page can draw it (bars, chips) instead of printing a sentence.
+         */
+        ReasonFact: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sell_high" | "buy_low" | "punt_cost" | "players_out" | "consolidate" | "chasing" | "roster_squeeze" | "keystone_lost" | "vs_pickup" | "faab" | "paper_win" | "punt_mine" | "punt_theirs" | "not_rival";
+            /**
+             * Tone
+             * @description for: a reason they say yes; against: a reason they may not; note: context for you
+             * @enum {string}
+             */
+            tone: "for" | "against" | "note";
+            /**
+             * Text
+             * @description The same point as a sentence, as in `reasons`
+             */
+            text: string;
+            /** Player Id */
+            player_id?: number | null;
+            /** Player Name */
+            player_name?: string | null;
+            /** Categories */
+            categories?: string[];
+            /**
+             * Owners Value
+             * @description What owners pay for the player, in dollars
+             */
+            owners_value?: number | null;
+            /**
+             * Our Value
+             * @description What he's worth in this league's categories, in dollars
+             */
+            our_value?: number | null;
+            /**
+             * Owners Label
+             * @description owners_value as owners say it: "$38", "a 4th-round pick"
+             */
+            owners_label?: string | null;
+            /** Our Label */
+            our_label?: string | null;
+            /** Count */
+            count?: number | null;
+            /**
+             * Rank
+             * @description chasing: their place in the standings
+             */
+            rank?: number | null;
+            /** Teams */
+            teams?: number | null;
+            /** Playoff Spots */
+            playoff_spots?: number | null;
+            /**
+             * Ratio
+             * @description paper_win: trade value they get over what they send
+             */
+            ratio?: number | null;
         };
         /** RepliesPage */
         RepliesPage: {
@@ -2304,6 +2524,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -2571,6 +2801,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -2930,6 +3170,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -3153,6 +3403,16 @@ export interface components {
             pitch: string;
             /** Reasons */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -4342,6 +4602,61 @@ export interface operations {
             };
         };
     };
+    matchup_projection_api_matchup_projection_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchupProjection"] | null;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     league_overview_api_league_overview_post: {
         parameters: {
             query?: never;
@@ -4616,6 +4931,61 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    player_card_extras_api_player_card_extras_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerCardExtras"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import type { LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
+import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
+import type { Credentials } from '../lib/credentials'
 import { flipHint, teamColours } from '../lib/league'
+import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
@@ -11,6 +13,9 @@ interface Props {
   onVerify: () => void
   /** Season simulation rows for the Projected standings tab; undefined while the analysis runs. */
   projected?: SeasonRow[] | null
+  /** For your matchup's Projected final; left out, the card shows today's box score only. */
+  leagueRef?: LeagueRef
+  creds?: Credentials | null
 }
 
 function shortDate(iso: string | null | undefined) {
@@ -59,7 +64,7 @@ function Tile({ icon, value, label, tone }: { icon: string; value: ReactNode; la
 }
 
 /** The League page: your matchup as a box score, the league's pulse, every matchup and the standings. */
-export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
+export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, creds }: Props) {
   const verified = o.my_team_id != null
   const colours = useMemo(
     () =>
@@ -173,9 +178,39 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
               />
             )
           })()}
-          <p className="small muted box-legend">
-            Shaded: leading that category. Amber category name: close enough to flip. Grey outline on both rows: tied.
-          </p>
+          <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
+            <li>
+              <span className="box-cell lead num" aria-hidden="true">
+                12
+              </span>
+              leading
+            </li>
+            <li>
+              <span className="lo-legend-close" aria-hidden="true">
+                REB
+              </span>
+              close, can flip
+            </li>
+            <li>
+              <span className="box-cell tie num" aria-hidden="true">
+                0
+              </span>
+              tied
+            </li>
+          </ul>
+          {mine &&
+            leagueRef &&
+            (() => {
+              const [me, them] = sides(mine)
+              return (
+                <MatchupProjection
+                  leagueRef={leagueRef}
+                  creds={creds ?? null}
+                  me={{ name: nameOf(me.team_id), colour: colours.get(me.team_id) }}
+                  them={{ name: nameOf(them.team_id), colour: colours.get(them.team_id) }}
+                />
+              )
+            })()}
         </section>
       )}
 
@@ -219,6 +254,12 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
               const body = (
                 <>
                   <span className={`mu-tag${isMine ? ' mine' : tag === 'Coin flip' ? ' close' : tag ? ' star' : ''}`}>
+                    {isMine && (
+                      <svg className="mu-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 21a8 8 0 0 1 16 0z" />
+                      </svg>
+                    )}
                     {tag ?? '\u00a0'}
                   </span>
                   {[a, b].map((s, i) => {
@@ -241,7 +282,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
                     {expandable ? (
                       <button
                         type="button"
-                        className={`mu-card${isMine ? ' mine' : ''}`}
+                        className="mu-card"
                         aria-expanded={open === key(m)}
                         aria-controls="mu-box"
                         onClick={() => setOpen(open === key(m) ? null : key(m))}
@@ -249,7 +290,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
                         {body}
                       </button>
                     ) : (
-                      <div className={`mu-card${isMine ? ' mine' : ''}`}>{body}</div>
+                      <div className="mu-card">{body}</div>
                     )}
                   </li>
                   {open === key(m) && boxPanel && <li className="mu-box-slot">{boxPanel}</li>}
@@ -277,7 +318,7 @@ export function LeagueOverview({ overview: o, onVerify, projected }: Props) {
           </span>
           <ul className="locked">
             {[
-              'Your best trades and pickups',
+              'Your best trades and FA targets',
               'Your playoff odds and category outlook',
               'League Chat, reactions and votes',
             ].map((t) => (

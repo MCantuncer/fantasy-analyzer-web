@@ -1,0 +1,40 @@
+/* Empty-state intros (Trade Park, Trade For): steps with icons instead of a paragraph. */
+.intro-steps {
+  justify-self: stretch;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intro-steps > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+}
+
+.intro-steps svg {
+  flex: none;
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.intro-steps > li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.intro-steps strong {
+  font-size: 14px;
+}

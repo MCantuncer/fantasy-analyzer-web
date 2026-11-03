@@ -30,6 +30,8 @@ export type AuthConfig = components['schemas']['AuthConfig']
 export type LeagueOverview = components['schemas']['LeagueOverview']
 export type OverviewTeam = components['schemas']['OverviewTeam']
 export type MatchupSide = components['schemas']['MatchupSide']
+export type MatchupProjection = components['schemas']['MatchupProjection']
+export type CrowdedDay = components['schemas']['CrowdedDay']
 export type CategoryScore = components['schemas']['CategoryScore']
 export type WeekGames = components['schemas']['WeekGames']
 export type OverviewMatchup = components['schemas']['OverviewMatchup']
@@ -61,6 +63,7 @@ export type NoteRead = components['schemas']['NoteRead']
 export type TradeRule = components['schemas']['TradeRule']
 export type TradeRuleKind = TradeRule['kind']
 export type PlayerCard = components['schemas']['PlayerCard']
+export type PlayerCardExtras = components['schemas']['PlayerCardExtras']
 export type PlayerGame = components['schemas']['PlayerGame']
 export type PlayerMove = components['schemas']['PlayerMove']
 export type PlayerNews = components['schemas']['PlayerNews']
@@ -171,6 +174,10 @@ export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
   return post<LeagueOverview>('/api/league-overview', { league_id: ref.leagueId, season: ref.season }, creds)
 }
 
+export function fetchMatchupProjection(ref: LeagueRef, creds: Credentials | null) {
+  return post<MatchupProjection | null>('/api/matchup-projection', { league_id: ref.leagueId, season: ref.season }, creds)
+}
+
 export function fetchLeague(leagueId: number, season: number | null, creds: Credentials | null) {
   return post<LeagueSummary>('/api/league', { league_id: leagueId, season }, creds)
 }
@@ -181,20 +188,81 @@ export interface AnalysisProgress {
 }
 
 const POLL_MS = 1500
+// A phone that leaves the page (locks, switches apps) drops whatever request is in flight,
+// and Render can answer 502/503 while it restarts. The job keeps running on the server, so
+// a dropped poll is retried; only this many misses in a row, with the page open, ends the wait.
+const POLL_MISSES = 6
+const RETRY_MS = [1000, 2000, 4000, 8000, 15000]
 
+/** A poll that failed on the way, not because the analysis failed. Worth asking again. */
+export function isTransient(e: unknown) {
+  if (!(e instanceof ApiError)) return true
+  return e.status === 0 ? e.code !== 'aborted' : e.status === 502 || e.status === 503 || e.status === 504
+}
+
+// Loading the account and the league rides out the same dropped requests: a phone that
+// switches apps while the free server wakes up cuts the request, and Render can answer
+// 502/503 while it starts. React Query holds a retry while the page is hidden and sends
+// it as soon as the page is back, so only misses with the page open count.
+const LOAD_RETRIES = 4
+
+/** React Query ``retry`` for the account and league loads: ask again after a dropped request. */
+export function retryDropped(failureCount: number, error: unknown) {
+  return failureCount < LOAD_RETRIES && isTransient(error)
+}
+
+/** React Query ``retryDelay`` that backs off like the analysis poll. */
+export function retryDroppedDelay(attempt: number) {
+  return RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)]
+}
+
+function pageHidden() {
+  return typeof document !== 'undefined' && document.visibilityState === 'hidden'
+}
+
+/**
+ * Waits ``ms``, or until the page is visible again when it is hidden: a phone that comes
+ * back to the app asks for news at once instead of finishing an old timer or a stale wait.
+ */
 function wait(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
-    const id = setTimeout(resolve, ms)
-    signal?.addEventListener('abort', () => {
-      clearTimeout(id)
+    if (signal?.aborted) {
       reject(new ApiError(0, 'aborted', 'Cancelled.'))
-    })
+      return
+    }
+    let id: ReturnType<typeof setTimeout> | undefined
+    const done = () => {
+      clearTimeout(id)
+      document.removeEventListener('visibilitychange', onVisible)
+      signal?.removeEventListener('abort', onAbort)
+    }
+    const onVisible = () => {
+      if (pageHidden()) return
+      done()
+      resolve()
+    }
+    const onAbort = () => {
+      done()
+      reject(new ApiError(0, 'aborted', 'Cancelled.'))
+    }
+    signal?.addEventListener('abort', onAbort)
+    document.addEventListener('visibilitychange', onVisible)
+    // A hidden page doesn't poll at all; it picks up where it left off when it's back.
+    if (!pageHidden()) {
+      id = setTimeout(() => {
+        done()
+        resolve()
+      }, ms)
+    }
   })
 }
 
 /**
  * Runs the team's analysis as a background job on the server and polls it until the
  * report is ready, reporting progress along the way. Nothing blocks while it runs.
+ *
+ * The server keeps one job per team and settings, so polling with the same body after a
+ * dropped connection or a page reload picks up the same run instead of starting over.
  */
 export async function fetchAnalysis(
   leagueId: number,
@@ -211,10 +279,22 @@ export async function fetchAnalysis(
     season,
     keep_player_ids: keepPlayerIds,
   }
+  let misses = 0
   for (;;) {
     if (signal?.aborted) throw new ApiError(0, 'aborted', 'Cancelled.')
-    // Each poll answers at once; the timeout only guards against a stalled connection.
-    const job = await post<AnalysisJob>('/api/analyze/job', body, creds, 90_000)
+    let job: AnalysisJob
+    try {
+      // Each poll answers at once; the timeout only guards against a stalled connection.
+      job = await post<AnalysisJob>('/api/analyze/job', body, creds, 90_000)
+    } catch (e) {
+      if (signal?.aborted || !isTransient(e)) throw e
+      // Misses while the page is hidden don't count: the phone cut them, not the server.
+      if (!pageHidden()) misses += 1
+      if (misses >= POLL_MISSES) throw e
+      await wait(RETRY_MS[Math.min(Math.max(misses - 1, 0), RETRY_MS.length - 1)], signal)
+      continue
+    }
+    misses = 0
     if (job.status === 'done' && job.report) return job.report
     if (job.status === 'failed') {
       throw new ApiError(500, job.error?.code ?? 'analysis_failed', job.error?.message ?? 'The analysis failed.')
@@ -392,9 +472,20 @@ export function fetchInjuryImpact(
   )
 }
 
+/** What a player card shows first: header, form, games and moves. News comes from ``fetchPlayerCardExtras``. */
 export function fetchPlayerCard(ref: LeagueRef, playerId: number, creds: Credentials | null) {
   return post<PlayerCard>(
     '/api/player-card',
+    { league_id: ref.leagueId, season: ref.season, player_id: playerId, core: true },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** The rest of a player card, loaded alongside the core: his news and the names of who moved with him. */
+export function fetchPlayerCardExtras(ref: LeagueRef, playerId: number, creds: Credentials | null) {
+  return post<PlayerCardExtras>(
+    '/api/player-card/extras',
     { league_id: ref.leagueId, season: ref.season, player_id: playerId },
     creds,
     SCORES_TIMEOUT_MS,

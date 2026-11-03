@@ -4,16 +4,17 @@ import { fetchTarget } from '../api/client'
 import type { AnalysisReport, TargetOffer, TargetReport, TradeTarget } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { names, pct } from '../lib/format'
-import { shortValue, useRoundValues, valueSentence, valueTitle } from '../lib/tradeValue'
+import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
 import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { HeadStack, PlayerHead } from './PlayerHead'
 import { ACCEPTANCE, CopyButton } from './Trades'
-import { dealPlayers } from '../lib/playerCard'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
-import { PlayerChips, PlayerLink } from './PlayerCard'
+import { DealChips, PlayerLink } from './PlayerCard'
 import './TradeFor.css'
+import { IntroSteps } from './IntroSteps'
+import { ReasonTiles } from './ReasonTiles'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -184,23 +185,20 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
       {open && (
         <div className="move-detail">
           <div>
+            <DealChips deal={offer} />
             <div className="detail-label">Your pitch to {partner}</div>
             <p className="pitch">{offer.pitch}</p>
-            {offer.reasons.length > 0 && (
-              <>
-                <div className="detail-label">Why they might say yes</div>
-                <ul className="reasons">
-                  {offer.reasons.map((r) => (
-                    <li key={r}>{r}</li>
-                  ))}
-                </ul>
-              </>
-            )}
+            <ReasonTiles
+              facts={offer.facts}
+              reasons={offer.reasons}
+              title="Why they might say yes"
+              valueGet={offer.value_they_get}
+              valueGive={offer.value_they_give}
+              myCats={offer.my_cats_gain}
+              theirCats={offer.their_cats_gain}
+              rounds={rounds}
+            />
             <ul className="reasons">
-              <li>{valueSentence(offer.value_they_get, offer.value_they_give, rounds)}, as owners price players.</li>
-              <li>
-                Categories won per week: you {cats(offer.my_cats_gain)}, they {cats(offer.their_cats_gain)}.
-              </li>
               {[...offer.give, ...offer.get]
                 .filter((p) => p.injury_prone && p.games_share != null)
                 .map((p) => (
@@ -213,7 +211,6 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
             </ul>
-            <PlayerChips players={dealPlayers(offer)} label="Players in this deal" />
             <div className="row">
               <CopyButton text={offer.pitch} />
             </div>
@@ -342,10 +339,13 @@ export function TradeFor({ report, keep, creds }: Props) {
           <section className="card stack">
             <span className="eyebrow">Trade For</span>
             <h2>Who do you want?</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Pick any player on another team. You'll see how he fits your build, what his owner needs, and the best
-              offer to send, with two fallbacks.
-            </p>
+            <IntroSteps
+              steps={[
+                { icon: 'pick', title: 'Pick any player', detail: 'on another team' },
+                { icon: 'fit', title: 'See his fit', detail: 'your build and his owner’s needs' },
+                { icon: 'offers', title: 'Get 3 offers', detail: 'the best one and two fallbacks' },
+              ]}
+            />
           </section>
         )}
         {playerId !== null && target.isPending && (

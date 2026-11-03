@@ -81,6 +81,8 @@ describe('box score', () => {
     expect(isClose('FG%', 0.4977, 0.4739)).toBe(false)
     expect(isClose('REB', 212, 237)).toBe(true)
     expect(isClose('PTS', 562, 740)).toBe(false)
+    expect(isClose('PTS', 0, 0)).toBe(false)
+    expect(isClose('FG%', 0, 0)).toBe(false)
   })
 })
 
@@ -113,6 +115,31 @@ describe('flip hint', () => {
       r,
     ])
     expect(flipHint(side(3, cats), side(7, them))).toBe('Flip FT% or TO to level it at 4-4-1')
+  })
+
+  it('stays quiet at the start of a week when every category is 0-0', () => {
+    const empty: Cat[] = ME.map(([s]) => [s, 0, 'T'])
+    expect(flipHint(side(3, empty), side(7, empty))).toBeNull()
+  })
+
+  it('skips categories still at 0-0 once the week is under way', () => {
+    const cats: Cat[] = [
+      ['PTS', 300, 'W'],
+      ['REB', 120, 'W'],
+      ['AST', 80, 'W'],
+      ['STL', 12, 'T'],
+      ['BLK', 0, 'T'],
+      ['3PM', 20, 'L'],
+      ['FG%', 0.4, 'L'],
+      ['FT%', 0.7, 'L'],
+      ['TO', 50, 'L'],
+    ]
+    const them: Cat[] = cats.map(([s, v, r]) => [
+      s,
+      r === 'T' ? v : s === '3PM' ? 40 : s === 'FG%' ? 0.5 : s === 'FT%' ? 0.9 : s === 'TO' ? 30 : v / 2,
+      r === 'W' ? 'L' : r === 'L' ? 'W' : 'T',
+    ])
+    expect(flipHint(side(3, cats), side(7, them))).toBe('Flip STL to level it at 4-4-1')
   })
 
   it('stays quiet when nothing in reach changes the result', () => {
