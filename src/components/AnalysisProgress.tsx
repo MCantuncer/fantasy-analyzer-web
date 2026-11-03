@@ -102,7 +102,7 @@ function useSeconds(running: boolean) {
   return seconds
 }
 
-export function AnalysisCard({ progress, stage, onBrowse, waking = false, title = 'Finding your best moves' }: CardProps) {
+export function AnalysisCard({ progress, stage, onBrowse, waking = false, title }: CardProps) {
   const wakingFor = useSeconds(waking)
   const now = waking ? 0 : stepIndex(stage)
   const pct = percent(progress)
@@ -110,7 +110,7 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
     <section className={`card analysis-card stack${waking ? ' waking' : ''}`} aria-labelledby="analysis-title">
       <div className="analysis-head">
         <div className="stack" style={{ gap: 4, minWidth: 0 }}>
-          <h2 id="analysis-title">{title}</h2>
+          <h2 id="analysis-title">{title ?? (now <= 1 ? 'Getting your league ready' : 'Finding your best moves')}</h2>
           <span className="small muted" aria-live="polite">
             {waking && wakingFor < 4 ? 'Reaching the server' : STEPS[now].label}…
           </span>

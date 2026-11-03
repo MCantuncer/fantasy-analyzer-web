@@ -193,9 +193,13 @@ export default function App() {
   const verified = myTeamId !== null
   const tabs: readonly { id: string; label: string }[] = verified ? TABS : LEAGUE_TABS
   const activeTab = tabs.find((t) => t.id === tab)?.id ?? tabs[0].id
-  const showTabs = selection && !verifying && overview.data
-  const tabsRef = useTabInView(showTabs ? activeTab : null)
   const waitingForReport = verified && !report
+  // Until the first report is in, the analysis tabs have nothing to show: the loading card
+  // stands alone, and browsing from it offers only the pages that work meanwhile.
+  const browseTabs = waitingForReport ? tabs.filter((t) => !ANALYSIS_TABS.has(t.id)) : tabs
+  const showTabs =
+    selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
+  const tabsRef = useTabInView(showTabs ? activeTab : null)
   const firstRun = waitingForReport && analysis.isPending
   // Between the league answering and the analysis starting there is nothing new to show,
   // so the loading card stays up instead of blanking the page for a moment.
@@ -387,7 +391,7 @@ export default function App() {
         </div>
         {showTabs && (
           <nav ref={tabsRef} className="tabs" role="tablist" aria-label="Sections">
-            {tabs.map((t) => (
+            {browseTabs.map((t) => (
               <button
                 key={t.id}
                 id={`tab-${t.id}`}
