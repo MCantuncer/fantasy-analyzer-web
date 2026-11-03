@@ -1,0 +1,12 @@
+/* Initials fallback for a missing headshot: a clean disc with a soft light from the top left. */
+.head.head-initials {
+  --ph-a: #4a3d33;
+  --ph-b: #2a221c;
+  background: radial-gradient(130% 130% at 30% 15%, var(--ph-a), var(--ph-b));
+  color: var(--text);
+}
+
+:root[data-theme='light'] .head.head-initials {
+  --ph-a: #ffffff;
+  --ph-b: #efe6d9;
+}

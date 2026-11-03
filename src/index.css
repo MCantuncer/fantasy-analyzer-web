@@ -1,31 +1,31 @@
-/* Design tokens. Dark is the default theme; [data-theme='light'] switches. */
+/* Design tokens (Fireside: warm espresso dark, cream light). Dark is the default theme; [data-theme='light'] switches. */
 :root {
-  --bg: #0b0e14;
-  --surface: #131823;
-  --surface-2: #0f1520;
-  --raised: #171d2b;
-  --topbar: #0e121a;
-  --border: #262e40;
-  --divider: #222a3a;
-  --text: #e8ecf4;
-  --text-2: #c9d0dd;
-  --muted: #9aa4b8;
-  --faint: #6b7488;
-  --track: #1f2636;
-  --accent: #7c8cff;
-  --accent-text: #9da8ff;
-  --on-accent: #0b0e14;
-  --focus: #9da8ff;
-  --good: #3dd68c;
-  --warn: #f5b841;
-  --warn-fill: #f5b841;
-  --bad: #ff8a8a;
-  --good-soft: rgb(61 214 140 / 0.14);
-  --warn-soft: rgb(245 184 65 / 0.14);
-  --bad-soft: rgb(255 138 138 / 0.14);
-  --on-good: #0b0e14;
-  --shadow: 0 8px 24px rgb(0 0 0 / 0.4);
-  --accent-soft: rgb(124 140 255 / 0.12);
+  --bg: #17120e;
+  --surface: #221b16;
+  --surface-2: #1d1712;
+  --raised: #2b231d;
+  --topbar: #1a1410;
+  --border: #382e26;
+  --divider: #322821;
+  --text: #f8f1e8;
+  --text-2: #cdc0b1;
+  --muted: #a89a8a;
+  --faint: #85786a;
+  --track: #3a2f27;
+  --accent: #8f8bff;
+  --accent-text: #a9a6ff;
+  --on-accent: #17120e;
+  --focus: #a9a6ff;
+  --good: #5dd68c;
+  --warn: #f2b647;
+  --warn-fill: #f2b647;
+  --bad: #ff8c7c;
+  --good-soft: rgb(93 214 140 / 0.13);
+  --warn-soft: rgb(242 182 71 / 0.13);
+  --bad-soft: rgb(255 140 124 / 0.13);
+  --on-good: #17120e;
+  --shadow: 0 1px 0 rgb(255 240 220 / 0.03) inset, 0 8px 24px -10px rgb(0 0 0 / 0.6);
+  --accent-soft: rgb(143 139 255 / 0.15);
 
   /* League team colours: identity only (crests, bars, leading cells), never outcomes or numbers. */
   --team-0: #f97066;
@@ -34,15 +34,19 @@
   --team-3: #a6ef67;
   --team-4: #36bffa;
   --team-5: #f670c7;
-  --team-6: #9b8afb;
+  --team-6: #e0a98c;
   --team-7: #fd853a;
   --team-8: #cbd5e1;
   --team-9: #fde272;
   --team-10: #fda29b;
   --team-11: #67e3f9;
 
-  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-num: 'Barlow Semi Condensed', 'Inter', system-ui, sans-serif;
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-num: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */
+  --glow: rgb(255 190 130 / 0.07);
+  --die: #221b16;
+  --sticker-shadow: rgb(0 0 0 / 0.55);
   --radius: 12px;
   --radius-sm: 8px;
 
@@ -55,47 +59,51 @@
 }
 
 :root[data-theme='light'] {
-  --bg: #f4f6fa;
+  --bg: #faf5ee;
   --surface: #ffffff;
-  --surface-2: #f4f6fa;
-  --raised: #f5f6ff;
-  --topbar: #ffffff;
-  --border: #e3e7ef;
-  --divider: #e3e7ef;
-  --text: #0e1320;
-  --text-2: #3a4356;
-  --muted: #5a6478;
-  --faint: #8c95a8;
-  --track: #e6eaf2;
-  --accent: #4353ff;
-  --accent-text: #3442d9;
+  --surface-2: #f6efe5;
+  --raised: #fbf7f1;
+  --topbar: #fffdf9;
+  --border: #ece2d4;
+  --divider: #ece2d4;
+  --text: #221b15;
+  --text-2: #5c5147;
+  --muted: #6e6256;
+  --faint: #958778;
+  --track: #ebe1d3;
+  --accent: #4b47e6;
+  --accent-text: #3f3bd0;
   --on-accent: #ffffff;
-  --focus: #3442d9;
-  --good: #0f7a45;
+  --focus: #4b47e6;
+  --good: #167a43;
   /* Golden amber, far from --bad in hue: text 4.6:1 on white and on --warn-soft. */
-  --warn: #946200;
+  --warn: #8f5405;
   /* Bars and dots: brighter amber, 3:1 on white (non-text contrast). */
-  --warn-fill: #c58a00;
-  --bad: #b42323;
-  --good-soft: #e2f3ea;
-  --warn-soft: #fdf2c8;
-  --bad-soft: #fbe7e7;
+  --warn-fill: #ad6f00;
+  --bad: #b83226;
+  --good-soft: #e2f3e7;
+  --warn-soft: #fbefd7;
+  --bad-soft: #fbe5e0;
   --on-good: #ffffff;
-  --shadow: 0 8px 24px rgb(14 19 32 / 0.16);
-  --accent-soft: #eef0ff;
+  --shadow: 0 1px 2px rgb(70 45 20 / 0.05), 0 6px 18px -6px rgb(70 45 20 / 0.1);
+  --accent-soft: #eeedfe;
 
-  --team-0: #d92d20;
+  --team-0: #c8341f;
   --team-1: #b54708;
   --team-2: #0e7c72;
   --team-3: #4b7a12;
   --team-4: #0369a1;
-  --team-5: #c11574;
-  --team-6: #6941c6;
+  --team-5: #b8166f;
+  --team-6: #8a5a44;
   --team-7: #c4320a;
   --team-8: #475467;
-  --team-9: #854a0e;
-  --team-10: #b42318;
+  --team-9: #7a4a10;
+  --team-10: #a8261a;
   --team-11: #0e7490;
+
+  --glow: rgb(255 196 140 / 0.22);
+  --die: #ffffff;
+  --sticker-shadow: rgb(60 40 20 / 0.28);
 
   color-scheme: light;
 }
@@ -117,7 +125,8 @@ h3 {
   line-height: 1.15;
   font-family: var(--font-num);
   font-weight: 700;
-  letter-spacing: 0;
+  /* Inter's optical sizing picks its Display cut at heading sizes; it wants a slightly tighter track. */
+  letter-spacing: -0.01em;
 }
 
 h1 {
@@ -163,6 +172,7 @@ code {
 .num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .tnum {
@@ -958,8 +968,9 @@ th .badge {
 }
 
 .kpi-value.sm {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .kpi-value .of {
@@ -3617,22 +3628,6 @@ button.menu-item.danger {
 }
 
 /* ---------- League page: crests, box scores, matchups, standings ---------- */
-
-.crest {
-  --crest: 32px;
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: var(--crest);
-  height: var(--crest);
-  border-radius: calc(var(--crest) * 0.3);
-  font-size: calc(var(--crest) * 0.4);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--team);
-  background: color-mix(in srgb, var(--team) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--team) 50%, transparent);
-}
 
 .league-head {
   display: flex;
