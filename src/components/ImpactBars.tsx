@@ -1,4 +1,4 @@
-import { signedInt } from '../lib/format'
+import { Delta } from './OddsChange'
 
 // A 25-point swing fills one side of the chart.
 const FULL = 0.25
@@ -25,7 +25,9 @@ export function ImpactBars({ changes, label }: { changes: Record<string, number>
               <span className="pos" aria-hidden="true">
                 {v > 0 && <span style={{ width }} />}
               </span>
-              <span className={`val num ${v > 0 ? 'good' : 'bad'}`}>{signedInt(v)} pts</span>
+              <span className={`val num ${v > 0 ? 'good' : 'bad'}`}>
+                <Delta value={v} unit="pts" />
+              </span>
             </li>
           )
         })}

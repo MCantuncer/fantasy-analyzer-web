@@ -7,6 +7,7 @@ import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
 import { TradeItem } from './Trades'
+import { teamColours } from '../lib/league'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './TradePark.css'
 import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
@@ -62,6 +63,10 @@ function sameSet(a: number[], b: number[]) {
 
 export function TradePark({ report, keep, creds, picks, onPicks, searched, onSearch }: Props) {
   const rounds = useRoundValues()
+  const colours = teamColours(
+    report.season.map((r) => r.team_id),
+    report.team_id,
+  )
   const shop = useQuery({
     queryKey: ['shop', report.league.id, report.league.season, report.team_id, searched, keep, creds?.swid ?? null],
     queryFn: () => fetchShop(report.league.id, report.team_id, report.league.season, searched, keep, creds),
@@ -147,13 +152,13 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
             </div>
           </section>
         )}
-        {shop.data && <Results data={shop.data} />}
+        {shop.data && <Results data={shop.data} colours={colours} />}
       </div>
     </div>
   )
 }
 
-function Results({ data }: { data: ShopReport }) {
+function Results({ data, colours }: { data: ShopReport; colours: Map<number, string> }) {
   const [filter, setFilter] = useState<'all' | 'every' | number>('all')
   const deals = data.deals.filter((d) =>
     filter === 'all' ? true : filter === 'every' ? d.uses_all : d.give.some((p) => p.id === filter),
@@ -268,6 +273,7 @@ function Results({ data }: { data: ShopReport }) {
                       faab={d.faab}
                       tag={<KindPill kind={d.kind} />}
                       feedbackSource="shop"
+                      colour={colours.get(d.partner_team_id)}
                     />
                   )
                 })}

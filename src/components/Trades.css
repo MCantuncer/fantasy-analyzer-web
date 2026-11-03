@@ -30,3 +30,21 @@
 .move-tabs {
   justify-content: center;
 }
+
+/* Fireside: the partner's crest beside their name (never tilted in lists). */
+.tr-with {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tr-partner {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The open/closed chevron only shows on phones, where the row is a stacked card. */
+.tr-chev {
+  display: none;
+}
