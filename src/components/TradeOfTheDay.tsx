@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { pct, ptsDiff, signedInt } from '../lib/format'
+import { ordinal, pct, ptsDiff, signedInt } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import './TradeOfTheDay.css'
 import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
@@ -93,7 +93,8 @@ function Side({
   busy: boolean
 }) {
   const diff = ptsDiff(side.playoff_pct_before, side.playoff_pct_after)
-  const gains = topGains(side.category_changes)
+  const needCats = new Set((side.pitch_needs ?? []).map((n) => n.category))
+  const gains = topGains(side.category_changes).filter((g) => !needCats.has(g.category))
   return (
     <div className={isMe ? 'totd-side me' : 'totd-side'}>
       <div className="totd-team">
@@ -141,6 +142,19 @@ function Side({
           ))}
         </ul>
       )}
+      <WhyYes side={side} />
+      <Poll side={side} pick={pick} onVote={onVote} busy={busy} />
+    </div>
+  )
+}
+
+/** "Why they say yes" drawn from the deal's data: the categories it fills, the punts it costs, the standings. */
+function WhyYes({ side }: { side: TradeSide }) {
+  const needs = side.pitch_needs ?? []
+  const facts = side.facts ?? []
+  if (!needs.length && !facts.length) {
+    // Older pick without the data: the sentences.
+    return (
       <div className="totd-why">
         <div className="kpi-label">Why they say yes</div>
         <p>{side.pitch}</p>
@@ -150,7 +164,79 @@ function Side({
           </p>
         ))}
       </div>
-      <Poll side={side} pick={pick} onVote={onVote} busy={busy} />
+    )
+  }
+  const punts = facts.find((f) => f.kind === 'punt_cost')
+  const chasing = facts.find((f) => f.kind === 'chasing')
+  const rest = facts.filter((f) => f !== punts && f !== chasing).slice(0, punts || chasing ? 1 : 2)
+  return (
+    <div className="totd-why">
+      <div className="kpi-label">Why they say yes</div>
+      {needs.length > 0 ? (
+        <ul className="tw-needs" aria-label="Categories this fills">
+          {needs.map((n) => {
+            const pts = Math.round((side.category_changes[n.category] ?? 0) * 100)
+            return (
+              <li key={n.category}>
+                <div className="tw-top">
+                  <span className="tw-cat num">{n.category}</span>
+                  <span className="tw-rank" title={`${ordinal(n.league_rank)} in the league in ${n.category} now`}>
+                    <span className="sr-only">ranked </span>
+                    {ordinal(n.league_rank)}
+                  </span>
+                </div>
+                {pts >= 1 && (
+                  <div className="tw-pts num good" title="Points of weekly win chance">
+                    {signedInt(pts)}
+                    <span className="tw-unit">% win</span>
+                    <span className="sr-only"> weekly win chance in {n.category}</span>
+                  </div>
+                )}
+                {n.per_game != null && (
+                  <div className="tw-per small muted">
+                    <span className="num">+{n.per_game.toFixed(1)}</span> a game
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      ) : (
+        <p>{side.pitch}</p>
+      )}
+      {(punts || chasing) && (
+        <div className="tw-facts">
+          {punts && (
+            <span className="tw-punts" title={punts.text}>
+              <span className="small muted">Costs only punts</span>
+              {(punts.categories ?? []).map((c) => (
+                <span key={c} className="tw-punt num">
+                  {c}
+                </span>
+              ))}
+            </span>
+          )}
+          {chasing && (
+            <span className="tw-chasing small" title={chasing.text}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <path d="M3 12V7M7 12V3M11 12V9" />
+              </svg>
+              {chasing.rank ? (
+                <span>
+                  <span className="num">{ordinal(chasing.rank)}</span>, outside the top {chasing.playoff_spots}
+                </span>
+              ) : (
+                <span>Outside the playoff spots</span>
+              )}
+            </span>
+          )}
+        </div>
+      )}
+      {rest.map((f) => (
+        <p key={f.text} className="small muted">
+          {f.text}
+        </p>
+      ))}
     </div>
   )
 }
