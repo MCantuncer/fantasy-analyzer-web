@@ -992,45 +992,6 @@ th .badge {
   margin-right: 6px;
 }
 
-/* ---------- Category tiles ---------- */
-
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.tile {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tile-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.tile-value {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.tile-tag {
-  font-size: 12px;
-  font-weight: 600;
-}
-
 /* ---------- Moves lists ---------- */
 
 .moves-switch.segmented {
