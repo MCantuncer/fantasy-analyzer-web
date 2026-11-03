@@ -21,6 +21,12 @@ const KIND = {
 
 const TIERS = { core: 'Keeper', tradeable: 'Tradeable', droppable: 'Droppable', injured: 'Injured' } as const
 
+/** "DAY_TO_DAY" -> "Day to day". */
+const statusWord = (s: string) => {
+  const w = s.replace(/_/g, ' ').toLowerCase()
+  return w.charAt(0).toUpperCase() + w.slice(1)
+}
+
 interface Props {
   report: AnalysisReport
   keep: number[]
@@ -90,13 +96,15 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
                     <strong>{p.name}</strong>
                     <span className="small muted">
                       {p.positions.join(', ')}
-                      {p.injury_status !== 'ACTIVE' && ` · ${p.injury_status.replace(/_/g, ' ').toLowerCase()}`}
+                      {p.injury_status !== 'ACTIVE' && p.tier !== 'injured' && ` · ${statusWord(p.injury_status)}`}
+                      <span className={`pk-tier pk-tier-${p.tier}`}>
+                        {p.tier === 'injured' && p.injury_status !== 'ACTIVE' ? statusWord(p.injury_status) : TIERS[p.tier]}
+                      </span>
                     </span>
                   </span>
                   <span className="pick-value num" title={valueTitle(rounds)}>
                     {shortValue(p.perceived_value, rounds)}
                   </span>
-                  <span className={`badge tier-${p.tier}`}>{TIERS[p.tier]}</span>
                 </label>
               </li>
             )
