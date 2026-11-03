@@ -121,11 +121,6 @@ export function average(games: PlayerGame[]): GameStats | null {
   return out
 }
 
-/** "48.6%", or a dash without attempts. */
-export function shootingPct(made: number, attempts: number): string {
-  return attempts > 0 ? `${((made / attempts) * 100).toFixed(1)}%` : '–'
-}
-
 /** The NBA's own date for a game: tip-offs are US evenings, which are the next morning in Europe. */
 export function gameDate(iso: string | null | undefined): string {
   if (!iso) return ''

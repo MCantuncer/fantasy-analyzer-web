@@ -19,6 +19,7 @@ import './Scores.css'
 import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
 import { ScoresLens } from './ScoresLens'
+import { ShotSplit } from './ShotSplit'
 import type { Lens } from './ScoresLens'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
@@ -535,11 +536,11 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
       <td>{l.blk}</td>
       <td>{l.tpm}</td>
       <td>{l.to}</td>
-      <td>
-        {l.fgm}-{l.fga}
+      <td className="shot-cell">
+        <ShotSplit made={l.fgm} attempts={l.fga} label="FG" />
       </td>
-      <td>
-        {l.ftm}-{l.fta}
+      <td className="shot-cell">
+        <ShotSplit made={l.ftm} attempts={l.fta} label="FT" />
       </td>
     </tr>
   )
