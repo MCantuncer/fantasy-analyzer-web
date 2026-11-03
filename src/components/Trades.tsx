@@ -1,4 +1,6 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
+import { teamColours } from '../lib/league'
+import { TeamCrest } from './TeamCrest'
 import type { FeedbackSource, TradeIdea } from '../api/client'
 import { pct, tradeKey } from '../lib/format'
 import { HeadStack } from './PlayerHead'
@@ -65,10 +67,23 @@ interface ItemProps {
   extra?: ReactNode
   /** Which list the card is in. With a verified manager's scope, the card gets a Feedback tab. */
   feedbackSource?: FeedbackSource
+  /** The partner's league colour, for the crest beside their name. */
+  colour?: string
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
-export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, extra, feedbackSource }: ItemProps) {
+export function TradeItem({
+  trade: t,
+  id,
+  open,
+  onToggle,
+  why,
+  faab = 0,
+  tag,
+  extra,
+  feedbackSource,
+  colour,
+}: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
   const scope = useContext(FeedbackContext)
@@ -145,9 +160,10 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
           </strong>
           {tag}
         </span>
-        <span>
+        <span className="tr-with">
           <span className="label-sm">with </span>
-          {t.partner_team_name}
+          <TeamCrest name={t.partner_team_name} colour={colour} size={20} />
+          <span className="tr-partner">{t.partner_team_name}</span>
         </span>
         <span className="accept" title="Rough estimate from value balance and how much the deal helps them">
           <span className={`tnum ${acc.tone}`}>
@@ -158,6 +174,11 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
           </span>
         </span>
         <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
+        <span className="tr-chev" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 6l4 4 4-4" />
+          </svg>
+        </span>
       </button>
       {open && !tabs && (
         <div className="move-detail" id={`${id}-detail`}>
@@ -261,6 +282,14 @@ export function Trades({
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
   const [open, setOpen] = useState<string | null>(allFair[0] ? tradeKey(allFair[0]) : null)
   const keepRow = useKeepRowInView(open)
+  const colours = useMemo(
+    () =>
+      teamColours(
+        teams.map((x) => x.id),
+        myTeamId,
+      ),
+    [teams, myTeamId],
+  )
 
   const choose = (m: Mode) => {
     setMode(m)
@@ -314,6 +343,7 @@ export function Trades({
                   onToggle={() => setOpen(isOpen ? null : key)}
                   why={MODES[mode].why}
                   feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
+                  colour={colours.get(t.partner_team_id)}
                 />
               )
             })}
@@ -331,6 +361,7 @@ export function Trades({
                     why={MODES[mode].why}
                     tag={<span className="skipped-pill">Skipped: {rule.label}</span>}
                     feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
+                    colour={colours.get(t.partner_team_id)}
                   />
                 )
               })}

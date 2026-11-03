@@ -23,11 +23,11 @@
   }
 
   .move-row:not(.pickup-row) > :nth-child(1) {
-    grid-row: 1;
+    grid-row: 2;
   }
 
   .move-row:not(.pickup-row) > :nth-child(2) {
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .move-row:not(.pickup-row) .head-stack {
@@ -42,22 +42,72 @@
     margin-left: 0;
   }
 
+  /* Line 1: who the trade is with on the left, the chance they accept on the right. */
   .move-row:not(.pickup-row) > :nth-child(3) {
-    grid-column: 1 / -1;
-    grid-row: 3;
+    grid-column: 1 / 4;
+    grid-row: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .move-row:not(.pickup-row) > .tr-with .label-sm {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .move-row:not(.pickup-row) > :nth-child(4) {
-    grid-column: 1 / 4;
-    grid-row: 4;
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
     max-width: none;
-    margin-right: 8px;
-    align-self: end;
   }
 
+  .move-row:not(.pickup-row) > .accept .meter {
+    display: none;
+  }
+
+  .move-row:not(.pickup-row) > .accept .tnum {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 13%, transparent);
+    white-space: nowrap;
+  }
+
+  /* Last line: playoff odds, then the chevron that opens the details. */
   .move-row:not(.pickup-row) > :nth-child(5) {
+    grid-column: 1 / 4;
+    grid-row: 4;
+    justify-self: start;
+    text-align: left;
+    margin-top: 2px;
+  }
+
+  .move-row:not(.pickup-row) > .tr-chev {
     grid-column: 4;
     grid-row: 4;
-    align-self: end;
+    justify-self: end;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-2);
+    transition: transform 0.2s ease;
+  }
+
+  .move-row[aria-expanded='true'] > .tr-chev {
+    transform: rotate(180deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .move-row > .tr-chev {
+    transition: none;
   }
 }
