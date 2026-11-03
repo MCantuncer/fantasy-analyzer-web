@@ -75,3 +75,11 @@
 .ol-legend .ol-lost::before {
   background: var(--bad);
 }
+
+/* Fireside: the same warm light in the corner as Best move beside it. */
+.card.outlook {
+  border-color: var(--border);
+  background:
+    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
+    var(--surface);
+}
