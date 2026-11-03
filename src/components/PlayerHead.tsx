@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { headshotUrl, initials, teamLogoUrl } from '../lib/league'
+import './PlayerHead.css'
 
 interface Player {
   id: number
