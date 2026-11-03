@@ -62,7 +62,7 @@ function CrowdRows({ who, days }: { who: string; days: CrowdedDay[] }) {
                 <span className="proj-crowd-who">{who}</span>
                 {g.days.map((d) => dayLabel(d.date)).join(' & ')}
               </span>
-              <span className="proj-crowd-count">
+              <span className={`proj-crowd-count${first.playing > first.slots ? ' over' : ''}`}>
                 <b className="num">{first.playing}</b> playing
               </span>
             </div>

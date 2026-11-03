@@ -59,7 +59,7 @@ describe('projected final', () => {
     expect(container.querySelectorAll('.proj-crowd-row')).toHaveLength(1)
     const row = container.querySelector('.proj-crowd-row')!
     expect(row.querySelector('.proj-crowd-when')?.textContent).toBe('YouMon, Nov 2 & Wed, Nov 4')
-    expect(row.querySelector('.proj-crowd-count')?.textContent).toBe('13 playing')
+    expect(row.querySelector('.proj-crowd-count.over')?.textContent).toBe('13 playing')
     expect(screen.getByText('Davion Mitchell')).toBeInTheDocument()
     expect(screen.getByText('D. Mitchell')).toBeInTheDocument()
   })
