@@ -8,6 +8,8 @@ type Fact = NonNullable<TradeIdea['facts']>[number]
 
 // Sentences that explain the numbers rather than make a point: they stay as a line under the tiles.
 const NOTE_KINDS = new Set<Fact['kind']>(['vs_pickup', 'faab'])
+// Never shown: an uneven deal isn't a plus for the other side. Reports saved before the API dropped it may carry it.
+const HIDDEN_KINDS = new Set<Fact['kind']>(['consolidate'])
 
 interface Props {
   facts?: Fact[] | null
@@ -23,7 +25,7 @@ interface Props {
 
 /** "Why they might say yes" as one small tile per point, numbers drawn instead of written. */
 export function ReasonTiles({ facts, reasons, title, valueGet, valueGive, myCats, theirCats, rounds }: Props) {
-  const list = facts ?? []
+  const list = (facts ?? []).filter((f) => !HIDDEN_KINDS.has(f.kind))
   const tiles = list.filter((f) => !NOTE_KINDS.has(f.kind))
   const notes = list.filter((f) => NOTE_KINDS.has(f.kind))
   return (
@@ -109,12 +111,6 @@ function FactTile({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
       return (
         <Tile icon="plus" title="Short-handed" sr={f.text}>
           <Big value={f.count ?? 0} unit="players out" />
-        </Tile>
-      )
-    case 'consolidate':
-      return (
-        <Tile icon="arrow" title="Consolidates" sr={f.text}>
-          <Big value={`${(f.count ?? 1) + 1} → 1`} unit="roster spots" />
         </Tile>
       )
     case 'paper_win':
