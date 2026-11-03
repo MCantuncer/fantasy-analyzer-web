@@ -1,7 +1,8 @@
 /* My team roster on phones: one compact row per player (RosterList in Roster.tsx).
    Line 1: face, name, trade value, Keep.
    Injury status and owner badges sit after the name as short caps and small icons.
-   Line 2: position, tier, category value, and Shop at the right edge. */
+   Line 2: position, tier, category value, and Shop under Keep. Shop looks like a link but
+   its tap area is 44px tall, so it is as easy to hit as the lock without taking a column. */
 .rl-list {
   list-style: none;
   margin: 0;
@@ -17,7 +18,7 @@
   column-gap: 12px;
   row-gap: 0;
   align-items: center;
-  padding: 16px 8px 16px 16px;
+  padding: 14px 12px 14px 16px;
   border-top: 1px solid var(--divider);
 }
 
@@ -34,6 +35,7 @@
 .rl-name {
   grid-area: name;
   min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 600;
   line-height: 22px;
 }
@@ -44,10 +46,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 2px 12px;
-  margin-top: 8px;
+  margin-top: 12px;
   min-width: 0;
-  /* Line up Shop under the lock. */
-  padding-right: 4px;
 }
 
 /* Tier as a word with a dot: the label says it, colour only reinforces it. */
@@ -83,7 +83,13 @@
 }
 
 .rl-meta .rl-shop {
-  margin-left: auto;
+  /* The tap area reaches 4px above and 20px below the text; the text stays on the meta line. */
+  display: inline-flex;
+  align-items: flex-start;
+  margin: -4px -8px -20px auto;
+  min-height: 44px;
+  padding: 4px 8px 0;
+  line-height: inherit;
   font-size: inherit;
   font-weight: 600;
 }
@@ -105,14 +111,15 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  margin-block: -10px;
   padding: 0;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   color: var(--muted);
 }
 
 .rl-row .rl-keep.on {
   color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
