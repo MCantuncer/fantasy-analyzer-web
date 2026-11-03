@@ -1,0 +1,18 @@
+/* Delta arrows: a small solid triangle, about 60% of the digits' cap height, centred on them. */
+.dl-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 2px;
+  border-left: 0.26em solid transparent;
+  border-right: 0.26em solid transparent;
+  vertical-align: 0.14em;
+}
+
+.dl-arrow.up {
+  border-bottom: 0.44em solid currentColor;
+}
+
+.dl-arrow.down {
+  border-top: 0.44em solid currentColor;
+}
