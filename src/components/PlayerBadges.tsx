@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { MouseEvent, ReactNode } from 'react'
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { PlayerBadge, PlayerRef } from '../api/client'
 import './PlayerBadges.css'
@@ -78,16 +78,21 @@ function BadgeMark({ badge }: { badge: PlayerBadge }) {
   useEffect(() => {
     if (!tip) return
     const t = window.setTimeout(hide, 2600)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') hide()
+    }
     window.addEventListener('scroll', hide, true)
     window.addEventListener('resize', hide)
+    document.addEventListener('keydown', onKey)
     return () => {
       window.clearTimeout(t)
       window.removeEventListener('scroll', hide, true)
       window.removeEventListener('resize', hide)
+      document.removeEventListener('keydown', onKey)
     }
   }, [tip])
 
-  const onTap = (e: MouseEvent) => {
+  const onTap = (e: ReactMouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (tip) hide()
