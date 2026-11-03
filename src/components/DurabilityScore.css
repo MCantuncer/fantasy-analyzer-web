@@ -16,6 +16,17 @@
   transition: background-color 0.15s ease;
 }
 
+/* 44px tall tap area around the mark, without moving the text. */
+.dur-chip {
+  position: relative;
+}
+
+.dur-chip::before {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+
 .dur-chip:hover,
 .dur-chip[aria-expanded='true'] {
   background: var(--warn-soft);

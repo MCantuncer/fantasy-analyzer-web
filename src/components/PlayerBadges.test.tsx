@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerBadge } from '../api/client'
 import { InjuryTag, PlayerBadges } from './PlayerBadges'
 
@@ -7,6 +7,8 @@ const keystone = { kind: 'keystone', category: 'BLK', reason: 'His owner leans o
 const hot = { kind: 'hot', reason: 'Playing well above his line.' } as PlayerBadge
 
 describe('PlayerBadges', () => {
+  afterEach(cleanup)
+
   it('draws icons that name themselves for screen readers', () => {
     render(<PlayerBadges badges={[keystone, hot]} />)
     expect(screen.getByRole('img', { name: 'Keystone · BLK: His owner leans on him for blocks.' })).toHaveTextContent('BLK')
@@ -26,6 +28,14 @@ describe('PlayerBadges', () => {
     const tip = screen.getByRole('tooltip')
     expect(tip).toHaveTextContent('Keystone · BLK')
     expect(tip).toHaveTextContent('leans on him for blocks')
+  })
+
+  it('closes the bubble with Escape', () => {
+    render(<PlayerBadges badges={[hot]} />)
+    fireEvent.click(screen.getAllByRole('img', { name: /^Hot:/ }).at(-1)!)
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
   it('renders nothing without badges', () => {

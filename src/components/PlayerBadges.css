@@ -25,6 +25,18 @@
   background: var(--raised);
 }
 
+/* A 44px-tall tap area around the 16px icon, without moving the text. Neighbouring icons share
+   the overlap, and either one opens a bubble that names itself. */
+.pb-mark {
+  position: relative;
+}
+
+.pb-mark::before {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+
 .pb-icon {
   display: block;
   flex: none;
