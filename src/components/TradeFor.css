@@ -14,8 +14,34 @@
   min-width: 0;
 }
 
-.trade-for .target-head > .badge {
-  align-self: flex-start;
+/* How much he helps you, as a dot + word under the team line, so the name keeps the full width. */
+.trade-for .tf-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trade-for .tf-fit::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.trade-for .tf-fit-good {
+  color: var(--good);
+}
+
+.trade-for .tf-fit-warn {
+  color: var(--warn);
+}
+
+.trade-for .tf-fit-bad {
+  color: var(--bad);
 }
 
 .trade-for .offer-swap > span {
