@@ -178,9 +178,26 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
               />
             )
           })()}
-          <p className="small muted box-legend">
-            Shaded: leading that category. Amber category name: close enough to flip. Grey outline on both rows: tied.
-          </p>
+          <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
+            <li>
+              <span className="box-cell lead num" aria-hidden="true">
+                12
+              </span>
+              leading
+            </li>
+            <li>
+              <span className="lo-legend-close" aria-hidden="true">
+                REB
+              </span>
+              close, can flip
+            </li>
+            <li>
+              <span className="box-cell tie num" aria-hidden="true">
+                0
+              </span>
+              tied
+            </li>
+          </ul>
           {mine &&
             leagueRef &&
             (() => {

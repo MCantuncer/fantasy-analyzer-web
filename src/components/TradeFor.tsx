@@ -13,6 +13,7 @@ import { ACCEPTANCE, CopyButton } from './Trades'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { DealChips, PlayerLink } from './PlayerCard'
 import './TradeFor.css'
+import { IntroSteps } from './IntroSteps'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -341,10 +342,13 @@ export function TradeFor({ report, keep, creds }: Props) {
           <section className="card stack">
             <span className="eyebrow">Trade For</span>
             <h2>Who do you want?</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Pick any player on another team. You'll see how he fits your build, what his owner needs, and the best
-              offer to send, with two fallbacks.
-            </p>
+            <IntroSteps
+              steps={[
+                { icon: 'pick', title: 'Pick any player', detail: 'on another team' },
+                { icon: 'fit', title: 'See his fit', detail: 'your build and his owner’s needs' },
+                { icon: 'offers', title: 'Get 3 offers', detail: 'the best one and two fallbacks' },
+              ]}
+            />
           </section>
         )}
         {playerId !== null && target.isPending && (

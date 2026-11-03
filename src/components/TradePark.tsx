@@ -10,6 +10,7 @@ import { TradeItem } from './Trades'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './TradePark.css'
 import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
+import { IntroSteps } from './IntroSteps'
 
 export const MAX_PICKS = 4
 
@@ -117,10 +118,13 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
           <section className="card park-empty">
             <span className="eyebrow">Trade Park</span>
             <h2>Shop your players to the whole league</h2>
-            <p className="muted">
-              Pick the players you want to move. Trade Park checks every other roster for deals the owner has a reason
-              to accept, that look even or better for them on paper, and that help you more.
-            </p>
+            <IntroSteps
+              steps={[
+                { icon: 'pick', title: 'Pick up to 4', detail: 'players you want to move' },
+                { icon: 'search', title: 'Every roster checked', detail: 'for owners with a reason to say yes' },
+                { icon: 'deal', title: 'Fair on paper', detail: 'and better for you' },
+              ]}
+            />
           </section>
         )}
         {shop.isPending && searched.length > 0 && <DealsSkeleton />}
