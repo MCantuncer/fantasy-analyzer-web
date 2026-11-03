@@ -178,21 +178,24 @@ function WhyYes({ side }: { side: TradeSide }) {
             const pts = Math.round((side.category_changes[n.category] ?? 0) * 100)
             return (
               <li key={n.category}>
-                <span className="tw-cat num">{n.category}</span>
-                <span className="tw-rank" title={`${ordinal(n.league_rank)} in the league in ${n.category} now`}>
-                  <span className="sr-only">ranked </span>
-                  {ordinal(n.league_rank)}
-                </span>
-                {n.per_game != null && (
-                  <span className="tw-per small muted">
-                    <span className="num good">+{n.per_game.toFixed(1)}</span> a game
+                <div className="tw-top">
+                  <span className="tw-cat num">{n.category}</span>
+                  <span className="tw-rank" title={`${ordinal(n.league_rank)} in the league in ${n.category} now`}>
+                    <span className="sr-only">ranked </span>
+                    {ordinal(n.league_rank)}
                   </span>
-                )}
+                </div>
                 {pts >= 1 && (
-                  <span className="tw-pts num good" title="Points of weekly win chance">
+                  <div className="tw-pts num good" title="Points of weekly win chance">
                     {signedInt(pts)}
-                    <span className="sr-only"> points of weekly win chance</span>
-                  </span>
+                    <span className="tw-unit">% win</span>
+                    <span className="sr-only"> weekly win chance in {n.category}</span>
+                  </div>
+                )}
+                {n.per_game != null && (
+                  <div className="tw-per small muted">
+                    <span className="num">+{n.per_game.toFixed(1)}</span> a game
+                  </div>
                 )}
               </li>
             )
