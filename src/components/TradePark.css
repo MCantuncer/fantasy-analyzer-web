@@ -1,6 +1,6 @@
 /* Trade Park: a face on each player in the "Who are you shopping?" picker. */
 .park .pick {
-  grid-template-columns: 20px 36px minmax(0, 1fr) auto auto;
+  grid-template-columns: 20px 36px minmax(0, 1fr) auto;
   min-height: 56px;
 }
 
@@ -13,4 +13,37 @@
   div.park {
     grid-template-columns: 360px minmax(0, 1fr);
   }
+}
+
+/* Tier as a dot + word on the sub-line (like My Team), so the name keeps the row's width. */
+.pk-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.pk-tier::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pk-tier-core {
+  color: var(--accent-text);
+}
+
+.pk-tier-tradeable {
+  color: var(--text-2);
+}
+
+.pk-tier-droppable {
+  color: var(--warn);
+}
+
+.pk-tier-injured {
+  color: var(--bad);
 }

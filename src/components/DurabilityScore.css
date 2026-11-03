@@ -1,28 +1,52 @@
-/* Durability score: a tappable amber chip for injury-prone players and its small explainer. */
+/* Durability score: a tappable amber bandage + score for injury-prone players and its small explainer. */
 .dur-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
+  /* A small mark with a bigger hit area for taps, pulled back so it doesn't push the text around. */
+  padding: 6px 4px;
+  margin: -6px -4px -6px 2px;
+  border-radius: var(--radius-sm);
+  color: var(--warn);
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
 }
 
 .dur-chip:hover,
 .dur-chip[aria-expanded='true'] {
-  border-color: currentColor;
+  background: var(--warn-soft);
 }
 
 .dur-chip:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
 }
 
-.dur-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+.dur-icon {
+  display: block;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dur-num {
+  font-family: var(--font-num);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dur-who {
+  margin-right: 2px;
+  font-size: 12px;
 }
 
 .dur-pop {

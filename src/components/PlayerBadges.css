@@ -1,6 +1,121 @@
-/* Hot: a breakout his owner prices at current form. Green like other "doing well" signals;
-   the label carries the meaning. */
-.owner-hot {
-  background: var(--good-soft);
+/* Owner badges as small icons after a player's name (Jewel, Keystone · CAT, Hot, Fresh signing,
+   Not for sale, On the block). The bubble says the word and the reason. */
+.pb-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.pb-mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  /* A 16px icon with a bigger hit area for taps, pulled back so it doesn't push the text around. */
+  padding: 6px 4px;
+  margin: -6px 0;
+  border-radius: var(--radius-sm);
+  cursor: help;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pb-mark:hover {
+  background: var(--raised);
+}
+
+.pb-icon {
+  display: block;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pb-icon .pb-fill {
+  fill: currentColor;
+  stroke: none;
+}
+
+.pb-cat {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+/* Colours: indigo for prized players, green for a hot streak, muted for the rest. */
+.pb-jewel,
+.pb-keystone {
+  color: var(--accent-text);
+}
+
+.pb-hot {
   color: var(--good);
+}
+
+.pb-fresh_signing,
+.pb-not_for_sale,
+.pb-on_the_block {
+  color: var(--muted);
+}
+
+.pb-tip {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 240px;
+  transform: translate(-50%, calc(-100% - 8px));
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  animation: pb-tip-in 0.12s ease-out;
+}
+
+.pb-tip strong {
+  font-weight: 700;
+}
+
+@keyframes pb-tip-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-tip {
+    animation: none;
+  }
+}
+
+/* Trade details: icon + word before the reason sentence. */
+.pb-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  vertical-align: -3px;
+}
+
+/* Injury status: short red caps, no pill. */
+.pb-injury {
+  margin-left: 6px;
+  color: var(--bad);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
 }

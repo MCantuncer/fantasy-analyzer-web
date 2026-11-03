@@ -1,7 +1,7 @@
 /* My team roster on phones: one compact row per player (RosterList in Roster.tsx).
    Line 1: face, name, trade value, Keep.
-   Line 2 (only when he has any): injury and owner badges, as small chips on their own line.
-   Line 3: position, tier, category value, and Shop at the right edge. */
+   Injury status and owner badges sit after the name as short caps and small icons.
+   Line 2: position, tier, category value, and Shop at the right edge. */
 .rl-list {
   list-style: none;
   margin: 0;
@@ -13,10 +13,8 @@
   grid-template-columns: 40px minmax(0, 1fr) auto 44px;
   grid-template-areas:
     'head name trade keep'
-    'head badges badges badges'
     'head meta meta meta';
   column-gap: 12px;
-  /* Lines are spaced with margins so a row without badges has no empty gap. */
   row-gap: 0;
   align-items: center;
   padding: 16px 8px 16px 16px;
@@ -38,28 +36,6 @@
   min-width: 0;
   font-weight: 600;
   line-height: 22px;
-}
-
-.rl-badges {
-  grid-area: badges;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-/* Smaller chips than the table's, so a badge sits under the name without crowding it. */
-.rl-badges .badge {
-  margin: 0;
-  font-size: 11px;
-  line-height: 16px;
-  padding: 1px 7px;
-}
-
-.rl-badges .owner-keystone,
-.rl-badges .owner-on_the_block,
-.rl-badges .owner-not_for_sale {
-  padding: 0 6px;
 }
 
 .rl-meta {
