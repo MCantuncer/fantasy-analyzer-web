@@ -1,0 +1,173 @@
+/* Loading placeholders (sk-). The blocks fade in and out gently while the page loads. */
+
+.sk {
+  gap: 12px;
+}
+
+.sk-bone {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  border-radius: 4px;
+  background: var(--border);
+  animation: sk-pulse 1.4s ease-in-out infinite;
+}
+
+.sk-bone.sk-round {
+  border-radius: 999px;
+}
+
+.sk-bone.sk-r6 {
+  border-radius: 6px;
+}
+
+.sk-bone.sk-r8 {
+  border-radius: 8px;
+}
+
+.sk-bone.sk-r10 {
+  border-radius: 10px;
+}
+
+@keyframes sk-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Each card breathes a beat after the one above, so the page reads top to bottom. */
+.sk > :nth-child(3) .sk-bone {
+  animation-delay: 0.15s;
+}
+
+.sk > :nth-child(4) .sk-bone {
+  animation-delay: 0.3s;
+}
+
+.sk > :nth-child(5) .sk-bone,
+.sk > :nth-child(6) .sk-bone {
+  animation-delay: 0.45s;
+}
+
+.card.sk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.card.sk-card.sk-compose {
+  flex-direction: row;
+  align-items: center;
+}
+
+.sk-row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sk-center {
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sk-end {
+  margin-left: auto;
+}
+
+.sk-indent {
+  padding-left: 8px;
+}
+
+.sk-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sk-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card.flush.sk-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sk-story {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.sk-story + .sk-story {
+  border-top: 1px solid var(--border);
+}
+
+.sk-slow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sk-slow-s {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.sk-bone.sk-grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.sk-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sk-side {
+  gap: 10px;
+}
+
+.sk-grow-col {
+  flex: 1;
+}
+
+.sk-story.sk-row {
+  flex-direction: row;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-bone {
+    animation: none;
+    opacity: 0.7;
+  }
+}
