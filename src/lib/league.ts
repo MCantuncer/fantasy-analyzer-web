@@ -32,7 +32,7 @@ export function initials(name: string): string {
 // The order ESPN shows categories in a box score.
 const ORDER = ['PTS', 'REB', 'AST', 'STL', 'BLK', '3PM', 'FG%', 'FT%', 'TO']
 
-export function boxOrder(cats: CategoryScore[]): CategoryScore[] {
+export function boxOrder<T extends { stat: string }>(cats: T[]): T[] {
   const rank = (s: string) => {
     const i = ORDER.indexOf(s)
     return i === -1 ? ORDER.length : i

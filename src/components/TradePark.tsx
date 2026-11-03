@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { DealsSkeleton } from './Skeleton'
 import { useState } from 'react'
 import { fetchShop, type AnalysisReport, type ShopDeal, type ShopReport } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -126,13 +127,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
             />
           </section>
         )}
-        {shop.isPending && searched.length > 0 && (
-          <section className="card park-empty" aria-live="polite">
-            <span className="spinner" aria-hidden="true" />
-            <h2>Checking every roster…</h2>
-            <p className="muted">This takes a few seconds, or up to a minute if the server was asleep.</p>
-          </section>
-        )}
+        {shop.isPending && searched.length > 0 && <DealsSkeleton />}
         {shop.isError && (
           <section className="card error stack">
             <h2>Couldn't search trades</h2>

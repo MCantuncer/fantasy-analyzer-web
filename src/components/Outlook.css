@@ -1,0 +1,76 @@
+/* Season outlook: the 9 categories as coloured tiles, best to worst. */
+.ol-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.ol-pips {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ol-pip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ol-pip.ol-locked {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.ol-pip.ol-swing {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.ol-pip.ol-lost {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.ol-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ol-legend li::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: 0;
+}
+
+.ol-legend .ol-locked::before {
+  background: var(--good);
+}
+
+.ol-legend .ol-swing::before {
+  background: var(--warn-fill);
+}
+
+.ol-legend .ol-lost::before {
+  background: var(--bad);
+}

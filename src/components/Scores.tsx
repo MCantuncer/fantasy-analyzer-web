@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { ScoresSkeleton } from './Skeleton'
 import { useEffect, useRef, useState } from 'react'
 import { fetchScores } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
@@ -20,7 +21,6 @@ import './Scores.css'
 import { PlayerLink } from './PlayerCard'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
-const SLOW_AFTER_MS = 8_000
 
 interface Props {
   leagueId: number
@@ -51,7 +51,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     refetchInterval: (q) => (q.state.data?.live ? 60_000 : false),
   })
 
-  if (scores.isLoading) return <LoadingScores />
+  if (scores.isLoading) return <ScoresSkeleton />
   if (scores.error || !scores.data) {
     return (
       <div className="card error stack">
@@ -179,28 +179,6 @@ function ThisWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day: number) 
           </li>
         ))}
       </ol>
-    </section>
-  )
-}
-
-/** After a few seconds, explain the wait: the free API server sleeps when idle. */
-function LoadingScores() {
-  const [slow, setSlow] = useState(false)
-  useEffect(() => {
-    const timer = setTimeout(() => setSlow(true), SLOW_AFTER_MS)
-    return () => clearTimeout(timer)
-  }, [])
-  return (
-    <section className="card stack" aria-busy="true" style={{ gap: 4 }}>
-      <p className="muted" role="status">
-        Loading the scoreboard…
-      </p>
-      {slow && (
-        <p className="small muted">
-          Still working. The server may be waking up, which can take up to a minute. If it doesn't answer by then,
-          you'll get a Try again button.
-        </p>
-      )}
     </section>
   )
 }

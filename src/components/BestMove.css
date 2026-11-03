@@ -1,0 +1,38 @@
+/* Best move: the biggest category gains and costs as signed chips. */
+.bm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bm-chip {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bm-chip .num {
+  font-size: 14px;
+}
+
+.bm-chip.up {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.bm-chip.down {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.bm-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: var(--border);
+}

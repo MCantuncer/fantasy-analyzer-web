@@ -50,6 +50,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 🛒 | **FA Targets** | Free agents paired with the right drop and their effect on your playoff odds. |
 | 🏆 | **League** | Every team's build and punts, and simulated standings and playoff odds. |
 | ⭐ | **Trade of the day** | One league-wide win-win trade between any two teams, the same for everyone that day, with a "Would you take it?" poll. |
+| 📅 | **Projected final** | Who wins your matchup and each category by Sunday, and who to bench on crowded days when more players have games than you have lineup spots. |
 | 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. |
 | 📰 | **NBA News** | Injuries, trades and role changes checked against several sources, and who gains minutes when a player is out. |
 | 💬 | **Moves feed and league chat** | Claims, bids, adds, drops and trades, with reactions, replies and trade votes for verified managers. |
