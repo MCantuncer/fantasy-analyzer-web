@@ -1,0 +1,31 @@
+/* Box score cells, Fireside: neutral cells, so the team colour never reads as good or bad.
+   The leader's cell is heavier, sits on the card surface with a hairline ring, and carries a 4px edge:
+   green where you lead, red where they lead (your matchup), or the leader's team colour (anyone else's). */
+.box-compact .box-cell.lead,
+.matchup-box .box-cell.lead,
+.lo-legend .box-cell.lead {
+  --edge: var(--team);
+  color: var(--text);
+  font-weight: 800;
+  background: var(--surface);
+  box-shadow:
+    inset 0 -4px 0 var(--edge),
+    inset 0 0 0 1.5px var(--border);
+}
+
+.box-compact .box-cell.lead.mine,
+.matchup-box .box-cell.lead.mine,
+.lo-legend .box-cell.lead.mine {
+  --edge: var(--good);
+}
+
+.box-compact .box-cell.lead.theirs,
+.matchup-box .box-cell.lead.theirs,
+.lo-legend .box-cell.lead.theirs {
+  --edge: var(--bad);
+}
+
+.box-compact .box-cell,
+.matchup-box .box-cell {
+  border-radius: 10px;
+}

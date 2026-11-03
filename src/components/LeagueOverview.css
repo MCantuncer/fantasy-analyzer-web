@@ -50,3 +50,17 @@
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+
+/* Fireside: the featured matchup gets the same warm corner light as the other hero cards. */
+.card.featured {
+  background:
+    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
+    var(--surface);
+}
+
+/* The playoff line in Standings: a solid ink rule instead of a dashed amber one, since amber means
+   "close, can flip" elsewhere on this page. */
+.standings tr.cutline.playoff td,
+.standings tr.cutline.playoff th {
+  border-bottom: 2px solid var(--text-2);
+}

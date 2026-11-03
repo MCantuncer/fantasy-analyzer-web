@@ -95,6 +95,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       name: nameOf(s.team_id),
       colour: colours.get(s.team_id),
       label: s.team_id === o.my_team_id ? `You · ${nameOf(s.team_id)}` : undefined,
+      mine: s.team_id === o.my_team_id,
       sub: t && !/^0-0(-0)?$/.test(t.record) ? `Season ${t.wins}-${t.losses}-${t.ties}` : undefined,
     }
   }
@@ -179,12 +180,29 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
             )
           })()}
           <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
-            <li>
-              <span className="box-cell lead num" aria-hidden="true">
-                12
-              </span>
-              leading
-            </li>
+            {mine ? (
+              <>
+                <li>
+                  <span className="box-cell lead mine num" aria-hidden="true">
+                    12
+                  </span>
+                  you lead
+                </li>
+                <li>
+                  <span className="box-cell lead theirs num" aria-hidden="true">
+                    12
+                  </span>
+                  they lead
+                </li>
+              </>
+            ) : (
+              <li>
+                <span className="box-cell lead num" aria-hidden="true">
+                  12
+                </span>
+                leading
+              </li>
+            )}
             <li>
               <span className="lo-legend-close" aria-hidden="true">
                 REB

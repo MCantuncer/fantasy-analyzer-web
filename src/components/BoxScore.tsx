@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { MatchupSide } from '../api/client'
 import { boxOrder, formatStat, isClose, record } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
+import './BoxScore.css'
 
 export interface BoxTeam {
   side: MatchupSide
@@ -9,6 +10,8 @@ export interface BoxTeam {
   colour: string | undefined
   label?: string // e.g. "You · Kucukesat Aspavas"
   sub?: string // e.g. "Season 4-5-0"
+  /** Your team: its leads get a green edge and the other side's a red one. */
+  mine?: boolean
 }
 
 function Games({ team }: { team: BoxTeam }) {
@@ -34,8 +37,9 @@ function Games({ team }: { team: BoxTeam }) {
 }
 
 /**
- * An ESPN-style box score: both teams on two rows, every category with both numbers, the leader's
- * cell shaded in its team colour, close categories named in amber, and each side's W-L-T at the end.
+ * An ESPN-style box score: both teams on two rows, every category with both numbers, close categories
+ * named in amber, and each side's W-L-T at the end. Cells are neutral; the leader's is heavier with an
+ * edge: green where you lead and red where they lead in your matchup, the team colour in anyone else's.
  */
 export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam; caption: string }) {
   const cats = boxOrder(home.side.categories ?? [])
@@ -46,8 +50,12 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
   const teams = [home, away]
 
   const byTeam = teams.map((t) => new Map((t.side.categories ?? []).map((c) => [c.stat, c])))
-  const cellClass = (r: string | undefined, stat: string) =>
-    ['box-cell', r === 'W' ? 'lead' : r === 'T' ? 'tie' : '', close.has(stat) ? 'close' : ''].filter(Boolean).join(' ')
+  const hasMe = teams.some((t) => t.mine)
+  const side = (t: BoxTeam) => (t.mine ? 'mine' : hasMe ? 'theirs' : '')
+  const cellClass = (r: string | undefined, stat: string, t: BoxTeam) =>
+    ['box-cell', r === 'W' ? `lead ${side(t)}` : r === 'T' ? 'tie' : '', close.has(stat) ? 'close' : '']
+      .filter(Boolean)
+      .join(' ')
 
   return (
     <>
@@ -73,7 +81,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                 return (
                   <span
                     key={t.side.team_id}
-                    className={`${cellClass(cell?.result, c.stat)} num`}
+                    className={`${cellClass(cell?.result, c.stat, t)} num`}
                     style={
                       {
                         '--team': t.colour,
@@ -129,13 +137,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                   </td>
                   {cats.map((c) => {
                     const cell = byStat.get(c.stat)
-                    const cls = [
-                      'box-cell',
-                      cell?.result === 'W' ? 'lead' : cell?.result === 'T' ? 'tie' : '',
-                      close.has(c.stat) ? 'close' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')
+                    const cls = cellClass(cell?.result, c.stat, t)
                     const what = cell?.result === 'W' ? ', leading' : cell?.result === 'T' ? ', tied' : ''
                     return (
                       <td key={c.stat}>
