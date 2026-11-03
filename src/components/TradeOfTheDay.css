@@ -19,3 +19,90 @@
   gap: 6px;
   margin-top: 4px;
 }
+
+/* "Why they say yes" as data: category rows, punt chips, standings. */
+.tw-needs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tw-needs > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--good-soft);
+}
+
+.tw-cat {
+  min-width: 40px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tw-rank {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tw-per {
+  margin-left: auto;
+}
+
+.tw-pts {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tw-per + .tw-pts {
+  margin-left: 4px;
+}
+
+.tw-rank + .tw-pts {
+  margin-left: auto;
+}
+
+.tw-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+.tw-punts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.tw-punt {
+  padding: 2px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--faint);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tw-chasing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.tw-chasing svg {
+  color: var(--warn);
+}
