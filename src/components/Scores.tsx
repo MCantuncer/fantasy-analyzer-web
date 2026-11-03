@@ -7,8 +7,6 @@ import type { Credentials } from '../lib/credentials'
 import {
   best,
   dayLabel,
-  gamesLeft,
-  isOut,
   leader,
   longDayLabel,
   myLines,
@@ -18,6 +16,7 @@ import {
 } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import './Scores.css'
+import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
@@ -110,7 +109,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         </div>
       )}
 
-      {data.week && data.week.length > 0 && <ThisWeek week={data.week} onPick={pickDay} />}
+      {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
 
       {selected && <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />}
 
@@ -135,51 +134,6 @@ function DayJump({ data, onPick }: { data: ScoreDay; onPick: (day: number) => vo
         ))}
       </select>
     </label>
-  )
-}
-
-function ThisWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day: number) => void }) {
-  const left = gamesLeft(week)
-  return (
-    <section className="card flush" aria-labelledby="week-title">
-      <div className="card-head">
-        <h2 id="week-title">Still to play this week</h2>
-        <span className="small muted">
-          Your players have <strong className="tnum">{left}</strong> {left === 1 ? 'game' : 'games'} left before Monday.
-          Days are US game dates; times are yours.
-        </span>
-      </div>
-      <ol className="week-list">
-        {week.map((d) => (
-          <li key={d.day}>
-            <button className="link week-day" onClick={() => onPick(d.day)}>
-              {longDayLabel(d.date)} · {d.games.length} {d.games.length === 1 ? 'game' : 'games'}
-            </button>
-            <ul>
-              {d.games.map((g) => (
-                <li key={g.id} className="fixture">
-                  <span className="num fixture-time">{tipOff(g.start)}</span>
-                  <span className="fixture-teams">
-                    {g.away.abbrev} @ {g.home.abbrev}
-                  </span>
-                  {g.my_players.length > 0 && (
-                    <span className="fixture-mine">
-                      {g.my_players.map((p, i) => (
-                        <span key={p.player_id} className={isOut(p.injury_status) ? 'muted' : undefined}>
-                          {i > 0 && ', '}
-                          <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
-                          {isOut(p.injury_status) && ' (out)'}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ol>
-    </section>
   )
 }
 

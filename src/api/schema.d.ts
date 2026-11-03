@@ -1200,6 +1200,11 @@ export interface components {
             date?: string | null;
             /** Games */
             games: components["schemas"]["Fixture"][];
+            /**
+             * Sits
+             * @description Your players with a game who sit: more of them play than the lineup has slots, and the best lineup leaves these out. Empty when everyone fits or without team_id
+             */
+            sits?: number[];
         };
         /** FixturePlayer */
         FixturePlayer: {
@@ -1209,6 +1214,11 @@ export interface components {
             name: string;
             /** Injury Status */
             injury_status: string;
+            /**
+             * Pro Team Id
+             * @description His NBA team, so the other side is the opponent
+             */
+            pro_team_id?: number | null;
         };
         /** Game */
         Game: {
