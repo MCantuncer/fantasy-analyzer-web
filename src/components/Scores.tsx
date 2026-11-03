@@ -18,6 +18,8 @@ import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import './Scores.css'
 import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
+import { ScoresLens } from './ScoresLens'
+import type { Lens } from './ScoresLens'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 
@@ -38,7 +40,7 @@ export interface TonightMatchup {
 
 export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Props) {
   const [day, setDay] = useState<number | null>(null)
-  const [onlyMine, setOnlyMine] = useState(false)
+  const [lens, setLens] = useState<Lens>('all')
   const [picked, setPicked] = useState<number | null>(null)
   const scores = useQuery({
     queryKey: ['scores', leagueId, season, day, teamId, creds?.swid ?? null],
@@ -71,7 +73,10 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   }
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const upcoming = new Map((data.week ?? []).flatMap((d) => d.games.map((f) => [f.id, f.my_players] as const)))
-  const games = onlyMine ? data.games.filter((g) => g.lines.some((l) => l.owner_team_id === teamId)) : data.games
+  const mineByGame = new Map(data.games.map((g) => [g.id, myPlayersIn(g, teamId, upcoming.get(g.id) ?? [])]))
+  const mineGames = data.games.filter((g) => mineByGame.get(g.id)!.length > 0)
+  const players = new Set([...mineByGame.values()].flatMap((ps) => ps.map((p) => p.player_id))).size
+  const games = lens === 'mine' ? mineGames : data.games
   const selected =
     data.games.find((g) => g.id === picked) ??
     data.games.find((g) => g.status !== 'scheduled' && g.lines.some((l) => l.owner_team_id === teamId)) ??
@@ -83,16 +88,38 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         <DayStrip data={data} onPick={pickDay} />
         <DayJump data={data} onPick={pickDay} />
         <span className="grow" />
-        <label className="row">
-          <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
-          Only games with my players
-        </label>
+        <div className="sl-row">
+          <ScoresLens value={lens} onChange={setLens} all={data.games.length} mine={mineGames.length} />
+          <p className="sl-summary sl-short">
+            {players ? (
+              <>
+                <b className="num">{players}</b> {players === 1 ? 'player' : 'players'} in action
+              </>
+            ) : (
+              'No players in action'
+            )}
+          </p>
+        </div>
       </div>
+      <p className="sl-summary sl-long">
+        <GamesSummary lens={lens} all={data.games.length} mine={mineGames.length} players={players} />
+      </p>
 
       <YourNight games={data.games} teamId={teamId} matchup={matchup ?? null} abbrev={abbrev} />
 
       {games.length === 0 ? (
-        <p className="card muted">None of your players play this day.</p>
+        <div className="card sl-empty">
+          {data.games.length ? (
+            <>
+              <h2>None of your players play on {longDayLabel(data.date)}</h2>
+              <button type="button" className="ghost" onClick={() => setLens('all')}>
+                Show all games
+              </button>
+            </>
+          ) : (
+            <h2>No games on {longDayLabel(data.date)}</h2>
+          )}
+        </div>
       ) : (
         <div className="game-grid">
           {games.map((g) => (
@@ -117,6 +144,31 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         {data.live ? ' and refresh every minute' : ''}. ESPN's fantasy data has no quarter or game clock.
       </p>
     </div>
+  )
+}
+
+/** Your players in a game: box score lines once it starts, the week's fixtures before that. */
+function myPlayersIn(game: Game, teamId: number, upcoming: FixturePlayer[]): { player_id: number; name: string }[] {
+  const lines = game.lines.filter((l) => l.owner_team_id === teamId)
+  if (game.status === 'scheduled' && !lines.length) return upcoming
+  return lines.map((l) => ({ player_id: l.player_id, name: l.name }))
+}
+
+/** "6 of 15 games · 9 of your players in action" under the bar. */
+function GamesSummary({ lens, all, mine, players }: { lens: Lens; all: number; mine: number; players: number }) {
+  const games = (n: number) => `${n} ${n === 1 ? 'game' : 'games'}`
+  const who = players ? `${players} of your players in action` : 'none of your players in action'
+  if (mine === all && all > 0) return <>All games include your players · {who}</>
+  if (lens === 'mine')
+    return (
+      <>
+        <b className="num">{mine}</b> of {games(all)} · {who}
+      </>
+    )
+  return (
+    <>
+      All {games(all)} · {who}
+    </>
   )
 }
 
@@ -279,8 +331,7 @@ function GameCard({
 }) {
   const scheduled = game.status === 'scheduled'
   const live = game.status === 'live'
-  const lines = game.lines.filter((l) => l.owner_team_id === teamId)
-  const mine = scheduled && !lines.length ? upcoming : lines.map((l) => ({ player_id: l.player_id, name: l.name }))
+  const mine = myPlayersIn(game, teamId, upcoming)
   const lead = leader(game)
   const top = best(game.lines)
   const rostered = game.lines.filter((l) => l.owner_team_id != null).length
