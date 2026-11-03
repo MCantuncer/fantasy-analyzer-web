@@ -87,8 +87,7 @@ export function flipHint(me: MatchupSide, them: MatchupSide): string | null {
 
   if (now < 1) {
     let best = now
-    let after = record(me)
-    const flips: string[] = []
+    const flips: { stat: string; after: string }[] = []
     for (const c of boxOrder(me.categories ?? [])) {
       const flip =
         c.result === 'L' && close(c)
@@ -100,13 +99,17 @@ export function flipHint(me: MatchupSide, them: MatchupSide): string | null {
       const o = outcome(flip.wins, flip.losses)
       if (o > best) {
         best = o
-        after = record(flip)
         flips.length = 0
       }
-      if (o === best && o > now) flips.push(c.stat)
+      if (o === best && o > now) flips.push({ stat: c.stat, after: record(flip) })
     }
     if (!flips.length) return null
-    return say(best === 1 ? `flip ${list(flips)} to win ${after}` : `flip ${list(flips)} to level it at ${after}`)
+    // Flipping a loss and flipping a tie land on different records (5-3-1 vs 5-4-0): only name a
+    // record when every flip lands on it.
+    const stats = list(flips.map((f) => f.stat))
+    const same = flips.every((f) => f.after === flips[0].after)
+    if (best === 1) return say(`flip ${stats} to win ${same ? flips[0].after : 'the week'}`)
+    return say(`flip ${stats} to level it${same ? ` at ${flips[0].after}` : ''}`)
   }
   // Ahead by a little: the close categories you lead are the ones to hold.
   const hold = boxOrder((me.categories ?? []).filter((c) => c.result === 'W' && close(c))).map((c) => c.stat)
@@ -124,15 +127,18 @@ export function teamLogoUrl(abbrev: string) {
   return `https://a.espncdn.com/i/teamlogos/nba/500/${abbrev.toLowerCase()}.png`
 }
 
-/** This week's opponent of your team and the League page's hint, for the Scores page. */
+/**
+ * This week's opponent of your team, for the Scores page. No flip hint here: that card shows one
+ * night's stats, and a hint about the week's totals reads as if it were about tonight's.
+ */
 export function tonightMatchup(
   o: Pick<LeagueOverview, 'matchups' | 'teams'>,
   myTeamId: number | null | undefined,
-): { opponentId: number; opponentName: string; hint: string | null } | null {
+): { opponentId: number; opponentName: string } | null {
   if (myTeamId == null) return null
   const m = o.matchups.find((x) => x.home.team_id === myTeamId || x.away.team_id === myTeamId)
   if (!m) return null
-  const [me, them] = m.home.team_id === myTeamId ? [m.home, m.away] : [m.away, m.home]
+  const them = m.home.team_id === myTeamId ? m.away : m.home
   const name = o.teams.find((t) => t.id === them.team_id)?.name ?? 'your opponent'
-  return { opponentId: them.team_id, opponentName: name, hint: flipHint(me, them) }
+  return { opponentId: them.team_id, opponentName: name }
 }

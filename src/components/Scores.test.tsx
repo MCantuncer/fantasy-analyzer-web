@@ -106,9 +106,9 @@ describe('Scores', () => {
 
   it('puts tonight in your matchup against your opponent', async () => {
     mockApi()
-    renderScores({ opponentId: 5, opponentName: 'Los Avokados', hint: 'Flip REB to win 5-4-0' })
+    renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
     expect(await screen.findByText('Tonight in your matchup · vs Los Avokados')).toBeInTheDocument()
-    expect(screen.getByText('Flip REB to win 5-4-0')).toBeInTheDocument()
+    expect(screen.queryByText(/Flip /)).not.toBeInTheDocument()
     expect(screen.getByText(/against 2 of theirs/)).toBeInTheDocument()
     expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
   })

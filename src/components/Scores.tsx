@@ -27,14 +27,13 @@ interface Props {
   teamId: number
   teams: { id: number; abbrev: string; name: string }[]
   creds: Credentials | null
-  /** This week's opponent and the hint from the League page, to frame tonight. */
+  /** This week's opponent, to frame tonight. */
   matchup?: TonightMatchup | null
 }
 
 export interface TonightMatchup {
   opponentId: number
   opponentName: string
-  hint: string | null
 }
 
 export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Props) {
@@ -230,7 +229,6 @@ function YourNight({
             </span>
           </span>
         )}
-        {matchup?.hint && <span className="hint">{matchup.hint}</span>}
       </div>
       <div className="night-totals">
         <span className="night-totals-label small muted" id="night-totals-label">
