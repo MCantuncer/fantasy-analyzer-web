@@ -1,23 +1,117 @@
-/* Category tiles: the outcome tag is a tinted pill so Winning, Swing and Losing differ by
-   background as well as text color (they read too alike as plain colored text on white). */
-.cattiles-tag {
-  align-self: flex-start;
-  padding: 2px 8px;
+/* Category tiles (ct- prefix): rank sticker with an outcome shape, big number, a chunky meter
+   with a notch at the 50% coin-flip line, and the outcome word. Winning tiles get a soft tint. */
+.ct-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ct-tile {
+  --ct: var(--muted);
+  --ct-soft: var(--track);
+  --ct-fill: var(--ct);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.ct-good {
+  --ct: var(--good);
+  --ct-soft: var(--good-soft);
+  background: linear-gradient(var(--good-soft), var(--good-soft)), var(--surface);
+}
+
+.ct-warn {
+  --ct: var(--warn);
+  --ct-soft: var(--warn-soft);
+  --ct-fill: var(--warn-fill);
+}
+
+.ct-bad {
+  --ct: var(--bad);
+  --ct-soft: var(--bad-soft);
+}
+
+.ct-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.ct-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 6px;
   border-radius: 999px;
-  line-height: 18px;
+  background: var(--ct-soft);
+  color: var(--ct);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.cattiles-good {
-  background: var(--good-soft);
-  color: var(--good);
+.ct-rank > span[aria-hidden] {
+  font-size: 9px;
 }
 
-.cattiles-warn {
-  background: var(--warn-soft);
-  color: var(--warn);
+.ct-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-.cattiles-bad {
-  background: var(--bad-soft);
-  color: var(--bad);
+.ct-value small {
+  margin-left: 1px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ct-meter {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+.ct-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--ct-fill);
+}
+
+.ct-notch {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+
+.ct-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ct);
+}
+
+@media (max-width: 640px) {
+  .ct-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
