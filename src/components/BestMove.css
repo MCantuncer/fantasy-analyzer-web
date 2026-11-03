@@ -1,38 +1,281 @@
-/* Best move: the biggest category gains and costs as signed chips. */
-.bm-chips {
+/* Best move, Fireside: a warm light in the card's corner, each side on its team's colour, a round disc
+   between them, and a chunky odds meter with a notch at the playoff line. Also used by Trade For (OddsMeter). */
+.card.best {
+  position: relative;
+  border-color: var(--border);
+  background:
+    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
+    var(--surface);
+}
+
+.bm-eyebrow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.bm-partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+/* Give and Get: two team fields with the disc overlapping the seam. */
+.best .swap {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr);
+  align-items: stretch;
+  gap: 0;
+}
+
+.best .swap-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 40px 16px 20px;
+  border: none;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--team) 13%, var(--surface));
+  box-shadow: inset 6px 0 0 var(--team);
+}
+
+.best .swap-side + .bm-swap + .swap-side {
+  padding-left: 36px;
+  padding-right: 20px;
+}
+
+.best .swap-side .head-stack {
+  flex: none;
+  margin: 0;
+}
+
+.bm-side-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.best .swap-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.best .swap-name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* The team crest sits on the field's top-right corner, tilted like a sticker. */
+.bm-crest {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  line-height: 0;
+}
+
+.bm-swap {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 -20px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--shadow);
+}
+
+/* Odds: plain coloured delta with a small triangle, no pill. */
+.bm-figures {
+  position: relative;
+}
+
+.bm-delta {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.big-odds .bm-delta {
+  align-self: center;
+}
+
+.bm-meter-wrap {
+  flex: 1 1 220px;
+  min-width: 180px;
+  padding-bottom: 4px;
+}
+
+.bm-meter {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+.bm-meter > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.bm-base {
+  left: 0;
+  border-radius: 999px 0 0 999px;
+  background: var(--faint);
+}
+
+.bm-gain {
+  border-radius: 0 999px 999px 0;
+  background: var(--good);
+}
+
+.bm-gain.bm-loss {
+  background: var(--bad);
+}
+
+/* The playoff line: an ink notch at 50%. */
+.bm-meter > .bm-notch {
+  top: -5px;
+  bottom: -5px;
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.bm-scale {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bm-mid {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* Biggest category moves as "3PM ▲28": muted name, coloured number. */
+.bm-changes {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin: 0;
+  gap: 4px 14px;
+  margin: 0 0 0 auto;
   padding: 0;
   list-style: none;
-}
-
-.bm-chip {
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--muted);
 }
 
-.bm-chip .num {
-  font-size: 14px;
-}
-
-.bm-chip.up {
-  background: var(--good-soft);
+.bm-changes .good {
   color: var(--good);
 }
 
-.bm-chip.down {
-  background: var(--bad-soft);
+.bm-changes .bad {
   color: var(--bad);
 }
 
-.bm-sep {
-  width: 1px;
-  height: 20px;
-  margin: 0 2px;
-  background: var(--border);
+/* One-shot confetti around the new odds: 0.9s, then React removes it. Off under reduced motion. */
+.bm-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bm-confetti i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--good);
+  opacity: 0;
+  animation: bm-pop 0.9s ease-out forwards;
+}
+
+@keyframes bm-pop {
+  0% {
+    transform: translateY(8px) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-14px) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bm-confetti {
+    display: none;
+  }
+}
+
+/* Phones: the fields stack and the disc sits on the seam at the right, pointing down. */
+@media (max-width: 640px) {
+  .best .swap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .best .swap-side,
+  .best .swap-side + .bm-swap + .swap-side {
+    padding: 14px 16px;
+  }
+
+  .best .swap-side:first-child {
+    padding-right: 64px;
+  }
+
+  .best .swap-side + .bm-swap + .swap-side {
+    margin-top: 6px;
+  }
+
+  .best .swap-name {
+    font-size: 17px;
+  }
+
+  /* The eyebrow already names the partner; corner crests would sit under the disc. */
+  .bm-crest {
+    display: none;
+  }
+
+  .bm-swap {
+    justify-self: end;
+    margin: -14px 14px -20px 0;
+  }
+
+  .bm-swap-arrow svg {
+    transform: rotate(90deg);
+  }
+
+  .bm-changes {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
 }
