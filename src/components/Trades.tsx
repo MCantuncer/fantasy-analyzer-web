@@ -6,13 +6,14 @@ import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
-import { premiumValue, useRoundValues, valueSentence } from '../lib/tradeValue'
+import { premiumValue, useRoundValues } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
 import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { DealChips } from './PlayerCard'
+import { ReasonTiles } from './ReasonTiles'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -90,26 +91,23 @@ export function TradeItem({ trade: t, id, open, onToggle, why, faab = 0, tag, ex
         )}
         <div className="detail-label">Your pitch to {t.partner_team_name}</div>
         <p className="pitch">{t.pitch}</p>
-        {t.reasons.length > 0 && (
-          <>
-            <div className="detail-label">{why}</div>
-            <ul className="reasons">
-              {t.reasons.map((r) => (
-                <li key={r}>{r}</li>
-              ))}
-            </ul>
-          </>
+        <ReasonTiles
+          facts={t.facts}
+          reasons={t.reasons}
+          title={why}
+          valueGet={t.value_they_get}
+          valueGive={t.value_they_give}
+          myCats={t.my_cats_gain}
+          theirCats={t.their_cats_gain}
+          rounds={rounds}
+        />
+        {t.owner_premium >= 0.5 && (
+          <p className="small muted">
+            Their side includes a {premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what
+            they send.
+          </p>
         )}
         <ul className="reasons">
-          <li>
-            {valueSentence(t.value_they_get, t.value_they_give, rounds)}, as owners price players
-            {t.owner_premium >= 0.5
-              ? `, including a ${premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what they send.`
-              : '.'}
-          </li>
-          <li>
-            Categories won per week: you {cats(t.my_cats_gain)}, they {cats(t.their_cats_gain)}.
-          </li>
           {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
           {t.my_add && (
             <li>
@@ -233,10 +231,6 @@ const MODES: Record<Mode, { label: string; hint: string; empty: string; why: str
     empty: 'No deal gives them the paper win while clearly favoring you right now.',
     why: 'Why it favors you',
   },
-}
-
-function cats(x: number) {
-  return `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}`
 }
 
 interface TradesProps {

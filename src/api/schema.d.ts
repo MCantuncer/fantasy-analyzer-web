@@ -1876,6 +1876,24 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /**
+         * PitchNeed
+         * @description A category the deal helps them in, as the pitch names it.
+         */
+        PitchNeed: {
+            /** Category */
+            category: string;
+            /**
+             * League Rank
+             * @description Their rank in the category now, 1 is best
+             */
+            league_rank: number;
+            /**
+             * Per Game
+             * @description What the deal adds a game, counting stats only
+             */
+            per_game?: number | null;
+        };
         /** PlayerBadge */
         PlayerBadge: {
             /**
@@ -2266,6 +2284,67 @@ export interface components {
             target: string;
             reactions: components["schemas"]["Reactions"];
         };
+        /**
+         * ReasonFact
+         * @description One reason as data, so the page can draw it (bars, chips) instead of printing a sentence.
+         */
+        ReasonFact: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sell_high" | "buy_low" | "punt_cost" | "players_out" | "consolidate" | "chasing" | "roster_squeeze" | "keystone_lost" | "vs_pickup" | "faab" | "paper_win" | "punt_mine" | "punt_theirs" | "not_rival";
+            /**
+             * Tone
+             * @description for: a reason they say yes; against: a reason they may not; note: context for you
+             * @enum {string}
+             */
+            tone: "for" | "against" | "note";
+            /**
+             * Text
+             * @description The same point as a sentence, as in `reasons`
+             */
+            text: string;
+            /** Player Id */
+            player_id?: number | null;
+            /** Player Name */
+            player_name?: string | null;
+            /** Categories */
+            categories?: string[];
+            /**
+             * Owners Value
+             * @description What owners pay for the player, in dollars
+             */
+            owners_value?: number | null;
+            /**
+             * Our Value
+             * @description What he's worth in this league's categories, in dollars
+             */
+            our_value?: number | null;
+            /**
+             * Owners Label
+             * @description owners_value as owners say it: "$38", "a 4th-round pick"
+             */
+            owners_label?: string | null;
+            /** Our Label */
+            our_label?: string | null;
+            /** Count */
+            count?: number | null;
+            /**
+             * Rank
+             * @description chasing: their place in the standings
+             */
+            rank?: number | null;
+            /** Teams */
+            teams?: number | null;
+            /** Playoff Spots */
+            playoff_spots?: number | null;
+            /**
+             * Ratio
+             * @description paper_win: trade value they get over what they send
+             */
+            ratio?: number | null;
+        };
         /** RepliesPage */
         RepliesPage: {
             /** Target */
@@ -2445,6 +2524,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -2712,6 +2801,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -3071,6 +3170,16 @@ export interface components {
              * @description Why it can work for both sides: sell high, buy low, their punts, timing
              */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
@@ -3294,6 +3403,16 @@ export interface components {
             pitch: string;
             /** Reasons */
             reasons: string[];
+            /**
+             * Facts
+             * @description `reasons` as data, in the same order
+             */
+            facts?: components["schemas"]["ReasonFact"][];
+            /**
+             * Pitch Needs
+             * @description `pitch` as data
+             */
+            pitch_needs?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */

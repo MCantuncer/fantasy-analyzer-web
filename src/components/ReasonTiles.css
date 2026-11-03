@@ -1,0 +1,215 @@
+/* "Why they might say yes" tiles: one point per tile, the number drawn. */
+.rt {
+  align-self: stretch;
+}
+
+.rt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  gap: 8px;
+  margin: 6px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.rt-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.rt-tile.rt-against {
+  border-color: color-mix(in srgb, var(--warn) 55%, transparent);
+}
+
+.rt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rt-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.rt-against .rt-icon {
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--warn);
+}
+
+.rt-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.rt-sub {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rt-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rt-pair-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 3px 8px;
+}
+
+.rt-pair-row .rt-track {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.rt-track {
+  position: relative;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--surface-2, color-mix(in srgb, var(--muted) 14%, transparent));
+}
+
+.rt-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--faint);
+}
+
+.rt-fill.rt-hi {
+  background: var(--accent);
+}
+
+.rt-div::after {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 1px;
+  height: 14px;
+  background: var(--faint);
+  content: '';
+}
+
+.rt-fill.rt-pos {
+  left: auto;
+  background: var(--good);
+}
+
+.rt-fill.rt-neg {
+  left: auto;
+  background: var(--bad);
+}
+
+.rt-val {
+  min-width: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.rt-standing {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.rt-slot-wrap {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.rt-slot {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--muted) 25%, transparent);
+}
+
+.rt-slot.rt-me {
+  height: 14px;
+  background: var(--accent);
+}
+
+.rt-line {
+  flex: none;
+  width: 2px;
+  height: 16px;
+  background: var(--warn);
+}
+
+.rt-big-inline {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.rt-bigline {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.rt-big {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.rt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rt-chip {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rt-chip.rt-dashed {
+  border: 1px dashed var(--border);
+  background: none;
+  color: var(--faint);
+}
+
+.rt-note {
+  margin: 0 0 8px;
+}
