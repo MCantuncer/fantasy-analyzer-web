@@ -3629,22 +3629,6 @@ button.menu-item.danger {
 
 /* ---------- League page: crests, box scores, matchups, standings ---------- */
 
-.crest {
-  --crest: 32px;
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: var(--crest);
-  height: var(--crest);
-  border-radius: calc(var(--crest) * 0.3);
-  font-size: calc(var(--crest) * 0.4);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--team);
-  background: color-mix(in srgb, var(--team) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--team) 50%, transparent);
-}
-
 .league-head {
   display: flex;
   justify-content: space-between;

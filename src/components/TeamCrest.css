@@ -1,0 +1,46 @@
+/* Team crest: a die-cut shield sticker in the team's colour (tc- prefix). */
+.crest {
+  --crest: 32px;
+  --tc-ink: #17120e;
+  --tc-die: var(--die, var(--surface));
+  --tc-shadow: var(--sticker-shadow, rgb(0 0 0 / 0.5));
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--crest);
+  height: calc(var(--crest) * 1.1);
+  filter: drop-shadow(0 1.5px 0 var(--tc-shadow));
+}
+
+:root[data-theme='light'] .crest {
+  --tc-ink: #ffffff;
+}
+
+.tc-shield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tc-shield path {
+  fill: var(--team);
+  stroke: var(--tc-die);
+}
+
+.tc-label {
+  position: relative;
+  margin-top: -8%;
+  font-family: var(--font-num);
+  font-size: calc(var(--crest) * 0.36);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--tc-ink);
+}
+
+.crest.tc-tilt {
+  transform: rotate(-4deg);
+}
