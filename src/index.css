@@ -2587,21 +2587,6 @@ td.keep-cell {
   margin: 4px 0;
 }
 
-.fit-good {
-  background: var(--good-soft);
-  color: var(--good);
-}
-
-.fit-warn {
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-.fit-bad {
-  background: var(--bad-soft);
-  color: var(--bad);
-}
-
 .target-note {
   margin: 0;
   padding: 12px 20px;

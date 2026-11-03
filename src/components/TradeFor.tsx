@@ -136,8 +136,8 @@ function Fit({ data }: { data: TargetReport }) {
           <div className="small muted">
             {t.positions.join('/')} · {data.owner.team_name} · trade value {shortValue(t.perceived_value, rounds)}
           </div>
+          <div className={`tf-fit tf-fit-${fit.tone}`}>{fit.label}</div>
         </div>
-        <span className={`badge fit-${fit.tone}`}>{fit.label}</span>
       </div>
       <OddsMeter before={data.fit.playoff_pct_before} after={data.fit.playoff_pct_after} />
       <p className="small muted" style={{ margin: 0 }}>
