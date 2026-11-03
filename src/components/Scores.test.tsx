@@ -133,6 +133,48 @@ describe('Scores', () => {
     expect(screen.getByText(/ATL/)).toBeInTheDocument()
   })
 
+  it('filters to games with my players from the All | Mine lens', async () => {
+    mockApi()
+    renderScores()
+    const lens = await screen.findByRole('radiogroup', { name: 'Games shown' })
+    const all = within(lens).getByRole('radio', { name: 'All 2 games' })
+    const mine = within(lens).getByRole('radio', { name: 'Mine 1 game' })
+    expect(all).toBeChecked()
+    expect(screen.getByText(/All 2 games · 1 of your players in action/)).toBeInTheDocument()
+
+    fireEvent.click(mine)
+    expect(mine).toBeChecked()
+    expect(screen.queryByText(/ATL/)).toBeNull()
+    expect(screen.getByText(/of 2 games · 1 of your players in action/)).toHaveTextContent('1 of 2 games')
+
+    fireEvent.keyDown(mine, { key: 'ArrowLeft' })
+    expect(all).toBeChecked()
+    expect(all).toHaveFocus()
+    expect(screen.getByText(/ATL/)).toBeInTheDocument()
+  })
+
+  it('counts a game that has not started as mine from the week fixtures', async () => {
+    const tonight = { ...DAY.games[1], id: 9 }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ ...DAY, games: [tonight] }))),
+    )
+    renderScores()
+    expect(await screen.findByRole('radio', { name: 'Mine 1 game' })).toBeInTheDocument()
+    expect(screen.getByText(/All games include your players · 3 of your players in action/)).toBeInTheDocument()
+  })
+
+  it('offers all games when none of mine play that day', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ ...DAY, games: [DAY.games[1]] }))),
+    )
+    renderScores()
+    fireEvent.click(await screen.findByRole('radio', { name: 'Mine 0 games' }))
+    expect(screen.getByRole('heading', { name: 'None of your players play on Fri, Oct 23' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Show all games' }))
+    expect(screen.getByRole('radio', { name: 'All 1 game' })).toBeChecked()
+    expect(screen.getByText(/ATL/)).toBeInTheDocument()
+  })
+
   it('asks the API for the day picked in the strip', async () => {
     const fetchMock = mockApi()
     renderScores()

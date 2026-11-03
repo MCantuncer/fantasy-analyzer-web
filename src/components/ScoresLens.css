@@ -1,0 +1,174 @@
+/* Scores page: the "All 15 | Mine 6" lens that replaced the "Only games with my players" checkbox.
+   The picked half sits on a raised card with one warm pool of light under it; the selected day
+   in the strip keeps the indigo border, so it stays the loudest thing in the bar. */
+.sl-lens {
+  --sl-hair: rgb(248 241 232 / 0.1);
+  --sl-lift: 0 1px 2px rgb(0 0 0 / 0.35);
+  --sl-ember: rgb(255 190 130 / 0.16);
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  height: 44px;
+  border-radius: 10px;
+  isolation: isolate;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+[data-theme='light'] .sl-lens {
+  --sl-hair: var(--border);
+  --sl-lift: 0 1px 2px rgb(34 27 21 / 0.08);
+  --sl-ember: rgb(255 190 130 / 0.34);
+}
+
+.sl-lit {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 7px;
+  z-index: 0;
+  background: var(--raised);
+  box-shadow:
+    inset 0 0 0 1px var(--sl-hair),
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    var(--sl-lift);
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme='light'] .sl-lit {
+  background: var(--surface);
+}
+
+.sl-lit::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -11px;
+  height: 16px;
+  z-index: -1;
+  background: radial-gradient(closest-side, var(--sl-ember), transparent);
+}
+
+.sl-lens[data-value='mine'] .sl-lit {
+  transform: translateX(100%);
+}
+
+.sl-lens .sl-seg {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 44px;
+  min-width: 88px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  box-shadow: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.sl-lens .sl-seg:hover {
+  background: none;
+  color: var(--text);
+}
+
+.sl-n {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 180ms ease;
+}
+
+.sl-lens .sl-seg[aria-checked='true'] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sl-seg[aria-checked='true'] .sl-n {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.sl-lens .sl-seg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The line under the bar: "6 of 15 games · 9 of your players in action". */
+.sl-summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-summary b {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.sl-short {
+  display: none;
+}
+
+/* Mine with no games that day. */
+.card.sl-empty {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 28px 20px 22px;
+  text-align: center;
+  background:
+    radial-gradient(70% 90px at 50% 0, var(--glow, rgb(255 190 130 / 0.07)), transparent),
+    var(--surface);
+}
+
+.sl-empty h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Phones: the lens and a short summary share their own row under the day picker. */
+@media (max-width: 640px) {
+  .sl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .sl-long {
+    display: none;
+  }
+
+  .sl-short {
+    display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-lit,
+  .sl-lens .sl-seg,
+  .sl-n {
+    transition: none;
+  }
+}
+
+.sl-empty button.ghost {
+  background: var(--accent-soft);
+}
