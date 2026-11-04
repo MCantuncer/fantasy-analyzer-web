@@ -131,27 +131,31 @@ function Side({
           </div>
         )}
       </div>
-      <div className="totd-odds">
-        <span className="kpi-label">Playoff odds</span>
-        <span className="num totd-odds-figures">
-          <span className="muted">{pct(side.playoff_pct_before)}</span>
-          <span className="muted" aria-label="to">
-            →
+      {/* A trade that doesn't move the odds has nothing to say here: "4% → 4% ±0" is noise. */}
+      {diff !== 0 && (
+        <div className="totd-odds">
+          <span className="kpi-label">Playoff odds</span>
+          <span className="num totd-odds-figures">
+            <span className="muted">{pct(side.playoff_pct_before)}</span>
+            <span className="muted" aria-label="to">
+              →
+            </span>
+            <strong>{pct(side.playoff_pct_after)}</strong>
+            <span className={diff > 0 ? 'totd-delta good' : 'totd-delta bad'}>
+              <Delta value={diff} />
+              <span className="sr-only"> points</span>
+            </span>
           </span>
-          <strong>{pct(side.playoff_pct_after)}</strong>
-          <span className={diff >= 0 ? 'totd-delta good' : 'totd-delta bad'}>
-            <Delta value={diff} />
-            <span className="sr-only"> points</span>
-          </span>
-        </span>
-      </div>
+        </div>
+      )}
       {gains.length > 0 && (
         <ul className="totd-gains" aria-label="Biggest category gains, in points of weekly win chance">
           {gains.map((g) => (
-            <li key={g.category} className="num">
+            <li key={g.category} className="num" title="Points of weekly win chance">
               {g.category}{' '}
               <span className="good">
-                <Delta value={g.pts} />
+                {signedInt(g.pts)}
+                <span className="tw-unit">% win</span>
               </span>
             </li>
           ))}
