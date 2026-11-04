@@ -9,8 +9,19 @@ const player = (name: string, injury_status: string, extra: Partial<PlayerRef> =
 describe('InjuryBadges', () => {
   it('flags only players who are not fully healthy', () => {
     render(<InjuryBadges players={[player('Yves Missi', 'DAY_TO_DAY'), player('Bam Adebayo', 'ACTIVE')]} />)
-    expect(screen.getByText('Missi: Day-to-day')).toBeInTheDocument()
+    expect(screen.getByText('Missi: DTD')).toBeInTheDocument()
     expect(screen.queryByText(/Adebayo/)).toBeNull()
+  })
+
+  it('uses the short form for every status', () => {
+    render(
+      <InjuryBadges
+        players={[player('Ja Morant', 'OUT'), player('Joel Embiid', 'INJURY_RESERVE'), player('Jo', 'SUSPENSION')]}
+      />,
+    )
+    expect(screen.getByText('Morant: OUT')).toBeInTheDocument()
+    expect(screen.getByText('Embiid: IR')).toBeInTheDocument()
+    expect(screen.getByText('Jo: SUSP')).toBeInTheDocument()
   })
 
   it('renders nothing for a healthy deal', () => {
@@ -54,7 +65,7 @@ describe('InjuryBadges', () => {
   it('shows only the injury for a prone player who is already out', () => {
     const embiid = player('Joel Embiid', 'OUT', { injury_prone: true, games_share: 0.5 })
     const { container } = render(<InjuryBadges players={[embiid]} />)
-    expect(within(container).getByText('Out')).toBeInTheDocument()
+    expect(within(container).getByText('OUT')).toBeInTheDocument()
     expect(within(container).queryByText(/Durability/)).toBeNull()
   })
 })

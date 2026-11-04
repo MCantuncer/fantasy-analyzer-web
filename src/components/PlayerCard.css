@@ -30,6 +30,20 @@ button.pc-link:hover {
   text-decoration-color: currentColor;
 }
 
+/* A name with a mark after it: only the name is underlined, the mark keeps its own look. */
+button.pc-link.pc-link-split {
+  text-decoration: none;
+}
+
+.pc-link-split .pc-link-name {
+  text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+.pc-link-split:hover .pc-link-name {
+  text-decoration-color: currentColor;
+}
+
 button.pc-link:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;

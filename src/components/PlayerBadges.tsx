@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { PlayerBadge, PlayerRef } from '../api/client'
+import { injuryShort } from '../lib/injury'
 import './PlayerBadges.css'
 
 const LABELS: Record<PlayerBadge['kind'], string> = {
@@ -162,16 +163,9 @@ export function BadgeNotes({ players }: { players: PlayerRef[] }) {
 }
 
 /** Injury status as short red caps after the name (OUT, DTD, IR). */
-const STATUS: Record<string, string> = {
-  OUT: 'OUT',
-  DAY_TO_DAY: 'DTD',
-  INJURY_RESERVE: 'IR',
-  SUSPENSION: 'SUSP',
-}
-
 export function InjuryTag({ status }: { status: string }) {
   if (status === 'ACTIVE' || status === 'NORMAL') return null
-  const short = STATUS[status] ?? status.replace(/_/g, ' ')
+  const short = injuryShort(status)
   return (
     <span className="pb-injury" title={status.replace(/_/g, ' ').toLowerCase()}>
       {short}

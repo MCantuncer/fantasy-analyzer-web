@@ -126,15 +126,24 @@ export function PlayerLink({
   children,
   className,
   decorative = false,
+  after,
 }: {
   player: CardPlayer
   children?: ReactNode
   className?: string
   decorative?: boolean
+  /** A mark that belongs to the name (an injury pill): inside the link, so it never wraps away from the name. */
+  after?: ReactNode
 }) {
   const card = usePlayerCard()
-  if (!card || player.id <= 0) return <>{children ?? player.name}</>
-  const base = decorative ? 'pc-link pc-link-face' : 'pc-link'
+  if (!card || player.id <= 0)
+    return (
+      <>
+        {children ?? player.name}
+        {after}
+      </>
+    )
+  const base = decorative ? 'pc-link pc-link-face' : after ? 'pc-link pc-link-split' : 'pc-link'
   return (
     <button
       type="button"
@@ -146,7 +155,14 @@ export function PlayerLink({
       onPointerDown={() => card.prefetch(player)}
       onClick={() => card.open(player)}
     >
-      {children ?? player.name}
+      {after ? (
+        <>
+          <span className="pc-link-name">{children ?? player.name}</span>
+          {after}
+        </>
+      ) : (
+        (children ?? player.name)
+      )}
     </button>
   )
 }

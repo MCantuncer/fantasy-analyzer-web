@@ -5,6 +5,7 @@ import { fetchShop, type AnalysisReport, type ShopDeal, type ShopReport } from '
 import type { Credentials } from '../lib/credentials'
 import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
+import { injuryShort } from '../lib/injury'
 import { PlayerHead } from './PlayerHead'
 import { TradeItem } from './Trades'
 import { teamColours } from '../lib/league'
@@ -22,11 +23,8 @@ const KIND = {
 
 const TIERS = { core: 'Keeper', tradeable: 'Tradeable', droppable: 'Droppable', injured: 'Injured' } as const
 
-/** "DAY_TO_DAY" -> "Day to day". */
-const statusWord = (s: string) => {
-  const w = s.replace(/_/g, ' ').toLowerCase()
-  return w.charAt(0).toUpperCase() + w.slice(1)
-}
+/** "DAY_TO_DAY" -> "DTD", the same short form as the injury pill. */
+const statusWord = injuryShort
 
 interface Props {
   report: AnalysisReport
