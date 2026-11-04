@@ -29,3 +29,12 @@
 .matchup-box .box-cell {
   border-radius: 10px;
 }
+
+/* Your team: a small person icon in the accent before the name, instead of a "You ·" prefix
+   (Can, 2026-11-04). Same glyph as the "Your matchup" tag on the matchup cards. */
+.box-team-name.mine .box-mine-icon {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 6px;
+  fill: var(--accent);
+}

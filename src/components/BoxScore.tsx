@@ -8,10 +8,26 @@ export interface BoxTeam {
   side: MatchupSide
   name: string
   colour: string | undefined
-  label?: string // e.g. "You · Kucukesat Aspavas"
   sub?: string // e.g. "Season 4-5-0"
   /** Your team: its leads get a green edge and the other side's a red one. */
   mine?: boolean
+}
+
+/** The team's name; yours carries a person icon instead of a "You ·" prefix. */
+function TeamName({ team }: { team: BoxTeam }) {
+  return (
+    <span className={team.mine ? 'box-team-name mine' : 'box-team-name'}>
+      {team.mine && (
+        <svg className="box-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+          <title>Your team</title>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0z" />
+        </svg>
+      )}
+      {team.mine && <span className="sr-only">Your team: </span>}
+      {team.name}
+    </span>
+  )
 }
 
 function Games({ team }: { team: BoxTeam }) {
@@ -66,7 +82,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
             <div key={t.side.team_id} className="box-compact-team" style={{ '--team': t.colour } as CSSProperties}>
               <TeamCrest name={t.name} colour={t.colour} size={36} />
               <span className="box-name">
-                <span>{t.label ?? t.name}</span>
+                <TeamName team={t} />
                 <span className="num box-record">{record(t.side)}</span>
               </span>
               <Games team={t} />
@@ -127,7 +143,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                     <span className="crest-name">
                       <TeamCrest name={t.name} colour={t.colour} size={32} />
                       <span className="box-name">
-                        <span>{t.label ?? t.name}</span>
+                        <TeamName team={t} />
                         {t.sub && <span className="small muted">{t.sub}</span>}
                       </span>
                     </span>
