@@ -1,14 +1,8 @@
 import { Fragment } from 'react'
 import type { PlayerRef } from '../api/client'
 import { DurabilityScore } from './DurabilityScore'
+import { injuryShort } from '../lib/injury'
 import './InjuryBadges.css'
-
-const LABELS: Record<string, string> = {
-  DAY_TO_DAY: 'Day-to-day',
-  OUT: 'Out',
-  INJURY_RESERVE: 'IR',
-  SUSPENSION: 'Suspended',
-}
 
 const healthy = (p: PlayerRef) => p.injury_status === 'ACTIVE' || p.injury_status === 'NORMAL'
 
@@ -21,10 +15,14 @@ export function InjuryBadges({ players }: { players: PlayerRef[] }) {
   return (
     <>
       {hurt.map((p) => (
-        <span key={p.id} className="badge badge-bad injury-badge">
-          {who(p)}
-          {LABELS[p.injury_status] ?? p.injury_status.replace(/_/g, ' ').toLowerCase()}
-        </span>
+        <Fragment key={p.id}>
+          {/* A word joiner keeps the pill on the name's line: if it must wrap, the last name goes with it. */}
+          {'\u2060'}
+          <span className="badge badge-bad injury-badge" title={p.injury_status.replace(/_/g, ' ').toLowerCase()}>
+            {who(p)}
+            {injuryShort(p.injury_status)}
+          </span>
+        </Fragment>
       ))}
       {prone.map((p) => (
         <DurabilityScore key={p.id} player={p} prefix={who(p)} />

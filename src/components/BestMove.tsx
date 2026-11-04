@@ -45,8 +45,7 @@ export function Side({
           {players.map((p, i) => (
             <span key={p.id}>
               {i > 0 && ' + '}
-              <PlayerLink player={p} />
-              <InjuryBadges players={[p]} />
+              <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
             </span>
           ))}
         </div>
