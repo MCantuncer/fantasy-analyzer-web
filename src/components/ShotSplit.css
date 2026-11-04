@@ -1,4 +1,4 @@
-/* FG / FT cell: ".467" over a small "7-15", stacked so the column keeps its width. */
+/* FG / FT cell, ESPN style: "7/15" over a small ".467", stacked so the column keeps its width. */
 .shot-split {
   display: inline-flex;
   flex-direction: column;
@@ -20,12 +20,12 @@ td.shot-cell .shot-split {
   align-items: flex-end;
 }
 
-.shot-split-pct {
+.shot-split-ma {
   font-weight: 600;
   color: var(--text);
 }
 
-.shot-split-ma {
+.shot-split-pct {
   font-size: 11px;
   font-weight: 500;
   color: var(--muted);
