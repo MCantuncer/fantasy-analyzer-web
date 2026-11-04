@@ -1,0 +1,46 @@
+/* Box score team header on phones (League page, your matchup and any opened matchup).
+   Can found it "lefty" (2026-11-04): crests, names, records and the games row hugged the left of
+   each half while the category grid below is centred. Each team's block is now centred in its
+   half, and the two halves share rows (subgrid), so when one name wraps to two lines the records
+   and games rows still line up across. */
+@media (max-width: 640px) {
+  /* .box-compact prefix: box-score.css loads after this file and sets the gaps. */
+  .box-compact .box-compact-head {
+    grid-template-rows: repeat(4, auto);
+    row-gap: 10px;
+  }
+
+  .box-compact .box-compact-team {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    justify-items: center;
+    text-align: center;
+    row-gap: 10px;
+  }
+
+  /* Name and record become their own rows so they line up with the other team's. */
+  .box-compact-team > .box-name {
+    display: contents;
+  }
+
+  .box-compact-team > .box-name > span:first-child {
+    align-self: end;
+    max-width: 100%;
+  }
+
+  /* Keep the record close to the name it belongs to. */
+  .box-compact-team > .box-name > .box-record {
+    margin-top: -4px;
+  }
+
+  .box-compact-team > .box-games {
+    justify-content: center;
+  }
+
+  .box-compact-team .games-week {
+    flex: 0 1 92px;
+    min-width: 0;
+    text-align: left;
+  }
+}

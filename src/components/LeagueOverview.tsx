@@ -94,7 +94,6 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       side: s,
       name: nameOf(s.team_id),
       colour: colours.get(s.team_id),
-      label: s.team_id === o.my_team_id ? `You · ${nameOf(s.team_id)}` : undefined,
       mine: s.team_id === o.my_team_id,
       sub: t && !/^0-0(-0)?$/.test(t.record) ? `Season ${t.wins}-${t.losses}-${t.ties}` : undefined,
     }
