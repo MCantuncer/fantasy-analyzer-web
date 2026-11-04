@@ -1,0 +1,254 @@
+/* "Your pitch to <team>": a note sealed in their colour, then the turn to their side (pp- prefix). */
+.pp {
+  --pp-team: var(--muted);
+  --pp-tray: var(--bg);
+  --pp-tray-inset: inset 0 3px 10px -4px rgb(0 0 0 / 0.6);
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  container-type: inline-size;
+}
+
+:root[data-theme='light'] .pp {
+  --pp-tray: var(--surface-2);
+  --pp-tray-inset: inset 0 2px 8px -4px rgb(70 45 20 / 0.2);
+}
+
+.pp-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 22px;
+  padding: 30px 16px 16px;
+  border: 1px solid color-mix(in srgb, var(--pp-team) 32%, var(--border));
+  border-radius: var(--radius);
+  background: radial-gradient(120% 90% at 100% 0%, var(--glow), transparent 60%), var(--raised);
+  box-shadow: var(--shadow);
+}
+
+/* The envelope flap: a soft V of their colour folding down from the top edge. */
+.pp-flap {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 64px;
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  pointer-events: none;
+}
+
+.pp-flap::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pp-team) 24%, transparent),
+    color-mix(in srgb, var(--pp-team) 4%, transparent)
+  );
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+}
+
+/* Their crest as the seal on the flap's tip. */
+.pp-seal {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  display: inline-flex;
+  transform: translateX(-50%);
+}
+
+.pp-to {
+  position: relative;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.pp-to-v {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.pp-lede {
+  margin: 16px 0 8px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pp-lede.pp-empty {
+  margin: 16px 4px 4px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.pp-gifts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pp-gift {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--pp-team);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.pp-gift-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-cat {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pp-rank {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pp-of {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.pp-big {
+  margin-top: 4px;
+  color: var(--good);
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.pp-big.pp-word {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.pp-sub {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pp-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pp-sends {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pp-sends-k {
+  font-weight: 600;
+}
+
+.pp-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 14px var(--font-ui);
+  cursor: pointer;
+}
+
+.pp-copy:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The turn: the conversation flips to their side. */
+.pp-turn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 -14px;
+}
+
+.pp-turn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pp-tray {
+  padding: 22px 12px 2px;
+  border-radius: var(--radius);
+  background: var(--pp-tray);
+  box-shadow: var(--pp-tray-inset);
+}
+
+.pp-tray .rt-tile {
+  background: var(--surface);
+}
+
+@container (min-width: 460px) {
+  .pp-note {
+    padding: 32px 20px 18px;
+  }
+
+  .pp-foot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .pp-sends {
+    flex: 1;
+  }
+
+  .pp-foot .pp-copy:only-child {
+    margin-left: auto;
+  }
+
+  .pp-tray {
+    padding: 24px 16px 4px;
+  }
+}
