@@ -38,3 +38,19 @@
   margin-right: 6px;
   fill: var(--accent);
 }
+
+/* Phones: the icon sits just right of your crest, outside its box, so the crest stays centred. */
+.box-crest-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.box-crest-wrap .box-mine-icon {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 50%;
+  translate: 0 -50%;
+  width: 16px;
+  height: 16px;
+  fill: var(--accent);
+}

@@ -13,17 +13,19 @@ export interface BoxTeam {
   mine?: boolean
 }
 
-/** The team's name; yours carries a person icon instead of a "You ·" prefix. */
-function TeamName({ team }: { team: BoxTeam }) {
+const MINE_ICON = (
+  <svg className="box-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+    <title>Your team</title>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0z" />
+  </svg>
+)
+
+/** The team's name; yours is marked by a person icon (before the name, or beside the crest on phones). */
+function TeamName({ team, icon = true }: { team: BoxTeam; icon?: boolean }) {
   return (
     <span className={team.mine ? 'box-team-name mine' : 'box-team-name'}>
-      {team.mine && (
-        <svg className="box-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-          <title>Your team</title>
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21a8 8 0 0 1 16 0z" />
-        </svg>
-      )}
+      {team.mine && icon && MINE_ICON}
       {team.mine && <span className="sr-only">Your team: </span>}
       {team.name}
     </span>
@@ -80,9 +82,12 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
         <div className="box-compact-head">
           {teams.map((t) => (
             <div key={t.side.team_id} className="box-compact-team" style={{ '--team': t.colour } as CSSProperties}>
-              <TeamCrest name={t.name} colour={t.colour} size={36} />
+              <span className="box-crest-wrap">
+                <TeamCrest name={t.name} colour={t.colour} size={36} />
+                {t.mine && MINE_ICON}
+              </span>
               <span className="box-name">
-                <TeamName team={t} />
+                <TeamName team={t} icon={false} />
                 <span className="num box-record">{record(t.side)}</span>
               </span>
               <Games team={t} />
