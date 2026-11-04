@@ -272,6 +272,7 @@ function Results({ data, colours }: { data: ShopReport; colours: Map<number, str
                       tag={<KindPill kind={d.kind} />}
                       feedbackSource="shop"
                       colour={colours.get(d.partner_team_id)}
+                      teamCount={colours.size || undefined}
                     />
                   )
                 })}

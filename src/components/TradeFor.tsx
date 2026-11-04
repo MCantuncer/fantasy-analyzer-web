@@ -9,7 +9,9 @@ import { OddsMeter } from './BestMove'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
 import { HeadStack, PlayerHead } from './PlayerHead'
-import { ACCEPTANCE, CopyButton } from './Trades'
+import { ACCEPTANCE } from './Trades'
+import { PitchCard } from './PitchCard'
+import { teamColours } from '../lib/league'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { DealChips, PlayerLink } from './PlayerCard'
 import './TradeFor.css'
@@ -149,7 +151,21 @@ function Fit({ data }: { data: TargetReport }) {
   )
 }
 
-function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: boolean; onToggle: () => void; partner: string }) {
+function Offer({
+  offer,
+  open,
+  onToggle,
+  partner,
+  colour,
+  teamCount,
+}: {
+  offer: TargetOffer
+  open: boolean
+  onToggle: () => void
+  partner: string
+  colour?: string
+  teamCount?: number
+}) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[offer.acceptance_label]
   const hero = offer.angle === 'best'
@@ -186,18 +202,18 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
         <div className="move-detail">
           <div>
             <DealChips deal={offer} />
-            <div className="detail-label">Your pitch to {partner}</div>
-            <p className="pitch">{offer.pitch}</p>
-            <ReasonTiles
-              facts={offer.facts}
-              reasons={offer.reasons}
-              title="Why they might say yes"
-              valueGet={offer.value_they_get}
-              valueGive={offer.value_they_give}
-              myCats={offer.my_cats_gain}
-              theirCats={offer.their_cats_gain}
-              rounds={rounds}
-            />
+            <PitchCard partner={partner} colour={colour} teams={teamCount} pitch={offer.pitch} needs={offer.pitch_needs}>
+              <ReasonTiles
+                facts={offer.facts}
+                reasons={offer.reasons}
+                title="Why they might say yes"
+                valueGet={offer.value_they_get}
+                valueGive={offer.value_they_give}
+                myCats={offer.my_cats_gain}
+                theirCats={offer.their_cats_gain}
+                rounds={rounds}
+              />
+            </PitchCard>
             <ul className="reasons">
               {[...offer.give, ...offer.get]
                 .filter((p) => p.injury_prone && p.games_share != null)
@@ -211,9 +227,6 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
               {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
               {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
             </ul>
-            <div className="row">
-              <CopyButton text={offer.pitch} />
-            </div>
           </div>
           <ImpactBars changes={offer.category_changes} label="Your weekly win chance per category" />
         </div>
@@ -222,7 +235,17 @@ function Offer({ offer, open, onToggle, partner }: { offer: TargetOffer; open: b
   )
 }
 
-function Offers({ data, leagueId, season }: { data: TargetReport; leagueId: number; season: number }) {
+function Offers({
+  data,
+  leagueId,
+  season,
+  colours,
+}: {
+  data: TargetReport
+  leagueId: number
+  season: number
+  colours: Map<number, string>
+}) {
   const [open, setOpen] = useState<number>(0)
   const keepRow = useKeepRowInView(open)
   return (
@@ -250,6 +273,8 @@ function Offers({ data, leagueId, season }: { data: TargetReport; leagueId: numb
               open={open === i}
               onToggle={() => setOpen(open === i ? -1 : i)}
               partner={data.owner.team_name}
+              colour={colours.get(data.owner.team_id)}
+              teamCount={colours.size || undefined}
             />
           ))}
         </ol>
@@ -321,6 +346,14 @@ interface Props {
 export function TradeFor({ report, keep, creds }: Props) {
   const [playerId, setPlayerId] = useState<number | null>(null)
   const league = report.league
+  const colours = useMemo(
+    () =>
+      teamColours(
+        league.teams.map((x) => x.id),
+        report.team_id,
+      ),
+    [league.teams, report.team_id],
+  )
   const target = useQuery({
     queryKey: ['target', league.id, league.season, report.team_id, playerId, [...keep].sort(), creds?.swid ?? null],
     queryFn: () => fetchTarget(league.id, report.team_id, league.season, playerId!, keep, creds),
@@ -365,7 +398,7 @@ export function TradeFor({ report, keep, creds }: Props) {
         {target.data && (
           <>
             <Fit data={target.data} />
-            <Offers data={target.data} leagueId={league.id} season={league.season} />
+            <Offers data={target.data} leagueId={league.id} season={league.season} colours={colours} />
             <Owner data={target.data} />
           </>
         )}

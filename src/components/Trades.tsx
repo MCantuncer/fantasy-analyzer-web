@@ -1,6 +1,7 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
+import { PitchCard } from './PitchCard'
 import type { FeedbackSource, TradeIdea } from '../api/client'
 import { pct, tradeKey } from '../lib/format'
 import { HeadStack } from './PlayerHead'
@@ -22,27 +23,6 @@ export const ACCEPTANCE = {
   possible: { label: 'Possible', tone: 'warn' },
   long_shot: { label: 'Long shot', tone: 'bad' },
 } as const
-
-export function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      type="button"
-      className="secondary"
-      onClick={() => {
-        navigator.clipboard?.writeText(text).then(
-          () => {
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-          },
-          () => undefined,
-        )
-      }}
-    >
-      {copied ? 'Copied' : 'Copy pitch'}
-    </button>
-  )
-}
 
 /** Small amber mark for a caveat on a deal. Decorative: the text says it. */
 function WarningMark() {
@@ -69,6 +49,8 @@ interface ItemProps {
   feedbackSource?: FeedbackSource
   /** The partner's league colour, for the crest beside their name. */
   colour?: string
+  /** League size, for the pitch's "8th/10". */
+  teamCount?: number
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
@@ -83,6 +65,7 @@ export function TradeItem({
   extra,
   feedbackSource,
   colour,
+  teamCount,
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
@@ -104,18 +87,18 @@ export function TradeItem({
             ))}
           </ul>
         )}
-        <div className="detail-label">Your pitch to {t.partner_team_name}</div>
-        <p className="pitch">{t.pitch}</p>
-        <ReasonTiles
-          facts={t.facts}
-          reasons={t.reasons}
-          title={why}
-          valueGet={t.value_they_get}
-          valueGive={t.value_they_give}
-          myCats={t.my_cats_gain}
-          theirCats={t.their_cats_gain}
-          rounds={rounds}
-        />
+        <PitchCard partner={t.partner_team_name} colour={colour} teams={teamCount} pitch={t.pitch} needs={t.pitch_needs}>
+          <ReasonTiles
+            facts={t.facts}
+            reasons={t.reasons}
+            title={why}
+            valueGet={t.value_they_get}
+            valueGive={t.value_they_give}
+            myCats={t.my_cats_gain}
+            theirCats={t.their_cats_gain}
+            rounds={rounds}
+          />
+        </PitchCard>
         {t.owner_premium >= 0.5 && (
           <p className="small muted">
             Their side includes a {premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what
@@ -134,9 +117,6 @@ export function TradeItem({
           {extra}
         </ul>
         <BadgeNotes players={t.get} />
-        <div className="row">
-          <CopyButton text={t.pitch} />
-        </div>
       </div>
       <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
     </>
@@ -344,6 +324,7 @@ export function Trades({
                   why={MODES[mode].why}
                   feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                   colour={colours.get(t.partner_team_id)}
+                  teamCount={teams.length || undefined}
                 />
               )
             })}
@@ -362,6 +343,7 @@ export function Trades({
                     tag={<span className="skipped-pill">Skipped: {rule.label}</span>}
                     feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                     colour={colours.get(t.partner_team_id)}
+                    teamCount={teams.length || undefined}
                   />
                 )
               })}
