@@ -506,7 +506,7 @@ function BoxScore({
           <strong>
             <PlayerLink player={{ id: fa.player_id, name: fa.name }} />
           </strong>
-          , {statLine(fa)} ({fa.fgm}-{fa.fga} FG).
+          , {statLine(fa)} ({fa.fgm}/{fa.fga} FG).
         </p>
       )}
     </section>

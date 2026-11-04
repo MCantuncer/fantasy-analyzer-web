@@ -1,4 +1,4 @@
-/* FG / FT cell: ".467" over a small "7-15", stacked so the column keeps its width. */
+/* FG / FT cell: ".467" over a small "7/15", stacked so the column keeps its width. */
 .shot-split {
   display: inline-flex;
   flex-direction: column;

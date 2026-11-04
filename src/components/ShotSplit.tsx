@@ -10,7 +10,7 @@ export function ShotSplit({ made, attempts, label }: { made: number; attempts: n
         {pct}
       </span>
       <span className="shot-split-ma" aria-hidden="true">
-        {made}-{attempts}
+        {made}/{attempts}
       </span>
     </span>
   )
