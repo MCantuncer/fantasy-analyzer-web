@@ -18,7 +18,6 @@ import {
   opponent,
   ownerText,
   setPlayerCardHost,
-  shootingPct,
   shortDate,
   spotlight,
   usePlayerCard,
@@ -29,6 +28,8 @@ import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
 import { PlayerHead, TeamLogo } from './PlayerHead'
+import { ShotSplit } from './ShotSplit'
+import { ratioPct } from '../lib/shooting'
 import './PlayerCard.css'
 
 interface HostProps {
@@ -595,8 +596,8 @@ function GameTable({ card }: { card: Card }) {
                 Season avg
               </th>
               <td>{line.per_game.minutes.toFixed(1)}</td>
-              <td>{line.fg_pct == null ? '–' : `${(line.fg_pct * 100).toFixed(1)}%`}</td>
-              <td>{line.ft_pct == null ? '–' : `${(line.ft_pct * 100).toFixed(1)}%`}</td>
+              <td>{ratioPct(line.fg_pct)}</td>
+              <td>{ratioPct(line.ft_pct)}</td>
               {CATS.map((c) => (
                 <td key={c.key}>{line.per_game[c.key].toFixed(1)}</td>
               ))}
@@ -622,11 +623,11 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         </span>
       </th>
       <td>{Math.round(s.minutes)}</td>
-      <td title={shootingPct(s.fgm, s.fga)}>
-        {s.fgm}-{s.fga}
+      <td className="shot-cell">
+        <ShotSplit made={s.fgm} attempts={s.fga} label="FG" />
       </td>
-      <td title={shootingPct(s.ftm, s.fta)}>
-        {s.ftm}-{s.fta}
+      <td className="shot-cell">
+        <ShotSplit made={s.ftm} attempts={s.fta} label="FT" />
       </td>
       {CATS.map((c) => {
         const glow = base ? spotlight(c.key, s[c.key], base[c.key]) : 0
