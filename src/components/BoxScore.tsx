@@ -21,7 +21,7 @@ const MINE_ICON = (
   </svg>
 )
 
-/** The team's name; yours is marked by a person icon (before the name, or beside the crest on phones). */
+/** The team's name; yours is marked by a person icon (before the name, or left of the crest on phones). */
 function TeamName({ team, icon = true }: { team: BoxTeam; icon?: boolean }) {
   return (
     <span className={team.mine ? 'box-team-name mine' : 'box-team-name'}>
