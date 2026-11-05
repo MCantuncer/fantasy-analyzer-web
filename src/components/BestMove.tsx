@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import {
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowSquareOut,
+  ArrowUpRight,
+  CaretRight,
+  Handshake,
+  Plus,
+  Target,
+  Trash,
+  type Icon,
+} from '@phosphor-icons/react'
 import type { AnalysisReport, PlayerRef } from '../api/client'
 import { pct, ptsDiff } from '../lib/format'
 import { teamColours } from '../lib/league'
@@ -8,65 +20,60 @@ import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { TeamCrest } from './TeamCrest'
+import { ACCEPTANCE } from './Trades'
 import './BestMove.css'
 
-/** One side of the move, on its team's colour: a soft tint with a 6px edge, and the team crest in the corner. */
-export function Side({
-  label,
-  players,
-  note,
-  colour,
-  crest,
-}: {
-  label: string
-  players: PlayerRef[]
-  note: ReactNode
-  colour?: string
-  /** Team name for the corner crest; left out for free agents. */
-  crest?: string
-}) {
+/** "MIL · PF": the NBA team code and positions, in the code face. */
+function PlayerMeta({ player }: { player: PlayerRef }) {
   return (
-    <div className="swap-side" style={{ '--team': colour ?? 'var(--faint)' } as CSSProperties}>
-      {crest && (
-        <span className="bm-crest">
-          <TeamCrest name={crest} colour={colour} size={26} tilt />
-        </span>
-      )}
-      <span className="head-stack">
-        {players.slice(0, 3).map((p) => (
-          <PlayerLink key={p.id} player={p} decorative>
-            <PlayerHead player={p} size={44} team={p.pro_team} />
-          </PlayerLink>
-        ))}
-      </span>
-      <div className="bm-side-text">
-        <div className="swap-label">{label}</div>
-        <div className="swap-name">
-          {players.map((p, i) => (
-            <span key={p.id}>
-              {i > 0 && ' + '}
-              <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
-            </span>
-          ))}
-        </div>
-        <div className="small muted">{note}</div>
-      </div>
-    </div>
-  )
-}
-
-/** The round disc between the two sides. Decorative: the labels already say give and get. */
-function SwapDisc({ kind }: { kind: 'arrow' | 'swap' }) {
-  return (
-    <span className={`bm-swap bm-swap-${kind}`} aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {kind === 'arrow' ? <path d="M5 12h14M13 6l6 6-6 6" /> : <path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5" />}
-      </svg>
+    <span className="bm-meta code">
+      {[player.pro_team, player.positions.join('/')].filter(Boolean).join(' · ')}
     </span>
   )
 }
 
-/** The two biggest gains and costs in weekly win chance, as "3PM ▲28" (not a sentence). */
+/**
+ * One lane of the move: its label on its own line with a small direction icon ("You give ↗"),
+ * then one row per player (team-lit face, name, injury, team and positions), then a note.
+ */
+export function Lane({
+  label,
+  icon: LaneIcon,
+  players,
+  note,
+}: {
+  label: string
+  icon: Icon
+  players: PlayerRef[]
+  note?: ReactNode
+}) {
+  return (
+    <div className="bm-lane">
+      <div className="bm-lane-label">
+        <LaneIcon size={14} weight="bold" aria-hidden="true" />
+        {label}
+      </div>
+      <ul className="bm-players">
+        {players.map((p) => (
+          <li key={p.id} className="bm-player">
+            <PlayerLink player={p} decorative>
+              <PlayerHead player={p} size={44} team={p.pro_team} />
+            </PlayerLink>
+            <span className="bm-player-text">
+              <span className="bm-name">
+                <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
+              </span>
+              <PlayerMeta player={p} />
+            </span>
+          </li>
+        ))}
+      </ul>
+      {note && <div className="bm-note small muted">{note}</div>}
+    </div>
+  )
+}
+
+/** The two biggest gains and costs in weekly win chance, as small chips with an outcome edge. */
 function TopChanges({ changes }: { changes: Record<string, number> }) {
   const moved = Object.entries(changes)
     .map(([c, v]) => [c, Math.round(v * 100)] as const)
@@ -75,18 +82,21 @@ function TopChanges({ changes }: { changes: Record<string, number> }) {
   const costs = moved.filter(([, v]) => v < 0).sort((a, b) => a[1] - b[1]).slice(0, 2)
   if (!gains.length && !costs.length) return null
   const item = ([c, v]: readonly [string, number]) => (
-    <li key={c}>
-      {c}{' '}
-      <span className={v > 0 ? 'num good' : 'num bad'}>
+    <li key={c} className={v > 0 ? 'bm-chip good' : 'bm-chip bad'}>
+      <span className="bm-chip-cat code">{c}</span>
+      <span className="num">
         <Delta value={v} />
       </span>
     </li>
   )
   return (
-    <ul className="bm-changes" aria-label="Weekly win chance, in points" title="Weekly win chance, in points">
-      {gains.map(item)}
-      {costs.map(item)}
-    </ul>
+    <div className="bm-changes-wrap">
+      <div className="kpi-label">Weekly win chance, pts</div>
+      <ul className="bm-changes" aria-label="Weekly win chance, in points">
+        {gains.map(item)}
+        {costs.map(item)}
+      </ul>
+    </div>
   )
 }
 
@@ -171,13 +181,16 @@ export function BestMove({ report }: { report: AnalysisReport }) {
     report.season.map((r) => r.team_id),
     report.team_id,
   )
-  const mine = colours.get(report.team_id)
 
   if (tradeGain <= 0 && pickupGain <= 0) {
     return (
       <section className="card best">
-        <span className="eyebrow">Your best move</span>
-        <h2>Hold for now</h2>
+        <header className="bm-head">
+          <h2 className="bm-title">
+            <Target size={20} weight="duotone" aria-hidden="true" />
+            Best move: hold for now
+          </h2>
+        </header>
         <p className="muted">
           No single trade or pickup clearly raises your playoff odds right now. Check back after the next games.
         </p>
@@ -188,79 +201,91 @@ export function BestMove({ report }: { report: AnalysisReport }) {
   if (pickup && pickupGain >= tradeGain) {
     return (
       <section className="card best" aria-labelledby="best-title">
-        <div className="section-head" style={{ marginBottom: 0 }}>
-          <span className="eyebrow" id="best-title">
-            Your best move · no one has to agree
-          </span>
-        </div>
-        <div className="swap">
-          <Side
+        <header className="bm-head">
+          <h2 className="bm-title" id="best-title">
+            <Target size={20} weight="duotone" aria-hidden="true" />
+            Best move
+          </h2>
+          <span className="bm-sub muted">No one has to agree</span>
+        </header>
+        <div className="bm-lanes">
+          <Lane
             label="Add"
+            icon={Plus}
             players={[pickup.add]}
-            note={`${pickup.add.positions.join('/')} · ${pickup.availability === 'WAIVERS' ? 'on waivers' : 'free agent'} · ${Math.round(pickup.add.percent_owned)}% owned`}
+            note={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned`}
           />
-          <SwapDisc kind="swap" />
-          <Side
-            label="Drop"
-            players={[pickup.drop]}
-            colour={mine}
-            crest={report.team_name}
-            note={`${pickup.drop.positions.join('/')} · on your roster`}
-          />
+          <Lane label="Drop" icon={Trash} players={[pickup.drop]} note="From your roster" />
         </div>
         <OddsMeter
           before={pickup.playoff_pct_before}
           after={pickup.playoff_pct_after}
           celebrate={`pickup-${pickup.add.id}-${pickup.drop.id}`}
         />
-        <div className="row">
+        <TopChanges changes={pickup.category_changes} />
+        <div className="bm-actions">
           <a
             className="button"
             href={`https://fantasy.espn.com/basketball/players/add?leagueId=${league.id}`}
             target="_blank"
             rel="noreferrer"
           >
+            <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
             Make the claim on ESPN
           </a>
           <a className="button ghost" href="#pickup-0">
             All FA targets
+            <CaretRight size={14} weight="bold" aria-hidden="true" />
           </a>
-          <TopChanges changes={pickup.category_changes} />
         </div>
       </section>
     )
   }
 
   const theirs = colours.get(trade.partner_team_id)
+  const acc = ACCEPTANCE[trade.acceptance_label]
+  const theyBefore = trade.partner_playoff_pct_before
+  const theyAfter = trade.partner_playoff_pct_after
   return (
     <section className="card best" aria-labelledby="best-title">
-      <div className="section-head" style={{ marginBottom: 0 }}>
-        <span className="eyebrow bm-eyebrow" id="best-title">
-          Your best move · trade with{' '}
-          <span className="bm-partner">
-            <TeamCrest name={trade.partner_team_name} colour={theirs} size={20} />
-            {trade.partner_team_name}
-          </span>
+      <header className="bm-head">
+        <h2 className="bm-title" id="best-title">
+          <Target size={20} weight="duotone" aria-hidden="true" />
+          Best move
+        </h2>
+        <span className="bm-accept" title={`${pct(trade.acceptance)} chance they accept`}>
+          <Handshake size={20} aria-hidden="true" />
+          <span className="bm-accept-n num">{pct(trade.acceptance)}</span>
+          <span className={`bm-accept-word ${acc.tone}`}>{acc.label}</span>
         </span>
-      </div>
-      <div className="swap">
-        <Side
+        <span className="bm-partner">
+          <TeamCrest name={trade.partner_team_name} colour={theirs} size={20} />
+          Trade with {trade.partner_team_name}
+        </span>
+      </header>
+      <div className="bm-lanes">
+        <Lane
           label="You give"
+          icon={ArrowUpRight}
           players={trade.give}
-          colour={mine}
-          crest={report.team_name}
-          note={trade.my_drop ? `You also drop ${trade.my_drop.name}` : 'From your roster'}
-        />
-        <SwapDisc kind="arrow" />
-        <Side
-          label="You get"
-          players={trade.get}
-          colour={theirs}
-          crest={trade.partner_team_name}
           note={
-            trade.my_add
-              ? `Plus ${trade.my_add.name} from free agency · ${pct(trade.acceptance)} chance they accept`
-              : `${pct(trade.acceptance)} chance they accept`
+            trade.my_drop && (
+              <>
+                <Trash size={13} aria-hidden="true" /> and drop {trade.my_drop.name}
+              </>
+            )
+          }
+        />
+        <Lane
+          label="You get"
+          icon={ArrowDownLeft}
+          players={trade.get}
+          note={
+            trade.my_add && (
+              <>
+                <Plus size={13} aria-hidden="true" /> and add {trade.my_add.name} from free agency
+              </>
+            )
           }
         />
       </div>
@@ -269,19 +294,34 @@ export function BestMove({ report }: { report: AnalysisReport }) {
         after={trade.playoff_pct_after}
         celebrate={`trade-${trade.partner_team_id}-${[...trade.give, ...trade.get].map((p) => p.id).join('-')}`}
       />
-      <div className="row">
+      {theyBefore != null && theyAfter != null && (
+        <p className="bm-them small">
+          <TeamCrest name={trade.partner_team_name} colour={theirs} size={16} />
+          <span>{trade.partner_team_name}</span>
+          <span className="num">{pct(theyBefore)}</span>
+          <ArrowRight size={11} weight="bold" aria-hidden="true" className="muted" />
+          <b className="num">{pct(theyAfter)}</b>
+          <span className={theyAfter >= theyBefore ? 'num good' : 'num bad'}>
+            <Delta value={ptsDiff(theyBefore, theyAfter)} />
+          </span>
+          {theyAfter > theyBefore && <span className="muted">· they win too</span>}
+        </p>
+      )}
+      <TopChanges changes={trade.category_changes} />
+      <div className="bm-actions">
         <a
           className="button"
           href={`https://fantasy.espn.com/basketball/team?leagueId=${league.id}&teamId=${trade.partner_team_id}&seasonId=${league.season}`}
           target="_blank"
           rel="noreferrer"
         >
-          Open their team on ESPN
+          <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
+          Open their team
         </a>
         <a className="button ghost" href="#trade-0">
           See the pitch
+          <CaretRight size={14} weight="bold" aria-hidden="true" />
         </a>
-        <TopChanges changes={trade.category_changes} />
       </div>
     </section>
   )

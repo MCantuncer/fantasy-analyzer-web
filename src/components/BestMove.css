@@ -1,103 +1,166 @@
-/* Best move, Fireside: a warm light in the card's corner, each side on its team's colour, a round disc
-   between them, and a chunky odds meter with a notch at the playoff line. Also used by Trade For (OddsMeter). */
+/* Best move, Front Office: an icon title with the accept chance top-right, then "You give" and
+   "You get" lanes (label on its own line, team-lit faces, team code and position), the odds for
+   both sides, a few category chips and an ink button. Also used by Trade For (OddsMeter). */
 .card.best {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   border-color: var(--border);
   background:
     radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
     var(--surface);
 }
 
-.bm-eyebrow {
-  display: inline-flex;
-  flex-wrap: wrap;
+.bm-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 4px 8px;
+  gap: 4px 12px;
+}
+
+.bm-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.bm-title svg {
+  color: var(--text-2);
+}
+
+.bm-sub,
+.bm-partner {
+  grid-column: 1 / -1;
 }
 
 .bm-partner {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text);
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 700;
-}
-
-/* Give and Get: two team fields with the disc overlapping the seam. */
-.best .swap {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr);
-  align-items: stretch;
-  gap: 0;
-}
-
-.best .swap-side {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 40px 16px 20px;
-  border: none;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--team) 13%, var(--surface));
-  box-shadow: inset 6px 0 0 var(--team);
-}
-
-.best .swap-side + .bm-swap + .swap-side {
-  padding-left: 36px;
-  padding-right: 20px;
-}
-
-.best .swap-side .head-stack {
-  flex: none;
-  margin: 0;
-}
-
-.bm-side-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.best .swap-label {
-  font-size: 12px;
+  gap: 8px;
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* Accept chance: top-right, the number leads and the word sits under it. */
+.bm-accept {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: end;
+  gap: 0 6px;
   color: var(--text-2);
 }
 
-.best .swap-name {
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.bm-accept-n {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+
+.bm-accept-word {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.bm-lanes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.bm-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-row);
+  background: var(--surface-2);
+}
+
+.bm-lane-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.bm-players {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bm-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bm-player-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bm-name {
+  font-size: 16.5px;
+  font-weight: 650;
   overflow-wrap: anywhere;
 }
 
-/* The team crest sits on the field's top-right corner, tilted like a sticker. */
-.bm-crest {
-  position: absolute;
-  top: -8px;
-  right: 12px;
-  line-height: 0;
+.bm-meta {
+  font-size: 12px;
+  color: var(--muted);
 }
 
-.bm-swap {
-  position: relative;
-  z-index: 1;
-  align-self: center;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin: 0 -20px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
+.bm-meta,
+.bm-chip-cat {
+  font-family: var(--font-code);
+}
+
+.bm-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Their odds, so the partner's gain is visible on every best trade. */
+.bm-them {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: -8px 0 0;
   color: var(--text-2);
-  box-shadow: var(--shadow);
+}
+
+.bm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.bm-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Odds: plain coloured delta with a small triangle, no pill. */
@@ -178,26 +241,45 @@
   white-space: nowrap;
 }
 
-/* Biggest category moves as "3PM ▲28": muted name, coloured number. */
+/* Biggest category moves: small chips with an outcome edge, the category in the code face. */
+.bm-changes-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .bm-changes {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 14px;
-  margin: 0 0 0 auto;
+  gap: 8px;
+  margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
 }
 
-.bm-changes .good {
+.bm-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 12px 8px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: inset 3px 0 0 currentColor;
+  font-weight: 700;
+}
+
+.bm-chip.good {
   color: var(--good);
 }
 
-.bm-changes .bad {
+.bm-chip.bad {
   color: var(--bad);
+}
+
+.bm-chip-cat {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
 }
 
 /* One-shot confetti around the new odds: 0.9s, then React removes it. Off under reduced motion. */
@@ -237,45 +319,18 @@
   }
 }
 
-/* Phones: the fields stack and the disc sits on the seam at the right, pointing down. */
+/* Phones: the lanes stack, give over get. */
 @media (max-width: 640px) {
-  .best .swap {
+  .bm-lanes {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
 
-  .best .swap-side,
-  .best .swap-side + .bm-swap + .swap-side {
-    padding: 14px 16px;
+  .bm-accept-n {
+    font-size: 22px;
   }
 
-  .best .swap-side:first-child {
-    padding-right: 64px;
-  }
-
-  .best .swap-side + .bm-swap + .swap-side {
-    margin-top: 6px;
-  }
-
-  .best .swap-name {
-    font-size: 17px;
-  }
-
-  /* The eyebrow already names the partner; corner crests would sit under the disc. */
-  .bm-crest {
-    display: none;
-  }
-
-  .bm-swap {
-    justify-self: end;
-    margin: -14px 14px -20px 0;
-  }
-
-  .bm-swap-arrow svg {
-    transform: rotate(90deg);
-  }
-
-  .bm-changes {
-    margin-left: 0;
-    flex-basis: 100%;
+  .bm-partner {
+    font-size: 15.5px;
   }
 }
