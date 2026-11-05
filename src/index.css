@@ -1748,8 +1748,6 @@ button.game-card:hover {
   gap: 6px;
   color: var(--bad);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .live-dot i {
@@ -1882,8 +1880,6 @@ button.game-card:hover {
 .badge-live {
   background: var(--bad);
   color: var(--bg);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .day-jump select {
@@ -1944,11 +1940,9 @@ table.box th[scope='row'] {
 
 tr.box-team th {
   padding: 12px 20px 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-2);
 }
 
 .box-foot {
@@ -2229,11 +2223,9 @@ td.keep-cell {
 
 .chat-day-label {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-2);
 }
 
 .feed-card {
@@ -2255,10 +2247,8 @@ td.keep-cell {
 }
 
 .feed-pill {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   padding: 4px 8px;
   border-radius: 6px;
   background: var(--track);
@@ -2959,9 +2949,7 @@ button.block {
 .tag.warn {
   border: 0;
   border-radius: 6px;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 12px;
 }
 
 .tag.good {
@@ -3475,11 +3463,9 @@ button.menu-item.danger {
   flex: none;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  width: 24px;
+  height: 24px;
+  color: var(--text-2);
 }
 
 .wait-text {
@@ -4280,8 +4266,6 @@ th .head {
 
 .menu-label {
   padding: 6px 10px 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   font-weight: 600;
 }
 

@@ -131,7 +131,7 @@
 
 .bm-meta,
 .bm-chip-cat {
-  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
 }
 
 .bm-note {
