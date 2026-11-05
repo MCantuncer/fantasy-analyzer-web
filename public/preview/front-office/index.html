@@ -374,10 +374,9 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
 .phone .totd { padding: 10px 12px; gap: 10px; }
 .phone .totd-tx { font-size: 13px; }
 .phone .best { gap: 14px; }
-.phone .deal .col { display: grid; grid-template-columns: 34px 1fr; gap: 8px 6px; align-items: center; }
-.phone .deal .col .lbl { grid-row: 1 / span 3; align-self: start; padding-top: 14px; font-size: 12px; }
-.phone .deal .col .drop { grid-column: 2; font-size: 12.5px; }
-.phone .deal .col .chip { grid-column: 2; }
+.phone .deal .col { display: flex; flex-direction: column; gap: 10px; }
+.phone .deal .col .lbl { font-size: 12px; font-weight: 600; letter-spacing: .01em; }
+.phone .deal .col .drop { font-size: 12.5px; padding-left: 0; }
 .phone .deal { gap: 10px; }
 .phone .swap { display: none; }
 .phone .deal .col + .col { padding-top: 10px; box-shadow: inset 0 1px 0 var(--line); }
@@ -471,6 +470,8 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
   .phones > * { margin: 0 auto 24px; max-width: 100%; }
 }
 
+.gg-lbl .ic { width: 14px; height: 14px; color: var(--ink3); }
+
 </style></head>
 <body>
 <div class="board">
@@ -500,7 +501,7 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
     </header>
     <div class="deal">
       <div class="col">
-        <div class="lbl">You give</div>
+        <div class="lbl gg-lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg>You give</div>
         
   <div class="chip">
     <span class="face" style="--tc:#D9314F;--fs:60px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span>
@@ -513,7 +514,7 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
       </div>
       <div class="swap"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg></div>
       <div class="col">
-        <div class="lbl">You get</div>
+        <div class="lbl gg-lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M197.66,69.66,83.31,184H168a8,8,0,0,1,0,16H64a8,8,0,0,1-8-8V88a8,8,0,0,1,16,0v84.69L186.34,58.34a8,8,0,0,1,11.32,11.32Z"/></svg>You get</div>
         
   <div class="chip">
     <span class="face" style="--tc:#C1A06A;--fs:60px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span>
@@ -803,7 +804,7 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
     </header>
     <div class="deal">
       <div class="col">
-        <div class="lbl">You give</div>
+        <div class="lbl gg-lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg>You give</div>
         
   <div class="chip">
     <span class="face" style="--tc:#D9314F;--fs:44px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span>
@@ -816,7 +817,7 @@ h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
       </div>
       <div class="swap"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg></div>
       <div class="col">
-        <div class="lbl">You get</div>
+        <div class="lbl gg-lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M197.66,69.66,83.31,184H168a8,8,0,0,1,0,16H64a8,8,0,0,1-8-8V88a8,8,0,0,1,16,0v84.69L186.34,58.34a8,8,0,0,1,11.32,11.32Z"/></svg>You get</div>
         
   <div class="chip">
     <span class="face" style="--tc:#C1A06A;--fs:44px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span>
