@@ -4,11 +4,12 @@
   align-items: center;
   gap: 10px;
   /* 12px off the header divider; the first row's own 12px top padding matches it below. */
-  margin: 12px 20px 0;
+  margin: 12px 20px 4px;
   padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--bad-soft);
+  border-radius: 12px;
+  background: var(--surface-2);
   font-size: 13px;
+  color: var(--text-2);
 }
 
 .pk-shared .pk-from {
@@ -16,23 +17,6 @@
   color: var(--muted);
   font-size: 14px;
   white-space: nowrap;
-}
-
-.pk-gain {
-  display: block;
-  height: 6px;
-  margin-top: 6px;
-  max-width: 120px;
-  border-radius: 3px;
-  background: var(--track);
-  overflow: hidden;
-}
-
-.pk-gain > span {
-  display: block;
-  height: 100%;
-  border-radius: 3px;
-  background: var(--good);
 }
 
 .pk-facts {
@@ -60,4 +44,121 @@
 .pk-facts > li.pk-waivers {
   background: var(--warn-soft);
   color: var(--warn);
+}
+
+/* Front Office FA card row (fa- prefix): face, name and team, the odds gain big on the right,
+   then the categories it helps and who it replaces. Overrides the old shared move-row grid. */
+.fa-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fa-title svg,
+.fa-faab svg {
+  color: var(--text-2);
+}
+
+.fa-faab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.fa-faab b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.move-row.fa-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'face text pts' 'why why pts';
+  align-items: center;
+  gap: 8px 12px;
+  padding: 14px 20px;
+}
+
+.fa-row > .head {
+  grid-area: face;
+}
+
+.fa-text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fa-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fa-meta {
+  font-family: var(--font-code);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.fa-pts {
+  grid-area: pts;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: start;
+  text-align: right;
+}
+
+.fa-pts-n {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fa-pts-u {
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.fa-why {
+  grid-area: why;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.fa-why:empty {
+  display: none;
+}
+
+.fa-tag {
+  padding: 3px 6px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fa-for {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.fa-for svg {
+  margin-right: 4px;
+  vertical-align: -2px;
 }
