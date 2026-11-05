@@ -1,33 +1,105 @@
-/* Box score cells, Fireside: neutral cells, so the team colour never reads as good or bad.
-   The leader's cell is heavier, sits on the card surface with a hairline ring, and carries a 4px edge:
-   green where you lead, red where they lead (your matchup), or the leader's team colour (anyone else's). */
+/* Box score cells, Front Office: the leader's cell is filled and heavier, the other stays open and
+   quiet, and a tie fills neither. No outcome colour on the cells; your result is the small W/L/T letter
+   in the corner of your cell. Close categories carry a target mark and, on phones, a faint gold ring. */
+.box-compact .box-cell,
+.matchup-box .box-cell,
+.lo-legend .box-cell {
+  position: relative;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 500;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
 .box-compact .box-cell.lead,
 .matchup-box .box-cell.lead,
 .lo-legend .box-cell.lead {
-  --edge: var(--team);
   color: var(--text);
-  font-weight: 800;
-  background: var(--surface);
-  box-shadow:
-    inset 0 -4px 0 var(--edge),
-    inset 0 0 0 1.5px var(--border);
+  font-weight: 700;
+  background: var(--raised);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
 }
 
-.box-compact .box-cell.lead.mine,
-.matchup-box .box-cell.lead.mine,
-.lo-legend .box-cell.lead.mine {
-  --edge: var(--good);
+.box-compact .box-cell.tie,
+.matchup-box .box-cell.tie,
+.lo-legend .box-cell.tie {
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
-.box-compact .box-cell.lead.theirs,
-.matchup-box .box-cell.lead.theirs,
-.lo-legend .box-cell.lead.theirs {
-  --edge: var(--bad);
+.box-res {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  translate: 0 -50%;
+  font-family: var(--font-code);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.box-compact .box-cell,
-.matchup-box .box-cell {
-  border-radius: 10px;
+.matchup-box .box-res {
+  top: 6px;
+  left: 5px;
+  translate: none;
+  font-size: 9px;
+}
+
+.box-res.W {
+  color: var(--good);
+}
+
+.box-res.L {
+  color: var(--bad);
+}
+
+.box-res.T {
+  color: var(--muted);
+}
+
+/* Close categories: the name stays ink, a small target mark sits beside it. */
+.box-stat,
+.box-compact-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.box-wide table.matchup-box thead th.close,
+.box-compact-rows .box-compact-stat.close {
+  color: var(--text);
+}
+
+.box-stat svg,
+.box-compact-stat svg {
+  flex: none;
+  color: var(--gold);
+}
+
+.box-compact-rows li.close {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+/* Games today and the week bar: neutral, the team colour stays on the crest. */
+.box-compact .games-today,
+.matchup-box .games-today {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.box-compact .games-today.none,
+.matchup-box .games-today.none {
+  color: var(--muted);
+}
+
+.box-compact .games-bar span,
+.matchup-box .games-bar span {
+  background: var(--text-2);
 }
 
 /* Your team: a small person icon in the accent before the name, instead of a "You ·" prefix

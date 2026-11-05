@@ -170,3 +170,27 @@ button.pc-link.proj-benched:hover {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Front Office: the winner's crest says who takes each category, so the tiles drop the team-colour
+   top edge and the verdict pill goes neutral. Headings in sentence case. */
+.proj .eyebrow {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+.proj-verdict {
+  background: var(--surface-2);
+}
+
+.proj-cat {
+  border-top: none;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.proj-cat.close .proj-stat {
+  color: var(--text);
+}

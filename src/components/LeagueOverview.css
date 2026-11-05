@@ -39,23 +39,80 @@
 }
 
 .lo-legend .box-cell {
-  --team: var(--accent);
   min-width: 34px;
   height: 24px;
   font-size: 13px;
 }
 
 .lo-legend-close {
-  color: var(--warn);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  color: var(--gold);
 }
 
-/* Fireside: the featured matchup gets the same warm corner light as the other hero cards. */
-.card.featured {
-  background:
-    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
-    var(--surface);
+.lo-res {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.lo-res .box-res {
+  position: static;
+  translate: none;
+}
+
+/* Front Office: the featured matchup is a flat card with a plain border; your team is marked by the
+   person icon, not a gold frame. */
+.card.featured,
+.card.featured.mine {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.lo-week {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.lo-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+/* "Flip AST to win 5-4-0": a target mark and plain ink, not an amber pill. */
+.lo-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lo-hint svg {
+  flex: none;
+  color: var(--gold);
+}
+
+/* League pulse: plain icons, no tinted squares. */
+.pulse-tiles .pulse-icon {
+  width: auto;
+  height: auto;
+  color: var(--text-2);
+  background: none;
+}
+
+/* Matchup card tags in sentence case, no tracked capitals. */
+.mu-tag {
+  font-size: 12.5px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mu-tag.close {
+  color: var(--text-2);
 }
 
 /* The playoff line in Standings: a solid ink rule instead of a dashed amber one, since amber means

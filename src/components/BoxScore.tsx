@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { Target } from '@phosphor-icons/react'
 import type { MatchupSide } from '../api/client'
 import { boxOrder, formatStat, isClose, record } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
@@ -32,6 +33,15 @@ function TeamName({ team, icon = true }: { team: BoxTeam; icon?: boolean }) {
   )
 }
 
+/** Your result in a category as a small letter in the corner of your cell: W, L or T. */
+function Result({ r }: { r: string }) {
+  return (
+    <span className={`box-res ${r}`} aria-hidden="true">
+      {r}
+    </span>
+  )
+}
+
 function Games({ team }: { team: BoxTeam }) {
   const g = team.side.games
   if (!g) return <span className="muted">–</span>
@@ -55,9 +65,9 @@ function Games({ team }: { team: BoxTeam }) {
 }
 
 /**
- * An ESPN-style box score: both teams on two rows, every category with both numbers, close categories
- * named in amber, and each side's W-L-T at the end. Cells are neutral; the leader's is heavier with an
- * edge: green where you lead and red where they lead in your matchup, the team colour in anyone else's.
+ * An ESPN-style box score: both teams on two rows, every category with both numbers and each side's W-L-T
+ * at the end. The leader's cell is filled, the other stays open, a tie fills neither. Your cells carry a
+ * small W/L/T letter; close categories get a target mark.
  */
 export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam; caption: string }) {
   const cats = boxOrder(home.side.categories ?? [])
@@ -96,7 +106,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
         </div>
         <ul className="box-compact-rows">
           {cats.map((c) => (
-            <li key={c.stat}>
+            <li key={c.stat} className={close.has(c.stat) ? 'close' : undefined}>
               {teams.map((t, i) => {
                 const cell = byTeam[i].get(c.stat)
                 return (
@@ -110,11 +120,15 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                       } as CSSProperties
                     }
                   >
+                    {t.mine && cell?.result && <Result r={cell.result} />}
                     {cell ? formatStat(c.stat, cell.value) : '–'}
                   </span>
                 )
               })}
-              <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>{c.stat}</span>
+              <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>
+                {c.stat}
+                {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
+              </span>
             </li>
           ))}
         </ul>
@@ -132,7 +146,10 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
               </th>
               {cats.map((c) => (
                 <th key={c.stat} scope="col" className={close.has(c.stat) ? 'close' : undefined}>
-                  {c.stat}
+                  <span className="box-stat">
+                    {c.stat}
+                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
+                  </span>
                 </th>
               ))}
               <th scope="col">W-L-T</th>
@@ -166,6 +183,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                           className={`${cls} num`}
                           aria-label={cell ? `${formatStat(c.stat, cell.value)}${what}` : '–'}
                         >
+                          {t.mine && cell?.result && <Result r={cell.result} />}
                           {cell ? formatStat(c.stat, cell.value) : '–'}
                         </span>
                       </td>
