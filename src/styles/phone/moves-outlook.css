@@ -1,0 +1,48 @@
+/* Phones: Season outlook and category tiles on Moves get tighter. */
+@media (max-width: 640px) {
+  .card.outlook {
+    gap: 12px;
+    padding: 18px 16px;
+  }
+
+  .ol-top {
+    align-items: center;
+  }
+
+  .ol-big {
+    font-size: 44px;
+  }
+
+  .ol-rung {
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .ol-stat .num {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ct {
+    gap: 10px;
+  }
+
+  .ct-note {
+    margin-left: 0;
+  }
+
+  .ct-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .ct-tile {
+    padding: 8px 10px 9px;
+  }
+
+  .ct-value {
+    margin-top: 2px;
+    font-size: 26px;
+  }
+}
