@@ -11,11 +11,9 @@
 }
 
 .rules-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--text-2);
   margin-right: 4px;
 }
 
@@ -109,10 +107,8 @@
 .rules-group-title {
   padding: 0;
   margin-bottom: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-2);
 }
 

@@ -241,10 +241,8 @@ button.pc-chip:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: rgb(255 255 255 / 0.8);
 }
 
@@ -380,11 +378,9 @@ button.pc-chip:focus-visible {
 
 .pc-title {
   margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
 }
 
 .pc-aside {

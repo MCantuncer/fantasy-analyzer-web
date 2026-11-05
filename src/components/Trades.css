@@ -139,7 +139,7 @@
 }
 
 .tr-meta {
-  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
   font-size: 11.5px;
   color: var(--muted);
 }
