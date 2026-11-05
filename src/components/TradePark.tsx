@@ -249,13 +249,6 @@ function Results({ data, colours }: { data: ShopReport; colours: Map<number, str
             <p className="empty">No deal in this group. Pick another filter.</p>
           ) : (
             <>
-              <div className="move-cols" aria-hidden="true">
-                <span>You give</span>
-                <span>You get</span>
-                <span>With</span>
-                <span>They accept</span>
-                <span className="right">Playoff odds</span>
-              </div>
               <ol className="move-list" onClickCapture={keepRow}>
                 {deals.map((d, i) => {
                   const key = tradeKey(d)

@@ -31,12 +31,39 @@
   justify-content: center;
 }
 
-/* Fireside: the partner's crest beside their name (never tilted in lists). */
+/* Front Office trade row (tr- prefix): partner and accept chance on top, then You give / You get
+   lanes with small team-lit faces, then both teams' playoff odds, so their gain is always visible. */
+.tr-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+}
+
+.tr-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .tr-with {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
 }
 
 .tr-partner {
@@ -44,7 +71,126 @@
   overflow-wrap: anywhere;
 }
 
-/* The open/closed chevron only shows on phones, where the row is a stacked card. */
-.tr-chev {
-  display: none;
+.tr-accept {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-2);
+}
+
+.tr-accept svg {
+  align-self: center;
+}
+
+.tr-accept-n {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+
+.tr-accept-w {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tr-deal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 200px;
+  gap: 16px;
+  align-items: start;
+}
+
+.tr-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tr-lane-label,
+.tr-who {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.tr-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tr-player-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tr-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tr-meta {
+  font-family: var(--font-code);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.tr-extra {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tr-odds {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 22px;
+}
+
+.tr-ol {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tr-who {
+  width: 36px;
+  flex: none;
+}
+
+.tr-ol .odds-change {
+  text-align: left;
+}
+
+.tr-more {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tr-more svg {
+  transition: transform 0.2s ease;
+}
+
+.tr-row[aria-expanded='true'] .tr-more svg {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-more svg {
+    transition: none;
+  }
 }

@@ -1,13 +1,14 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
+import { CaretDown, Handshake } from '@phosphor-icons/react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
 import type { FeedbackSource, TradeIdea } from '../api/client'
 import { pct, tradeKey } from '../lib/format'
-import { HeadStack } from './PlayerHead'
+import { PlayerHead } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
-import { NamesWithSignals } from './InjuryBadges'
+import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
 import { premiumValue, useRoundValues } from '../lib/tradeValue'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
@@ -32,6 +33,29 @@ function WarningMark() {
       <path d="M8 6v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="8" cy="11.75" r="0.9" fill="currentColor" />
     </svg>
+  )
+}
+
+/** One side of a trade row: a label, then a small team-lit face, name, injury pill and "MIL · PF" per player.
+ *  Plain text only, since the whole row is the button that opens the details. */
+function RowLane({ label, players, extra }: { label: string; players: TradeIdea['give']; extra?: string }) {
+  return (
+    <span className="tr-lane">
+      <span className="tr-lane-label">{label}</span>
+      {players.map((p) => (
+        <span key={p.id} className="tr-player">
+          <PlayerHead player={p} size={32} team={p.pro_team} />
+          <span className="tr-player-text">
+            <span className="tr-name">
+              {p.name}
+              <InjuryBadges players={[p]} />
+            </span>
+            <span className="tr-meta">{[p.pro_team, p.positions.join('/')].filter(Boolean).join(' · ')}</span>
+          </span>
+        </span>
+      ))}
+      {extra && <span className="tr-extra num">{extra}</span>}
+    </span>
   )
 }
 
@@ -123,41 +147,42 @@ export function TradeItem({
   )
   return (
     <li id={id} className={open ? 'move open' : 'move'}>
-      <button type="button" className="move-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
-        <span>
-          <span className="label-sm">Give </span>
-          <HeadStack players={t.give} size={28} />
-          <strong>
-            <NamesWithSignals players={t.give} />
-            {faab > 0 && ` + $${faab} FAAB`}
-          </strong>
-        </span>
-        <span>
-          <span className="label-sm">Get </span>
-          <HeadStack players={t.get} size={28} />
-          <strong>
-            <NamesWithSignals players={t.get} />
-          </strong>
-          {tag}
-        </span>
-        <span className="tr-with">
-          <span className="label-sm">with </span>
-          <TeamCrest name={t.partner_team_name} colour={colour} size={20} />
-          <span className="tr-partner">{t.partner_team_name}</span>
-        </span>
-        <span className="accept" title="Rough estimate from value balance and how much the deal helps them">
-          <span className={`tnum ${acc.tone}`}>
-            {pct(t.acceptance)} · {acc.label}
+      <button type="button" className="tr-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
+        <span className="tr-top">
+          <span className="tr-with">
+            <span className="sr-only">Trade with </span>
+            <TeamCrest name={t.partner_team_name} colour={colour} size={20} />
+            <span className="tr-partner">{t.partner_team_name}</span>
+            {tag}
           </span>
-          <span className="meter" aria-hidden="true">
-            <span className={`fill-${acc.tone}`} style={{ width: pct(t.acceptance) }} />
+          <span className="tr-accept" title="Rough estimate from value balance and how much the deal helps them">
+            <Handshake size={16} aria-hidden="true" />
+            <span className="tr-accept-n num">{pct(t.acceptance)}</span>
+            <span className={`tr-accept-w ${acc.tone}`}>
+              <span className="sr-only">chance they accept, </span>
+              {acc.label}
+            </span>
           </span>
         </span>
-        <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
-        <span className="tr-chev" aria-hidden="true">
-          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 6l4 4 4-4" />
-          </svg>
+        <span className="tr-deal">
+          <RowLane label="You give" players={t.give} extra={faab > 0 ? `+ $${faab} FAAB` : undefined} />
+          <RowLane label="You get" players={t.get} />
+          <span className="tr-odds">
+            <span className="tr-ol">
+              <span className="tr-who">You</span>
+              <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
+            </span>
+            {t.partner_playoff_pct_before != null && t.partner_playoff_pct_after != null && (
+              <span className="tr-ol">
+                <span className="tr-who">Them</span>
+                <OddsChange before={t.partner_playoff_pct_before} after={t.partner_playoff_pct_after} />
+              </span>
+            )}
+          </span>
+        </span>
+        <span className="tr-more" aria-hidden="true">
+          {open ? 'Hide details' : 'Details'}
+          <CaretDown size={14} weight="bold" />
         </span>
       </button>
       {open && !tabs && (
@@ -303,13 +328,6 @@ export function Trades({
         <p className="empty">{MODES[mode].empty}</p>
       ) : (
         <>
-          <div className="move-cols" aria-hidden="true">
-            <span>You give</span>
-            <span>You get</span>
-            <span>With</span>
-            <span>They accept</span>
-            <span className="right">Playoff odds</span>
-          </div>
           <ol className="move-list" onClickCapture={keepRow}>
             {trades.map((t, i) => {
               const key = tradeKey(t)
