@@ -540,7 +540,7 @@ function FormTiles({ tiles }: { tiles: FormTile[] }) {
                 (t.note ?? '')
               ) : moved ? (
                 <>
-                  <span aria-hidden="true">{t.delta > 0 ? '▲' : '▼'}</span>
+                  <span className="pc-tile-arrow" aria-hidden="true">{t.delta > 0 ? '▲' : '▼'}</span>
                   <span className="sr-only">{t.delta > 0 ? 'up' : 'down'}</span> {Math.abs(t.delta).toFixed(1)}
                 </>
               ) : (
