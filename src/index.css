@@ -52,7 +52,6 @@
   --font-num: 'Mona Sans Numbers', 'Host Grotesk Variable', system-ui, sans-serif;
   --num-stretch: 100%;
   /* Codes only: team and category abbreviations, positions, timestamps. */
-  --font-code: 'Martian Mono Variable', ui-monospace, monospace;
   /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */
   --glow: rgb(255 190 130 / 0.07);
   --die: #221b16;
@@ -516,51 +515,6 @@ th .badge {
   color: var(--faint);
 }
 
-.team-select {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  min-height: 44px;
-  padding: 0 8px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  color: var(--text);
-}
-
-.team-select:hover {
-  background: var(--surface);
-}
-
-.team-select:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 0;
-}
-
-.team-select-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 280px;
-}
-
-.team-select svg {
-  flex: none;
-  color: var(--muted);
-}
-
-.team-select select {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  min-height: 0;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
 .topbar-actions {
   margin-left: auto;
   display: flex;
@@ -863,32 +817,6 @@ th .badge {
   padding: 24px;
 }
 
-.swap {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.swap-side {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  min-width: 0;
-}
-
-.swap-label {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.swap-name {
-  font-family: var(--font-ui);
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.15;
-}
-
 .big-odds {
   display: flex;
   flex-wrap: wrap;
@@ -930,12 +858,6 @@ th .badge {
   background: var(--bad);
 }
 
-.odds-track {
-  flex: 1 1 220px;
-  min-width: 180px;
-  padding-bottom: 8px;
-}
-
 .odds-bar {
   position: relative;
   height: 10px;
@@ -959,14 +881,6 @@ th .badge {
   background: var(--good);
 }
 
-.odds-scale {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
 /* ---------- Outlook ---------- */
 
 .outlook {
@@ -976,49 +890,9 @@ th .badge {
   padding: 24px;
 }
 
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
 .kpi-label {
   font-size: 13px;
   color: var(--muted);
-}
-
-.kpi-value {
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
-  font-variant-numeric: tabular-nums;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.kpi-value.sm {
-  font-size: 22px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.kpi-value .of {
-  font-size: 18px;
-  color: var(--muted);
-}
-
-.cat-groups {
-  border-top: 1px solid var(--divider);
-  padding-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-}
-
-.cat-groups strong {
-  font-weight: 600;
-  margin-right: 6px;
 }
 
 /* ---------- Moves lists ---------- */
@@ -1069,8 +943,7 @@ th .badge {
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-.move-row,
-.move-cols {
+.move-row {
   display: grid;
   grid-template-columns:
     minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1fr)
@@ -1078,14 +951,6 @@ th .badge {
   gap: 12px;
   align-items: center;
   padding: 12px 20px;
-}
-
-.move-cols {
-  font-size: 12px;
-  color: var(--muted);
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--divider);
 }
 
 .move-row {
@@ -1441,20 +1306,6 @@ tr.cutline th {
   gap: 12px;
 }
 
-.bar-row {
-  display: grid;
-  grid-template-columns: 48px 1fr 48px;
-  grid-template-areas: 'label track value' '. meta meta';
-  align-items: center;
-  column-gap: 12px;
-  row-gap: 2px;
-}
-
-.bar-label {
-  grid-area: label;
-  font-weight: 600;
-}
-
 .bar-track {
   grid-area: track;
   position: relative;
@@ -1477,21 +1328,6 @@ tr.cutline th {
   bottom: 0;
   width: 1px;
   background: var(--faint);
-}
-
-.bar-value {
-  grid-area: value;
-  text-align: right;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.bar-meta {
-  grid-area: meta;
-  font-size: 12px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .keep-cell {
@@ -1877,56 +1713,9 @@ button.game-card:hover {
   }
 }
 
-.badge-live {
-  background: var(--bad);
-  color: var(--bg);
-}
-
 .day-jump select {
   width: auto;
   max-width: 220px;
-}
-
-.week-list {
-  list-style: none;
-  margin: 0;
-  padding: 4px 0;
-}
-
-.week-list > li {
-  padding: 8px 20px 12px;
-}
-
-.week-list > li + li {
-  border-top: 1px solid var(--divider);
-}
-
-.week-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.week-day {
-  min-height: 44px;
-  font-weight: 600;
-}
-
-.fixture {
-  display: grid;
-  grid-template-columns: 72px 110px minmax(0, 1fr);
-  gap: 12px;
-  align-items: baseline;
-  padding: 4px 0;
-}
-
-.fixture-time {
-  color: var(--muted);
-}
-
-.fixture-mine {
-  color: var(--gold-text);
-  font-weight: 600;
 }
 
 table.box td,
@@ -1962,41 +1751,6 @@ tr.box-team th {
     display: none;
   }
 
-  .move-cols {
-    display: none;
-  }
-
-  .move-row:not(.pickup-row) {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'give odds' 'get odds' 'with odds' 'accept odds';
-    row-gap: 2px;
-    padding: 12px 16px;
-  }
-
-  .move-row:not(.pickup-row) > :nth-child(1) {
-    grid-area: give;
-  }
-
-  .move-row:not(.pickup-row) > :nth-child(2) {
-    grid-area: get;
-  }
-
-  .move-row:not(.pickup-row) > :nth-child(3) {
-    grid-area: with;
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .move-row:not(.pickup-row) > :nth-child(4) {
-    grid-area: accept;
-    max-width: 200px;
-  }
-
-  .move-row:not(.pickup-row) > :nth-child(5) {
-    grid-area: odds;
-    align-self: start;
-  }
-
   .move-row .label-sm {
     display: inline;
     color: var(--muted);
@@ -2025,14 +1779,6 @@ tr.box-team th {
 
   .game-grid {
     gap: 8px;
-  }
-
-  .fixture {
-    grid-template-columns: 64px minmax(0, 1fr);
-  }
-
-  .fixture-mine {
-    grid-column: 2;
   }
 
   .topbar-inner,
@@ -2069,19 +1815,10 @@ tr.box-team th {
     display: none;
   }
 
-  .team-select-name {
-    max-width: none;
-  }
-
   .best,
   .outlook {
     padding: 16px;
     gap: 14px;
-  }
-
-  .swap {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
   }
 
   .big-odds .after {
@@ -2112,18 +1849,6 @@ tr.box-team th {
   .card.flush {
     padding: 0;
   }
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 8px;
-}
-
-.team-choice {
-  justify-content: space-between;
-  font-weight: 500;
-  text-align: left;
 }
 
 h2 + p {
@@ -2228,24 +1953,6 @@ td.keep-cell {
   color: var(--text-2);
 }
 
-.feed-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-}
-
-.feed-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.feed-head time {
-  margin-left: auto;
-}
-
 .feed-pill {
   font-size: 12px;
   font-weight: 600;
@@ -2270,53 +1977,10 @@ td.keep-cell {
   font-weight: 600;
 }
 
-.feed-moves {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.feed-moves li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.feed-sign {
-  width: 16px;
-  text-align: center;
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
-  font-weight: 700;
-  font-size: 16px;
-}
-
 .feed-pos {
   font-size: 12px;
   color: var(--muted);
   font-weight: 500;
-}
-
-.feed-take {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text-2);
-}
-
-.feed-trade {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.feed-trade .kpi-label {
-  margin-bottom: 6px;
 }
 
 .feed-vote .row {
@@ -4157,26 +3821,17 @@ tr.cutline.playoff th {
   margin-left: -8px;
 }
 
-.swap-side .head-stack {
-  margin: 4px 0 6px;
-}
-
 .team-logo {
   flex: none;
   object-fit: contain;
   vertical-align: middle;
 }
 
-.team-abbrev,
 .box-player,
 .night-lead {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.team-abbrev {
-  gap: 6px;
 }
 
 th .head {

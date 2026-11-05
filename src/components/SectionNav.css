@@ -18,11 +18,6 @@
   font-weight: 550;
 }
 
-/* No pill: the shell's pill background stays off for these tabs. */
-.topbar .sn-tabs .tab::before {
-  content: none;
-}
-
 .topbar .sn-tabs .tab:hover {
   color: var(--text);
 }
