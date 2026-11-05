@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { CalendarDots, Target } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { flipHint, teamColours } from '../lib/league'
@@ -149,7 +150,8 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       )}
 
       <div className="league-head">
-        <span className="eyebrow">
+        <span className="lo-week">
+          <CalendarDots size={16} aria-hidden="true" />
           Week {o.matchup_period}
           {week ? ` · ${week}` : ''}
         </span>
@@ -158,14 +160,19 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       {featured && hasBox(featured) && (
         <section className={`card featured${mine ? ' mine' : ''}`} aria-labelledby="featured-title">
           <div className="featured-head">
-            <h2 id="featured-title" className="eyebrow">
+            <h2 id="featured-title" className="lo-title">
               {mine ? 'Your matchup' : 'Matchup of the week'}
             </h2>
             {mine &&
               (() => {
                 const [me, them] = sides(mine)
                 const hint = flipHint(me, them)
-                return hint ? <span className="hint">{hint}</span> : null
+                return hint ? (
+                  <span className="lo-hint">
+                    <Target size={16} aria-hidden="true" />
+                    {hint}
+                  </span>
+                ) : null
               })()}
           </div>
           {(() => {
@@ -179,33 +186,23 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
             )
           })()}
           <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
-            {mine ? (
-              <>
-                <li>
-                  <span className="box-cell lead mine num" aria-hidden="true">
-                    12
-                  </span>
-                  you lead
-                </li>
-                <li>
-                  <span className="box-cell lead theirs num" aria-hidden="true">
-                    12
-                  </span>
-                  they lead
-                </li>
-              </>
-            ) : (
+            <li>
+              <span className="box-cell lead num" aria-hidden="true">
+                12
+              </span>
+              leading
+            </li>
+            {mine && (
               <li>
-                <span className="box-cell lead num" aria-hidden="true">
-                  12
+                <span className="lo-res" aria-hidden="true">
+                  <span className="box-res W">W</span>
+                  <span className="box-res L">L</span>
                 </span>
-                leading
+                your result
               </li>
             )}
             <li>
-              <span className="lo-legend-close" aria-hidden="true">
-                REB
-              </span>
+              <Target size={16} className="lo-legend-close" aria-hidden="true" />
               close, can flip
             </li>
             <li>
