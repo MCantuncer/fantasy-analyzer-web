@@ -25,6 +25,7 @@ import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
+import { SectionNav } from './components/SectionNav'
 import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
@@ -391,21 +392,7 @@ export default function App() {
           </div>
         </div>
         {showTabs && (
-          <nav ref={tabsRef} className="tabs" role="tablist" aria-label="Sections">
-            {browseTabs.map((t) => (
-              <button
-                key={t.id}
-                id={`tab-${t.id}`}
-                role="tab"
-                className="tab"
-                aria-selected={activeTab === t.id}
-                aria-controls={`panel-${t.id}`}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
+          <SectionNav sections={browseTabs} active={activeTab} onSelect={setTab} tabsRef={tabsRef} />
         )}
       </header>
 

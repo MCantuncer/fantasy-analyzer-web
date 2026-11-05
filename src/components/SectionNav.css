@@ -1,0 +1,60 @@
+/* Front Office section tabs: icon + label, a thin ink underline under the open one. */
+.topbar .sn-tabs {
+  gap: 2px;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-shadow: inset 0 -1px 0 var(--divider);
+}
+
+.topbar .sn-tabs .tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  min-height: 46px;
+  border-bottom: none;
+  color: var(--text-2);
+  font-weight: 550;
+}
+
+/* No pill: the shell's pill background stays off for these tabs. */
+.topbar .sn-tabs .tab::before {
+  content: none;
+}
+
+.topbar .sn-tabs .tab:hover {
+  color: var(--text);
+}
+
+.topbar .sn-tabs .tab[aria-selected='true'] {
+  color: var(--text);
+}
+
+.topbar .sn-tabs .tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.topbar .sn-tabs .tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+  border-radius: var(--radius-sm);
+}
+
+.sn-ic {
+  flex: none;
+}
+
+/* Bottom bar: phones only. */
+.sn-bar {
+  display: none;
+}
+
+/* The phone bottom bar's layout lives in styles/phone/bottom-bar.css. */
