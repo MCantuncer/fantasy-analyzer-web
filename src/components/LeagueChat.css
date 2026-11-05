@@ -13,8 +13,7 @@
 
 .feed-day-summary {
   font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
+  color: var(--muted);
 }
 
 .feed-tile {
@@ -34,10 +33,7 @@
   box-shadow: inset 3px 0 0 var(--gold);
 }
 
-.feed-tile.big {
-  border-color: var(--warn);
-  background: radial-gradient(90% 120% at 100% 0%, var(--warn-soft), transparent 60%), var(--surface);
-}
+/* Front Office: the biggest bid is named in its note line; no glow or coloured border. */
 
 .feed-tile-head {
   display: flex;
@@ -67,9 +63,13 @@
   white-space: nowrap;
 }
 
-.feed-pill.fa {
-  background: var(--good-soft);
-  color: var(--good);
+/* Front Office: move pills are neutral; the + and − signs carry the colour. */
+.feed-tile-head .feed-pill.waiver,
+.feed-tile-head .feed-pill.fa,
+.feed-tile.trade .feed-tile-head .feed-pill {
+  background: var(--surface-2);
+  color: var(--text-2);
+  box-shadow: none;
 }
 
 .feed-tile-moves {
