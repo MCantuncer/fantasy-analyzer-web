@@ -234,6 +234,7 @@ button.pc-chip:focus-visible {
   background: var(--surface);
   color: var(--text);
   font: 700 12px var(--font-num);
+  font-stretch: var(--num-stretch);
 }
 
 .pc-who {
@@ -276,6 +277,7 @@ button.pc-chip:focus-visible {
 .pc-name {
   margin: 0 0 6px;
   font: 700 30px/1.05 var(--font-num);
+  font-stretch: var(--num-stretch);
   color: #fff;
 }
 
@@ -457,6 +459,8 @@ button.pc-chip:focus-visible {
 
 .pc-tile-value {
   font: 700 24px/1.1 var(--font-num);
+  font-stretch: var(--num-stretch);
+  white-space: nowrap;
 }
 
 .pc-tile-value small {
@@ -465,6 +469,7 @@ button.pc-chip:focus-visible {
 
 .pc-tile-delta {
   font: 500 12px var(--font-num);
+  font-stretch: var(--num-stretch);
   color: var(--muted);
   white-space: nowrap;
 }
@@ -510,6 +515,7 @@ button.pc-chip:focus-visible {
 .pc-bar-value {
   margin-bottom: 2px;
   font: 700 13px var(--font-num);
+  font-stretch: var(--num-stretch);
 }
 
 .pc-avg-line {
@@ -532,6 +538,7 @@ button.pc-chip:focus-visible {
   justify-content: center;
   text-align: center;
   font: 600 11px var(--font-num);
+  font-stretch: var(--num-stretch);
   color: var(--muted);
   white-space: nowrap;
 }
@@ -636,6 +643,7 @@ table.pc-table {
 
 .pc-opp-at {
   font: 600 11px var(--font-num);
+  font-stretch: var(--num-stretch);
   color: var(--muted);
 }
 
@@ -658,6 +666,7 @@ table.pc-table {
   margin-left: 10px;
   color: var(--faint);
   font: 600 13px var(--font-num);
+  font-stretch: var(--num-stretch);
 }
 
 .pc-swipe {
@@ -746,6 +755,7 @@ table.pc-table {
   background: var(--accent-soft);
   color: var(--accent-text);
   font: 700 12px var(--font-num);
+  font-stretch: var(--num-stretch);
   vertical-align: 1px;
 }
 
