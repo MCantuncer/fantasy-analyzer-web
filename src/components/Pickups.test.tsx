@@ -28,7 +28,7 @@ describe('Pickups waiver priority', () => {
   it('shows FAAB instead when the league bids', () => {
     const { container } = render(<Pickups pickups={[pickup]} faab={98} waiverPriority={null} teams={10} />)
     const view = within(container)
-    expect(view.getByText('$98 FAAB left')).toBeInTheDocument()
+    expect(container.querySelector('.fa-faab')?.textContent).toBe('$98 FAAB left')
     expect(view.queryByText(/Waiver priority/)).toBeNull()
   })
 })
