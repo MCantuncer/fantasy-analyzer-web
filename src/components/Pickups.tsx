@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { ArrowsLeftRight, Coins, UserPlus } from '@phosphor-icons/react'
 import type { PickupIdea } from '../api/client'
 import { ImpactBars } from './ImpactBars'
-import { OddsChange } from './OddsChange'
+import { Sign } from './OddsChange'
+import { InjuryBadges } from './InjuryBadges'
 import { ordinal, pct, ptsDiff } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
@@ -16,6 +18,17 @@ interface Props {
   teams?: number
 }
 
+/** The categories a pickup helps most (up to two), for the small tags on its row. */
+function topCats(changes: Record<string, number>) {
+  return Object.entries(changes)
+    .filter(([, v]) => v >= 0.02)
+    .sort((x, y) => y[1] - x[1])
+    .slice(0, 2)
+    .map(([c]) => c)
+}
+
+const gain = (p: PickupIdea) => ptsDiff(p.playoff_pct_before, p.playoff_pct_after)
+
 export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
   const [open, setOpen] = useState<number | null>(null)
   const keepRow = useKeepRowInView(open)
@@ -26,13 +39,20 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
       ? first.drop
       : null
   const sameStart = first && pickups.every((p) => p.playoff_pct_before === first.playoff_pct_before)
-  const maxGain = Math.max(1, ...pickups.map((p) => ptsDiff(p.playoff_pct_before, p.playoff_pct_after)))
 
   return (
     <section className="card flush pickups-panel" aria-labelledby="pickups-title">
       <div className="card-head">
-        <h2 id="pickups-title">FA Targets</h2>
-        {faab != null && <span className="small muted">${faab} FAAB left</span>}
+        <h2 id="pickups-title" className="fa-title">
+          <UserPlus size={20} aria-hidden="true" />
+          FA Targets
+        </h2>
+        {faab != null && (
+          <span className="fa-faab">
+            <Coins size={16} aria-hidden="true" />
+            <b className="num">${faab}</b> FAAB left
+          </span>
+        )}
         {faab == null && waiverPriority != null && (
           <span className="small muted">
             Waiver priority {ordinal(waiverPriority)}
@@ -60,42 +80,56 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                 <li key={p.add.id} id={`pickup-${i}`} className={isOpen ? 'move open' : 'move'}>
                   <button
                     type="button"
-                    className="move-row pickup-row"
+                    className="move-row pickup-row fa-row"
                     aria-expanded={isOpen}
                     aria-controls={`pickup-${i}-detail`}
                     onClick={() => setOpen(isOpen ? null : p.add.id)}
                   >
-                    <PlayerHead player={p.add} size={40} team={p.add.pro_team} />
-                    <span>
-                      <span className="good" aria-hidden="true">
-                        +{' '}
+                    <PlayerHead player={p.add} size={44} team={p.add.pro_team} />
+                    <span className="fa-text">
+                      <span className="fa-name">
+                        <span className="sr-only">Add </span>
+                        {p.add.name}
+                        <InjuryBadges players={[p.add]} />
                       </span>
-                      <span className="sr-only">Add </span>
-                      <strong>{p.add.name}</strong>
-                      <br />
-                      {sharedDrop ? (
-                        <span className="pk-gain" aria-hidden="true">
-                          <span
-                            style={{
-                              width: `${(Math.max(0, ptsDiff(p.playoff_pct_before, p.playoff_pct_after)) / maxGain) * 100}%`,
-                            }}
-                          />
+                      <span className="fa-meta">
+                        {[p.add.pro_team, p.add.positions.join('/')].filter(Boolean).join(' · ')}
+                      </span>
+                    </span>
+                    <span className="fa-pts">
+                      <span className="sr-only">Playoff odds {pct(p.playoff_pct_before)} to </span>
+                      <span className="fa-pts-n num good">
+                        <Sign up={gain(p) >= 0} />
+                        {Math.abs(gain(p))}
+                      </span>
+                      <span className="fa-pts-u">
+                        odds pts<span className="fa-to">, to {pct(p.playoff_pct_after)}</span>
+                      </span>
+                    </span>
+                    <span className="fa-why">
+                      {topCats(p.category_changes).map((c) => (
+                        <span key={c} className="fa-tag">
+                          {c}
                         </span>
-                      ) : (
-                        <span className="small muted">
-                          <span className="bad" aria-hidden="true">
-                            −{' '}
-                          </span>
-                          <span className="sr-only">{p.open_spot_by_trade ? 'trade ' : 'drop '}</span>
-                          {p.open_spot_by_trade ? `Trade ${p.drop.name} first to open the spot` : p.drop.name}
+                      ))}
+                      {!sharedDrop && (
+                        <span className="fa-for">
+                          {p.open_spot_by_trade ? (
+                            <>
+                              <span className="sr-only">trade </span>
+                              <ArrowsLeftRight size={14} aria-hidden="true" />
+                              Trade <span>{p.drop.name}</span> first to open the spot
+                            </>
+                          ) : (
+                            <>
+                              <span className="sr-only">drop </span>
+                              <ArrowsLeftRight size={14} aria-hidden="true" />
+                              for <span>{p.drop.name}</span>
+                            </>
+                          )}
                         </span>
                       )}
                     </span>
-                    <OddsChange
-                      before={p.playoff_pct_before}
-                      after={p.playoff_pct_after}
-                      showBefore={!(sharedDrop && sameStart)}
-                    />
                   </button>
                   {isOpen && (
                     <div className="move-detail" id={`pickup-${i}-detail`}>
