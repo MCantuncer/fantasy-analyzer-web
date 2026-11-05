@@ -97,6 +97,9 @@ describe('Scores', () => {
     expect(screen.getByRole('button', { pressed: true, name: /HOU/ })).toBeInTheDocument()
 
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
+    // Points right after minutes, then the shooting splits, like the player card game log.
+    const heads = [...box.querySelectorAll('thead th')].map((h) => h.textContent)
+    expect(heads).toEqual(['Player', 'Owner', 'Min', 'Pts', 'FG', 'FT', 'Reb', 'Ast', 'Stl', 'Blk', '3PM', 'TO'])
     const amen = within(box).getByRole('row', { name: /Amen Thompson/ })
     expect(amen).toHaveClass('mine')
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')
