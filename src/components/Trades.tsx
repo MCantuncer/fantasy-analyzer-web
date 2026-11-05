@@ -18,6 +18,7 @@ import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { DealChips } from './PlayerCard'
 import { ReasonTiles } from './ReasonTiles'
+import { shortListNote } from '../lib/tradeList'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -247,14 +248,15 @@ type Mode = 'fair' | 'edge'
 const MODES: Record<Mode, { label: string; hint: string; empty: string; why: string }> = {
   fair: {
     label: 'Fair',
-    hint: 'Both teams get better in the categories they play for',
-    empty: 'No deal helps both sides at a fair price right now. Check back after a few weeks of games.',
+    hint: "Both teams' playoff odds go up at least a point",
+    empty:
+      "No trade raises both teams' playoff odds right now. Early in the season, a deal that helps you usually costs the other team, since you become a tougher rival for the same playoff spots. Check back after a few weeks of games.",
     why: 'Why they might say yes',
   },
   edge: {
     label: 'Edge',
     hint: 'They win on paper, you win on the court',
-    empty: 'No deal gives them the paper win while clearly favoring you right now.',
+    empty: "No deal gives them the paper win while raising both teams' playoff odds right now.",
     why: 'Why it favors you',
   },
 }
@@ -285,6 +287,7 @@ export function Trades({
   const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
+  const found = (mode === 'fair' ? allFair : allEdge).length
   const [open, setOpen] = useState<string | null>(allFair[0] ? tradeKey(allFair[0]) : null)
   const keepRow = useKeepRowInView(open)
   const colours = useMemo(
@@ -323,7 +326,10 @@ export function Trades({
         myTeamId={myTeamId}
         keepNames={keepNames}
       />
-      <p className="small muted trades-hint">{MODES[mode].hint}. Ranked by your gain and the chance they say yes.</p>
+      <p className="small muted trades-hint">
+        {MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by your gain and the chance they
+        say yes.
+      </p>
       {trades.length === 0 && !(showSkipped && skipped.length) ? (
         <p className="empty">{MODES[mode].empty}</p>
       ) : (
