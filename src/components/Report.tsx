@@ -123,6 +123,7 @@ export function Report({
                     faab={report.faab_remaining}
                     waiverPriority={report.waiver_priority}
                     teams={report.league.teams.length}
+                    week={report.week}
                   />
                 </div>
               </div>

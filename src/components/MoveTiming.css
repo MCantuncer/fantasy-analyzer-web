@@ -1,0 +1,215 @@
+/* "Make this Sunday": the roster spot over the days left, one cell a day naming who plays in it,
+   cut by an ink seam where the spot changes hands (Front Office; design approved 2026-11-05). */
+.mt-spot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.mt-spot-head {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mt-spot-head .num {
+  font-weight: 600;
+}
+
+.mt-lead {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.mt-lead .num {
+  margin-right: 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mt-days {
+  --mt-cut: 7px;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mt-d {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  height: 54px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+}
+
+.mt-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mt-who {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mt-d.mt-plays {
+  background: var(--raised);
+}
+
+.mt-d.mt-off {
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.mt-d.mt-off .mt-who {
+  font-weight: 500;
+  color: var(--faint);
+}
+
+.mt-live {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+/* The two cells either side of the seam lean into it. */
+.mt-d.mt-cut-r {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--mt-cut)) 100%, 0 100%);
+}
+
+.mt-d.mt-cut-l {
+  padding-left: calc(10px + var(--mt-cut));
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  clip-path: polygon(var(--mt-cut) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.mt-seam {
+  position: relative;
+}
+
+.mt-seam::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: -0.25px;
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--text);
+  transform: skewX(-7.4deg);
+  transform-origin: 50% 0;
+  animation: mt-seam-draw 320ms cubic-bezier(0.2, 0.9, 0.3, 1) 240ms both;
+}
+
+@keyframes mt-seam-draw {
+  from {
+    transform: skewX(-7.4deg) scaleY(0);
+  }
+  to {
+    transform: skewX(-7.4deg) scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-seam::before {
+    animation: none;
+  }
+}
+
+/* A long week (Monday, seven days): smaller cells. */
+.mt-days[data-many] .mt-d {
+  padding: 0 6px;
+}
+
+.mt-days[data-many] .mt-d.mt-cut-l {
+  padding-left: calc(6px + var(--mt-cut));
+}
+
+.mt-days[data-many] .mt-who {
+  font-size: 12.5px;
+}
+
+@media (max-width: 380px) {
+  .mt-d {
+    padding: 0 8px;
+  }
+
+  .mt-d.mt-cut-l {
+    padding-left: calc(8px + var(--mt-cut));
+  }
+
+  .mt-who {
+    font-size: 13.5px;
+  }
+}
+
+/* The row-size strip for FA Targets. */
+.mt-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mt-strip-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mt-strip i {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 19px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px var(--border);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--faint);
+}
+
+.mt-strip i.on {
+  background: var(--raised);
+  box-shadow: none;
+  color: var(--text);
+}
+
+.mt-strip i.cut-r {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+}
+
+.mt-strip i.cut-l {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  clip-path: polygon(3px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.mt-strip-seam {
+  width: 2px;
+  height: 25px;
+  margin: 0 2px;
+  border-radius: 1px;
+  background: var(--text);
+  transform: skewX(-9deg);
+}
