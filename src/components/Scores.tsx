@@ -474,14 +474,14 @@ function BoxScore({
               <th className="left">Owner</th>
               <th>Min</th>
               <th>Pts</th>
+              <th>FG</th>
+              <th>FT</th>
               <th>Reb</th>
               <th>Ast</th>
               <th>Stl</th>
               <th>Blk</th>
               <th>3PM</th>
               <th>TO</th>
-              <th>FG</th>
-              <th>FT</th>
             </tr>
           </thead>
           {sides.map((side) => (
@@ -530,18 +530,18 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
       <td>
         <strong>{l.pts}</strong>
       </td>
-      <td>{l.reb}</td>
-      <td>{l.ast}</td>
-      <td>{l.stl}</td>
-      <td>{l.blk}</td>
-      <td>{l.tpm}</td>
-      <td>{l.to}</td>
       <td className="shot-cell">
         <ShotSplit made={l.fgm} attempts={l.fga} label="FG" />
       </td>
       <td className="shot-cell">
         <ShotSplit made={l.ftm} attempts={l.fta} label="FT" />
       </td>
+      <td>{l.reb}</td>
+      <td>{l.ast}</td>
+      <td>{l.stl}</td>
+      <td>{l.blk}</td>
+      <td>{l.tpm}</td>
+      <td>{l.to}</td>
     </tr>
   )
 }
