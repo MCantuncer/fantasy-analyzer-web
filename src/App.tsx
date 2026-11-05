@@ -275,8 +275,8 @@ export default function App() {
         <div className="topbar-inner">
           <button className="brand" onClick={goHome} aria-label="Fantasy Analyzer, my leagues">
             <svg className="brand-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-              <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--accent)" />
-              <g fill="var(--on-accent)" transform="translate(3.6 0) skewX(-13)">
+              <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--gold)" />
+              <g fill="var(--on-gold)" transform="translate(3.6 0) skewX(-13)">
                 <rect x="8.5" y="7" width="4.8" height="18.5" rx="0.8" />
                 <rect x="8.5" y="14.4" width="8.6" height="4.8" rx="0.8" />
                 <path d="M8.5 7H19V3.8l7.2 5.5L19 14.8v-3.2H8.5z" />

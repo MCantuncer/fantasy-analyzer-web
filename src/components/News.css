@@ -116,7 +116,7 @@
 
 /* A story about one of your players: a thin accent bar on the left edge. */
 .news-story[data-mine] {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 .news-story[data-status='held'],
@@ -190,9 +190,9 @@
 }
 
 .news-owner-mine {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold-text);
 }
 
 .news-owner-dot {

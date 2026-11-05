@@ -36,7 +36,7 @@
   display: inline-block;
   vertical-align: -2px;
   margin-right: 6px;
-  fill: var(--accent);
+  fill: var(--gold);
 }
 
 /* Phones: the icon sits just left of your crest, outside its box, so the crest stays centred. */
@@ -52,5 +52,5 @@
   translate: 0 -50%;
   width: 16px;
   height: 16px;
-  fill: var(--accent);
+  fill: var(--gold);
 }

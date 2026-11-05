@@ -7,15 +7,21 @@
   --topbar: #141210;
   --border: #2c2722;
   --divider: #2c2722;
-  --text: #f3eee6;
-  --text-2: #bdb3a6;
+  --text: #ebe5db;
+  --text-2: #bab0a3;
   --muted: #a39888;
   --faint: #968b7c;
   --track: #302b26;
-  --accent: #ffb224;
-  --accent-text: #ffb83a;
-  --on-accent: #1c1305;
-  --focus: #ffb83a;
+  /* Calm: the everyday accent (buttons, tabs, links, progress) is cream ink, not a colour. */
+  --accent: #e6dfd3;
+  --accent-text: #dcc8a4;
+  --on-accent: #141210;
+  /* Gold marks only you, live things and focus. Keep it rare: about 0.5% of a screen. */
+  --gold: #f0ad32;
+  --gold-text: #f2b648;
+  --on-gold: #1c1305;
+  --gold-soft: rgb(240 173 50 / 0.12);
+  --focus: #f2b648;
   --good: #4fd18b;
   --warn: #ffb83a;
   --warn-fill: #ffb224;
@@ -25,11 +31,11 @@
   --bad-soft: rgb(255 125 105 / 0.13);
   --on-good: #141210;
   --shadow: 0 1px 0 rgb(255 240 220 / 0.03) inset, 0 8px 24px -10px rgb(0 0 0 / 0.6);
-  --accent-soft: rgb(255 178 36 / 0.14);
+  --accent-soft: rgb(230 223 211 / 0.08);
 
   /* League team colours: identity only (crests, bars, leading cells), never outcomes or numbers. */
   --team-0: #f97066;
-  --team-1: #fdb022;
+  --team-1: #a48afb;
   --team-2: #2ed3b7;
   --team-3: #a6ef67;
   --team-4: #36bffa;
@@ -37,14 +43,14 @@
   --team-6: #e0a98c;
   --team-7: #fd853a;
   --team-8: #cbd5e1;
-  --team-9: #fde272;
+  --team-9: #8098f9;
   --team-10: #fda29b;
   --team-11: #67e3f9;
 
   --font-ui: 'Host Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  /* Numbers: Mona Sans on its width axis, set narrow and heavy (use --num-stretch with font-stretch). */
-  --font-num: 'Mona Sans Variable', 'Host Grotesk Variable', system-ui, sans-serif;
-  --num-stretch: 82%;
+  /* Numbers: Mona Sans at normal width, 10% smaller (see styles/num-font.css). The 82% narrow cut read as tall and stretched. */
+  --font-num: 'Mona Sans Numbers', 'Host Grotesk Variable', system-ui, sans-serif;
+  --num-stretch: 100%;
   /* Codes only: team and category abbreviations, positions, timestamps. */
   --font-code: 'Martian Mono Variable', ui-monospace, monospace;
   /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */
@@ -79,9 +85,13 @@
   --muted: #645a50;
   --faint: #6f6457;
   --track: #e2dbce;
-  --accent: #ffb224;
-  --accent-text: #8f5200;
-  --on-accent: #1c1305;
+  --accent: #1f1b17;
+  --accent-text: #6b4e1f;
+  --on-accent: #fcfaf6;
+  --gold: #e9a21e;
+  --gold-text: #8f5200;
+  --on-gold: #1c1305;
+  --gold-soft: #fbeed2;
   --focus: #8f5200;
   --good: #0e6e43;
   /* Golden amber, far from --bad in hue: text 4.6:1 on white and on --warn-soft. */
@@ -94,10 +104,10 @@
   --bad-soft: #f8e3dd;
   --on-good: #ffffff;
   --shadow: 0 1px 2px rgb(70 45 20 / 0.05), 0 6px 18px -6px rgb(70 45 20 / 0.1);
-  --accent-soft: #fdefd0;
+  --accent-soft: rgb(31 27 23 / 0.06);
 
   --team-0: #c8341f;
-  --team-1: #b54708;
+  --team-1: #6941c6;
   --team-2: #0e7c72;
   --team-3: #4b7a12;
   --team-4: #0369a1;
@@ -105,7 +115,7 @@
   --team-6: #8a5a44;
   --team-7: #c4320a;
   --team-8: #475467;
-  --team-9: #7a4a10;
+  --team-9: #3e4fb8;
   --team-10: #a8261a;
   --team-11: #0e7490;
 
@@ -415,6 +425,15 @@ th .badge {
   background: var(--bad);
 }
 
+/* A swing category is still open: quiet ink, never an outcome colour. */
+.swing {
+  color: var(--text-2);
+}
+
+.fill-swing {
+  background: var(--muted);
+}
+
 .meter {
   height: 4px;
   background: var(--track);
@@ -463,8 +482,7 @@ th .badge {
   border: none;
   padding: 0;
   color: var(--text);
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 20px;
   font-weight: 700;
 }
@@ -646,8 +664,7 @@ th .badge {
 }
 
 .totd-headline {
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.15;
@@ -679,7 +696,7 @@ th .badge {
 }
 
 .totd-side.me {
-  border-color: var(--accent);
+  border-color: var(--gold);
 }
 
 .totd-team {
@@ -695,13 +712,12 @@ th .badge {
 }
 
 .totd-you {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 .totd-players {
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
@@ -867,8 +883,7 @@ th .badge {
 }
 
 .swap-name {
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.15;
@@ -1403,7 +1418,7 @@ td.left {
 
 tr.mine {
   background: var(--raised);
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 tr.mine th,
@@ -1704,7 +1719,7 @@ button.game-card:hover {
 }
 
 .game-card.has-mine {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 .game-card[aria-pressed='true'] {
@@ -1840,8 +1855,8 @@ button.game-card:hover {
 
 .badge-you {
   margin-left: auto;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  color: var(--accent-text);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--gold-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1918,7 +1933,7 @@ button.game-card:hover {
 }
 
 .fixture-mine {
-  color: var(--accent-text);
+  color: var(--gold-text);
   font-weight: 600;
 }
 
@@ -2444,7 +2459,7 @@ td.keep-cell {
 }
 
 .faab-table tr.me th {
-  color: var(--accent-text);
+  color: var(--gold-text);
 }
 
 .link-card h2 {
@@ -2569,8 +2584,7 @@ td.keep-cell {
 }
 
 .target-name {
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 32px;
   line-height: 1.1;
   margin: 4px 0;
@@ -2797,8 +2811,7 @@ td.keep-cell {
 
 .park-deal {
   margin: 0;
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
+  font-family: var(--font-ui);
   font-size: 22px;
   font-weight: 600;
   line-height: 1.2;
@@ -3633,7 +3646,7 @@ button.menu-item.danger {
 }
 
 .featured.mine {
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-color: color-mix(in srgb, var(--gold) 50%, var(--border));
 }
 
 .featured-head {
@@ -3645,7 +3658,7 @@ button.menu-item.danger {
 }
 
 .featured.mine .featured-head .eyebrow {
-  color: var(--accent-text);
+  color: var(--gold-text);
 }
 
 .hint {
@@ -3885,7 +3898,7 @@ button.mu-card[aria-expanded='true'] {
 }
 
 .mu-tag.mine {
-  color: var(--accent-text);
+  color: var(--gold-text);
 }
 
 .mu-tag.close {
@@ -4372,9 +4385,9 @@ button.switcher-item .check {
 }
 
 .your-night.versus {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
   background:
-    radial-gradient(80% 140% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    radial-gradient(80% 140% at 100% 0%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 60%),
     var(--surface);
 }
 

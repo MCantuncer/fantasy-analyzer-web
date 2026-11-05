@@ -276,8 +276,7 @@ button.pc-chip:focus-visible {
 
 .pc-name {
   margin: 0 0 6px;
-  font: 700 30px/1.05 var(--font-num);
-  font-stretch: var(--num-stretch);
+  font: 700 30px/1.05 var(--font-ui);
   color: #fff;
 }
 
@@ -568,6 +567,12 @@ table.pc-table {
   padding: 8px;
   text-align: right;
   border-bottom: 1px solid var(--divider);
+}
+
+/* Row labels (game, opponent, season avg) are words: the UI face, not the narrow numbers. */
+.pc-table tbody th {
+  font-family: var(--font-ui);
+  font-stretch: normal;
 }
 
 .pc-table thead th {
