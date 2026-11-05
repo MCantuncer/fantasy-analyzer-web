@@ -1,0 +1,1094 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Front Office</title>
+<link rel="stylesheet" href="fonts/host-grotesk/index.css">
+<link rel="stylesheet" href="fonts/mona-sans/wdth.css">
+<link rel="stylesheet" href="fonts/martian-mono/wdth.css">
+<style>
+/* ===== Front Office — tokens ===== */
+.theme-dark {
+  --bg: #141210; --s1: #1C1916; --s2: #25211D; --s3: #302B26; --line: #2C2722;
+  --ink: #F3EEE6; --ink2: #BDB3A6; --ink3: #A39888;
+  --acc: #FFB224; --acc-ink: #1C1305; --acc-text: #FFB83A;
+  --win: #4FD18B; --loss: #FF7D69;
+  --sil: #4A423A; --glow: 34%; --hi: rgba(255,255,255,.045);
+  color-scheme: dark;
+}
+.theme-light {
+  --bg: #F4F1EA; --s1: #FCFAF6; --s2: #EDE8DE; --s3: #E2DBCE; --line: #E0D9CC;
+  --ink: #1A1714; --ink2: #4F473E; --ink3: #645A50;
+  --acc: #FFB224; --acc-ink: #1C1305; --acc-text: #8F5200;
+  --win: #0E6E43; --loss: #A93522;
+  --sil: #C9BFB0; --glow: 30%; --hi: rgba(255,255,255,.7);
+  color-scheme: light;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: #8a8378; padding: 40px; font-family: 'Host Grotesk Variable', system-ui, sans-serif; }
+.board { display: flex; gap: 40px; align-items: flex-start; }
+.phones { display: flex; gap: 40px; align-items: flex-start; }
+.frame { background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.4; position: relative; overflow: hidden; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; cursor: pointer; }
+b { font-weight: 650; }
+h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+
+/* type roles */
+.num { font-family: 'Mona Sans Variable', sans-serif; font-stretch: 82%; font-weight: 720; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.code { font-family: 'Martian Mono Variable', monospace; font-stretch: 87.5%; font-size: 11px; font-weight: 450; letter-spacing: .01em; color: var(--ink2); }
+.pc { font-size: .5em; font-weight: 600; color: var(--ink2); margin-left: .06em; font-stretch: 100%; }
+.lbl { font-size: 12.5px; color: var(--ink2); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.up { color: var(--win); } .dn { color: var(--loss); }
+
+/* icons */
+.ic { width: 18px; height: 18px; flex: none; }
+.lbl .ic { width: 15px; height: 15px; }
+.acc-i { color: var(--acc-text); }
+.arr { width: .46em; height: .46em; margin-right: .1em; }
+.sg { font-size: .64em; font-weight: 600; vertical-align: .16em; margin-right: .03em; }
+.arr-s { width: 11px; height: 11px; color: var(--ink3); }
+.arr-m { width: 22px; height: 22px; color: var(--ink3); margin: 0 6px; }
+
+/* surfaces: lightness steps, 1px top highlight, no borders */
+.card { background: var(--s1); border-radius: 18px; box-shadow: inset 0 1px 0 var(--hi); position: relative; overflow: hidden; }
+
+/* ===== Owned motif 1: team-light headshot ===== */
+.face {
+  --fs: 44px; width: var(--fs); height: var(--fs); flex: none; border-radius: calc(var(--fs) * .34);
+  background:
+    radial-gradient(90% 75% at 50% 112%, color-mix(in oklab, var(--tc) var(--glow), transparent) 0%, transparent 72%),
+    radial-gradient(60% 50% at 50% 0%, var(--hi), transparent 80%),
+    var(--s2);
+  box-shadow: inset 0 -2px 0 var(--tc);
+  display: grid; place-items: end center; overflow: hidden; position: relative;
+}
+.sil { width: 86%; height: 86%; fill: var(--sil); }
+.logo { width: 14px; height: 14px; border-radius: 50%; background: var(--s3); box-shadow: inset 0 0 0 2px var(--tc); flex: none; }
+.crest { flex: none; display: block; }
+.crest text { font-family: 'Host Grotesk Variable'; font-weight: 750; font-size: 8.6px; fill: #fff; letter-spacing: .02em; }
+.crest.you text { fill: var(--acc-ink); }
+
+/* ===== Owned motif 3: scouting chip ===== */
+.chip { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chip-tx { min-width: 0; }
+.nm { font-weight: 650; font-size: 15px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 0; }
+.meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.dot { color: var(--ink3); }
+.st { display: inline-flex; align-items: center; gap: 3px; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 11px; font-weight: 600; color: var(--loss); }
+.st .ic { width: 14px; height: 14px; }
+
+/* ===== desktop chrome ===== */
+#d-desktop { width: 1280px; }
+.top { height: 64px; display: flex; align-items: center; gap: 28px; padding: 0 40px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.fb { width: 30px; height: 30px; border-radius: 11px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 800; font-size: 16px; flex: none; }
+.bn { font-weight: 700; font-size: 16px; letter-spacing: -.02em; }
+.league { display: flex; align-items: center; gap: 10px; padding: 6px 10px 6px 8px; border-radius: 14px; background: var(--s1); min-height: 44px; text-align: left; min-width: 0; }
+.league .ic { width: 14px; height: 14px; color: var(--ink2); }
+.lg-tx { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.lg-tx b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-tx span { font-size: 12px; color: var(--ink2); white-space: nowrap; }
+.top-r { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.wk { display: flex; align-items: center; gap: 6px; color: var(--ink2); font-size: 13px; margin-right: 12px; }
+.wk .ic { width: 16px; height: 16px; }
+.ib { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: var(--ink2); }
+.ib .ic { width: 20px; height: 20px; }
+.tabs { display: flex; gap: 4px; padding: 0 32px; box-shadow: inset 0 -1px 0 var(--line); }
+.tabs a { display: flex; align-items: center; gap: 7px; padding: 12px 12px 13px; color: var(--ink2); font-weight: 550; position: relative; }
+.tabs a .ic { width: 17px; height: 17px; }
+.tabs a.on { color: var(--ink); }
+.tabs a.on .ic { color: var(--acc-text); }
+.tabs a.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px; border-radius: 2px; background: var(--acc); }
+
+.d-main { padding: 24px 40px 32px; display: flex; flex-direction: column; gap: 28px; }
+.totd { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; background: var(--s1); box-shadow: inset 0 1px 0 var(--hi); }
+.totd > .ic { color: var(--ink2); }
+.totd-tx { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.totd-tx span { color: var(--ink2); }
+.stamp { margin-left: auto; display: flex; gap: 6px; align-items: center; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 11px; color: var(--ink2); white-space: nowrap; }
+.stamp .ic { width: 14px; height: 14px; }
+
+.row1 { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: stretch; }
+.row2 { display: grid; grid-template-columns: 1fr 380px; gap: 40px; align-items: start; }
+
+/* ===== Best move ===== */
+.best { padding: 24px 28px; display: flex; flex-direction: column; gap: 22px; }
+.glow-a, .glow-b { position: absolute; width: 520px; height: 300px; pointer-events: none; filter: blur(10px);
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--tc) 18%, transparent), transparent); }
+.glow-a { left: -140px; top: 40px; } .glow-b { right: -120px; top: 40px; }
+.theme-light .glow-a, .theme-light .glow-b { background: radial-gradient(closest-side, color-mix(in oklab, var(--tc) 14%, transparent), transparent); }
+.best > :not(.glow-a):not(.glow-b), .mu > :not(.glow-a):not(.glow-b) { position: relative; }
+.best-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.kick { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 17px; flex-wrap: wrap; }
+.kick-sub { color: var(--ink2); font-weight: 450; }
+.kick-team { font-weight: 600; }
+.hint { color: var(--ink2); margin-top: 6px; font-size: 14px; }
+.acc-big { text-align: right; flex: none; }
+.acc-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.acc-row .ic { width: 22px; height: 22px; color: var(--ink2); }
+.acc-row .num { font-size: 40px; line-height: 1; }
+.acc-w { font-size: 12.5px; color: var(--ink2); margin-top: 2px; }
+.deal { display: grid; grid-template-columns: 1fr 44px 1fr; gap: 8px; align-items: start; }
+.deal .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.deal .col .nm { font-size: 17px; }
+.swap { display: grid; place-items: center; height: 100%; color: var(--ink3); padding-top: 28px; }
+.swap .ic { width: 22px; height: 22px; }
+.drop { display: flex; align-items: center; gap: 6px; color: var(--ink2); font-size: 13px; flex-wrap: wrap; }
+.drop .ic { width: 15px; height: 15px; }
+.result { display: grid; grid-template-columns: 1fr auto; gap: 24px; padding-top: 20px; box-shadow: inset 0 1px 0 var(--line); }
+.odds { display: flex; flex-direction: column; gap: 6px; }
+.odds-n { display: flex; align-items: center; line-height: 1; }
+
+/* ===== Owned motif 2: numbers that gain muscle ===== */
+.before { font-size: 40px; font-weight: 330; font-stretch: 100%; color: var(--ink3); }
+.after { font-size: 64px; font-weight: 780; font-stretch: 78%; letter-spacing: -.02em; }
+.dl { display: inline-flex; align-items: center; font-family: 'Mona Sans Variable'; font-stretch: 85%; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+.dl.big { font-size: 20px; margin-left: 12px; align-self: center; }
+.odds-viz { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; width: max-content; }
+.axis { display: flex; justify-content: space-between; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 10.5px; color: var(--ink2); padding: 0 2px; }
+.dumb .trk { stroke: var(--s3); stroke-width: 4; stroke-linecap: round; }
+.dumb .tick { stroke: var(--ink3); stroke-width: 1.5; }
+.dumb .seg-up { stroke: var(--win); stroke-width: 4; } .dumb .seg-dn { stroke: var(--loss); stroke-width: 4; }
+.dumb .d-before { fill: var(--s1); stroke: var(--ink3); stroke-width: 2; }
+.dumb .d-up { fill: var(--win); stroke: var(--s1); stroke-width: 2; } .dumb .d-dn { fill: var(--loss); stroke: var(--s1); stroke-width: 2; }
+.them { display: flex; align-items: center; gap: 6px; color: var(--ink2); font-size: 13px; margin-top: 6px; flex-wrap: wrap; }
+.them b { color: var(--ink); font-family: 'Mona Sans Variable'; font-stretch: 85%; }
+.effs { display: flex; flex-direction: column; gap: 10px; }
+.eff-grid { display: grid; grid-template-columns: repeat(4, 96px); gap: 8px; }
+.eff { background: var(--s2); border-radius: 14px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; box-shadow: inset 2px 0 0 var(--win); }
+.eff.dn { box-shadow: inset 2px 0 0 var(--loss); }
+.eff-n { font-size: 26px; line-height: 1.05; display: flex; align-items: center; }
+.eff.up .eff-n { color: var(--win); } .eff.dn .eff-n { color: var(--loss); }
+.div .trk-f { fill: var(--s3); } .div .up-f { fill: var(--win); } .div .dn-f { fill: var(--loss); } .div .mid-f { fill: var(--ink3); }
+.best-f { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 14px; background: var(--acc); color: var(--acc-ink); font-weight: 650; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.2); }
+.btn-ghost { display: inline-flex; align-items: center; gap: 4px; height: 44px; padding: 0 14px; border-radius: 14px; font-weight: 600; color: var(--ink); }
+.btn-ghost .ic { width: 14px; height: 14px; color: var(--ink2); }
+
+/* ===== outlook ===== */
+.outlook { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.sec-h { display: flex; align-items: center; gap: 10px; }
+.sec-h > .ic { color: var(--ink2); width: 20px; height: 20px; }
+.sec-note { margin-left: auto; color: var(--ink2); font-size: 13px; }
+.ol-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.ol-big { font-size: 56px; line-height: .95; }
+.sub { color: var(--ink2); font-size: 13px; margin-top: 4px; }
+.ol-gap { color: var(--ink2); font-size: 13.5px; text-align: right; padding-bottom: 4px; }
+.ol-gap b { color: var(--ink); }
+.ladder { display: flex; gap: 4px; align-items: center; }
+.rung { flex: 1; height: 32px; border-radius: 8px; background: var(--s2); display: grid; place-items: center; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 11px; color: var(--ink2); }
+.rung.in { background: var(--s3); color: var(--ink); }
+.rung.me { background: var(--acc); color: var(--acc-ink); }
+.rung.me .ic { width: 14px; height: 14px; }
+.line-mark { width: 2px; height: 40px; background: var(--ink); border-radius: 1px; margin: 0 4px; flex: none; }
+.ladder-k { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink2); margin-top: -8px; }
+.ladder-k span { display: flex; gap: 4px; align-items: center; }
+.ladder-k .ic { width: 12px; height: 12px; }
+.ol-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+.st-t { background: var(--s2); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.st-t .num { font-size: 26px; }
+
+/* ===== categories: compact tiles, coloured edge only ===== */
+.cats { display: flex; flex-direction: column; gap: 14px; }
+.cat-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; }
+.cat { background: var(--s1); border-radius: 14px; padding: 10px 12px 12px; box-shadow: inset 3px 0 0 var(--edge), inset 0 1px 0 var(--hi); --edge: var(--ink3); }
+.cat.win { --edge: var(--win); } .cat.loss { --edge: var(--loss); } .cat.swing { --edge: var(--acc); }
+.cat-top { display: flex; justify-content: space-between; align-items: center; }
+.cat-top .code { color: var(--ink); font-weight: 600; display: flex; align-items: center; gap: 2px; }
+.inv .ic { width: 10px; height: 10px; color: var(--ink2); }
+.rk { font-size: 11.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.cat-n { font-size: 34px; line-height: 1.1; margin-top: 4px; }
+.cat-sub { font-size: 12px; color: var(--ink2); font-weight: 550; }
+.cat.win .cat-sub { color: var(--win); } .cat.loss .cat-sub { color: var(--loss); } .cat.swing .cat-sub { color: var(--acc-text); }
+
+/* ===== trades ===== */
+.trades, .fas { display: flex; flex-direction: column; }
+.trades .sec-h, .fas .sec-h { margin-bottom: 8px; min-height: 44px; }
+.seg { margin-left: auto; display: flex; background: var(--s2); border-radius: 14px; padding: 3px; }
+.seg button { height: 38px; padding: 0 14px; border-radius: 11px; color: var(--ink2); font-weight: 550; display: flex; gap: 6px; align-items: center; }
+.seg button.on { background: var(--s1); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.18), inset 0 1px 0 var(--hi); }
+.seg .num { font-size: 15px; }
+.trow { padding: 16px 16px 16px 18px; margin: 0 -16px 0 -18px; border-radius: 16px; display: flex; flex-direction: column; gap: 12px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--hue) 10%, transparent), transparent 45%); position: relative; }
+.trow + .trow { margin-top: 6px; }
+.trow-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.trow-team { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; }
+.acc-sm { display: flex; align-items: center; gap: 6px; flex: none; }
+.acc-sm .ic { width: 16px; height: 16px; color: var(--ink2); }
+.acc-sm .num { font-size: 24px; line-height: 1; }
+.acc-w { font-size: 12px; color: var(--ink2); }
+.acc-sm .acc-w { margin: 0 0 0 2px; }
+.trow-deal { display: grid; grid-template-columns: 1fr 1fr 212px; gap: 16px; align-items: start; }
+.trow-deal .trow-odds { flex-direction: column; gap: 10px; padding-top: 22px; }
+.side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.side .lbl { font-size: 12px; }
+.mini { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mini-tx { display: flex; flex-direction: column; min-width: 0; }
+.mini-n { font-weight: 600; font-size: 14px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; row-gap: 0; }
+.mini-m { display: flex; align-items: center; gap: 5px; }
+.mini-m .logo { width: 12px; height: 12px; }
+.side .drop { font-size: 12.5px; padding-left: 38px; }
+.trow-odds { display: flex; gap: 28px; flex-wrap: wrap; row-gap: 6px; }
+.ol { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.ol-who { color: var(--ink2); width: 36px; }
+.ol-a { color: var(--ink3); font-weight: 400; font-stretch: 100%; font-size: 15px; }
+.ol-b { font-size: 17px; }
+.ol .dumb { margin-left: 4px; }
+.more { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; min-height: 44px; margin-top: 4px; }
+.more .ic { width: 14px; height: 14px; color: var(--acc-text); }
+
+/* ===== FA ===== */
+.faab { margin-left: auto; display: flex; gap: 6px; align-items: center; color: var(--ink2); font-size: 13px; }
+.faab .ic { width: 16px; height: 16px; }
+.faab b { color: var(--ink); font-size: 16px; }
+.fa { background: var(--s1); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; box-shadow: inset 0 1px 0 var(--hi); }
+.fa + .fa { margin-top: 8px; }
+.fa .chip { grid-column: 1; }
+.fa-why { grid-column: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tags { display: flex; gap: 4px; }
+.tag { font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 11px; font-weight: 600; padding: 3px 6px; border-radius: 7px; background: var(--s2); color: var(--ink); }
+.for { display: flex; align-items: center; gap: 4px; color: var(--ink2); font-size: 12.5px; }
+.for .ic { width: 14px; height: 14px; }
+.fa-r { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.fa-pts { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.fa-pts .num { font-size: 30px; line-height: 1; }
+.fa-u { font-size: 11.5px; color: var(--ink2); }
+.btn-sm { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 12px; background: var(--s2); font-weight: 600; font-size: 13px; white-space: nowrap; }
+.btn-sm .ic { width: 14px; height: 14px; color: var(--acc-text); }
+
+.foot { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; box-shadow: inset 0 1px 0 var(--line); color: var(--ink2); font-size: 12.5px; }
+.foot > span { display: flex; align-items: center; gap: 6px; }
+.foot .ic { width: 14px; height: 14px; }
+.cap { display: inline-flex; align-items: center; gap: 6px; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 10.5px; color: var(--ink2); background: var(--s2); padding: 5px 8px; border-radius: 8px; align-self: flex-start; }
+.cap .ic { width: 13px; height: 13px; }
+
+/* ===== phone ===== */
+.phone { width: 390px; }
+.ptop { height: 60px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px; }
+.ptop .league { flex: 1; background: none; padding-left: 4px; }
+.p-main { padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 24px; }
+.phone .totd { align-items: flex-start; padding: 12px 14px; }
+.phone .totd-tx { flex-direction: column; gap: 2px; font-size: 13.5px; }
+.phone .best { padding: 18px 16px; gap: 18px; }
+.phone .kick { font-size: 16px; row-gap: 4px; }
+.phone .kick-sub { display: none; }
+.phone .acc-row .num { font-size: 32px; }
+.phone .acc-row .ic { width: 18px; height: 18px; }
+.phone .acc-w { font-size: 12px; }
+.phone .hint { font-size: 13.5px; }
+.phone .deal { grid-template-columns: 1fr; gap: 6px; }
+.phone .swap { padding: 0; height: 28px; justify-content: start; padding-left: 16px; }
+.phone .swap .ic { transform: rotate(90deg); width: 20px; height: 20px; }
+.phone .deal .col .nm { font-size: 16px; }
+.phone .result { grid-template-columns: 1fr; gap: 18px; }
+.phone .before { font-size: 34px; }
+.phone .after { font-size: 56px; }
+.phone .eff-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.phone .eff { padding: 8px 8px 10px; }
+.phone .eff-n { font-size: 22px; }
+.phone .div { width: 100%; }
+.phone .best-f { flex-direction: column; align-items: stretch; gap: 4px; }
+.phone .btn { justify-content: center; height: 48px; }
+.phone .btn-ghost { justify-content: center; }
+.phone .outlook { padding: 18px 16px; gap: 14px; }
+.phone .ol-big { font-size: 44px; }
+.phone .cat-grid { grid-template-columns: repeat(3, 1fr); }
+.phone .cat-n { font-size: 30px; }
+.phone .trow { margin: 0; padding: 14px; background: linear-gradient(180deg, color-mix(in oklab, var(--hue) 9%, var(--s1)), var(--s1) 60%); box-shadow: inset 0 1px 0 var(--hi); }
+.phone .trow-deal { grid-template-columns: 1fr; gap: 12px; }
+.phone .trow-deal .trow-odds { flex-direction: row; padding-top: 4px; }
+.phone .side { flex-direction: row; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.phone .side .lbl { width: 100%; }
+.phone .side .drop { padding-left: 0; width: 100%; }
+.phone .trow-odds { gap: 14px; }
+.phone .ol-who { width: auto; }
+.phone .trows-gap { height: 8px; }
+.phone .trow + .trow { margin-top: 8px; }
+.phone .fa-r { grid-row: auto; grid-column: 1 / -1; flex-direction: row; align-items: center; }
+.phone .fa-pts { flex-direction: row; align-items: baseline; gap: 6px; }
+.phone .btn-sm { height: 44px; }
+.bnav { display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px 8px 22px; background: color-mix(in oklab, var(--s1) 92%, transparent); box-shadow: inset 0 1px 0 var(--line); }
+.bnav a { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; justify-content: center; color: var(--ink2); font-size: 11.5px; font-weight: 550; }
+.bnav a .ic { width: 22px; height: 22px; }
+.bnav a.on { color: var(--ink); }
+.bnav a.on .ic { color: var(--acc-text); }
+
+/* ===== league phone ===== */
+.lg-sub .seg { margin: 0; width: 100%; }
+.lg-sub .seg button { flex: 1; justify-content: center; height: 40px; }
+.mu { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.mu .glow-a, .mu .glow-b { width: 300px; height: 220px; top: -40px; }
+.mu .glow-a { left: -120px; } .mu .glow-b { right: -120px; }
+.mu-wk { display: flex; align-items: center; gap: 6px; color: var(--ink2); font-size: 12.5px; }
+.mu-wk .ic { width: 15px; height: 15px; }
+.mu-h { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.mu-t { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0; }
+.mu-n { font-weight: 650; font-size: 13.5px; line-height: 1.25; display: flex; align-items: center; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.you-i { width: 13px; height: 13px; color: var(--acc-text); }
+.mu-score { display: flex; flex-direction: column; align-items: center; }
+.mu-score .num { font-size: 44px; line-height: 1; font-stretch: 78%; }
+.mu-k { font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 10.5px; color: var(--ink2); margin-top: 2px; }
+.mu-g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gl { background: var(--s2); border-radius: 14px; padding: 8px 12px; font-size: 12.5px; color: var(--ink2); display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.gl .num { font-size: 22px; color: var(--ink); line-height: 1; }
+.gl-s { width: 100%; font-size: 12px; }
+.gl.r { justify-content: flex-end; text-align: right; }
+.mu-hint { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink2); }
+.mu-hint b { color: var(--acc-text); }
+.box { display: flex; flex-direction: column; gap: 6px; }
+.br { display: grid; grid-template-columns: 1fr 72px 1fr; gap: 6px; align-items: stretch; border-radius: 14px; }
+.br.sw { background: color-mix(in oklab, var(--acc) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--acc) 35%, transparent); }
+.bk { height: 44px; }
+.bc { height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+.bc .num { font-size: 20px; }
+.bc.won { background: var(--s3); box-shadow: inset 0 1px 0 var(--hi); }
+.bc.won .num { color: var(--ink); font-weight: 760; }
+.bc.lost .num { color: var(--ink3); font-weight: 450; font-stretch: 95%; }
+.bc.tie { background: var(--s2); }
+.bc.tie .num { color: var(--ink2); }
+.res { position: absolute; left: 10px; font-family: 'Martian Mono Variable'; font-stretch: 87.5%; font-size: 11px; font-weight: 650; }
+.res.W { color: var(--win); } .res.L { color: var(--loss); } .res.T { color: var(--ink2); }
+.bk { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; line-height: 1.2; }
+.bk .code { color: var(--ink); font-weight: 600; display: flex; align-items: center; gap: 2px; }
+.bk .acc-i { width: 14px; height: 14px; }
+.ptr .ic { width: 12px; height: 12px; color: var(--ink3); }
+.ptr { height: 14px; display: grid; place-items: center; }
+
+/* --- iteration 2 --- */
+.rcol { display: flex; flex-direction: column; gap: 16px; }
+.rcol .outlook { flex: 1; }
+.sec-note { display: flex; gap: 5px; align-items: center; }
+.sec-note .ic { width: 14px; height: 14px; }
+.week { padding: 18px 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.week h2 { font-size: 15px; }
+.wk-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.wk-t { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.wk-t.r { justify-content: flex-end; }
+.wk-s { font-size: 32px; font-stretch: 78%; line-height: 1; }
+.wk-hint { display: flex; gap: 8px; align-items: flex-start; color: var(--ink2); font-size: 13px; }
+.wk-hint b { color: var(--acc-text); }
+.wk-hint .ic { width: 16px; height: 16px; margin-top: 1px; }
+.outlook .ol-stats { margin-top: 4px; }
+
+/* phone compaction */
+.phone .p-main { gap: 20px; }
+.phone .totd { padding: 10px 12px; gap: 10px; }
+.phone .totd-tx { font-size: 13px; }
+.phone .best { gap: 14px; }
+.phone .deal .col { display: grid; grid-template-columns: 34px 1fr; gap: 8px 6px; align-items: center; }
+.phone .deal .col .lbl { grid-row: 1 / span 3; align-self: start; padding-top: 14px; font-size: 12px; }
+.phone .deal .col .drop { grid-column: 2; font-size: 12.5px; }
+.phone .deal .col .chip { grid-column: 2; }
+.phone .deal { gap: 10px; }
+.phone .swap { display: none; }
+.phone .deal .col + .col { padding-top: 10px; box-shadow: inset 0 1px 0 var(--line); }
+.phone .result { padding-top: 14px; gap: 14px; }
+.phone .odds-viz { flex-direction: row; align-items: center; gap: 8px; }
+.phone .axis { display: none; }
+.phone .them { margin-top: 2px; }
+.phone .outlook { gap: 10px; }
+
+.phone .ol-top { align-items: center; }
+.phone .ol-big { font-size: 40px; }
+.phone .ladder-k { margin-top: -4px; }
+.phone .rung { height: 28px; }
+.phone .line-mark { height: 34px; }
+.phone .cats { gap: 10px; }
+.phone .cat-grid { gap: 6px; }
+.phone .cat { padding: 8px 10px 9px; }
+.phone .cat-n { font-size: 26px; margin-top: 2px; }
+.phone .trow { gap: 10px; }
+.phone .trow-deal { grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.phone .trow-deal .trow-odds { grid-column: 1 / -1; flex-wrap: nowrap; gap: 12px; padding-top: 8px; box-shadow: inset 0 1px 0 var(--line); }
+.phone .side { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; }
+.phone .mini { align-items: flex-start; gap: 8px; }
+.phone .mini .face { --fs: 30px !important; }
+.phone .mini-n { font-size: 13.5px; line-height: 1.25; }
+.phone .ol { font-size: 12.5px; gap: 4px; }
+.phone .ol .dumb { display: none; }
+.phone .trades .sec-h, .phone .fas .sec-h { margin-bottom: 6px; }
+.phone .more { margin-top: 0; }
+
+/* --- iteration 3: phone height --- */
+.more-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.more-row .cap { align-self: center; }
+.phone .totd { align-items: center; }
+.phone .totd-tx { gap: 0; font-size: 12.5px; }
+.phone .kick { flex-wrap: nowrap; white-space: nowrap; }
+.phone .kick-team { overflow: hidden; text-overflow: ellipsis; }
+.phone .best-h { gap: 8px; }
+.phone .hint { margin-top: 4px; }
+.phone .acc-row .num { font-size: 30px; }
+.phone .effs { gap: 6px; }
+.phone .effs .lbl { font-size: 12px; }
+.phone .eff { padding: 6px 8px 7px; gap: 2px; }
+.phone .eff-n { font-size: 19px; }
+.phone .div { height: 6px; }
+.phone .best-f { flex-direction: row; }
+.phone .btn { flex: 1; padding: 0 12px; font-size: 13.5px; height: 48px; }
+.phone .btn-ghost { padding: 0 8px; height: 48px; font-size: 13.5px; }
+.phone .ol-top .lbl { margin-bottom: 4px; }
+.phone .ol-gap { font-size: 12.5px; line-height: 1.35; }
+.phone .cat-sub { font-size: 11px; }
+.phone .cat-n { font-size: 24px; line-height: 1.05; }
+.phone .fa { grid-template-columns: 1fr auto; padding: 12px 14px; }
+.phone .fa-r { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; align-items: flex-end; }
+.phone .fa-pts { flex-direction: column; align-items: flex-end; gap: 0; }
+.phone .fa-pts .num { font-size: 26px; }
+.phone .btn-sm { padding: 0 10px; }
+.phone .cap { font-size: 10px; }
+
+/* --- iteration 4: 360 fixes --- */
+.best-h > div:first-child { flex: 1; min-width: 0; }
+.phone .kick { flex-wrap: wrap; white-space: normal; }
+.phone .ol-top .lbl { white-space: nowrap; }
+.more-row { flex-wrap: wrap; }
+.phone .mini-m { display: none; }
+.phone .mini { align-items: center; }
+.phone .mini .face { --fs: 28px !important; }
+.phone .side .drop { font-size: 12px; }
+.phone .trow-deal { gap: 8px 12px; }
+.phone .btn { font-size: 14px; }
+
+/* --- iteration 5 --- */
+.phone .odds { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; }
+.phone .odds > .lbl, .phone .odds > .them { grid-column: 1 / -1; }
+.phone .odds-viz { justify-self: end; margin-top: 0; }
+.phone .dl.big { font-size: 17px; margin-left: 8px; }
+.phone .cat-b { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+.phone .cat-sub { text-align: right; }
+.phone .ol-top .sub { margin-top: 2px; }
+
+/* live preview: real headshots and team logos over the fallbacks */
+.face .hs { position: absolute; left: 50%; bottom: 0; width: 136%; height: auto; transform: translateX(-50%); }
+.logo:has(.lg) { background: none; box-shadow: none; }
+.logo .lg { width: 100%; height: 100%; object-fit: contain; display: block; }
+.fb-img { width: 30px; height: 30px; border-radius: 8px; display: block; flex: none; }
+.face:has(.hs) .sil { display: none; }
+@media (max-width: 860px) {
+  body { padding: 0; background: var(--bg, #141210); }
+  #d-desktop { display: none; }
+  .board, .phones { display: block; }
+  .phones > * { margin: 0 auto 24px; max-width: 100%; }
+}
+
+</style></head>
+<body>
+<div class="board">
+
+<div id="d-desktop" class="frame theme-dark">
+  <header class="top">
+    <div class="brand"><img class="fb-img" src="logo.svg" alt="Fantasy Analyzer" width="30" height="30"><span class="bn">Fantasy Analyzer</span></div>
+    <button class="league"><svg class="crest you" width="24" height="26" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:var(--acc)"/><text x="12" y="14.6" text-anchor="middle">KA</text></svg><span class="lg-tx"><b>Kucukesat Aspavas</b><span>Chill Primera Division</span></span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></button>
+    <div class="top-r"><span class="wk"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/></svg>Week 3 · Nov 2–8</span><button class="ib"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"/></svg></button><button class="ib"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg></button><button class="ib"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"/></svg></button></div>
+  </header>
+  <nav class="tabs"><a class="on"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M213.85,125.46l-112,120a8,8,0,0,1-13.69-7l14.66-73.33L45.19,143.49a8,8,0,0,1-3-13l112-120a8,8,0,0,1,13.69,7L153.18,90.9l57.63,21.61a8,8,0,0,1,3,12.95Z"/></svg>Moves</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,181.66l-32,32a8,8,0,0,1-11.32-11.32L188.69,184H48a8,8,0,0,1,0-16H188.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,213.66,181.66Zm-139.32-64a8,8,0,0,0,11.32-11.32L67.31,88H208a8,8,0,0,0,0-16H67.31L85.66,53.66A8,8,0,0,0,74.34,42.34l-32,32a8,8,0,0,0,0,11.32Z"/></svg>Trade Park</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z"/></svg>Trade For</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"/></svg>My Team</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg>League</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,64H147.31l34.35-34.34a8,8,0,1,0-11.32-11.32L128,60.69,85.66,18.34A8,8,0,0,0,74.34,29.66L108.69,64H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm0,136H40V80H216V200Z"/></svg>Scores</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M88,112a8,8,0,0,1,8-8h80a8,8,0,0,1,0,16H96A8,8,0,0,1,88,112Zm8,40h80a8,8,0,0,0,0-16H96a8,8,0,0,0,0,16ZM232,64V184a24,24,0,0,1-24,24H32A24,24,0,0,1,8,184.11V88a8,8,0,0,1,16,0v96a8,8,0,0,0,16,0V64A16,16,0,0,1,56,48H216A16,16,0,0,1,232,64Zm-16,0H56V184a23.84,23.84,0,0,1-1.37,8H208a8,8,0,0,0,8-8Z"/></svg>NBA News</a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"/></svg>League Chat</a></nav>
+  <main class="d-main">
+    
+  <div class="totd"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/></svg><div class="totd-tx"><b>Trade of the day · Wed, Nov 4</b><span>No trade works for both sides today. Rosters change fast, check back tomorrow.</span></div><span class="stamp"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></svg>10,000 sims · 07:40</span></div>
+    <div class="row1">
+  <section class="best card">
+    <div class="glow-a" style="--tc:#2F9E5E"></div><div class="glow-b" style="--tc:undefined"></div>
+    <header class="best-h">
+      <div>
+        <div class="kick"><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg><span>Best move</span><span class="kick-sub">trade with</span><svg class="crest" width="18" height="20" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg><span class="kick-team">Aliaga Hermanos</span></div>
+        <p class="hint">You're last in FT% and 3PM. This deal fixes both.</p>
+      </div>
+      <div class="acc-big">
+        <div class="acc-row"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">75<span class="pc">%</span></span></div>
+        <div class="acc-w">Likely to accept</div>
+      </div>
+    </header>
+    <div class="deal">
+      <div class="col">
+        <div class="lbl">You give</div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#D9314F;--fs:60px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Giannis Antetokounmpo<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></div>
+      <div class="meta"><span class="logo" style="--tc:#D9314F" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mia.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIA</span><span class="dot">·</span><span class="code">PF</span></div>
+    </div>
+  </div>
+        <div class="drop"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>and drop Isaiah Jackson <span class="code">LAC · C</span></div>
+      </div>
+      <div class="swap"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg></div>
+      <div class="col">
+        <div class="lbl">You get</div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#C1A06A;--fs:60px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Trey Murphy III<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></div>
+      <div class="meta"><span class="logo" style="--tc:#C1A06A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/no.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">NO</span><span class="dot">·</span><span class="code">SF</span></div>
+    </div>
+  </div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#E5484D;--fs:60px" role="img" aria-label="Nickeil Alexander-Walker"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4278039.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Nickeil Alexander-Walker</div>
+      <div class="meta"><span class="logo" style="--tc:#E5484D" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/atl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ATL</span><span class="dot">·</span><span class="code">SG</span></div>
+    </div>
+  </div>
+      </div>
+    </div>
+    <div class="result">
+      <div class="odds">
+        <div class="lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg>Playoff odds</div>
+        <div class="odds-n"><span class="num before">45</span><svg class="ic arr-m" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num after">55<span class="pc">%</span></span><span class="dl up big"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>10</span></div>
+        <div class="odds-viz"><svg class="dumb" width="236" height="18" viewBox="0 0 236 18" aria-hidden="true">
+    <line x1="6" x2="230" y1="9" y2="9" class="trk"/>
+    <line x1="118" x2="118" y1="2" y2="16" class="tick"/>
+    <line x1="106.8" x2="129.20000000000002" y1="9" y2="9" class="seg-up"/>
+    <circle cx="106.8" cy="9" r="4" class="d-before"/>
+    <circle cx="129.20000000000002" cy="9" r="5" class="d-up"/>
+  </svg><span class="axis"><span>0</span><span>coin flip</span><span>100</span></span></div>
+        <div class="them"><svg class="crest" width="14" height="15" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg>Aliaga 52 <svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg> <b>57</b> <span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span> — they win too</div>
+      </div>
+      <div class="effs">
+        <div class="lbl">Weekly win chance, pts</div>
+        <div class="eff-grid">
+  <div class="eff up">
+    <span class="code">FT%</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>27</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="32" y="1" width="27" height="6" rx="1.5" class="up-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff up">
+    <span class="code">3PM</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>27</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="32" y="1" width="27" height="6" rx="1.5" class="up-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff dn">
+    <span class="code">FG%</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg><span class="sg">−</span>21</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="11" y="1" width="21" height="6" rx="1.5" class="dn-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff dn">
+    <span class="code">REB</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg><span class="sg">−</span>18</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="14" y="1" width="18" height="6" rx="1.5" class="dn-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div></div>
+      </div>
+    </div>
+    <footer class="best-f">
+      <button class="btn"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,104a12,12,0,0,1-24,0V69l-59.51,59.51a12,12,0,0,1-17-17L187,52H152a12,12,0,0,1,0-24h64a12,12,0,0,1,12,12Zm-44,24a12,12,0,0,0-12,12v64H52V84h64a12,12,0,0,0,0-24H48A20,20,0,0,0,28,80V208a20,20,0,0,0,20,20H176a20,20,0,0,0,20-20V140A12,12,0,0,0,184,128Z"/></svg>Open their team on ESPN</button>
+      <button class="btn-ghost">See the pitch<svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z"/></svg></button>
+    </footer>
+  </section><div class="rcol">
+  <section class="outlook card">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></svg><h2>Season outlook</h2></div>
+    <div class="ol-top">
+      <div><div class="num ol-big">45<span class="pc">%</span></div><div class="sub">playoff odds</div></div>
+      <div class="ol-gap"><b>4 wins</b> short of the line<br>projected 77–85</div>
+    </div>
+    <div class="ladder"><span class="rung in">1</span><span class="rung in">2</span><span class="rung in">3</span><span class="rung in">4</span><span class="rung in">5</span><span class="rung in">6</span><span class="line-mark" title="playoff line"></span><span class="rung">7</span><span class="rung">8</span><span class="rung me"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z"/></svg></span><span class="rung">10</span></div>
+    <div class="ladder-k"><span>Playoffs · top 6</span><span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z"/></svg>You, projected 9th</span></div>
+    <div class="ol-stats">
+      <div class="st-t"><span class="lbl">Projected record</span><span class="num">77–85</span></div>
+      <div class="st-t"><span class="lbl">Playoff line · 6th</span><span class="num">81–82</span></div>
+    </div>
+  </section>
+  <section class="week card">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg><h2>This week</h2><span class="sec-note"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/></svg>Nov 2–8</span></div>
+    <div class="wk-row">
+      <div class="wk-t"><svg class="crest you" width="22" height="24" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:var(--acc)"/><text x="12" y="14.6" text-anchor="middle">KA</text></svg><span>You</span></div>
+      <span class="num wk-s">4–4–1</span>
+      <div class="wk-t r"><span>Kavaklidere</span><svg class="crest" width="22" height="24" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B23A3A"/><text x="12" y="14.6" text-anchor="middle">KB</text></svg></div>
+    </div>
+    <div class="wk-hint"><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg><span><b>Flip AST or STL</b> to win the week · 13 vs 12 games today</span></div>
+  </section></div></div>
+    
+  <section class="cats">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M112.41,102.53a8,8,0,0,1,5.06-10.12l12-4A8,8,0,0,1,140,96v40a8,8,0,0,1-16,0V107.1l-1.47.49A8,8,0,0,1,112.41,102.53ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16h8V104A16,16,0,0,1,40,88H80V56A16,16,0,0,1,96,40h64a16,16,0,0,1,16,16v72h40a16,16,0,0,1,16,16v56h8A8,8,0,0,1,248,208Zm-72-64v56h40V144ZM96,200h64V56H96Zm-56,0H80V104H40Z"/></svg><h2>How often you win each category</h2><span class="sec-note">Share of 10,000 simulated weeks · league rank in the corner</span></div>
+    <div class="cat-grid">
+  <div class="cat win">
+    <div class="cat-top"><span class="code">FG%</span><span class="rk">1st</span></div>
+    <div class="cat-b"><div class="num cat-n">81<span class="pc">%</span></div>
+    <div class="cat-sub">Winning</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">FT%</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">14<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">3PM</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">7<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">REB</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">50<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">AST</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">53<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">STL</span><span class="rk">8th</span></div>
+    <div class="cat-b"><div class="num cat-n">48<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">BLK</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">53<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">TO<span class="inv" title="lower is better"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg></span></span><span class="rk">2nd</span></div>
+    <div class="cat-b"><div class="num cat-n">65<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">PTS</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">27<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div></div>
+  </section>
+    <div class="row2">
+  <section class="trades">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg><h2>Trades to offer</h2>
+      <div class="seg"><button class="on">Fair <span class="num">5</span></button><button>Edge <span class="num">4</span></button></div>
+    </div>
+    
+  <article class="trow" style="--hue:#B86A3C">
+    <header class="trow-h">
+      <div class="trow-team"><svg class="crest" width="20" height="22" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg><span>Aliaga Hermanos</span></div>
+      <div class="acc-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">75<span class="pc">%</span></span><span class="acc-w">Likely</span></div>
+    </header>
+    <div class="trow-deal">
+      <div class="side"><span class="lbl">Give</span><span class="mini"><span class="face" style="--tc:#D9314F;--fs:34px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Giannis Antetokounmpo<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></span><span class="mini-m"><span class="logo" style="--tc:#D9314F" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mia.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIA</span><span class="dot">·</span><span class="code">PF</span></span></span></span><span class="drop"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>drop Isaiah Jackson</span></div>
+      <div class="side"><span class="lbl">Get</span><span class="mini"><span class="face" style="--tc:#C1A06A;--fs:34px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Trey Murphy III<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></span><span class="mini-m"><span class="logo" style="--tc:#C1A06A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/no.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">NO</span><span class="dot">·</span><span class="code">SF</span></span></span></span><span class="mini"><span class="face" style="--tc:#E5484D;--fs:34px" role="img" aria-label="Nickeil Alexander-Walker"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4278039.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Nickeil Alexander-Walker</span><span class="mini-m"><span class="logo" style="--tc:#E5484D" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/atl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ATL</span><span class="dot">·</span><span class="code">SG</span></span></span></span></div>
+      <div class="trow-odds"><span class="ol"><span class="ol-who">You</span><span class="num ol-a">45</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">55</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>10</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="40.2" x2="47.800000000000004" y1="7" y2="7" class="seg-up"/>
+    <circle cx="40.2" cy="7" r="4" class="d-before"/>
+    <circle cx="47.800000000000004" cy="7" r="5" class="d-up"/>
+  </svg></span><span class="ol"><span class="ol-who">Them</span><span class="num ol-a">52</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">57</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="45.52" x2="49.31999999999999" y1="7" y2="7" class="seg-up"/>
+    <circle cx="45.52" cy="7" r="4" class="d-before"/>
+    <circle cx="49.31999999999999" cy="7" r="5" class="d-up"/>
+  </svg></span></div>
+    </div>
+  </article>
+  <article class="trow" style="--hue:#B23A3A">
+    <header class="trow-h">
+      <div class="trow-team"><svg class="crest" width="20" height="22" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B23A3A"/><text x="12" y="14.6" text-anchor="middle">KB</text></svg><span>Kavaklidere Boytoys</span></div>
+      <div class="acc-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">62<span class="pc">%</span></span><span class="acc-w">Likely</span></div>
+    </header>
+    <div class="trow-deal">
+      <div class="side"><span class="lbl">Give</span><span class="mini"><span class="face" style="--tc:#8A5CC9;--fs:34px" role="img" aria-label="Domantas Sabonis"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3155942.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Domantas Sabonis</span><span class="mini-m"><span class="logo" style="--tc:#8A5CC9" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/sac.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">SAC</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="side"><span class="lbl">Get</span><span class="mini"><span class="face" style="--tc:#2F9E5E;--fs:34px" role="img" aria-label="Tyler Herro"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4395725.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Tyler Herro</span><span class="mini-m"><span class="logo" style="--tc:#2F9E5E" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mil.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIL</span><span class="dot">·</span><span class="code">SG</span></span></span></span><span class="mini"><span class="face" style="--tc:#9B6FE0;--fs:34px" role="img" aria-label="Walker Kessler"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4433136.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Walker Kessler</span><span class="mini-m"><span class="logo" style="--tc:#9B6FE0" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/lal.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">LAL</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="trow-odds"><span class="ol"><span class="ol-who">You</span><span class="num ol-a">45</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">52</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>7</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="40.2" x2="45.52" y1="7" y2="7" class="seg-up"/>
+    <circle cx="40.2" cy="7" r="4" class="d-before"/>
+    <circle cx="45.52" cy="7" r="5" class="d-up"/>
+  </svg></span><span class="ol"><span class="ol-who">Them</span><span class="num ol-a">50</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">54</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>4</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="44" x2="47.040000000000006" y1="7" y2="7" class="seg-up"/>
+    <circle cx="44" cy="7" r="4" class="d-before"/>
+    <circle cx="47.040000000000006" cy="7" r="5" class="d-up"/>
+  </svg></span></div>
+    </div>
+  </article>
+  <article class="trow" style="--hue:#2C8A86">
+    <header class="trow-h">
+      <div class="trow-team"><svg class="crest" width="20" height="22" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#2C8A86"/><text x="12" y="14.6" text-anchor="middle">MS</text></svg><span>Moda Sahil Kulübü</span></div>
+      <div class="acc-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">58<span class="pc">%</span></span><span class="acc-w">Toss-up</span></div>
+    </header>
+    <div class="trow-deal">
+      <div class="side"><span class="lbl">Give</span><span class="mini"><span class="face" style="--tc:#E03A4E;--fs:34px" role="img" aria-label="Alperen Şengün"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4871144.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Alperen Şengün</span><span class="mini-m"><span class="logo" style="--tc:#E03A4E" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/hou.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">HOU</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="side"><span class="lbl">Get</span><span class="mini"><span class="face" style="--tc:#2F8FD8;--fs:34px" role="img" aria-label="Jalen Williams"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4593803.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Jalen Williams<span class="st out" title="Out"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,108v40a16,16,0,0,1-16,16H164v52a16,16,0,0,1-16,16H108a16,16,0,0,1-16-16V164H40a16,16,0,0,1-16-16V108A16,16,0,0,1,40,92H92V40a16,16,0,0,1,16-16h40a16,16,0,0,1,16,16V92h52A16,16,0,0,1,232,108Z"/></svg>OUT</span></span><span class="mini-m"><span class="logo" style="--tc:#2F8FD8" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/okc.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">OKC</span><span class="dot">·</span><span class="code">SF</span></span></span></span><span class="mini"><span class="face" style="--tc:#3B6FD6;--fs:34px" role="img" aria-label="Brook Lopez"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3448.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Brook Lopez</span><span class="mini-m"><span class="logo" style="--tc:#3B6FD6" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/lac.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">LAC</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="trow-odds"><span class="ol"><span class="ol-who">You</span><span class="num ol-a">45</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">50</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="40.2" x2="44" y1="7" y2="7" class="seg-up"/>
+    <circle cx="40.2" cy="7" r="4" class="d-before"/>
+    <circle cx="44" cy="7" r="5" class="d-up"/>
+  </svg></span><span class="ol"><span class="ol-who">Them</span><span class="num ol-a">41</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">46</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span><svg class="dumb" width="88" height="14" viewBox="0 0 88 14" aria-hidden="true">
+    <line x1="6" x2="82" y1="7" y2="7" class="trk"/>
+    <line x1="44" x2="44" y1="2" y2="12" class="tick"/>
+    <line x1="37.16" x2="40.96" y1="7" y2="7" class="seg-up"/>
+    <circle cx="37.16" cy="7" r="4" class="d-before"/>
+    <circle cx="40.96" cy="7" r="5" class="d-up"/>
+  </svg></span></div>
+    </div>
+  </article>
+    <a class="more">All 5 fair trades<svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z"/></svg></a>
+  </section>
+  <section class="fas">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"/></svg><h2>FA targets</h2><span class="faab"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184,89.57V84c0-25.08-37.83-44-88-44S8,58.92,8,84v40c0,20.89,26.25,37.49,64,42.46V172c0,25.08,37.83,44,88,44s88-18.92,88-44V132C248,111.3,222.58,94.68,184,89.57ZM232,132c0,13.22-30.79,28-72,28-3.73,0-7.43-.13-11.08-.37C170.49,151.77,184,139,184,124V105.74C213.87,110.19,232,122.27,232,132ZM72,150.25V126.46A183.74,183.74,0,0,0,96,128a183.74,183.74,0,0,0,24-1.54v23.79A163,163,0,0,1,96,152,163,163,0,0,1,72,150.25Zm96-40.32V124c0,8.39-12.41,17.4-32,22.87V123.5C148.91,120.37,159.84,115.71,168,109.93ZM96,56c41.21,0,72,14.78,72,28s-30.79,28-72,28S24,97.22,24,84,54.79,56,96,56ZM24,124V109.93c8.16,5.78,19.09,10.44,32,13.57v23.37C36.41,141.4,24,132.39,24,124Zm64,48v-4.17c2.63.1,5.29.17,8,.17,3.88,0,7.67-.13,11.39-.35A121.92,121.92,0,0,0,120,171.41v23.46C100.41,189.4,88,180.39,88,172Zm48,26.25V174.4a179.48,179.48,0,0,0,24,1.6,183.74,183.74,0,0,0,24-1.54v23.79a165.45,165.45,0,0,1-48,0Zm64-3.38V171.5c12.91-3.13,23.84-7.79,32-13.57V172C232,180.39,219.59,189.4,200,194.87Z"/></svg><b class="num">$85</b> FAAB left</span></div>
+    
+  <div class="fa">
+    
+  <div class="chip">
+    <span class="face" style="--tc:#2F7DE1;--fs:44px" role="img" aria-label="Keon Ellis"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4702177.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Keon Ellis</div>
+      <div class="meta"><span class="logo" style="--tc:#2F7DE1" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/orl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ORL</span><span class="dot">·</span><span class="code">SG</span></div>
+    </div>
+  </div>
+    <div class="fa-why"><span class="tags"><span class="tag">STL</span><span class="tag">3PM</span></span><span class="for"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg>for Isaiah Jackson</span></div>
+    <div class="fa-r">
+      <div class="fa-pts"><span class="num up"><span class="sg">+</span>3</span><span class="fa-u">odds pts</span></div>
+      <button class="btn-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"/></svg>Claim · $6</button>
+    </div>
+  </div>
+  <div class="fa">
+    
+  <div class="chip">
+    <span class="face" style="--tc:#2FA05A;--fs:44px" role="img" aria-label="Sam Hauser"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4065804.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Sam Hauser</div>
+      <div class="meta"><span class="logo" style="--tc:#2FA05A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/bos.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">BOS</span><span class="dot">·</span><span class="code">SF</span></div>
+    </div>
+  </div>
+    <div class="fa-why"><span class="tags"><span class="tag">3PM</span></span><span class="for"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg>for Isaiah Jackson</span></div>
+    <div class="fa-r">
+      <div class="fa-pts"><span class="num up"><span class="sg">+</span>2</span><span class="fa-u">odds pts</span></div>
+      <button class="btn-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"/></svg>Claim · $3</button>
+    </div>
+  </div>
+  <div class="fa">
+    
+  <div class="chip">
+    <span class="face" style="--tc:#3FA06A;--fs:44px" role="img" aria-label="Ayo Dosunmu"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397002.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Ayo Dosunmu</div>
+      <div class="meta"><span class="logo" style="--tc:#3FA06A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/min.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIN</span><span class="dot">·</span><span class="code">SG</span></div>
+    </div>
+  </div>
+    <div class="fa-why"><span class="tags"><span class="tag">AST</span><span class="tag">STL</span></span><span class="for"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg>for Isaiah Jackson</span></div>
+    <div class="fa-r">
+      <div class="fa-pts"><span class="num up"><span class="sg">+</span>1</span><span class="fa-u">odds pts</span></div>
+      <button class="btn-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"/></svg>Claim · $1</button>
+    </div>
+  </div>
+    
+  </section></div>
+    <footer class="foot"><span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></svg>Odds from 10,000 simulated seasons, refreshed 07:40 · How we calculate this</span></footer>
+  </main>
+</div>
+<div class="phones">
+<div id="d-phone-moves" class="frame phone theme-light">
+  
+  <header class="ptop">
+    <img class="fb-img" src="logo.svg" alt="Fantasy Analyzer" width="30" height="30">
+    <button class="league"><svg class="crest you" width="22" height="24" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:var(--acc)"/><text x="12" y="14.6" text-anchor="middle">KA</text></svg><span class="lg-tx"><b>Kucukesat Aspavas</b><span>Chill Primera Division</span></span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></button>
+    <button class="ib"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"/></svg></button>
+  </header>
+  <main class="p-main">
+    
+  <div class="totd"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/></svg><div class="totd-tx"><b>Trade of the day · Wed, Nov 4</b><span>None works for both sides today. Check back tomorrow.</span></div></div>
+    
+  <section class="best card">
+    <div class="glow-a" style="--tc:#2F9E5E"></div><div class="glow-b" style="--tc:undefined"></div>
+    <header class="best-h">
+      <div>
+        <div class="kick"><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg><span>Best move</span><span class="kick-sub">trade with</span><svg class="crest" width="18" height="20" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg><span class="kick-team">Aliaga Hermanos</span></div>
+        <p class="hint">You're last in FT% and 3PM. This deal fixes both.</p>
+      </div>
+      <div class="acc-big">
+        <div class="acc-row"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">75<span class="pc">%</span></span></div>
+        <div class="acc-w">Likely to accept</div>
+      </div>
+    </header>
+    <div class="deal">
+      <div class="col">
+        <div class="lbl">You give</div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#D9314F;--fs:44px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Giannis Antetokounmpo<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></div>
+      <div class="meta"><span class="logo" style="--tc:#D9314F" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mia.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIA</span><span class="dot">·</span><span class="code">PF</span></div>
+    </div>
+  </div>
+        <div class="drop"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>and drop Isaiah Jackson <span class="code">LAC · C</span></div>
+      </div>
+      <div class="swap"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg></div>
+      <div class="col">
+        <div class="lbl">You get</div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#C1A06A;--fs:44px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Trey Murphy III<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></div>
+      <div class="meta"><span class="logo" style="--tc:#C1A06A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/no.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">NO</span><span class="dot">·</span><span class="code">SF</span></div>
+    </div>
+  </div>
+        
+  <div class="chip">
+    <span class="face" style="--tc:#E5484D;--fs:44px" role="img" aria-label="Nickeil Alexander-Walker"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4278039.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Nickeil Alexander-Walker</div>
+      <div class="meta"><span class="logo" style="--tc:#E5484D" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/atl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ATL</span><span class="dot">·</span><span class="code">SG</span></div>
+    </div>
+  </div>
+      </div>
+    </div>
+    <div class="result">
+      <div class="odds">
+        <div class="lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg>Playoff odds</div>
+        <div class="odds-n"><span class="num before">45</span><svg class="ic arr-m" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num after">55<span class="pc">%</span></span><span class="dl up big"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>10</span></div>
+        <div class="odds-viz"><svg class="dumb" width="92" height="18" viewBox="0 0 92 18" aria-hidden="true">
+    <line x1="6" x2="86" y1="9" y2="9" class="trk"/>
+    <line x1="46" x2="46" y1="2" y2="16" class="tick"/>
+    <line x1="42" x2="50" y1="9" y2="9" class="seg-up"/>
+    <circle cx="42" cy="9" r="4" class="d-before"/>
+    <circle cx="50" cy="9" r="5" class="d-up"/>
+  </svg><span class="axis"><span>0</span><span>coin flip</span><span>100</span></span></div>
+        <div class="them"><svg class="crest" width="14" height="15" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg>Aliaga 52 <svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg> <b>57</b> <span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span> — they win too</div>
+      </div>
+      <div class="effs">
+        <div class="lbl">Weekly win chance, pts</div>
+        <div class="eff-grid">
+  <div class="eff up">
+    <span class="code">FT%</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>27</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="32" y="1" width="27" height="6" rx="1.5" class="up-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff up">
+    <span class="code">3PM</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>27</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="32" y="1" width="27" height="6" rx="1.5" class="up-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff dn">
+    <span class="code">FG%</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg><span class="sg">−</span>21</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="11" y="1" width="21" height="6" rx="1.5" class="dn-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div>
+  <div class="eff dn">
+    <span class="code">REB</span>
+    <span class="num eff-n"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg><span class="sg">−</span>18</span>
+    <svg class="div" width="64" height="8" viewBox="0 0 64 8" aria-hidden="true"><rect x="0" y="3.25" width="64" height="1.5" rx=".75" class="trk-f"/><rect x="14" y="1" width="18" height="6" rx="1.5" class="dn-f"/><rect x="31.25" y="0" width="1.5" height="8" class="mid-f"/></svg>
+  </div></div>
+      </div>
+    </div>
+    <footer class="best-f">
+      <button class="btn"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,104a12,12,0,0,1-24,0V69l-59.51,59.51a12,12,0,0,1-17-17L187,52H152a12,12,0,0,1,0-24h64a12,12,0,0,1,12,12Zm-44,24a12,12,0,0,0-12,12v64H52V84h64a12,12,0,0,0,0-24H48A20,20,0,0,0,28,80V208a20,20,0,0,0,20,20H176a20,20,0,0,0,20-20V140A12,12,0,0,0,184,128Z"/></svg>Open their team</button>
+      <button class="btn-ghost">See the pitch<svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z"/></svg></button>
+    </footer>
+  </section>
+    
+  <section class="outlook card">
+    
+    <div class="ol-top">
+      <div><div class="lbl"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></svg>Season outlook</div><div class="num ol-big">45<span class="pc">%</span></div><div class="sub">playoff odds</div></div>
+      <div class="ol-gap"><b>4 wins</b> short of the line</div>
+    </div>
+    <div class="ladder"><span class="rung in">1</span><span class="rung in">2</span><span class="rung in">3</span><span class="rung in">4</span><span class="rung in">5</span><span class="rung in">6</span><span class="line-mark" title="playoff line"></span><span class="rung">7</span><span class="rung">8</span><span class="rung me"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z"/></svg></span><span class="rung">10</span></div>
+    <div class="ladder-k"><span>Playoffs · top 6</span><span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z"/></svg>You, projected 9th</span></div>
+    
+  </section>
+    
+  <section class="cats">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M112.41,102.53a8,8,0,0,1,5.06-10.12l12-4A8,8,0,0,1,140,96v40a8,8,0,0,1-16,0V107.1l-1.47.49A8,8,0,0,1,112.41,102.53ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16h8V104A16,16,0,0,1,40,88H80V56A16,16,0,0,1,96,40h64a16,16,0,0,1,16,16v72h40a16,16,0,0,1,16,16v56h8A8,8,0,0,1,248,208Zm-72-64v56h40V144ZM96,200h64V56H96Zm-56,0H80V104H40Z"/></svg><h2>How often you win each category</h2></div>
+    <div class="cat-grid">
+  <div class="cat win">
+    <div class="cat-top"><span class="code">FG%</span><span class="rk">1st</span></div>
+    <div class="cat-b"><div class="num cat-n">81<span class="pc">%</span></div>
+    <div class="cat-sub">Winning</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">FT%</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">14<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">3PM</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">7<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">REB</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">50<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">AST</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">53<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">STL</span><span class="rk">8th</span></div>
+    <div class="cat-b"><div class="num cat-n">48<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">BLK</span><span class="rk">5th</span></div>
+    <div class="cat-b"><div class="num cat-n">53<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat swing">
+    <div class="cat-top"><span class="code">TO<span class="inv" title="lower is better"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg></span></span><span class="rk">2nd</span></div>
+    <div class="cat-b"><div class="num cat-n">65<span class="pc">%</span></div>
+    <div class="cat-sub">Swing</div></div>
+  </div>
+  <div class="cat loss">
+    <div class="cat-top"><span class="code">PTS</span><span class="rk">10th</span></div>
+    <div class="cat-b"><div class="num cat-n">27<span class="pc">%</span></div>
+    <div class="cat-sub">Losing</div></div>
+  </div></div>
+  </section>
+    
+  <section class="trades">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg><h2>Trades to offer</h2>
+      <div class="seg"><button class="on">Fair <span class="num">5</span></button><button>Edge <span class="num">4</span></button></div>
+    </div>
+    
+  <article class="trow" style="--hue:#B86A3C">
+    <header class="trow-h">
+      <div class="trow-team"><svg class="crest" width="20" height="22" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B86A3C"/><text x="12" y="14.6" text-anchor="middle">AH</text></svg><span>Aliaga Hermanos</span></div>
+      <div class="acc-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">75<span class="pc">%</span></span><span class="acc-w">Likely</span></div>
+    </header>
+    <div class="trow-deal">
+      <div class="side"><span class="lbl">Give</span><span class="mini"><span class="face" style="--tc:#D9314F;--fs:34px" role="img" aria-label="Giannis Antetokounmpo"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3032977.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Giannis Antetokounmpo<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></span><span class="mini-m"><span class="logo" style="--tc:#D9314F" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mia.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIA</span><span class="dot">·</span><span class="code">PF</span></span></span></span><span class="drop"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>drop Isaiah Jackson</span></div>
+      <div class="side"><span class="lbl">Get</span><span class="mini"><span class="face" style="--tc:#C1A06A;--fs:34px" role="img" aria-label="Trey Murphy III"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4397688.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Trey Murphy III<span class="st" title="Day-to-day"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216,88H168V40a16,16,0,0,0-16-16H104A16,16,0,0,0,88,40V88H40a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H88v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V168h48a16,16,0,0,0,16-16V104A16,16,0,0,0,216,88Zm0,64H160a8,8,0,0,0-8,8v56H104V160a8,8,0,0,0-8-8H40V104H96a8,8,0,0,0,8-8V40h48V96a8,8,0,0,0,8,8h56Z"/></svg>DTD</span></span><span class="mini-m"><span class="logo" style="--tc:#C1A06A" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/no.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">NO</span><span class="dot">·</span><span class="code">SF</span></span></span></span><span class="mini"><span class="face" style="--tc:#E5484D;--fs:34px" role="img" aria-label="Nickeil Alexander-Walker"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4278039.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Nickeil Alexander-Walker</span><span class="mini-m"><span class="logo" style="--tc:#E5484D" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/atl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ATL</span><span class="dot">·</span><span class="code">SG</span></span></span></span></div>
+      <div class="trow-odds"><span class="ol"><span class="ol-who">You</span><span class="num ol-a">45</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">55</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>10</span><svg class="dumb" width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+    <line x1="6" x2="58" y1="7" y2="7" class="trk"/>
+    <line x1="32" x2="32" y1="2" y2="12" class="tick"/>
+    <line x1="29.400000000000002" x2="34.6" y1="7" y2="7" class="seg-up"/>
+    <circle cx="29.400000000000002" cy="7" r="4" class="d-before"/>
+    <circle cx="34.6" cy="7" r="5" class="d-up"/>
+  </svg></span><span class="ol"><span class="ol-who">Them</span><span class="num ol-a">52</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">57</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>5</span><svg class="dumb" width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+    <line x1="6" x2="58" y1="7" y2="7" class="trk"/>
+    <line x1="32" x2="32" y1="2" y2="12" class="tick"/>
+    <line x1="33.04" x2="35.64" y1="7" y2="7" class="seg-up"/>
+    <circle cx="33.04" cy="7" r="4" class="d-before"/>
+    <circle cx="35.64" cy="7" r="5" class="d-up"/>
+  </svg></span></div>
+    </div>
+  </article>
+  <article class="trow" style="--hue:#B23A3A">
+    <header class="trow-h">
+      <div class="trow-team"><svg class="crest" width="20" height="22" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B23A3A"/><text x="12" y="14.6" text-anchor="middle">KB</text></svg><span>Kavaklidere Boytoys</span></div>
+      <div class="acc-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></svg><span class="num">62<span class="pc">%</span></span><span class="acc-w">Likely</span></div>
+    </header>
+    <div class="trow-deal">
+      <div class="side"><span class="lbl">Give</span><span class="mini"><span class="face" style="--tc:#8A5CC9;--fs:34px" role="img" aria-label="Domantas Sabonis"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/3155942.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Domantas Sabonis</span><span class="mini-m"><span class="logo" style="--tc:#8A5CC9" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/sac.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">SAC</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="side"><span class="lbl">Get</span><span class="mini"><span class="face" style="--tc:#2F9E5E;--fs:34px" role="img" aria-label="Tyler Herro"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4395725.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Tyler Herro</span><span class="mini-m"><span class="logo" style="--tc:#2F9E5E" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/mil.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">MIL</span><span class="dot">·</span><span class="code">SG</span></span></span></span><span class="mini"><span class="face" style="--tc:#9B6FE0;--fs:34px" role="img" aria-label="Walker Kessler"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4433136.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="mini-tx"><span class="mini-n">Walker Kessler</span><span class="mini-m"><span class="logo" style="--tc:#9B6FE0" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/lal.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">LAL</span><span class="dot">·</span><span class="code">C</span></span></span></span></div>
+      <div class="trow-odds"><span class="ol"><span class="ol-who">You</span><span class="num ol-a">45</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">52</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>7</span><svg class="dumb" width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+    <line x1="6" x2="58" y1="7" y2="7" class="trk"/>
+    <line x1="32" x2="32" y1="2" y2="12" class="tick"/>
+    <line x1="29.400000000000002" x2="33.04" y1="7" y2="7" class="seg-up"/>
+    <circle cx="29.400000000000002" cy="7" r="4" class="d-before"/>
+    <circle cx="33.04" cy="7" r="5" class="d-up"/>
+  </svg></span><span class="ol"><span class="ol-who">Them</span><span class="num ol-a">50</span><svg class="ic arr-s" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg><span class="num ol-b">54</span><span class="dl up"><svg class="ic arr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/></svg><span class="sg">+</span>4</span><svg class="dumb" width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+    <line x1="6" x2="58" y1="7" y2="7" class="trk"/>
+    <line x1="32" x2="32" y1="2" y2="12" class="tick"/>
+    <line x1="32" x2="34.08" y1="7" y2="7" class="seg-up"/>
+    <circle cx="32" cy="7" r="4" class="d-before"/>
+    <circle cx="34.08" cy="7" r="5" class="d-up"/>
+  </svg></span></div>
+    </div>
+  </article>
+    <a class="more">All 5 fair trades<svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z"/></svg></a>
+  </section>
+    
+  <section class="fas">
+    <div class="sec-h"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"/></svg><h2>FA targets</h2><span class="faab"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184,89.57V84c0-25.08-37.83-44-88-44S8,58.92,8,84v40c0,20.89,26.25,37.49,64,42.46V172c0,25.08,37.83,44,88,44s88-18.92,88-44V132C248,111.3,222.58,94.68,184,89.57ZM232,132c0,13.22-30.79,28-72,28-3.73,0-7.43-.13-11.08-.37C170.49,151.77,184,139,184,124V105.74C213.87,110.19,232,122.27,232,132ZM72,150.25V126.46A183.74,183.74,0,0,0,96,128a183.74,183.74,0,0,0,24-1.54v23.79A163,163,0,0,1,96,152,163,163,0,0,1,72,150.25Zm96-40.32V124c0,8.39-12.41,17.4-32,22.87V123.5C148.91,120.37,159.84,115.71,168,109.93ZM96,56c41.21,0,72,14.78,72,28s-30.79,28-72,28S24,97.22,24,84,54.79,56,96,56ZM24,124V109.93c8.16,5.78,19.09,10.44,32,13.57v23.37C36.41,141.4,24,132.39,24,124Zm64,48v-4.17c2.63.1,5.29.17,8,.17,3.88,0,7.67-.13,11.39-.35A121.92,121.92,0,0,0,120,171.41v23.46C100.41,189.4,88,180.39,88,172Zm48,26.25V174.4a179.48,179.48,0,0,0,24,1.6,183.74,183.74,0,0,0,24-1.54v23.79a165.45,165.45,0,0,1-48,0Zm64-3.38V171.5c12.91-3.13,23.84-7.79,32-13.57V172C232,180.39,219.59,189.4,200,194.87Z"/></svg><b class="num">$85</b> FAAB left</span></div>
+    
+  <div class="fa">
+    
+  <div class="chip">
+    <span class="face" style="--tc:#2F7DE1;--fs:44px" role="img" aria-label="Keon Ellis"><svg class="sil" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15.5" r="7.2"/><path d="M5.5 41c0-8.4 6.5-13.6 14.5-13.6S34.5 32.6 34.5 41z"/></svg><img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/4702177.png" alt="" loading="lazy" onerror="this.remove()"></span>
+    <div class="chip-tx">
+      <div class="nm">Keon Ellis</div>
+      <div class="meta"><span class="logo" style="--tc:#2F7DE1" aria-hidden="true"><img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/orl.png" alt="" loading="lazy" onerror="this.remove()"></span><span class="code">ORL</span><span class="dot">·</span><span class="code">SG</span></div>
+    </div>
+  </div>
+    <div class="fa-why"><span class="tags"><span class="tag">STL</span><span class="tag">3PM</span></span><span class="for"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg>for Isaiah Jackson</span></div>
+    <div class="fa-r">
+      <div class="fa-pts"><span class="num up"><span class="sg">+</span>3</span><span class="fa-u">odds pts</span></div>
+      <button class="btn-sm"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"/></svg>Claim · $6</button>
+    </div>
+  </div>
+    <div class="more-row"><a class="more">All FA targets<svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z"/></svg></a></div>
+  </section>
+  </main>
+  <nav class="bnav"><a class="on"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M213.85,125.46l-112,120a8,8,0,0,1-13.69-7l14.66-73.33L45.19,143.49a8,8,0,0,1-3-13l112-120a8,8,0,0,1,13.69,7L153.18,90.9l57.63,21.61a8,8,0,0,1,3,12.95Z"/></svg><span>Moves</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg><span>Trades</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"/></svg><span>Team</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg><span>League</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,96a32,32,0,1,0,32,32A32,32,0,0,0,128,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,128,144ZM48,96a32,32,0,1,0,32,32A32,32,0,0,0,48,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,48,144ZM208,96a32,32,0,1,0,32,32A32,32,0,0,0,208,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,208,144Z"/></svg><span>More</span></a></nav>
+</div>
+<div id="d-phone-league" class="frame phone theme-dark">
+  
+  <header class="ptop">
+    <img class="fb-img" src="logo.svg" alt="Fantasy Analyzer" width="30" height="30">
+    <button class="league"><svg class="crest you" width="22" height="24" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:var(--acc)"/><text x="12" y="14.6" text-anchor="middle">KA</text></svg><span class="lg-tx"><b>Kucukesat Aspavas</b><span>Chill Primera Division</span></span><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"/></svg></button>
+    <button class="ib"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"/></svg></button>
+  </header>
+  <main class="p-main">
+    <div class="lg-sub"><div class="seg"><button class="on">Matchup</button><button>Standings</button><button>Feed</button></div></div>
+    <section class="mu card">
+      <div class="glow-a" style="--tc:var(--acc)"></div><div class="glow-b" style="--tc:#B23A3A"></div>
+      <div class="mu-wk"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/></svg>Week 3 · Nov 2–8</div>
+      <div class="mu-h">
+        <div class="mu-t"><svg class="crest you" width="34" height="37" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:var(--acc)"/><text x="12" y="14.6" text-anchor="middle">KA</text></svg><div class="mu-n"><svg class="ic you-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z"/></svg>Kucukesat Aspavas</div></div>
+        <div class="mu-score"><span class="num">4–4–1</span><span class="mu-k">W · L · T</span></div>
+        <div class="mu-t"><svg class="crest" width="34" height="37" viewBox="0 0 24 26.4" aria-hidden="true"><path d="M2 1.5h20v12.2c0 5.6-4.6 9.2-10 11.2C6.6 22.9 2 19.3 2 13.7z" style="fill:#B23A3A"/><text x="12" y="14.6" text-anchor="middle">KB</text></svg><div class="mu-n">Kavaklidere Boytoys</div></div>
+      </div>
+      <div class="mu-g">
+        <div class="gl"><span class="num">13</span> today<span class="gl-s">34 of 47 left</span></div>
+        <div class="gl r"><span class="num">12</span> today<span class="gl-s">33 of 46 left</span></div>
+      </div>
+      <div class="mu-hint"><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg><span><b>Flip AST or STL</b> to win the week</span></div>
+      <div class="box">
+  <div class="br">
+    <div class="bc me won"><span class="res W">W</span><span class="num">.533</span></div>
+    <div class="bk"><span class="code">FG%</span><span class="ptr W"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,48V208a8,8,0,0,1-13.66,5.66l-80-80a8,8,0,0,1,0-11.32l80-80A8,8,0,0,1,168,48Z"/></svg></span></div>
+    <div class="bc theirs lost"><span class="num">.442</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me won"><span class="res W">W</span><span class="num">.788</span></div>
+    <div class="bk"><span class="code">FT%</span><span class="ptr W"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,48V208a8,8,0,0,1-13.66,5.66l-80-80a8,8,0,0,1,0-11.32l80-80A8,8,0,0,1,168,48Z"/></svg></span></div>
+    <div class="bc theirs lost"><span class="num">.786</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me lost"><span class="res L">L</span><span class="num">11</span></div>
+    <div class="bk"><span class="code">3PM</span><span class="ptr L"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80A8,8,0,0,1,88,208V48a8,8,0,0,1,13.66-5.66l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span></div>
+    <div class="bc theirs won"><span class="num">16</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me lost"><span class="res L">L</span><span class="num">47</span></div>
+    <div class="bk"><span class="code">REB</span><span class="ptr L"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80A8,8,0,0,1,88,208V48a8,8,0,0,1,13.66-5.66l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span></div>
+    <div class="bc theirs won"><span class="num">61</span></div>
+  </div>
+  <div class="br sw">
+    <div class="bc me lost"><span class="res L">L</span><span class="num">36</span></div>
+    <div class="bk"><span class="code">AST</span><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg></div>
+    <div class="bc theirs won"><span class="num">37</span></div>
+  </div>
+  <div class="br sw">
+    <div class="bc me tie"><span class="res T">T</span><span class="num">11</span></div>
+    <div class="bk"><span class="code">STL</span><svg class="ic acc-i" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg></div>
+    <div class="bc theirs tie"><span class="num">11</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me won"><span class="res W">W</span><span class="num">7</span></div>
+    <div class="bk"><span class="code">BLK</span><span class="ptr W"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,48V208a8,8,0,0,1-13.66,5.66l-80-80a8,8,0,0,1,0-11.32l80-80A8,8,0,0,1,168,48Z"/></svg></span></div>
+    <div class="bc theirs lost"><span class="num">3</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me lost"><span class="res L">L</span><span class="num">22</span></div>
+    <div class="bk"><span class="code">TO<span class="inv"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/></svg></span></span><span class="ptr L"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80A8,8,0,0,1,88,208V48a8,8,0,0,1,13.66-5.66l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span></div>
+    <div class="bc theirs won"><span class="num">18</span></div>
+  </div>
+  <div class="br">
+    <div class="bc me won"><span class="res W">W</span><span class="num">166</span></div>
+    <div class="bk"><span class="code">PTS</span><span class="ptr W"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M168,48V208a8,8,0,0,1-13.66,5.66l-80-80a8,8,0,0,1,0-11.32l80-80A8,8,0,0,1,168,48Z"/></svg></span></div>
+    <div class="bc theirs lost"><span class="num">155</span></div>
+  </div></div>
+    </section>
+    
+  </main>
+  <nav class="bnav"><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"/></svg><span>Moves</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M224,48V152a16,16,0,0,1-16,16H99.31l10.35,10.34a8,8,0,0,1-11.32,11.32l-24-24a8,8,0,0,1,0-11.32l24-24a8,8,0,0,1,11.32,11.32L99.31,152H208V48H96v8a8,8,0,0,1-16,0V48A16,16,0,0,1,96,32H208A16,16,0,0,1,224,48ZM168,192a8,8,0,0,0-8,8v8H48V104H156.69l-10.35,10.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L156.69,88H48a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16H160a16,16,0,0,0,16-16v-8A8,8,0,0,0,168,192Z"/></svg><span>Trades</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"/></svg><span>Team</span></a><a class="on"><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></svg><span>League</span></a><a class=""><svg class="ic " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,96a32,32,0,1,0,32,32A32,32,0,0,0,128,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,128,144ZM48,96a32,32,0,1,0,32,32A32,32,0,0,0,48,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,48,144ZM208,96a32,32,0,1,0,32,32A32,32,0,0,0,208,96Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,208,144Z"/></svg><span>More</span></a></nav>
+</div></div>
+</div>
+</body></html>
