@@ -18,28 +18,50 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A picked card already gets the accent border; the "your players" edge on top of it read as a doubled border. */
-.game-card.has-mine[aria-pressed='true'] {
-  box-shadow: none;
-}
-
-/* Fireside: "Tonight in your matchup" card. A warm light in the corner instead of the accent wash,
-   the flip hint as amber text with a diamond (no pill), and an outcome edge under each category
-   someone leads: green under yours, red under theirs. */
+/* Front Office: "Tonight in your matchup" is a flat card with an icon title. In each category the
+   leader's number is ink and bold, the other side's stays quiet; no coloured underlines. */
+.card.your-night,
 .card.your-night.versus {
   border-color: var(--border);
-  background:
-    radial-gradient(70% 120% at 100% 0%, var(--glow, rgb(255 190 130 / 0.07)), transparent 65%),
-    var(--surface);
+  background: var(--surface);
 }
 
-.night-cats dd.ahead {
-  box-shadow: inset 0 -3px 0 var(--good);
-  padding-bottom: 3px;
+.night-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.3;
 }
 
-.night-cats dd.them.ahead {
-  box-shadow: inset 0 -3px 0 var(--bad);
+.night-title svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--text-2);
+}
+
+.night-vs {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.your-night.versus .night-cats dd.num {
+  color: var(--text-2);
+  font-weight: 500;
+  box-shadow: none;
+  padding-bottom: 0;
+}
+
+.your-night.versus .night-cats dd.num.ahead {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Game cards: your players show as faces in the corner, so no gold edge on the card. */
+.game-grid .game-card.has-mine {
+  box-shadow: none;
 }
 
 /* The "All 13 of your players combined, against 10 of theirs" line wraps instead of running off. */

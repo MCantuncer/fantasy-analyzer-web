@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ScoresSkeleton } from './Skeleton'
 import { useEffect, useRef, useState } from 'react'
+import { Television } from '@phosphor-icons/react'
 import { fetchScores } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -269,9 +270,13 @@ function YourNight({
   return (
     <section className={`card your-night${matchup ? ' versus' : ''}`} aria-labelledby="night-title">
       <div className="stack night-head">
-        <span className="eyebrow" id="night-title">
-          {matchup ? `Tonight in your matchup · vs ${matchup.opponentName}` : `Your ${live ? 'night so far' : 'night'}`}
-        </span>
+        <h2 className="night-title" id="night-title">
+          <Television size={20} aria-hidden="true" />
+          <span>
+            {matchup ? 'Tonight in your matchup' : `Your ${live ? 'night so far' : 'night'}`}
+            {matchup && <span className="night-vs"> · vs {matchup.opponentName}</span>}
+          </span>
+        </h2>
         {top && (
           <span className="night-lead">
             <PlayerLink player={{ id: top.player_id, name: top.name }} decorative>
