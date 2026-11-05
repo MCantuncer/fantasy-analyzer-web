@@ -1,31 +1,31 @@
 /* Design tokens (Fireside: warm espresso dark, cream light). Dark is the default theme; [data-theme='light'] switches. */
 :root {
-  --bg: #17120e;
-  --surface: #221b16;
-  --surface-2: #1d1712;
-  --raised: #2b231d;
-  --topbar: #1a1410;
-  --border: #382e26;
-  --divider: #322821;
-  --text: #f8f1e8;
-  --text-2: #cdc0b1;
-  --muted: #a89a8a;
-  --faint: #85786a;
-  --track: #3a2f27;
-  --accent: #8f8bff;
-  --accent-text: #a9a6ff;
-  --on-accent: #17120e;
-  --focus: #a9a6ff;
-  --good: #5dd68c;
-  --warn: #f2b647;
-  --warn-fill: #f2b647;
-  --bad: #ff8c7c;
-  --good-soft: rgb(93 214 140 / 0.13);
-  --warn-soft: rgb(242 182 71 / 0.13);
-  --bad-soft: rgb(255 140 124 / 0.13);
-  --on-good: #17120e;
+  --bg: #141210;
+  --surface: #1c1916;
+  --surface-2: #191613;
+  --raised: #25211d;
+  --topbar: #141210;
+  --border: #2c2722;
+  --divider: #2c2722;
+  --text: #f3eee6;
+  --text-2: #bdb3a6;
+  --muted: #a39888;
+  --faint: #968b7c;
+  --track: #302b26;
+  --accent: #ffb224;
+  --accent-text: #ffb83a;
+  --on-accent: #1c1305;
+  --focus: #ffb83a;
+  --good: #4fd18b;
+  --warn: #ffb83a;
+  --warn-fill: #ffb224;
+  --bad: #ff7d69;
+  --good-soft: rgb(79 209 139 / 0.13);
+  --warn-soft: rgb(255 178 36 / 0.13);
+  --bad-soft: rgb(255 125 105 / 0.13);
+  --on-good: #141210;
   --shadow: 0 1px 0 rgb(255 240 220 / 0.03) inset, 0 8px 24px -10px rgb(0 0 0 / 0.6);
-  --accent-soft: rgb(143 139 255 / 0.15);
+  --accent-soft: rgb(255 178 36 / 0.14);
 
   /* League team colours: identity only (crests, bars, leading cells), never outcomes or numbers. */
   --team-0: #f97066;
@@ -41,14 +41,22 @@
   --team-10: #fda29b;
   --team-11: #67e3f9;
 
-  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-num: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-ui: 'Host Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Numbers: Mona Sans on its width axis, set narrow and heavy (use --num-stretch with font-stretch). */
+  --font-num: 'Mona Sans Variable', 'Host Grotesk Variable', system-ui, sans-serif;
+  --num-stretch: 82%;
+  /* Codes only: team and category abbreviations, positions, timestamps. */
+  --font-code: 'Martian Mono Variable', ui-monospace, monospace;
   /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */
   --glow: rgb(255 190 130 / 0.07);
   --die: #221b16;
   --sticker-shadow: rgb(0 0 0 / 0.55);
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Front Office corners: a bit round, never pill-shaped. Cards 18, rows 16, tiles 14, buttons 12, tags 7. */
+  --radius: 18px;
+  --radius-row: 16px;
+  --radius-tile: 14px;
+  --radius-sm: 12px;
+  --radius-tag: 7px;
 
   color-scheme: dark;
   font-family: var(--font-ui);
@@ -59,34 +67,34 @@
 }
 
 :root[data-theme='light'] {
-  --bg: #faf5ee;
-  --surface: #ffffff;
-  --surface-2: #f6efe5;
-  --raised: #fbf7f1;
-  --topbar: #fffdf9;
-  --border: #ece2d4;
-  --divider: #ece2d4;
-  --text: #221b15;
-  --text-2: #5c5147;
-  --muted: #6e6256;
-  --faint: #958778;
-  --track: #ebe1d3;
-  --accent: #4b47e6;
-  --accent-text: #3f3bd0;
-  --on-accent: #ffffff;
-  --focus: #4b47e6;
-  --good: #167a43;
+  --bg: #f4f1ea;
+  --surface: #fcfaf6;
+  --surface-2: #f0ebe2;
+  --raised: #ede8de;
+  --topbar: #f4f1ea;
+  --border: #e0d9cc;
+  --divider: #e0d9cc;
+  --text: #1a1714;
+  --text-2: #4f473e;
+  --muted: #645a50;
+  --faint: #6f6457;
+  --track: #e2dbce;
+  --accent: #ffb224;
+  --accent-text: #8f5200;
+  --on-accent: #1c1305;
+  --focus: #8f5200;
+  --good: #0e6e43;
   /* Golden amber, far from --bad in hue: text 4.6:1 on white and on --warn-soft. */
-  --warn: #8f5405;
+  --warn: #8f5200;
   /* Bars and dots: brighter amber, 3:1 on white (non-text contrast). */
-  --warn-fill: #ad6f00;
-  --bad: #b83226;
-  --good-soft: #e2f3e7;
-  --warn-soft: #fbefd7;
-  --bad-soft: #fbe5e0;
+  --warn-fill: #c98a00;
+  --bad: #a93522;
+  --good-soft: #e0efe5;
+  --warn-soft: #fbeed2;
+  --bad-soft: #f8e3dd;
   --on-good: #ffffff;
   --shadow: 0 1px 2px rgb(70 45 20 / 0.05), 0 6px 18px -6px rgb(70 45 20 / 0.1);
-  --accent-soft: #eeedfe;
+  --accent-soft: #fdefd0;
 
   --team-0: #c8341f;
   --team-1: #b54708;
@@ -123,9 +131,8 @@ h2,
 h3 {
   margin: 0;
   line-height: 1.15;
-  font-family: var(--font-num);
-  font-weight: 700;
-  /* Inter's optical sizing picks its Display cut at heading sizes; it wants a slightly tighter track. */
+  font-family: var(--font-ui);
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 
@@ -171,6 +178,7 @@ code {
 
 .num {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -456,6 +464,7 @@ th .badge {
   padding: 0;
   color: var(--text);
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 20px;
   font-weight: 700;
 }
@@ -638,6 +647,7 @@ th .badge {
 
 .totd-headline {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.15;
@@ -691,6 +701,7 @@ th .badge {
 
 .totd-players {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
@@ -857,6 +868,7 @@ th .badge {
 
 .swap-name {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.15;
@@ -889,6 +901,7 @@ th .badge {
 
 .delta-pill {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 18px;
   font-weight: 700;
   border-radius: 6px;
@@ -961,6 +974,7 @@ th .badge {
 
 .kpi-value {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-variant-numeric: tabular-nums;
   font-size: 32px;
   font-weight: 700;
@@ -2275,6 +2289,7 @@ td.keep-cell {
   width: 16px;
   text-align: center;
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-weight: 700;
   font-size: 16px;
 }
@@ -2368,6 +2383,7 @@ td.keep-cell {
   background: var(--raised);
   color: var(--accent-text);
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-weight: 700;
   font-size: 12px;
   overflow: hidden;
@@ -2554,6 +2570,7 @@ td.keep-cell {
 
 .target-name {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 32px;
   line-height: 1.1;
   margin: 4px 0;
@@ -2781,6 +2798,7 @@ td.keep-cell {
 .park-deal {
   margin: 0;
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 22px;
   font-weight: 600;
   line-height: 1.2;

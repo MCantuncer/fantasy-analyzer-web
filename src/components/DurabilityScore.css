@@ -49,6 +49,7 @@
 
 .dur-num {
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 15px;
   font-weight: 700;
   line-height: 1;
