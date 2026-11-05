@@ -51,3 +51,51 @@ describe('Pickups shared drop', () => {
     expect(view.getByText('Kris Dunn')).toBeInTheDocument()
   })
 })
+
+describe('Pickups timing', () => {
+  const day = (date: string, add: boolean, drop: boolean) => ({ date, add_plays: add, drop_plays: drop })
+  const waiting = {
+    ...pickup,
+    add: ref(3, 'Brook Lopez'),
+    drop: ref(4, 'Georges Niang'),
+    availability: 'FREEAGENT',
+    timing: {
+      wait: true,
+      make_on: '2026-11-08',
+      next_week: false,
+      earliest_on: '2026-11-05',
+      cats_now: -0.02,
+      cats_best: 0.1,
+      drop_games_kept: 2,
+      add_games_missed: 0,
+      week_changes: {},
+      days: [
+        day('2026-11-05', false, true),
+        day('2026-11-06', false, false),
+        day('2026-11-07', false, true),
+        day('2026-11-08', true, false),
+      ],
+    },
+  } as unknown as PickupIdea
+  const week = {
+    opponent_team_id: 4,
+    opponent_name: 'Kavaklidere',
+    adds_used: 2,
+    adds_allowed: 5,
+    close_categories: [],
+  }
+
+  it('says when waiting pays, with the games it keeps', () => {
+    const { container } = render(<Pickups pickups={[waiting]} faab={50} week={week} />)
+    const when = container.querySelector('.fa-when')
+    expect(when?.textContent).toContain('Make this Sunday')
+    expect(when?.textContent).toContain('+2 games')
+    expect(when?.textContent).toContain('Niang plays Thursday and Saturday first, 3 games in the spot instead of 1')
+  })
+
+  it('shows adds left this week in the header', () => {
+    const { container } = render(<Pickups pickups={[pickup]} faab={50} week={week} />)
+    expect(container.querySelector('.fa-adds')?.textContent).toBe('3 of 5 adds left')
+    expect(container.querySelector('.fa-when')).toBeNull()
+  })
+})

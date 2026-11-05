@@ -334,3 +334,108 @@
     font-size: 15.5px;
   }
 }
+
+/* "Make this Sunday": one line under the title, the instruction in ink and the subtitle after it. */
+.bm-when {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.bm-when-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.bm-when-main svg {
+  color: var(--text-2);
+}
+
+/* This week vs your opponent: the label names them, the chips are the same. */
+.bm-vs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.bm-vs b {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.bm-unit {
+  align-self: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bm-chip-cat .bm-steal {
+  margin-right: 4px;
+  color: var(--gold);
+  vertical-align: -1px;
+}
+
+/* When waiting pays: no cream button, an outline one that says its cost on a second line. */
+.bm-actions .button.bm-quiet {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-height: 50px;
+  padding: 6px 16px 7px;
+  border-color: color-mix(in oklab, var(--text) 26%, transparent);
+  background: transparent;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.bm-quiet-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.bm-quiet-main svg {
+  color: var(--text-2);
+}
+
+.bm-quiet-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Under the buttons: what the choice costs, and adds left on the right. */
+.bm-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: -8px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.bm-foot > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bm-adds {
+  white-space: nowrap;
+}
+
+.bm-adds .num {
+  font-weight: 650;
+  color: var(--text);
+}

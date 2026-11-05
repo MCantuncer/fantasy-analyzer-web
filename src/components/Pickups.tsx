@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowsLeftRight, Coins, UserPlus } from '@phosphor-icons/react'
-import type { PickupIdea } from '../api/client'
+import type { AnalysisReport, PickupIdea } from '../api/client'
 import { ImpactBars } from './ImpactBars'
 import { Sign } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
@@ -8,6 +8,8 @@ import { ordinal, pct, ptsDiff } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { PlayerChips } from './PlayerCard'
+import { SpotStrip } from './MoveTiming'
+import { ifMade, keptDays, lastName, longDay, spotGames, waitLabel } from '../lib/moveTiming'
 import './Pickups.css'
 
 interface Props {
@@ -16,6 +18,8 @@ interface Props {
   /** Your place in the rolling waiver order, in leagues without FAAB. */
   waiverPriority?: number | null
   teams?: number
+  /** This week's matchup: adds left in it. */
+  week?: AnalysisReport['week']
 }
 
 /** The categories a pickup helps most (up to two), for the small tags on its row. */
@@ -29,7 +33,17 @@ function topCats(changes: Record<string, number>) {
 
 const gain = (p: PickupIdea) => ptsDiff(p.playoff_pct_before, p.playoff_pct_after)
 
-export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
+/** "Make this Sunday: Niang plays Thursday and Saturday first, 3 games in the spot instead of 1." */
+function waitSaid(p: PickupIdea): string {
+  const t = p.timing
+  if (!t?.wait) return ''
+  const g = spotGames(t)
+  const days = keptDays(t).map((d) => longDay(d.date))
+  return ` ${waitLabel(t)}: ${lastName(p.drop.name)} plays ${days.join(' and ')} first, ${g.best} games in the spot instead of ${g.now}.`
+}
+
+export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
+  const adds = week?.adds_allowed != null ? Math.max(week.adds_allowed - week.adds_used, 0) : null
   const [open, setOpen] = useState<number | null>(null)
   const keepRow = useKeepRowInView(open)
   // Most days every idea drops the same player from the same odds: say that once, not on every row.
@@ -47,18 +61,25 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
           <UserPlus size={20} aria-hidden="true" />
           FA Targets
         </h2>
-        {faab != null && (
-          <span className="fa-faab">
-            <Coins size={16} aria-hidden="true" />
-            <b className="num">${faab}</b> FAAB left
-          </span>
-        )}
-        {faab == null && waiverPriority != null && (
-          <span className="small muted">
-            Waiver priority {ordinal(waiverPriority)}
-            {teams ? ` of ${teams}` : ''}
-          </span>
-        )}
+        <span className="fa-right">
+          {faab != null && (
+            <span className="fa-faab">
+              <Coins size={16} aria-hidden="true" />
+              <b className="num">${faab}</b> FAAB left
+            </span>
+          )}
+          {faab == null && waiverPriority != null && (
+            <span className="small muted">
+              Waiver priority {ordinal(waiverPriority)}
+              {teams ? ` of ${teams}` : ''}
+            </span>
+          )}
+          {adds != null && (
+            <span className="fa-adds">
+              <b className="num">{adds}</b> of {week?.adds_allowed} adds left
+            </span>
+          )}
+        </span>
       </div>
       {pickups.length === 0 ? (
         <p className="empty">No free agent improves your team right now.</p>
@@ -98,6 +119,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                     </span>
                     <span className="fa-pts">
                       <span className="sr-only">Playoff odds {pct(p.playoff_pct_before)} to </span>
+                      {p.timing?.wait && <span className="sr-only">{ifMade(p.timing)}, </span>}
                       <span className="fa-pts-n num good">
                         <Sign up={gain(p) >= 0} />
                         {Math.abs(gain(p))}
@@ -107,11 +129,23 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                       </span>
                     </span>
                     <span className="fa-why">
+                      {p.stream && <span className="fa-tag fa-stream">This week</span>}
                       {topCats(p.category_changes).map((c) => (
                         <span key={c} className="fa-tag">
                           {c}
                         </span>
                       ))}
+                      {p.timing?.wait && (
+                        <span className="fa-when">
+                          <SpotStrip timing={p.timing} />
+                          <span className="fa-when-day">{p.timing.next_week ? 'Next week' : waitLabel(p.timing)}</span>
+                          <span className="fa-when-gain">
+                            <span className="num">+{spotGames(p.timing).best - spotGames(p.timing).now}</span>{' '}
+                            {spotGames(p.timing).best - spotGames(p.timing).now === 1 ? 'game' : 'games'}
+                          </span>
+                          <span className="sr-only">{waitSaid(p)}</span>
+                        </span>
+                      )}
                       {!sharedDrop && (
                         <span className="fa-for">
                           {p.open_spot_by_trade ? (
@@ -164,7 +198,12 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                           )}
                         </ul>
                       </div>
-                      <ImpactBars changes={p.category_changes} label="Your weekly win chance per category" />
+                      <ImpactBars
+                        changes={p.category_changes}
+                        label={
+                          p.stream ? 'Your win chance per category this week' : 'Your weekly win chance per category'
+                        }
+                      />
                     </div>
                   )}
                 </li>

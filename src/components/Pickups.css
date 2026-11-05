@@ -162,3 +162,63 @@
   margin-right: 4px;
   vertical-align: -2px;
 }
+
+/* FAAB (or waiver priority) and adds left this week, stacked on the right of the header. */
+.fa-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  margin-left: auto;
+}
+
+.fa-right .fa-faab {
+  margin-left: 0;
+}
+
+.fa-adds {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.fa-adds b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.fa-tag.fa-stream {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* "T F S / S  Make this Sunday +2 games": the hand-off at row size, on one line of its own. */
+.fa-when {
+  display: inline-flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.fa-when-day {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.fa-when-gain {
+  color: var(--muted);
+}
+
+.fa-when-gain .num {
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+@media (min-width: 560px) {
+  .fa-why .fa-when {
+    flex-basis: auto;
+    margin-left: 6px;
+  }
+}

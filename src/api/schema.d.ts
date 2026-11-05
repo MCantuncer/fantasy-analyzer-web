@@ -803,6 +803,8 @@ export interface components {
             league_rosters: components["schemas"]["TeamRoster"][];
             /** Faab Remaining */
             faab_remaining: number | null;
+            /** @description None without the NBA calendar or a matchup */
+            week?: components["schemas"]["WeekMatchup"] | null;
             /**
              * Waiver Priority
              * @description Your place in the rolling waiver order (1 = first claim), in leagues without FAAB. A successful claim usually moves you to the back.
@@ -1552,6 +1554,82 @@ export interface components {
             /** Notices */
             notices: components["schemas"]["Notice"][];
         };
+        /** MoveDay */
+        MoveDay: {
+            /**
+             * Date
+             * @description YYYY-MM-DD, a day left in this week's matchup
+             */
+            date: string;
+            /**
+             * Add Plays
+             * @description The added player has a game that day and is expected to play
+             */
+            add_plays: boolean;
+            /**
+             * Drop Plays
+             * @description The same for the dropped player
+             */
+            drop_plays: boolean;
+        };
+        /**
+         * MoveTiming
+         * @description When a pickup should take effect, judged on this week's matchup (analysis/timing.py).
+         */
+        MoveTiming: {
+            /**
+             * Wait
+             * @description Making the move later this week (or next week) beats making it now
+             */
+            wait: boolean;
+            /**
+             * Make On
+             * @description Day (YYYY-MM-DD) to make the move: today unless waiting pays
+             */
+            make_on: string;
+            /**
+             * Next Week
+             * @description Best left until the next matchup starts: make_on is its first day
+             */
+            next_week: boolean;
+            /**
+             * Earliest On
+             * @description Day it takes effect if made now (a waiver claim: when it processes)
+             */
+            earliest_on: string;
+            /**
+             * Cats Now
+             * @description Change in expected categories won this matchup if made now
+             */
+            cats_now: number;
+            /**
+             * Cats Best
+             * @description The same if made on make_on
+             */
+            cats_best: number;
+            /**
+             * Drop Games Kept
+             * @description Games the dropped player still plays for you by waiting
+             */
+            drop_games_kept: number;
+            /**
+             * Add Games Missed
+             * @description Games of the added player you miss by waiting
+             */
+            add_games_missed: number;
+            /**
+             * Week Changes
+             * @description Change in each category's win chance in this week's matchup, made on make_on
+             */
+            week_changes: {
+                [key: string]: number;
+            };
+            /**
+             * Days
+             * @description The matchup's days left, today first
+             */
+            days: components["schemas"]["MoveDay"][];
+        };
         /** MvpCandidate */
         MvpCandidate: {
             /** Team Id */
@@ -1873,6 +1951,12 @@ export interface components {
              * @description The spot would come from trading `drop` (he has trade value), not from releasing him
              */
             open_spot_by_trade: boolean;
+            /**
+             * Stream
+             * @description A swap for this week's matchup only: my_cats_gain, category_changes and the odds count this matchup alone, since a player like `drop` can be picked up again next week
+             * @default false
+             */
+            stream: boolean;
             /** Availability */
             availability: string;
             /** My Cats Gain */
@@ -1885,6 +1969,8 @@ export interface components {
             category_changes: {
                 [key: string]: number;
             };
+            /** @description Best day this week to make it; none without the NBA calendar or a matchup */
+            timing?: components["schemas"]["MoveTiming"] | null;
         };
         /**
          * PitchNeed
@@ -3555,6 +3641,31 @@ export interface components {
              * @description Every game this week
              */
             total: number;
+        };
+        /**
+         * WeekMatchup
+         * @description This week's matchup, for moves made in it.
+         */
+        WeekMatchup: {
+            /** Opponent Team Id */
+            opponent_team_id: number;
+            /** Opponent Name */
+            opponent_name: string;
+            /**
+             * Adds Used
+             * @description Pickups you have made in this matchup
+             */
+            adds_used: number;
+            /**
+             * Adds Allowed
+             * @description Pickups the league allows in this matchup; none: no limit
+             */
+            adds_allowed: number | null;
+            /**
+             * Close Categories
+             * @description Categories still close this week on today's rosters: ones a move can steal
+             */
+            close_categories: string[];
         };
     };
     responses: never;

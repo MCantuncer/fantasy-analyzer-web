@@ -3306,6 +3306,17 @@
             ],
             "title": "Faab Remaining"
           },
+          "week": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeekMatchup"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None without the NBA calendar or a matchup"
+          },
           "waiver_priority": {
             "anyOf": [
               {
@@ -5056,6 +5067,107 @@
         ],
         "title": "Me"
       },
+      "MoveDay": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "description": "YYYY-MM-DD, a day left in this week's matchup"
+          },
+          "add_plays": {
+            "type": "boolean",
+            "title": "Add Plays",
+            "description": "The added player has a game that day and is expected to play"
+          },
+          "drop_plays": {
+            "type": "boolean",
+            "title": "Drop Plays",
+            "description": "The same for the dropped player"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "add_plays",
+          "drop_plays"
+        ],
+        "title": "MoveDay"
+      },
+      "MoveTiming": {
+        "properties": {
+          "wait": {
+            "type": "boolean",
+            "title": "Wait",
+            "description": "Making the move later this week (or next week) beats making it now"
+          },
+          "make_on": {
+            "type": "string",
+            "title": "Make On",
+            "description": "Day (YYYY-MM-DD) to make the move: today unless waiting pays"
+          },
+          "next_week": {
+            "type": "boolean",
+            "title": "Next Week",
+            "description": "Best left until the next matchup starts: make_on is its first day"
+          },
+          "earliest_on": {
+            "type": "string",
+            "title": "Earliest On",
+            "description": "Day it takes effect if made now (a waiver claim: when it processes)"
+          },
+          "cats_now": {
+            "type": "number",
+            "title": "Cats Now",
+            "description": "Change in expected categories won this matchup if made now"
+          },
+          "cats_best": {
+            "type": "number",
+            "title": "Cats Best",
+            "description": "The same if made on make_on"
+          },
+          "drop_games_kept": {
+            "type": "integer",
+            "title": "Drop Games Kept",
+            "description": "Games the dropped player still plays for you by waiting"
+          },
+          "add_games_missed": {
+            "type": "integer",
+            "title": "Add Games Missed",
+            "description": "Games of the added player you miss by waiting"
+          },
+          "week_changes": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Week Changes",
+            "description": "Change in each category's win chance in this week's matchup, made on make_on"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/MoveDay"
+            },
+            "type": "array",
+            "title": "Days",
+            "description": "The matchup's days left, today first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wait",
+          "make_on",
+          "next_week",
+          "earliest_on",
+          "cats_now",
+          "cats_best",
+          "drop_games_kept",
+          "add_games_missed",
+          "week_changes",
+          "days"
+        ],
+        "title": "MoveTiming",
+        "description": "When a pickup should take effect, judged on this week's matchup (analysis/timing.py)."
+      },
       "MvpCandidate": {
         "properties": {
           "team_id": {
@@ -5744,6 +5856,12 @@
             "title": "Open Spot By Trade",
             "description": "The spot would come from trading `drop` (he has trade value), not from releasing him"
           },
+          "stream": {
+            "type": "boolean",
+            "title": "Stream",
+            "description": "A swap for this week's matchup only: my_cats_gain, category_changes and the odds count this matchup alone, since a player like `drop` can be picked up again next week",
+            "default": false
+          },
           "availability": {
             "type": "string",
             "title": "Availability"
@@ -5766,6 +5884,17 @@
             },
             "type": "object",
             "title": "Category Changes"
+          },
+          "timing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoveTiming"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Best day this week to make it; none without the NBA calendar or a matchup"
           }
         },
         "type": "object",
@@ -9395,6 +9524,53 @@
           "total"
         ],
         "title": "WeekGames"
+      },
+      "WeekMatchup": {
+        "properties": {
+          "opponent_team_id": {
+            "type": "integer",
+            "title": "Opponent Team Id"
+          },
+          "opponent_name": {
+            "type": "string",
+            "title": "Opponent Name"
+          },
+          "adds_used": {
+            "type": "integer",
+            "title": "Adds Used",
+            "description": "Pickups you have made in this matchup"
+          },
+          "adds_allowed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adds Allowed",
+            "description": "Pickups the league allows in this matchup; none: no limit"
+          },
+          "close_categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Close Categories",
+            "description": "Categories still close this week on today's rosters: ones a move can steal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "opponent_team_id",
+          "opponent_name",
+          "adds_used",
+          "adds_allowed",
+          "close_categories"
+        ],
+        "title": "WeekMatchup",
+        "description": "This week's matchup, for moves made in it."
       }
     }
   }

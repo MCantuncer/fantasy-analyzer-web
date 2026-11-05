@@ -5,17 +5,22 @@ import {
   ArrowRight,
   ArrowSquareOut,
   ArrowUpRight,
+  CalendarBlank,
   CaretRight,
+  Clock,
   Handshake,
   Plus,
   Target,
   Trash,
+  UserPlus,
   type Icon,
 } from '@phosphor-icons/react'
-import type { AnalysisReport, PlayerRef } from '../api/client'
+import type { AnalysisReport, PickupIdea, PlayerRef } from '../api/client'
 import { pct, ptsDiff } from '../lib/format'
 import { teamColours } from '../lib/league'
+import { ifMade, keptDays, lastName, longDay, shortDay, spotGames, waitLabel } from '../lib/moveTiming'
 import { InjuryBadges } from './InjuryBadges'
+import { SpotDays } from './MoveTiming'
 import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
@@ -73,22 +78,62 @@ export function Lane({
   )
 }
 
-/** The two biggest gains and costs in weekly win chance, as small chips with an outcome edge. */
-function TopChanges({ changes }: { changes: Record<string, number> }) {
+/**
+ * The two biggest gains and costs in weekly win chance, as small chips with an outcome edge.
+ * With ``against``, the changes are this week's matchup against that team, and a category
+ * still close this week (one the move can steal) carries a small target.
+ */
+function TopChanges({
+  changes,
+  against,
+  close = [],
+}: {
+  changes: Record<string, number>
+  against?: { name: string; colour?: string }
+  close?: string[]
+}) {
   const moved = Object.entries(changes)
     .map(([c, v]) => [c, Math.round(v * 100)] as const)
     .filter(([, v]) => Math.abs(v) >= 2)
   const gains = moved.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2)
   const costs = moved.filter(([, v]) => v < 0).sort((a, b) => a[1] - b[1]).slice(0, 2)
   if (!gains.length && !costs.length) return null
-  const item = ([c, v]: readonly [string, number]) => (
-    <li key={c} className={v > 0 ? 'bm-chip good' : 'bm-chip bad'}>
-      <span className="bm-chip-cat code">{c}</span>
-      <span className="num">
-        <Delta value={v} />
-      </span>
-    </li>
-  )
+  const item = ([c, v]: readonly [string, number]) => {
+    const steal = v > 0 && close.includes(c)
+    return (
+      <li
+        key={c}
+        className={v > 0 ? 'bm-chip good' : 'bm-chip bad'}
+        title={steal ? `${c} is close: a category you can steal` : undefined}
+      >
+        <span className="bm-chip-cat code">
+          {steal && <Target size={12} weight="bold" className="bm-steal" aria-hidden="true" />}
+          {c}
+        </span>
+        <span className="num">
+          <Delta value={v} />
+        </span>
+        {steal && <span className="sr-only">, close, a category you can steal</span>}
+      </li>
+    )
+  }
+  if (against) {
+    return (
+      <div className="bm-changes-wrap">
+        <div className="kpi-label bm-vs">
+          This week vs <TeamCrest name={against.name} colour={against.colour} size={16} />
+          <b>{against.name}</b>
+        </div>
+        <ul className="bm-changes" aria-label={`This week against ${against.name}, change in win chance, in points`}>
+          {gains.map(item)}
+          {costs.map(item)}
+          <li className="bm-unit" aria-hidden="true">
+            win chance, pts
+          </li>
+        </ul>
+      </div>
+    )
+  }
   return (
     <div className="bm-changes-wrap">
       <div className="kpi-label">Weekly win chance, pts</div>
@@ -132,13 +177,23 @@ function Confetti({ id }: { id: string }) {
 }
 
 /** Odds before and after, then a meter: grey is now, green the gain (red a loss), the notch is the playoff line. */
-export function OddsMeter({ before, after, celebrate }: { before: number; after: number; celebrate?: string }) {
+export function OddsMeter({
+  before,
+  after,
+  celebrate,
+  label = 'Your playoff odds',
+}: {
+  before: number
+  after: number
+  celebrate?: string
+  label?: string
+}) {
   const diff = ptsDiff(before, after)
   const lo = Math.min(before, after)
   return (
     <div className="big-odds">
       <div className="bm-figures">
-        <div className="kpi-label">Your playoff odds</div>
+        <div className="kpi-label">{label}</div>
         <div className="big-odds-figures num">
           <span className="before">{pct(before)}</span>
           <span className="muted" aria-label="to">
@@ -199,47 +254,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
   }
 
   if (pickup && pickupGain >= tradeGain) {
-    return (
-      <section className="card best" aria-labelledby="best-title">
-        <header className="bm-head">
-          <h2 className="bm-title" id="best-title">
-            <Target size={20} weight="duotone" aria-hidden="true" />
-            Best move
-          </h2>
-          <span className="bm-sub muted">No one has to agree</span>
-        </header>
-        <div className="bm-lanes">
-          <Lane
-            label="Add"
-            icon={Plus}
-            players={[pickup.add]}
-            note={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned`}
-          />
-          <Lane label="Drop" icon={Trash} players={[pickup.drop]} note="From your roster" />
-        </div>
-        <OddsMeter
-          before={pickup.playoff_pct_before}
-          after={pickup.playoff_pct_after}
-          celebrate={`pickup-${pickup.add.id}-${pickup.drop.id}`}
-        />
-        <TopChanges changes={pickup.category_changes} />
-        <div className="bm-actions">
-          <a
-            className="button"
-            href={`https://fantasy.espn.com/basketball/players/add?leagueId=${league.id}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
-            Make the claim on ESPN
-          </a>
-          <a className="button ghost" href="#pickup-0">
-            All FA targets
-            <CaretRight size={14} weight="bold" aria-hidden="true" />
-          </a>
-        </div>
-      </section>
-    )
+    return <BestPickup report={report} pickup={pickup} colours={colours} />
   }
 
   const theirs = colours.get(trade.partner_team_id)
@@ -323,6 +338,148 @@ export function BestMove({ report }: { report: AnalysisReport }) {
           <CaretRight size={14} weight="bold" aria-hidden="true" />
         </a>
       </div>
+    </section>
+  )
+}
+
+/** Best move as a free-agent pickup: when to make it, who it replaces, and the odds. */
+function BestPickup({
+  report,
+  pickup,
+  colours,
+}: {
+  report: AnalysisReport
+  pickup: PickupIdea
+  colours: Map<number, string>
+}) {
+  const t = pickup.timing
+  const wait = t?.wait ? t : null
+  const week = report.week
+  const kept = wait ? keptDays(wait) : []
+  const games = wait ? spotGames(wait) : null
+  const lost = wait ? wait.drop_games_kept : 0
+  // A waiver claim that goes through tomorrow or later: when the player joins.
+  const joins = t && !wait && t.days[0] && t.earliest_on > t.days[0].date ? t.earliest_on : null
+  const adds = week?.adds_allowed != null ? Math.max(week.adds_allowed - week.adds_used, 0) : null
+  const opponent = week ? { name: week.opponent_name, colour: colours.get(week.opponent_team_id) } : undefined
+  const thisWeek = t && opponent && Object.keys(t.week_changes).length > 0
+  const espn = `https://fantasy.espn.com/basketball/players/add?leagueId=${report.league.id}`
+  return (
+    <section className="card best" aria-labelledby="best-title" aria-describedby={wait ? 'best-when' : undefined}>
+      <header className="bm-head">
+        <h2 className="bm-title" id="best-title">
+          <Target size={20} weight="duotone" aria-hidden="true" />
+          Best move
+        </h2>
+        {wait ? (
+          <p className="bm-when" id="best-when">
+            <span className="bm-when-main">
+              <CalendarBlank size={15} aria-hidden="true" />
+              {waitLabel(wait)}
+            </span>
+            <span>· No one has to agree</span>
+            {games && (
+              <span className="sr-only">
+                . Waiting lets {pickup.drop.name} play {kept.map((d) => longDay(d.date)).join(' and ')} first:{' '}
+                {games.best} games in the roster spot instead of {games.now}.
+              </span>
+            )}
+          </p>
+        ) : (
+          <span className="bm-sub muted">No one has to agree</span>
+        )}
+      </header>
+      <div className="bm-lanes">
+        <Lane
+          label="Add"
+          icon={Plus}
+          players={[pickup.add]}
+          note={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned${pickup.stream ? ' · For this week' : ''}`}
+        />
+        <Lane
+          label="Drop"
+          icon={Trash}
+          players={[pickup.drop]}
+          note={
+            kept.length > 0 ? (
+              <span>
+                Plays{' '}
+                {kept.map((d, k) => (
+                  <span key={d.date}>
+                    {k > 0 && (k === kept.length - 1 ? ' and ' : ', ')}
+                    <b>{shortDay(d.date)}</b>
+                  </span>
+                ))}{' '}
+                for you first
+              </span>
+            ) : (
+              'From your roster'
+            )
+          }
+        />
+      </div>
+      {wait && <SpotDays timing={wait} add={pickup.add} drop={pickup.drop} />}
+      <OddsMeter
+        before={pickup.playoff_pct_before}
+        after={pickup.playoff_pct_after}
+        celebrate={`pickup-${pickup.add.id}-${pickup.drop.id}`}
+        label={wait ? `Your playoff odds ${ifMade(wait)}` : 'Your playoff odds'}
+      />
+      {thisWeek ? (
+        <TopChanges changes={t.week_changes} against={opponent} close={week?.close_categories} />
+      ) : (
+        <TopChanges changes={pickup.category_changes} />
+      )}
+      <div className="bm-actions">
+        {wait ? (
+          <a
+            className="button bm-quiet"
+            href={espn}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Claim ${pickup.add.name} now anyway on ESPN. Loses ${lost} ${lastName(pickup.drop.name)} ${lost === 1 ? 'game' : 'games'}. Opens ESPN.`}
+          >
+            <span className="bm-quiet-main">
+              Claim now anyway
+              <ArrowSquareOut size={14} weight="bold" aria-hidden="true" />
+            </span>
+            <span className="bm-quiet-sub">
+              Loses <span className="num">{lost}</span> {lastName(pickup.drop.name)} {lost === 1 ? 'game' : 'games'}
+            </span>
+          </a>
+        ) : (
+          <a className="button" href={espn} target="_blank" rel="noreferrer">
+            <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
+            Make the claim on ESPN
+          </a>
+        )}
+        <a className="button ghost" href="#pickup-0">
+          All FA targets
+          <CaretRight size={14} weight="bold" aria-hidden="true" />
+        </a>
+      </div>
+      {(wait || joins || adds != null) && (
+        <p className="bm-foot">
+          {wait ? (
+            <span>
+              <UserPlus size={14} aria-hidden="true" />
+              Someone could add him first
+            </span>
+          ) : joins ? (
+            <span>
+              <Clock size={14} aria-hidden="true" />
+              Processes {shortDay(joins)}
+            </span>
+          ) : (
+            <span />
+          )}
+          {adds != null && (
+            <span className="bm-adds">
+              <span className="num">{adds}</span> of {week?.adds_allowed} adds left
+            </span>
+          )}
+        </p>
+      )}
     </section>
   )
 }
