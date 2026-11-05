@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <style>
-    .tile { fill: #4353ff; }
-    .mark { fill: #ffffff; }
+    .tile { fill: #e9a21e; }
+    .mark { fill: #1c1305; }
     @media (prefers-color-scheme: dark) {
-      .tile { fill: #7c8cff; }
-      .mark { fill: #0b0e14; }
+      .tile { fill: #f0ad32; }
     }
   </style>
   <rect class="tile" x="1" y="1" width="30" height="30" rx="8"/>
