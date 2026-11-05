@@ -145,7 +145,7 @@ export function Roster(props: Props) {
                   </th>
                   <td className="left muted">{p.positions.join('/')}</td>
                   <td className="left">
-                    <span className={`badge tier-${p.tier}`} title={TIERS[p.tier].title}>
+                    <span className={`rl-tier rl-tier-${p.tier}`} title={TIERS[p.tier].title}>
                       {TIERS[p.tier].label}
                     </span>
                   </td>

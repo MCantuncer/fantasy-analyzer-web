@@ -14,19 +14,15 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--raised);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
 }
 
+/* Front Office: a plain icon, no tinted square. */
 .intro-steps svg {
   flex: none;
-  box-sizing: content-box;
-  padding: 9px;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  color: var(--text-2);
 }
 
 .intro-steps > li > span {
