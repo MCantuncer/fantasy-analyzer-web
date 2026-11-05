@@ -1776,10 +1776,6 @@ button.game-card:hover {
   margin-right: 0;
 }
 
-.game-mine .head {
-  border-color: var(--surface);
-}
-
 .game-mine .head + .head {
   margin-left: -6px;
 }
@@ -4164,26 +4160,7 @@ tr.cutline.playoff th {
   }
 }
 
-/* ---------- Player headshots ---------- */
-.head {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center top;
-  background: color-mix(in srgb, var(--muted) 14%, var(--surface));
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--divider);
-  vertical-align: middle;
-}
-
-.head-initials {
-  color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
+/* ---------- Player headshots (face styles live in components/PlayerHead.css) ---------- */
 .head-stack {
   display: inline-flex;
   vertical-align: middle;
@@ -4191,7 +4168,7 @@ tr.cutline.playoff th {
 }
 
 .head-stack .head + .head {
-  margin-left: -10px;
+  margin-left: -8px;
 }
 
 .swap-side .head-stack {

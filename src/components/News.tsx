@@ -292,7 +292,7 @@ function PlayerRow({
   return (
     <li className="news-player">
       <PlayerLink player={{ id: player.player_id, name: player.name }} decorative>
-        <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} />
+        <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} team={player.pro_team} />
       </PlayerLink>
       <span className="news-player-id">
         <span className="news-player-name">
@@ -444,7 +444,7 @@ function Trending({
         {players.slice(0, 8).map((p) => (
           <li key={p.player_id} className="news-trend">
             <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
-              <PlayerHead player={{ id: p.player_id, name: p.name }} size={32} />
+              <PlayerHead player={{ id: p.player_id, name: p.name }} size={32} team={p.pro_team} />
             </PlayerLink>
             <span className="news-player-id">
               <span className="news-player-name">

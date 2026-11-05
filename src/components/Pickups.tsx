@@ -46,7 +46,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
         <>
           {sharedDrop && (
             <p className="pk-shared">
-              <PlayerHead player={sharedDrop} size={28} />
+              <PlayerHead player={sharedDrop} size={28} team={sharedDrop.pro_team} />
               <span>
                 Each one replaces <strong>{sharedDrop.name}</strong>
               </span>
@@ -65,7 +65,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams }: Props) {
                     aria-controls={`pickup-${i}-detail`}
                     onClick={() => setOpen(isOpen ? null : p.add.id)}
                   >
-                    <PlayerHead player={p.add} size={40} />
+                    <PlayerHead player={p.add} size={40} team={p.add.pro_team} />
                     <span>
                       <span className="good" aria-hidden="true">
                         +{' '}

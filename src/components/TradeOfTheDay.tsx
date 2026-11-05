@@ -116,7 +116,7 @@ function Side({
           {gets.sends.map((p) => (
             <div key={p.id} className="totd-player">
               <PlayerLink player={p} decorative>
-                <PlayerHead player={p} size={44} />
+                <PlayerHead player={p} size={44} team={p.pro_team} />
               </PlayerLink>
               <span>
                 <PlayerLink player={p} /> <span className="totd-pos">{p.positions.join('/')}</span>
@@ -126,7 +126,7 @@ function Side({
         </div>
         {side.drop && (
           <div className="small muted totd-drop">
-            <PlayerHead player={side.drop} size={20} />
+            <PlayerHead player={side.drop} size={20} team={side.drop.pro_team} />
             and drops <PlayerLink player={side.drop} />
           </div>
         )}

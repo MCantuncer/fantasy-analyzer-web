@@ -6268,6 +6268,12 @@
             "type": "string",
             "title": "Name"
           },
+          "pro_team": {
+            "type": "string",
+            "title": "Pro Team",
+            "description": "NBA team abbreviation as ESPN writes it (NO, GS, UTAH); empty for a free agent",
+            "default": ""
+          },
           "positions": {
             "items": {
               "type": "string"
@@ -7212,6 +7218,30 @@
             "type": "number",
             "title": "Playoff Pct After"
           },
+          "partner_playoff_pct_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct Before",
+            "description": "The other team's playoff odds today"
+          },
+          "partner_playoff_pct_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct After",
+            "description": "The other team's playoff odds after the deal: always up, so they see the gain"
+          },
           "playoff_week_cats_before": {
             "anyOf": [
               {
@@ -7764,6 +7794,30 @@
           "playoff_pct_after": {
             "type": "number",
             "title": "Playoff Pct After"
+          },
+          "partner_playoff_pct_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct Before",
+            "description": "The other team's playoff odds today"
+          },
+          "partner_playoff_pct_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct After",
+            "description": "The other team's playoff odds after the deal: always up, so they see the gain"
           },
           "playoff_week_cats_before": {
             "anyOf": [
@@ -8615,6 +8669,30 @@
           "playoff_pct_after": {
             "type": "number",
             "title": "Playoff Pct After"
+          },
+          "partner_playoff_pct_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct Before",
+            "description": "The other team's playoff odds today"
+          },
+          "partner_playoff_pct_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Playoff Pct After",
+            "description": "The other team's playoff odds after the deal: always up, so they see the gain"
           },
           "playoff_week_cats_before": {
             "anyOf": [
