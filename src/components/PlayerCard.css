@@ -474,6 +474,14 @@ button.pc-chip:focus-visible {
   white-space: nowrap;
 }
 
+/* The up/down mark stays small (about half the digits) so the number leads. */
+.pc-tile-arrow {
+  display: inline-block;
+  margin-right: 2px;
+  font-size: 0.55em;
+  vertical-align: 0.18em;
+}
+
 .pc-tile-up .pc-tile-delta {
   color: var(--accent-text);
   font-weight: 700;
