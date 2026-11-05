@@ -23,7 +23,7 @@ import {
   usePlayerCard,
   withExtras,
 } from '../lib/playerCard'
-import type { FormTile } from '../lib/playerCard'
+import type { CatKey, FormTile } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
@@ -655,9 +655,10 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
   )
 }
 
-// Points sit right after minutes, before the shooting splits, like ESPN's game log.
-const PTS_CAT = CATS.find((c) => c.key === 'pts')!
-const REST_CATS = CATS.filter((c) => c.key !== 'pts')
+// Game log order: MIN, PTS, FG, FT, then 3PM next to the shooting splits, then the rest.
+const catOf = (key: CatKey) => CATS.find((c) => c.key === key)!
+const PTS_CAT = catOf('pts')
+const REST_CATS = (['tpm', 'reb', 'ast', 'stl', 'blk', 'to'] as const).map(catOf)
 
 /** One counting stat in a game row, glowing on a big night and fading on a quiet one. */
 function CatCell({ cat, stats: s, base }: { cat: (typeof CATS)[number]; stats: GameStats; base: GameStats | null }) {
