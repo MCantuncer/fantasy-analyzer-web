@@ -1,12 +1,53 @@
-/* Initials fallback for a missing headshot: a clean disc with a soft light from the top left. */
-.head.head-initials {
-  --ph-a: #4a3d33;
-  --ph-b: #2a221c;
-  background: radial-gradient(130% 130% at 30% 15%, var(--ph-a), var(--ph-b));
-  color: var(--text);
+/* Front Office face: a soft square lit from below by the NBA team's colour, 2px team edge. */
+.head {
+  --tc: var(--track);
+  --head-glow: 34%;
+  --head-hi: rgb(255 255 255 / 0.045);
+  --head-sil: #4a423a;
+  position: relative;
+  display: inline-grid;
+  place-items: end center;
+  flex: none;
+  overflow: hidden;
+  /* The radius follows the size (.34 of it), set from the inline width. */
+  border-radius: 34%;
+  background:
+    radial-gradient(90% 75% at 50% 112%, color-mix(in oklab, var(--tc) var(--head-glow), transparent) 0%, transparent 72%),
+    radial-gradient(60% 50% at 50% 0%, var(--head-hi), transparent 80%),
+    var(--raised);
+  box-shadow: inset 0 -2px 0 var(--tc);
+  vertical-align: middle;
 }
 
-:root[data-theme='light'] .head.head-initials {
-  --ph-a: #ffffff;
-  --ph-b: #efe6d9;
+:root[data-theme='light'] .head {
+  --head-glow: 30%;
+  --head-hi: rgb(255 255 255 / 0.7);
+  --head-sil: #c9bfb0;
+}
+
+/* Free agents and unknown teams: no team light, just the quiet surface. */
+.head:not(.head-team) {
+  box-shadow: none;
+}
+
+/* ESPN headshots are landscape: wider than the box, anchored to the bottom so the shoulders sit on the edge. */
+.head-img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 136%;
+  height: auto;
+  max-width: none;
+  transform: translateX(-50%);
+}
+
+.head-sil {
+  width: 86%;
+  height: 86%;
+  fill: var(--head-sil);
+}
+
+/* Overlapping faces: a ring of the card surface keeps each one readable. */
+.head-stack .head {
+  outline: 2px solid var(--surface);
 }

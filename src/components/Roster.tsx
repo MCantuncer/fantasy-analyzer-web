@@ -48,7 +48,7 @@ function RosterList({ roster, keep, onToggleKeep, onShop }: Props) {
           <li key={p.id} className={kept ? 'rl-row rl-kept' : 'rl-row'}>
             <span className="rl-head">
               <PlayerLink player={p} decorative>
-                <PlayerHead player={p} size={40} />
+                <PlayerHead player={p} size={40} team={p.pro_team} />
               </PlayerLink>
             </span>
             <div className="rl-name">
@@ -137,7 +137,7 @@ export function Roster(props: Props) {
                   </td>
                   <th scope="row">
                     <PlayerLink player={p} decorative>
-                      <PlayerHead player={p} size={28} />
+                      <PlayerHead player={p} size={28} team={p.pro_team} />
                     </PlayerLink>{' '}
                     <PlayerLink player={p} />
                     <InjuryTag status={p.injury_status} />

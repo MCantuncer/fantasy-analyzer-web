@@ -35,7 +35,7 @@ export function Side({
       <span className="head-stack">
         {players.slice(0, 3).map((p) => (
           <PlayerLink key={p.id} player={p} decorative>
-            <PlayerHead player={p} size={44} />
+            <PlayerHead player={p} size={44} team={p.pro_team} />
           </PlayerLink>
         ))}
       </span>

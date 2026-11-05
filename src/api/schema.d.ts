@@ -2132,6 +2132,12 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+            /**
+             * Pro Team
+             * @description NBA team abbreviation as ESPN writes it (NO, GS, UTAH); empty for a free agent
+             * @default
+             */
+            pro_team: string;
             /** Positions */
             positions: string[];
             /** Injury Status */
@@ -2549,6 +2555,16 @@ export interface components {
             /** Playoff Pct After */
             playoff_pct_after: number;
             /**
+             * Partner Playoff Pct Before
+             * @description The other team's playoff odds today
+             */
+            partner_playoff_pct_before?: number | null;
+            /**
+             * Partner Playoff Pct After
+             * @description The other team's playoff odds after the deal: always up, so they see the gain
+             */
+            partner_playoff_pct_after?: number | null;
+            /**
              * Playoff Week Cats Before
              * @description My expected categories won per fantasy playoff week against an average team, before the deal
              */
@@ -2825,6 +2841,16 @@ export interface components {
             playoff_pct_before: number;
             /** Playoff Pct After */
             playoff_pct_after: number;
+            /**
+             * Partner Playoff Pct Before
+             * @description The other team's playoff odds today
+             */
+            partner_playoff_pct_before?: number | null;
+            /**
+             * Partner Playoff Pct After
+             * @description The other team's playoff odds after the deal: always up, so they see the gain
+             */
+            partner_playoff_pct_after?: number | null;
             /**
              * Playoff Week Cats Before
              * @description My expected categories won per fantasy playoff week against an average team, before the deal
@@ -3194,6 +3220,16 @@ export interface components {
             playoff_pct_before: number;
             /** Playoff Pct After */
             playoff_pct_after: number;
+            /**
+             * Partner Playoff Pct Before
+             * @description The other team's playoff odds today
+             */
+            partner_playoff_pct_before?: number | null;
+            /**
+             * Partner Playoff Pct After
+             * @description The other team's playoff odds after the deal: always up, so they see the gain
+             */
+            partner_playoff_pct_after?: number | null;
             /**
              * Playoff Week Cats Before
              * @description My expected categories won per fantasy playoff week against an average team, before the deal

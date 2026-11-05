@@ -94,7 +94,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
               <li key={p.id}>
                 <label className={on ? 'pick on' : full ? 'pick off' : 'pick'}>
                   <input type="checkbox" checked={on} disabled={full} onChange={() => toggle(p.id)} />
-                  <PlayerHead player={p} size={36} />
+                  <PlayerHead player={p} size={36} team={p.pro_team} />
                   <span className="pick-name">
                     <strong>{p.name}</strong>
                     <span className="small muted">

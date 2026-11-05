@@ -209,19 +209,9 @@ button.pc-chip:focus-visible {
 }
 
 .pc-face .head {
-  border: 3px solid rgb(255 255 255 / 0.85);
-  background: color-mix(in srgb, var(--pc-team) 30%, #fff);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.35);
-  object-fit: cover;
-}
-
-/* No ESPN photo: a badge in the team's colour instead of grey initials. */
-.pc-face .head-initials {
-  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--pc-team) 65%, #fff), var(--pc-team));
-  color: #fff;
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
-  font-weight: 700;
+  box-shadow:
+    inset 0 -2px 0 var(--tc),
+    0 6px 18px rgb(0 0 0 / 0.35);
 }
 
 .pc-face-pos {

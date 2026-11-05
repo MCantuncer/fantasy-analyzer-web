@@ -94,7 +94,7 @@ function Picker({
                 aria-pressed={c.player.id === selected}
                 onClick={() => onPick(c.player.id)}
               >
-                <PlayerHead player={c.player} size={40} />
+                <PlayerHead player={c.player} size={40} team={c.player.pro_team} />
                 <span className="target-who">
                   <strong>{c.player.name}</strong>
                   <span className="small muted">
@@ -129,7 +129,7 @@ function Fit({ data }: { data: TargetReport }) {
   return (
     <section className="card best" aria-labelledby="target-title">
       <div className="target-head">
-        <PlayerHead player={t} size={64} />
+        <PlayerHead player={t} size={64} team={t.pro_team} />
         <div className="target-head-text">
           <span className="eyebrow">Trade For</span>
           <h2 id="target-title" className="target-name">
@@ -321,7 +321,7 @@ function Owner({ data }: { data: TargetReport }) {
             {o.would_value.map((w) => (
               <li key={w.player.id}>
                 <span className="tradefor-want">
-                  <PlayerHead player={w.player} size={28} />
+                  <PlayerHead player={w.player} size={28} team={w.player.pro_team} />
                   <strong>
                     <PlayerLink player={w.player} />
                   </strong>

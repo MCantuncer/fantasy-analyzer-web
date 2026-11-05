@@ -301,7 +301,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
           <div className="pc-grab" aria-hidden="true" />
           <TeamWatermark abbrev={abbrev} />
           <span className="pc-face">
-            <PlayerHead player={player} size={88} />
+            <PlayerHead player={player} size={88} team={abbrev} />
             {card?.position && <span className="pc-face-pos">{card.position}</span>}
           </span>
           <div className="pc-who">

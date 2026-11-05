@@ -7,6 +7,7 @@ import { Roster } from './Roster'
 const player = {
   id: 1,
   name: 'Jalen Green',
+  pro_team: 'PHX',
   positions: ['SG'],
   injury_status: 'ACTIVE',
   percent_owned: 90,

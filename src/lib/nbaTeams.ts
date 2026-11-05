@@ -39,6 +39,65 @@ export function teamColour(abbrev: string | null | undefined): string | null {
   return abbrev ? (COLOURS[abbrev.toUpperCase()] ?? null) : null
 }
 
+/**
+ * NBA team "light" colours for the Front Office faces: each club's main colour, lifted so it
+ * glows on both the espresso and cream themes. Used only as the glow behind a face and its 2px
+ * bottom edge, never as text colour (several would fail contrast as text).
+ *
+ * Keyed by the abbreviation ESPN writes (NO, GS, UTAH, WSH...), with the common long forms as
+ * aliases so a caller never has to normalise first.
+ */
+const TEAM_LIGHT: Record<string, string> = {
+  ATL: '#E5484D',
+  BOS: '#2FA05A',
+  BKN: '#9A9A9A',
+  CHA: '#1FA3B3',
+  CHI: '#D8333F',
+  CLE: '#A8324F',
+  DAL: '#2F7DE1',
+  DEN: '#E8B33A',
+  DET: '#D93A4A',
+  GS: '#3E73D8',
+  HOU: '#E03A4E',
+  IND: '#F2B233',
+  LAC: '#3B6FD6',
+  LAL: '#9B6FE0',
+  MEM: '#6F8FC9',
+  MIA: '#D9314F',
+  MIL: '#2F9E5E',
+  MIN: '#3FA06A',
+  NO: '#C1A06A',
+  NY: '#F07F2E',
+  OKC: '#2F8FD8',
+  ORL: '#2F7DE1',
+  PHI: '#3466D6',
+  PHX: '#E5662E',
+  POR: '#E0423F',
+  SAC: '#8A5CC9',
+  SA: '#A7AEB5',
+  TOR: '#D8333F',
+  UTAH: '#6E7BEA',
+  WSH: '#D8394C',
+}
+
+const ALIASES: Record<string, string> = {
+  BRK: 'BKN',
+  GSW: 'GS',
+  NOP: 'NO',
+  NYK: 'NY',
+  PHO: 'PHX',
+  SAS: 'SA',
+  UTA: 'UTAH',
+  WAS: 'WSH',
+}
+
+/** The team's light colour, or undefined for a free agent / unknown abbreviation. */
+export function teamLight(abbrev: string | null | undefined): string | undefined {
+  if (!abbrev) return undefined
+  const key = abbrev.toUpperCase()
+  return TEAM_LIGHT[ALIASES[key] ?? key]
+}
+
 const NAMES: Record<string, string> = {
   ATL: 'Atlanta Hawks',
   BOS: 'Boston Celtics',

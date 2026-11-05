@@ -10,6 +10,7 @@ function side(team_name: string, sends: string[], before: number, after: number)
     sends: sends.map((name, i) => ({
       id: i,
       name,
+      pro_team: '',
       positions: ['PG'],
       injury_status: 'ACTIVE',
       percent_owned: 90,
