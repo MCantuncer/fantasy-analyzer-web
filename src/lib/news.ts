@@ -6,8 +6,8 @@ export type NewsScope = 'nba' | 'league' | 'mine'
 export const FILTERS: { id: NewsFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'injuries', label: 'Injuries' },
-  { id: 'moves', label: 'Trades & signings' },
-  { id: 'roles', label: 'Role changes' },
+  { id: 'moves', label: 'Trades & Signings' },
+  { id: 'roles', label: 'Role Changes' },
   { id: 'rumors', label: 'Rumors' },
 ]
 
@@ -42,7 +42,7 @@ export function inFilter(story: NewsStory, filter: NewsFilter): boolean {
   return kinds === null || kinds.includes(story.kind)
 }
 
-/** "In my league" keeps stories about a rostered player; "My roster" only yours. */
+/** "In My League" keeps stories about a rostered player; "My Roster" only yours. */
 export function inScope(story: NewsStory, scope: NewsScope, myTeamId: number | null): boolean {
   if (scope === 'nba') return true
   if (scope === 'mine') return myTeamId !== null && story.players.some((p) => p.owner_team_id === myTeamId)

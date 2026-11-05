@@ -45,7 +45,7 @@ interface Selection {
 // Before verifying, a league shows only league-wide pages.
 const LEAGUE_TABS = [
   { id: 'overview', label: 'League' },
-  { id: 'feed', label: 'Moves feed' },
+  { id: 'feed', label: 'Moves Feed' },
   { id: 'news', label: 'NBA News' },
 ] as const
 

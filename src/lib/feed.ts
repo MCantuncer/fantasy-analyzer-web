@@ -12,9 +12,9 @@ export const FILTERS = [
   { id: 'all', label: 'Everything' },
   { id: 'trade', label: 'Trades' },
   { id: 'waiver', label: 'Waivers' },
-  { id: 'free_agent', label: 'Free agents' },
+  { id: 'free_agent', label: 'Free Agents' },
   { id: 'post', label: 'Chat' },
-  { id: 'mine', label: 'My team' },
+  { id: 'mine', label: 'My Team' },
 ] as const
 
 export type Filter = (typeof FILTERS)[number]['id']
