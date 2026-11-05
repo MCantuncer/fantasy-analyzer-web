@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, type MouseEvent } from 'react'
 // screen lands near the end of the new row (or past it). Put the returned handler on the
 // list's onClickCapture and pass the open key: the tapped row stays where the finger was,
 // then, if its details would start below the screen, it scrolls up under the top bar.
-const ROWS = '.move-row, .offer-row'
+const ROWS = '.move-row, .tr-row, .offer-row'
 /** Share of the screen the opened details need below their row before we scroll them up. */
 const MIN_ROOM = 0.4
 
