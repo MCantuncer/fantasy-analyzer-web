@@ -7,14 +7,14 @@ import type { CategoryScore, LeagueOverview, MatchupSide } from '../api/client'
 export const TEAM_COLOURS = 12
 
 /**
- * A stable colour for every team in a league: your team always uses the accent, the others take
+ * A stable colour for every team in a league: your team always uses the gold, the others take
  * palette slots in team-id order, so a team keeps its colour on every page and every visit.
  */
 export function teamColours(teamIds: number[], myTeamId: number | null | undefined): Map<number, string> {
   const out = new Map<number, string>()
   const others = [...teamIds].filter((id) => id !== myTeamId).sort((a, b) => a - b)
   others.forEach((id, i) => out.set(id, `var(--team-${i % TEAM_COLOURS})`))
-  if (myTeamId != null) out.set(myTeamId, 'var(--accent)')
+  if (myTeamId != null) out.set(myTeamId, 'var(--gold)')
   return out
 }
 

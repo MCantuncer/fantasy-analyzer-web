@@ -26,7 +26,7 @@
 
   .table-wrap tr.mine > th[scope='row']:first-child {
     box-shadow:
-      inset 3px 0 0 var(--accent),
+      inset 3px 0 0 var(--gold),
       1px 0 0 var(--divider);
   }
 

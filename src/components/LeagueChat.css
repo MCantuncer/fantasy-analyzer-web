@@ -31,7 +31,7 @@
 }
 
 .feed-tile.mine {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 .feed-tile.big {

@@ -4,12 +4,12 @@ import './CategoryTiles.css'
 
 export const TAG = {
   locked: { label: 'Winning', tone: 'good' },
-  swing: { label: 'Swing', tone: 'warn' },
+  swing: { label: 'Swing', tone: 'swing' },
   lost: { label: 'Losing', tone: 'bad' },
 } as const
 
 /** Shape per outcome, so the tag reads without colour: ■ winning, ◆ swing, ▼ losing. */
-const GLYPH = { good: '■', warn: '◆', bad: '▼' } as const
+const GLYPH = { good: '■', swing: '◆', bad: '▼' } as const
 
 export function CategoryTiles({ categories }: { categories: CategoryOutlook[] }) {
   const sorted = [...categories].sort((a, b) => b.win_pct - a.win_pct)

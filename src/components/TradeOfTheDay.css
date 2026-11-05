@@ -129,7 +129,7 @@
 }
 
 .totd .totd-side.me {
-  box-shadow: inset 0 0 0 1px var(--accent);
+  box-shadow: inset 0 0 0 1px var(--gold);
 }
 
 .totd .totd-team {

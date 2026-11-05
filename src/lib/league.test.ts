@@ -45,7 +45,7 @@ const mirror = (cats: Cat[]): Cat[] => cats.map(([s, v, r]) => [s, v, flip(r)])
 describe('team identity', () => {
   it('gives your team the accent and everyone else a stable slot by team id', () => {
     const c = teamColours([8, 3, 1, 10], 3)
-    expect(c.get(3)).toBe('var(--accent)')
+    expect(c.get(3)).toBe('var(--gold)')
     expect([c.get(1), c.get(8), c.get(10)]).toEqual(['var(--team-0)', 'var(--team-1)', 'var(--team-2)'])
     expect(teamColours([10, 8, 1], 3).get(8)).toBe('var(--team-1)')
   })

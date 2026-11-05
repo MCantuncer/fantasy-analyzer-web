@@ -29,10 +29,11 @@
   background: linear-gradient(var(--good-soft), var(--good-soft)), var(--surface);
 }
 
-.ct-warn {
-  --ct: var(--warn);
-  --ct-soft: var(--warn-soft);
-  --ct-fill: var(--warn-fill);
+/* Swing: still open, so no outcome colour. Quiet ink; the moves above are what light it up. */
+.ct-swing {
+  --ct: var(--text-2);
+  --ct-soft: var(--raised);
+  --ct-fill: var(--muted);
 }
 
 .ct-bad {
