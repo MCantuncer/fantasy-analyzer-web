@@ -221,15 +221,15 @@ describe('News', () => {
     expect(screen.queryByText('Kris Dunn moves into the starting lineup')).not.toBeInTheDocument()
     expect(screen.getByText('Jalen Williams fractures ankle, out indefinitely')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /^All \d/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'My roster' }))
+    fireEvent.click(screen.getByRole('button', { name: 'My Roster' }))
     expect(screen.getByText('Davion Mitchell drawing trade interest')).toBeInTheDocument()
     expect(screen.queryByText('Kris Dunn moves into the starting lineup')).not.toBeInTheDocument()
   })
 
-  it('has no "My roster" before the team is verified', async () => {
+  it('has no "My Roster" before the team is verified', async () => {
     renderNews(null)
     await screen.findByText('Kris Dunn moves into the starting lineup')
-    expect(screen.queryByRole('button', { name: 'My roster' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'My Roster' })).not.toBeInTheDocument()
   })
   it('shows who gains from an injury, with minutes, evidence and owners', async () => {
     renderNews()

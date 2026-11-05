@@ -34,7 +34,7 @@ describe('SectionNav', () => {
   it('shows short lists as they are', () => {
     const sections = [
       { id: 'overview', label: 'League' },
-      { id: 'feed', label: 'Moves feed' },
+      { id: 'feed', label: 'Moves Feed' },
       { id: 'news', label: 'NBA News' },
     ]
     render(<SectionNav sections={sections} active="overview" onSelect={() => {}} />)

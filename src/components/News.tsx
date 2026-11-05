@@ -77,8 +77,8 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
   const shown = scoped.filter((s) => inFilter(s, filter))
   const scopes: { id: NewsScope; label: string }[] = [
     { id: 'nba', label: 'All NBA' },
-    { id: 'league', label: 'In my league' },
-    ...(myTeamId !== null ? [{ id: 'mine' as const, label: 'My roster' }] : []),
+    { id: 'league', label: 'In My League' },
+    ...(myTeamId !== null ? [{ id: 'mine' as const, label: 'My Roster' }] : []),
   ]
 
   return (
