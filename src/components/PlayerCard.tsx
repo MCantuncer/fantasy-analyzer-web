@@ -596,9 +596,10 @@ function GameTable({ card }: { card: Card }) {
               Game
             </th>
             <th scope="col">MIN</th>
+            <th scope="col">PTS</th>
             <th scope="col">FG</th>
             <th scope="col">FT</th>
-            {CATS.map((c) => (
+            {REST_CATS.map((c) => (
               <th key={c.key} scope="col">
                 {c.label}
               </th>
@@ -612,9 +613,10 @@ function GameTable({ card }: { card: Card }) {
                 Season avg
               </th>
               <td>{line.per_game.minutes.toFixed(1)}</td>
+              <td>{line.per_game.pts.toFixed(1)}</td>
               <td>{ratioPct(line.fg_pct)}</td>
               <td>{ratioPct(line.ft_pct)}</td>
-              {CATS.map((c) => (
+              {REST_CATS.map((c) => (
                 <td key={c.key}>{line.per_game[c.key].toFixed(1)}</td>
               ))}
             </tr>
@@ -639,34 +641,36 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         </span>
       </th>
       <td>{Math.round(s.minutes)}</td>
+      <CatCell cat={PTS_CAT} stats={s} base={base} />
       <td className="shot-cell">
         <ShotSplit made={s.fgm} attempts={s.fga} label="FG" />
       </td>
       <td className="shot-cell">
         <ShotSplit made={s.ftm} attempts={s.fta} label="FT" />
       </td>
-      {CATS.map((c) => {
-        const glow = base ? spotlight(c.key, s[c.key], base[c.key]) : 0
-        if (glow > 0) {
-          return (
-            <td
-              key={c.key}
-              className="pc-glow"
-              style={{ '--pc-glow': (0.18 + glow * 0.3).toFixed(2) } as CSSProperties}
-            >
-              {s[c.key]}
-              <span className="sr-only"> (big night)</span>
-            </td>
-          )
-        }
-        return (
-          <td key={c.key} className={glow < 0 ? 'pc-quiet-cell' : undefined}>
-            {s[c.key]}
-          </td>
-        )
-      })}
+      {REST_CATS.map((c) => (
+        <CatCell key={c.key} cat={c} stats={s} base={base} />
+      ))}
     </tr>
   )
+}
+
+// Points sit right after minutes, before the shooting splits, like ESPN's game log.
+const PTS_CAT = CATS.find((c) => c.key === 'pts')!
+const REST_CATS = CATS.filter((c) => c.key !== 'pts')
+
+/** One counting stat in a game row, glowing on a big night and fading on a quiet one. */
+function CatCell({ cat, stats: s, base }: { cat: (typeof CATS)[number]; stats: GameStats; base: GameStats | null }) {
+  const glow = base ? spotlight(cat.key, s[cat.key], base[cat.key]) : 0
+  if (glow > 0) {
+    return (
+      <td className="pc-glow" style={{ '--pc-glow': (0.18 + glow * 0.3).toFixed(2) } as CSSProperties}>
+        {s[cat.key]}
+        <span className="sr-only"> (big night)</span>
+      </td>
+    )
+  }
+  return <td className={glow < 0 ? 'pc-quiet-cell' : undefined}>{s[cat.key]}</td>
 }
 
 /** The NBA team's logo, big and faded behind the header; nothing when ESPN has no logo for the team. */
