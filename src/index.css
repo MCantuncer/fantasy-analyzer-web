@@ -48,9 +48,9 @@
   --team-11: #67e3f9;
 
   --font-ui: 'Host Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  /* Numbers: Mona Sans on its width axis, set narrow and heavy (use --num-stretch with font-stretch). */
-  --font-num: 'Mona Sans Variable', 'Host Grotesk Variable', system-ui, sans-serif;
-  --num-stretch: 82%;
+  /* Numbers: Mona Sans at normal width, 10% smaller (see styles/num-font.css). The 82% narrow cut read as tall and stretched. */
+  --font-num: 'Mona Sans Numbers', 'Host Grotesk Variable', system-ui, sans-serif;
+  --num-stretch: 100%;
   /* Codes only: team and category abbreviations, positions, timestamps. */
   --font-code: 'Martian Mono Variable', ui-monospace, monospace;
   /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */

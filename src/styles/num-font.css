@@ -1,0 +1,14 @@
+/* Numbers: Mona Sans at its normal width, drawn 10% smaller than the size each rule asks for
+   (size-adjust), so digits sit calmly next to Host Grotesk words without every rule changing.
+   Latin only: digits, %, signs and arrows; anything else falls back to the UI face. */
+@font-face {
+  font-family: 'Mona Sans Numbers';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  font-stretch: 75% 125%;
+  size-adjust: 90%;
+  src: url('../../node_modules/@fontsource-variable/mona-sans/files/mona-sans-latin-wdth-normal.woff2')
+    format('woff2-variations');
+  unicode-range: U+0000-00FF, U+2013, U+2014, U+2191, U+2193, U+2212, U+2215;
+}

@@ -1,7 +1,7 @@
-// Front Office type: Host Grotesk for words, Mona Sans (width axis) for numbers, Martian Mono for codes.
+// Front Office type: Host Grotesk for words, Mona Sans (normal width, 10% smaller) for numbers, Martian Mono for codes.
 import '@fontsource-variable/host-grotesk/wght.css'
-import '@fontsource-variable/mona-sans/wdth.css'
 import '@fontsource-variable/martian-mono/wdth.css'
+import './styles/num-font.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
