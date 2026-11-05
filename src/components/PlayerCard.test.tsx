@@ -237,6 +237,10 @@ describe('PlayerCard', () => {
     fireEvent.error(logos[0])
     expect(dialog.querySelectorAll('.pc-opp-logo img[src$="/lac.png"]').length).toBe(1)
 
+    // Game log columns: points right after minutes, then the shooting splits.
+    const heads = [...dialog.querySelectorAll('.pc-table thead th')].map((h) => h.textContent)
+    expect(heads).toEqual(['Game', 'MIN', 'PTS', 'FG', 'FT', 'REB', 'AST', 'STL', 'BLK', '3PM', 'TO'])
+
     const calls = vi.mocked(fetch).mock.calls.map(([url, init]) => [String(url), JSON.parse(String(init?.body))])
     expect(calls).toContainEqual([
       expect.stringMatching(/\/api\/player-card$/),
