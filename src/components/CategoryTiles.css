@@ -1,118 +1,112 @@
-/* Category tiles (ct- prefix): rank sticker with an outcome shape, big number, a chunky meter
-   with a notch at the 50% coin-flip line, and the outcome word. Winning tiles get a soft tint. */
+/* Category tiles (ct- prefix): league order, code and rank on top, big win share, outcome word.
+   The outcome is a 3px inside edge on the left; swing stays neutral. */
+.ct {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ct-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.ct-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.ct-head h2 svg {
+  color: var(--text-2);
+}
+
+.ct-note {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
 .ct-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
-  margin: 12px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .ct-tile {
-  --ct: var(--muted);
-  --ct-soft: var(--track);
-  --ct-fill: var(--ct);
+  --ct-edge: var(--muted);
+  --ct-word: var(--text-2);
   display: flex;
   flex-direction: column;
-  gap: 8px;
   min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  padding: 10px 12px 12px;
+  border-radius: 14px;
   background: var(--surface);
+  box-shadow:
+    inset 3px 0 0 var(--ct-edge),
+    inset 0 0 0 1px var(--border);
 }
 
 .ct-good {
-  --ct: var(--good);
-  --ct-soft: var(--good-soft);
-  background: linear-gradient(var(--good-soft), var(--good-soft)), var(--surface);
-}
-
-/* Swing: still open, so no outcome colour. Quiet ink; the moves above are what light it up. */
-.ct-swing {
-  --ct: var(--text-2);
-  --ct-soft: var(--raised);
-  --ct-fill: var(--muted);
+  --ct-edge: var(--good);
+  --ct-word: var(--good);
 }
 
 .ct-bad {
-  --ct: var(--bad);
-  --ct-soft: var(--bad-soft);
+  --ct-edge: var(--bad);
+  --ct-word: var(--bad);
 }
 
-.ct-head {
+.ct-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 4px;
+}
+
+.ct-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: 13px;
+  font-weight: 600;
+}
+
+.ct-code svg {
+  color: var(--text-2);
 }
 
 .ct-rank {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--ct-soft);
-  color: var(--ct);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--text-2);
   white-space: nowrap;
 }
 
-.ct-rank > span[aria-hidden] {
-  font-size: 9px;
-}
-
 .ct-value {
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1;
+  margin-top: 4px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
 .ct-value small {
   margin-left: 1px;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.ct-meter {
-  position: relative;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--track);
-}
-
-.ct-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 999px;
-  background: var(--ct-fill);
-}
-
-.ct-notch {
-  position: absolute;
-  top: -3px;
-  bottom: -3px;
-  left: 50%;
-  width: 3px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: var(--text-2);
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--text-2);
 }
 
 .ct-tag {
   font-size: 12px;
-  font-weight: 600;
-  color: var(--ct);
-}
-
-@media (max-width: 640px) {
-  .ct-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  font-weight: 550;
+  color: var(--ct-word);
 }

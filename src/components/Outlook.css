@@ -1,85 +1,153 @@
-/* Season outlook: the 9 categories as coloured tiles, best to worst. */
-.ol-cats {
+/* Season outlook (ol- prefix): flat card, big odds, a standings ladder with the playoff line, two records. */
+.card.outlook {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--divider);
+  gap: 16px;
+  padding: 24px;
+  border-color: var(--border);
+  background: var(--surface);
 }
 
-.ol-pips {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+.ol-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.ol-title svg {
+  color: var(--text-2);
+}
+
+.ol-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ol-big {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.ol-pc {
+  margin-left: 2px;
+  font-size: 0.42em;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ol-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ol-gap {
+  padding-bottom: 4px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: right;
+  color: var(--text-2);
+}
+
+.ol-gap b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.ol-ladder {
+  display: flex;
+  align-items: center;
   gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.ol-pip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.ol-pip.ol-locked {
-  background: var(--good-soft);
-  color: var(--good);
-}
-
-.ol-pip.ol-swing {
-  background: var(--raised);
-  color: var(--text-2);
-}
-
-.ol-pip.ol-lost {
-  background: var(--bad-soft);
-  color: var(--bad);
-}
-
-.ol-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.ol-rung {
+  display: grid;
+  flex: 1 1 0;
+  place-items: center;
+  min-width: 0;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-2);
   font-size: 12px;
   color: var(--muted);
 }
 
-.ol-legend li::before {
+.ol-rung.in {
+  background: var(--raised);
+  color: var(--text);
+}
+
+/* The playoff line: a short ink bar between the last team in and the first team out. */
+.ol-rung.in + .ol-rung:not(.in) {
+  position: relative;
+  margin-left: 10px;
+}
+
+.ol-rung.in + .ol-rung:not(.in)::before {
   content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 6px;
-  border-radius: 2px;
-  vertical-align: 0;
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -8px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--text);
 }
 
-.ol-legend .ol-locked::before {
-  background: var(--good);
+.ol-rung.me {
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
-.ol-legend .ol-swing::before {
-  background: var(--muted);
+.ol-key {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-2);
 }
 
-.ol-legend .ol-lost::before {
-  background: var(--bad);
+.ol-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Fireside: the same warm light in the corner as Best move beside it. */
-.card.outlook {
-  border-color: var(--border);
-  background:
-    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
-    var(--surface);
+.ol-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+}
+
+.ol-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.ol-stat-label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.ol-stat .num {
+  font-size: 24px;
+  font-weight: 700;
+  white-space: nowrap;
 }

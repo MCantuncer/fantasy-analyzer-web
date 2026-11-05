@@ -1,80 +1,84 @@
+import { ChartLineUp, User } from '@phosphor-icons/react'
 import type { AnalysisReport } from '../api/client'
 import { ordinal, pct } from '../lib/format'
 import './Outlook.css'
-
-const TAGS = [
-  { tag: 'locked', label: 'Winning' },
-  { tag: 'swing', label: 'Swing' },
-  { tag: 'lost', label: 'Losing' },
-] as const
 
 function record(w: number, l: number) {
   return `${w.toFixed(0)}–${l.toFixed(0)}`
 }
 
+/** How far you are from the playoff line, in category wins. */
+function gapLine(mine: number, line: number, inside: boolean) {
+  const gap = Math.round(Math.abs(line - mine))
+  const wins = `${gap} ${gap === 1 ? 'win' : 'wins'}`
+  if (gap === 0) return { strong: 'On the line', rest: '' }
+  return inside ? { strong: wins, rest: ' clear of the line' } : { strong: wins, rest: ' short of the line' }
+}
+
+/** Season outlook: big playoff odds, the projected standings as a ladder with the playoff line, two records. */
 export function Outlook({ report }: { report: AnalysisReport }) {
   const rank = report.season.findIndex((r) => r.team_id === report.team_id)
   const me = report.season[rank]
   if (!me) return null
-  const line = report.season[report.league.playoff_teams - 1]
-  const tone = me.playoff_pct >= 0.6 ? 'good' : me.playoff_pct >= 0.3 ? 'warn' : 'bad'
-  const cats = [...report.categories].sort((a, b) => b.win_pct - a.win_pct)
-  const label = (tag: string) => TAGS.find((t) => t.tag === tag)?.label ?? tag
+  const spots = report.league.playoff_teams
+  const inside = rank < spots
+  // Inside: compare with the first team out. Outside: compare with the last team in.
+  const rival = report.season[inside ? spots : spots - 1]
+  const line = report.season[spots - 1]
+  const gap = rival ? gapLine(me.projected_wins, rival.projected_wins, inside) : null
 
   return (
     <section className="card outlook" aria-labelledby="outlook-title">
-      <span className="eyebrow" id="outlook-title">
+      <h2 className="ol-title" id="outlook-title">
+        <ChartLineUp size={20} aria-hidden="true" />
         Season outlook
-      </span>
-      <div className="kpis">
+      </h2>
+      <div className="ol-top">
         <div>
-          <div className="kpi-label">Playoff odds</div>
-          <div className={`kpi-value ${tone}`}>{pct(me.playoff_pct)}</div>
-        </div>
-        <div>
-          <div className="kpi-label">Projected finish</div>
-          <div className="kpi-value">
-            {ordinal(rank + 1)}
-            <span className="of"> of {report.season.length}</span>
+          <div className="ol-big num">
+            {Math.round(me.playoff_pct * 100)}
+            <span className="ol-pc">%</span>
           </div>
+          <div className="ol-sub">playoff odds</div>
         </div>
-        <div>
-          <div className="kpi-label">Projected record</div>
-          <div className="kpi-value sm">{record(me.projected_wins, me.projected_losses)}</div>
-        </div>
-        {line && (
-          <div>
-            <div className="kpi-label">Playoff line</div>
-            <div className="kpi-value sm">
-              {ordinal(report.league.playoff_teams)} · {record(line.projected_wins, line.projected_losses)}
-            </div>
+        {gap && (
+          <div className="ol-gap">
+            <b>{gap.strong}</b>
+            {gap.rest}
           </div>
         )}
       </div>
-      <div className="ol-cats">
-        <div className="kpi-label">Categories, best to worst</div>
-        <ol className="ol-pips">
-          {cats.map((c) => (
+      <div>
+        <ol className="ol-ladder" aria-label={`Projected finish ${ordinal(rank + 1)} of ${report.season.length}`}>
+          {report.season.map((r, i) => (
             <li
-              key={c.category}
-              className={`ol-pip ol-${c.tag}`}
-              title={`${c.category}: ${label(c.tag)}, ${pct(c.win_pct)} a week`}
+              key={r.team_id}
+              className={`ol-rung num${i < spots ? ' in' : ''}${i === rank ? ' me' : ''}`}
+              title={`${ordinal(i + 1)}: ${r.team_name}, ${pct(r.playoff_pct)} playoff odds`}
             >
-              <span className="num">{c.category}</span>
-              <span className="sr-only">
-                {' '}
-                {label(c.tag)}, {pct(c.win_pct)}
-              </span>
+              {i === rank ? <User size={14} weight="bold" aria-label="You" /> : i + 1}
             </li>
           ))}
         </ol>
-        <ul className="ol-legend" aria-hidden="true">
-          {TAGS.map((t) => (
-            <li key={t.tag} className={`ol-${t.tag}`}>
-              {t.label} <span className="num">{cats.filter((c) => c.tag === t.tag).length}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="ol-key">
+          <span>Playoffs · top {spots}</span>
+          <span>
+            <User size={12} weight="bold" aria-hidden="true" />
+            You, projected {ordinal(rank + 1)}
+          </span>
+        </div>
+      </div>
+      <div className="ol-stats">
+        <div className="ol-stat">
+          <span className="ol-stat-label">Projected record</span>
+          <span className="num">{record(me.projected_wins, me.projected_losses)}</span>
+        </div>
+        {line && (
+          <div className="ol-stat">
+            <span className="ol-stat-label">Playoff line · {ordinal(spots)}</span>
+            <span className="num">{record(line.projected_wins, line.projected_losses)}</span>
+          </div>
+        )}
       </div>
     </section>
   )
