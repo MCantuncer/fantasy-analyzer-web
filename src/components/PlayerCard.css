@@ -436,6 +436,7 @@ button.pc-chip:focus-visible {
   border: 1px solid var(--divider);
   border-radius: 10px;
   background: var(--surface-2);
+  container-type: inline-size;
 }
 
 .pc-tile::before {
@@ -460,11 +461,13 @@ button.pc-chip:focus-visible {
 .pc-tile-value {
   font: 700 24px/1.1 var(--font-num);
   font-stretch: var(--num-stretch);
+  /* Nine tiles in a row are narrow: the value shrinks with its tile so "42.4%" keeps a margin. */
+  font-size: min(24px, 38cqi);
   white-space: nowrap;
 }
 
 .pc-tile-value small {
-  font-size: 14px;
+  font-size: 0.58em;
 }
 
 .pc-tile-delta {
