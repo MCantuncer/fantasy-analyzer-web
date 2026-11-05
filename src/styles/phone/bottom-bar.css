@@ -1,0 +1,92 @@
+/* Phones: the section tabs move to a fixed bottom bar (SectionNav). Four sections plus More,
+   44px+ tap targets, and room under the page so content and toasts clear the bar. */
+@media (max-width: 640px) {
+  .topbar .sn-tabs {
+    display: none;
+  }
+
+  .sn-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Above toasts (20) so the More menu opens over them. */
+    z-index: 40;
+    display: flex;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: color-mix(in oklab, var(--surface) 94%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 var(--divider);
+  }
+
+  .sn-item {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 0 2px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-2);
+    font-size: 11.5px;
+    font-weight: 550;
+  }
+
+  .sn-item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sn-item[aria-current='page'] {
+    color: var(--text);
+    font-weight: 650;
+  }
+
+  .sn-more {
+    position: absolute;
+    right: 8px;
+    bottom: calc(100% + 8px);
+    min-width: 200px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-row);
+    box-shadow: var(--shadow);
+  }
+
+  .sn-more-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 46px;
+    padding: 0 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-2);
+    font-weight: 550;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .sn-more-item[aria-current='page'] {
+    color: var(--text);
+    background: var(--raised);
+  }
+
+  /* Room under the page so the last card clears the bar (toasts: safari-basics.css). */
+  .main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}

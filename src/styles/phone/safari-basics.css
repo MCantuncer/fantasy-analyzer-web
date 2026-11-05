@@ -41,11 +41,11 @@ html {
   }
 
   /* Centring with left: 50% gave the toast only half the screen, so it wrapped into a
-     tall narrow box over the content. On phones it spans the width above the home bar. */
+     tall narrow box over the content. On phones it spans the width above the bottom section bar. */
   .toast {
     left: 12px;
     right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
     transform: none;
     max-width: none;
   }
