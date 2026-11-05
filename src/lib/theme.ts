@@ -11,7 +11,7 @@ export function loadTheme(): Theme {
 }
 
 // The phone browser's own bar takes this color, so it matches the top bar in each theme.
-const BAR_COLOR: Record<Theme, string> = { dark: '#0e121a', light: '#ffffff' }
+const BAR_COLOR: Record<Theme, string> = { dark: '#141210', light: '#f4f1ea' }
 
 export function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme

@@ -220,6 +220,7 @@ button.pc-chip:focus-visible {
   background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--pc-team) 65%, #fff), var(--pc-team));
   color: #fff;
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-weight: 700;
 }
 
@@ -550,6 +551,7 @@ table.pc-table {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-size: 15px;
   white-space: nowrap;
 }

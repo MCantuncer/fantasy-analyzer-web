@@ -97,6 +97,7 @@
   display: grid;
   place-items: center;
   font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
   font-weight: 700;
   font-size: 13px;
   background: var(--good-soft);

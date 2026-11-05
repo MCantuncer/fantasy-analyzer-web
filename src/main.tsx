@@ -1,11 +1,7 @@
-// Variable Inter with the optical-size axis: Display shapes for big numbers and headings.
-import '@fontsource-variable/inter/opsz.css'
-import '@fontsource/inter/latin-400.css'
-import '@fontsource/inter/latin-500.css'
-import '@fontsource/inter/latin-600.css'
-import '@fontsource/inter/latin-ext-400.css'
-import '@fontsource/inter/latin-ext-500.css'
-import '@fontsource/inter/latin-ext-600.css'
+// Front Office type: Host Grotesk for words, Mona Sans (width axis) for numbers, Martian Mono for codes.
+import '@fontsource-variable/host-grotesk/wght.css'
+import '@fontsource-variable/mona-sans/wdth.css'
+import '@fontsource-variable/martian-mono/wdth.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
