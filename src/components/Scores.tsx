@@ -481,11 +481,11 @@ function BoxScore({
               <th>Pts</th>
               <th>FG</th>
               <th>FT</th>
+              <th>3PM</th>
               <th>Reb</th>
               <th>Ast</th>
               <th>Stl</th>
               <th>Blk</th>
-              <th>3PM</th>
               <th>TO</th>
             </tr>
           </thead>
@@ -541,11 +541,11 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
       <td className="shot-cell">
         <ShotSplit made={l.ftm} attempts={l.fta} label="FT" />
       </td>
+      <td>{l.tpm}</td>
       <td>{l.reb}</td>
       <td>{l.ast}</td>
       <td>{l.stl}</td>
       <td>{l.blk}</td>
-      <td>{l.tpm}</td>
       <td>{l.to}</td>
     </tr>
   )
