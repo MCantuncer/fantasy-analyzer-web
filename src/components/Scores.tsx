@@ -730,21 +730,19 @@ function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbr
       </th>
       <td className={`left${l.owner_team_id == null ? ' good' : ''}`}>{owner}</td>
       <td className="muted">{l.minutes}</td>
-      <td>
-        <strong>{l.pts}</strong>
-      </td>
-      <td className="shot-cell">
-        <ShotSplit made={l.fgm} attempts={l.fga} label="FG" />
-      </td>
-      <td className="shot-cell">
-        <ShotSplit made={l.ftm} attempts={l.fta} label="FT" />
-      </td>
-      <td>{l.tpm}</td>
-      <td>{l.reb}</td>
-      <td>{l.ast}</td>
-      <td>{l.stl}</td>
-      <td>{l.blk}</td>
-      <td>{l.to}</td>
+      {BOX_CATS.map(({ key }) =>
+        key === 'fg' || key === 'ft' ? (
+          <td key={key} className="shot-cell">
+            <ShotSplit
+              made={key === 'fg' ? l.fgm : l.ftm}
+              attempts={key === 'fg' ? l.fga : l.fta}
+              label={key === 'fg' ? 'FG' : 'FT'}
+            />
+          </td>
+        ) : (
+          <td key={key}>{key === 'pts' ? <strong>{l.pts}</strong> : l[key]}</td>
+        ),
+      )}
     </tr>
   )
 }

@@ -1,19 +1,24 @@
 import type { GameLine } from '../api/client'
+import { STAT_COLUMNS, type StatColumn } from './statOrder'
 
-/** The nine fantasy categories a box score can be sorted by, in the table's column order. */
-export const BOX_CATS = [
-  { key: 'pts', label: 'Pts', name: 'points' },
-  { key: 'fg', label: 'FG', name: 'field goals made' },
-  { key: 'ft', label: 'FT', name: 'free throws made' },
-  { key: 'tpm', label: '3PM', name: 'threes made' },
-  { key: 'reb', label: 'Reb', name: 'rebounds' },
-  { key: 'ast', label: 'Ast', name: 'assists' },
-  { key: 'stl', label: 'Stl', name: 'steals' },
-  { key: 'blk', label: 'Blk', name: 'blocks' },
-  { key: 'to', label: 'TO', name: 'turnovers' },
-] as const
+const BOX_META = {
+  FG: { key: 'fg', label: 'FG', name: 'field goals made' },
+  FT: { key: 'ft', label: 'FT', name: 'free throws made' },
+  PTS: { key: 'pts', label: 'Pts', name: 'points' },
+  '3PM': { key: 'tpm', label: '3PM', name: 'threes made' },
+  REB: { key: 'reb', label: 'Reb', name: 'rebounds' },
+  AST: { key: 'ast', label: 'Ast', name: 'assists' },
+  STL: { key: 'stl', label: 'Stl', name: 'steals' },
+  BLK: { key: 'blk', label: 'Blk', name: 'blocks' },
+  TO: { key: 'to', label: 'TO', name: 'turnovers' },
+} as const satisfies Record<Exclude<StatColumn, 'MIN'>, { key: string; label: string; name: string }>
 
-export type BoxCat = (typeof BOX_CATS)[number]['key']
+/** The nine fantasy categories a box score can be sorted by, in the site's column order (after Min). */
+export const BOX_CATS = STAT_COLUMNS.filter((c): c is Exclude<StatColumn, 'MIN'> => c !== 'MIN').map(
+  (c) => BOX_META[c],
+)
+
+export type BoxCat = (typeof BOX_META)[keyof typeof BOX_META]['key']
 export type BoxSort = { cat: BoxCat; dir: 'desc' | 'asc' } | null
 
 /** One tap on a category: highest first, then lowest first, then back to the game's own order. */

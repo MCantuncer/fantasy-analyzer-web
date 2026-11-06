@@ -113,7 +113,7 @@ describe('Scores', () => {
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
     // Points right after minutes, then the shooting splits, like the player card game log.
     const heads = [...box.querySelectorAll('thead th')].map((h) => h.textContent)
-    expect(heads).toEqual(['Player', 'Owner', 'Min', 'Pts', 'FG', 'FT', '3PM', 'Reb', 'Ast', 'Stl', 'Blk', 'TO'])
+    expect(heads).toEqual(['Player', 'Owner', 'Min', 'FG', 'FT', 'Pts', '3PM', 'Reb', 'Ast', 'Stl', 'Blk', 'TO'])
     const amen = within(box).getByRole('row', { name: /Amen Thompson/ })
     expect(amen).toHaveClass('mine')
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')

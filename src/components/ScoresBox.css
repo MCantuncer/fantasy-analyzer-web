@@ -1,7 +1,7 @@
 /* Scores box score: "Category Plates" (Can, 2026-11-06). The header used to be faint labels spread
    across the whole width. Now the stat columns keep a fixed width (Player takes the rest), so each
    label sits right over its numbers, and the nine categories sit on plates in groups:
-     Min (context, plain) | Pts FG FT 3PM | Reb Ast Stl Blk | TO
+     Min (context, plain) | FG FT Pts 3PM | Reb Ast Stl Blk | TO
    Tapping a category sorts each team on its own and lights the column (table[data-col]); hovering
    previews the column on desktop. Classes are prefixed sc-; :root lifts rules over index.css. */
 
@@ -35,10 +35,10 @@ table.box {
   padding-left: calc(var(--gx) + var(--cell-x));
   padding-right: calc(var(--ex) + var(--cell-x));
 }
-:root table.box tr > :is(:nth-child(5), :nth-child(6)) {
+:root table.box tr > :is(:nth-child(4), :nth-child(5)) {
   --w: var(--split-w);
 }
-/* cluster starts: Pts, Reb, TO (Min sits right after Owner, no gap) */
+/* cluster starts: FG, Reb, TO (Min sits right after Owner, no gap) */
 :root table.box tr > :is(:nth-child(4), :nth-child(8), :nth-child(12)) {
   --gx: var(--gap);
 }
@@ -106,7 +106,7 @@ table.box .sc-key::before {
   background: var(--plate);
   box-shadow: inset 0 1px 0 rgb(255 240 220 / 0.035);
 }
-/* plate ends round at cluster edges only: Pts|3PM, Reb|Blk, TO */
+/* plate ends round at cluster edges only: FG|3PM, Reb|Blk, TO */
 table.box th:is(:nth-child(4), :nth-child(8), :nth-child(12)) .sc-key::before {
   border-top-left-radius: var(--radius-tag);
   border-bottom-left-radius: var(--radius-tag);
