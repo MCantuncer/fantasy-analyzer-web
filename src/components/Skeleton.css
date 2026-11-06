@@ -4,6 +4,13 @@
   gap: 12px;
 }
 
+/* Same centred column as My leagues, so the list fills in where its blocks were. */
+.sk.sk-leagues {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .sk-bone {
   display: block;
   flex: none;

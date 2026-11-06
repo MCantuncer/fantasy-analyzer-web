@@ -35,9 +35,9 @@ function SlowNote() {
   )
 }
 
-function Frame({ label, children }: { label: string; children: React.ReactNode }) {
+function Frame({ label, className = '', children }: { label: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className="sk stack" aria-busy="true">
+    <div className={`sk stack ${className}`} aria-busy="true">
       <span className="sr-only" role="status">
         {label}
       </span>
@@ -212,7 +212,7 @@ export function TradeOfTheDaySkeleton() {
 /** My leagues while the account loads. */
 export function LeaguesSkeleton() {
   return (
-    <Frame label="Loading your account">
+    <Frame label="Loading your account" className="sk-leagues">
       <Bone w={160} h={22} />
       <div className="card flush sk-list">
         {[0, 1].map((i) => (
