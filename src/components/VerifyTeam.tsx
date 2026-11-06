@@ -160,6 +160,28 @@ export function VerifyTeam({ leagueRef, leagueName, teams, creds, onVerified, on
               {verify.error.message}
             </p>
           )}
+          <p className="small muted">
+            ESPN says it has a banned word?{' '}
+            <button
+              type="button"
+              className="link"
+              disabled={start.isPending}
+              onClick={() => {
+                verify.reset()
+                start.mutate(challenge.team_id)
+              }}
+            >
+              {start.isPending ? 'Getting a new code…' : 'Get a different code'}
+            </button>
+          </p>
+          <p className="small muted">
+            If every code is refused, ESPN is likely objecting to your team name, which it checks in the same save.
+          </p>
+          {start.error && (
+            <p className="small bad" role="alert">
+              {start.error.message}
+            </p>
+          )}
           <p className="small muted">The code works for 30 minutes.</p>
         </section>
       )}
