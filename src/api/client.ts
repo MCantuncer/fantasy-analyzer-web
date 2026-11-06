@@ -40,6 +40,7 @@ export type ShopDeal = components['schemas']['ShopDeal']
 export type ShopTeam = components['schemas']['ShopTeam']
 export type ShopTarget = components['schemas']['ShopTarget']
 export type ScoreDay = components['schemas']['ScoreDay']
+export type WeekSits = components['schemas']['WeekSits']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
 export type FixtureDay = components['schemas']['FixtureDay']
@@ -446,7 +447,28 @@ export function fetchScores(
   teamId: number | null,
   creds: Credentials | null,
 ) {
-  return post<ScoreDay>('/api/scores', { league_id: leagueId, season, day, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
+  return post<ScoreDay>(
+    '/api/scores',
+    { league_id: leagueId, season, day, team_id: teamId, with_sits: false },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** The day's games at once from the NBA calendar; scores and box scores only if the server already has them. */
+export function fetchScoreGames(
+  leagueId: number,
+  season: number | null,
+  day: number | null,
+  teamId: number | null,
+  creds: Credentials | null,
+) {
+  return post<ScoreDay>('/api/scores/games', { league_id: leagueId, season, day, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
+}
+
+/** Who sits on each crowded day left this week: the slow part of the Scores page, fetched on its own. */
+export function fetchScoreSits(leagueId: number, season: number | null, teamId: number, creds: Credentials | null) {
+  return post<WeekSits>('/api/scores/sits', { league_id: leagueId, season, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
 }
 
 export function fetchNews(leagueId: number, season: number | null, includeHeld: boolean, creds: Credentials | null) {

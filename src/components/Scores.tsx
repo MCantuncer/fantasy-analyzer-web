@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { ScoresSkeleton } from './Skeleton'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Bone, ScoresSkeleton } from './Skeleton'
 import { useEffect, useRef, useState } from 'react'
 import { Television } from '@phosphor-icons/react'
-import { fetchScores } from '../api/client'
+import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import {
@@ -45,23 +45,75 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const [day, setDay] = useState<number | null>(null)
   const [lens, setLens] = useState<Lens>('all')
   const [picked, setPicked] = useState<number | null>(null)
-  const scores = useQuery({
-    queryKey: ['scores', leagueId, season, day, teamId, creds?.swid ?? null],
-    queryFn: () => fetchScores(leagueId, season, day, teamId, creds),
+  const qc = useQueryClient()
+  const key = [leagueId, season, day, teamId, creds?.swid ?? null] as const
+  // The games come first, straight from the NBA calendar; scores, box scores and who sits fill in after.
+  const gamesQ = useQuery({
+    queryKey: ['score-games', ...key],
+    queryFn: () => fetchScoreGames(leagueId, season, day, teamId, creds),
     retry: false,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
+  })
+  const scores = useQuery({
+    queryKey: ['scores', ...key],
+    queryFn: () => fetchScores(leagueId, season, day, teamId, creds),
+    retry: 1,
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
     // While a game is on, follow it; ESPN's numbers move about once a minute.
     refetchInterval: (q) => (q.state.data?.live ? 60_000 : false),
   })
+  const sits = useQuery({
+    queryKey: ['score-sits', leagueId, season, teamId, creds?.swid ?? null],
+    queryFn: () => fetchScoreSits(leagueId, season, teamId, creds),
+    retry: false,
+    staleTime: 10 * 60_000,
+    enabled: teamId > 0,
+  })
 
-  if (scores.isLoading) return <ScoresSkeleton />
-  if (scores.error || !scores.data) {
+  // The day the page is on: the one asked for, or the default the server picked.
+  const shownDay = day ?? scores.data?.day ?? gamesQ.data?.day ?? null
+  const full = scores.data && (day === null || scores.data.day === day) && !scores.isPlaceholderData ? scores.data : null
+  const quick =
+    gamesQ.data && (day === null || gamesQ.data.day === day) && !gamesQ.isPlaceholderData ? gamesQ.data : null
+  const current = full ?? quick
+  // Changing day keeps the last day on screen, dimmed, until the new one is in.
+  const fallback = scores.data ?? gamesQ.data
+
+  // The days either side are one tap away: fetch them quietly once this one is in.
+  useEffect(() => {
+    if (!full) return
+    const i = full.days.findIndex((d) => d.day === full.day)
+    for (const d of [full.days[i - 1], full.days[i + 1]]) {
+      if (!d) continue
+      const k = [leagueId, season, d.day, teamId, creds?.swid ?? null] as const
+      qc.prefetchQuery({
+        queryKey: ['scores', ...k],
+        queryFn: () => fetchScores(leagueId, season, d.day, teamId, creds),
+        staleTime: 30_000,
+      })
+    }
+  }, [full, qc, leagueId, season, teamId, creds])
+
+  if (!current && !fallback) {
+    if (gamesQ.isLoading || scores.isLoading) return <ScoresSkeleton />
+  }
+  const base = current ?? fallback
+  if (!base) {
+    const error = scores.error ?? gamesQ.error
     return (
       <div className="card error stack">
         <h2>Couldn't load the scores</h2>
-        <p>{scores.error?.message ?? 'Try again in a minute.'}</p>
+        <p>{error?.message ?? 'Try again in a minute.'}</p>
         <div className="row">
-          <button className="secondary" onClick={() => scores.refetch()}>
+          <button
+            className="secondary"
+            onClick={() => {
+              gamesQ.refetch()
+              scores.refetch()
+            }}
+          >
             Try again
           </button>
         </div>
@@ -69,7 +121,15 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     )
   }
 
-  const data = scores.data
+  const switching = !current
+  const pending = !switching && !full && !base.complete
+  const failed = pending && scores.isError
+  const sitsByDay = new Map((sits.data?.days ?? []).map((d) => [d.day, d.sits]))
+  const data: ScoreDay = {
+    ...base,
+    day: shownDay ?? base.day,
+    week: base.week.map((d) => ({ ...d, sits: sitsByDay.get(d.day) ?? d.sits })),
+  }
   const pickDay = (d: number) => {
     setDay(d)
     setPicked(null)
@@ -79,22 +139,25 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const mineByGame = new Map(data.games.map((g) => [g.id, myPlayersIn(g, teamId, upcoming.get(g.id) ?? [])]))
   const mineGames = data.games.filter((g) => mineByGame.get(g.id)!.length > 0)
   const players = new Set([...mineByGame.values()].flatMap((ps) => ps.map((p) => p.player_id))).size
-  const games = lens === 'mine' ? mineGames : data.games
+  // Until the scores are in, who played isn't known: show every game rather than an empty Mine list.
+  const games = lens === 'mine' && !pending ? mineGames : data.games
   const selected =
     data.games.find((g) => g.id === picked) ??
     data.games.find((g) => g.status !== 'scheduled' && g.lines.some((l) => l.owner_team_id === teamId)) ??
     data.games.find((g) => g.status !== 'scheduled')
 
   return (
-    <div className="stack scores">
+    <div className={`stack scores${switching ? ' scores-switching' : ''}`} aria-busy={switching || pending}>
       <div className="row scores-bar">
         <DayStrip data={data} onPick={pickDay} />
         <DayJump data={data} onPick={pickDay} />
         <span className="grow" />
         <div className="sl-row">
-          <ScoresLens value={lens} onChange={setLens} all={data.games.length} mine={mineGames.length} />
+          <ScoresLens value={lens} onChange={setLens} all={data.games.length} mine={pending ? null : mineGames.length} />
           <p className="sl-summary sl-short">
-            {players ? (
+            {pending ? (
+              'Counting your players'
+            ) : players ? (
               <>
                 <b className="num">{players}</b> {players === 1 ? 'player' : 'players'} in action
               </>
@@ -105,10 +168,18 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         </div>
       </div>
       <p className="sl-summary sl-long">
-        <GamesSummary lens={lens} all={data.games.length} mine={mineGames.length} players={players} />
+        {pending ? (
+          'Counting your players'
+        ) : (
+          <GamesSummary lens={lens} all={data.games.length} mine={mineGames.length} players={players} />
+        )}
       </p>
 
-      <YourNight games={data.games} teamId={teamId} matchup={matchup ?? null} abbrev={abbrev} />
+      {pending ? (
+        <ScoresFilling failed={failed} onRetry={() => scores.refetch()} />
+      ) : (
+        <YourNight games={data.games} teamId={teamId} matchup={matchup ?? null} abbrev={abbrev} />
+      )}
 
       {games.length === 0 ? (
         <div className="card sl-empty">
@@ -132,6 +203,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
               teamId={teamId}
               upcoming={upcoming.get(g.id) ?? []}
               selected={g.id === selected?.id}
+              pending={pending}
               onPick={() => setPicked(g.id)}
             />
           ))}
@@ -140,7 +212,12 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
 
       {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
 
-      {selected && <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />}
+      {selected &&
+        (pending ? (
+          <BoxScoreFetching game={selected} failed={failed} onRetry={() => scores.refetch()} />
+        ) : (
+          <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />
+        ))}
 
       <p className="small muted">
         Scores are added up from ESPN's fantasy stats
@@ -327,6 +404,7 @@ function GameCard({
   teamId,
   upcoming,
   selected,
+  pending = false,
   onPick,
 }: {
   game: Game
@@ -334,6 +412,8 @@ function GameCard({
   /** Your players in this game from the week's fixtures, for games that haven't started. */
   upcoming: FixturePlayer[]
   selected: boolean
+  /** The scores are still on their way: started games show a soft pulse where the numbers go. */
+  pending?: boolean
   onPick: () => void
 }) {
   const scheduled = game.status === 'scheduled'
@@ -372,14 +452,18 @@ function GameCard({
       <TeamRow
         side={game.away}
         state={scheduled ? 'pre' : lead === 'away' ? 'lead' : lead === 'home' ? 'trail' : 'level'}
+        filling={pending && !scheduled}
       />
       <TeamRow
         side={game.home}
         state={scheduled ? 'pre' : lead === 'home' ? 'lead' : lead === 'away' ? 'trail' : 'level'}
+        filling={pending && !scheduled}
         home
       />
       <span className="game-foot small">
-        {top && !scheduled ? (
+        {pending && !scheduled ? (
+          <span className="muted game-foot-text">Fetching the box score</span>
+        ) : top && !scheduled ? (
           <>
             <PlayerHead player={{ id: top.player_id, name: top.name }} size={20} />
             <span className="game-foot-text">
@@ -412,10 +496,13 @@ function TeamRow({
   side,
   state,
   home = false,
+  filling = false,
 }: {
   side: Game['home']
   state: 'lead' | 'trail' | 'level' | 'pre'
   home?: boolean
+  /** The score is on its way. */
+  filling?: boolean
 }) {
   return (
     <span className={`team-row ${state}`}>
@@ -427,8 +514,67 @@ function TeamRow({
         <span className="team-nick muted">{nickname(side.name)}</span>
         {home && <span className="sr-only"> (home)</span>}
       </span>
-      <span className="num score">{state === 'pre' ? '' : (side.score ?? '')}</span>
+      <span className="num score">
+        {filling ? <Bone w={26} h={16} className="sc-score-bone" /> : state === 'pre' ? '' : (side.score ?? '')}
+      </span>
     </span>
+  )
+}
+
+/** Scores are on their way: a quiet line where "Your night" will be. */
+function ScoresFilling({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
+  return (
+    <p className="sc-filling small muted" role="status">
+      {failed ? (
+        <>
+          Couldn't fetch the scores.{' '}
+          <button type="button" className="ghost sc-retry" onClick={onRetry}>
+            Try again
+          </button>
+        </>
+      ) : (
+        <>
+          <Spinner />
+          Fetching the scores
+        </>
+      )}
+    </p>
+  )
+}
+
+/** A box score opened before its numbers are in: the game's header and a spinner, swapped for the table when ready. */
+function BoxScoreFetching({ game, failed, onRetry }: { game: Game; failed: boolean; onRetry: () => void }) {
+  return (
+    <section className="card flush sc-box-fetching" aria-labelledby="box-title" aria-busy={!failed}>
+      <div className="card-head">
+        <h2 id="box-title">
+          {game.away.abbrev} · {game.home.abbrev}
+        </h2>
+      </div>
+      <div className="sc-box-wait" role="status">
+        {failed ? (
+          <>
+            <span>Couldn't fetch the box score.</span>
+            <button type="button" className="secondary" onClick={onRetry}>
+              Try again
+            </button>
+          </>
+        ) : (
+          <>
+            <Spinner size={22} />
+            <span>Fetching box score</span>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function Spinner({ size = 14 }: { size?: number }) {
+  return (
+    <svg className="spinner" width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2.5" fill="none" strokeDasharray="30 20" />
+    </svg>
   )
 }
 
