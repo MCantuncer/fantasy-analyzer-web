@@ -47,3 +47,8 @@
 .pk-tier-injured {
   color: var(--bad);
 }
+
+/* Deals header: the filter stands alone (its "All · 6" carries the count), centred in the card. */
+.card-head.park-deals-head {
+  justify-content: center;
+}

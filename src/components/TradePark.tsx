@@ -224,8 +224,9 @@ function Results({ data, colours }: { data: ShopReport; colours: Map<number, str
 
       {data.deals.length > 0 && (
         <section className="card flush trades-panel" aria-labelledby="park-deals">
-          <div className="card-head">
-            <h2 id="park-deals">
+          <div className={many ? 'card-head park-deals-head' : 'card-head'}>
+            {/* With the filter showing, "All · 6" already gives the count, so the heading is for screen readers only. */}
+            <h2 id="park-deals" className={many ? 'sr-only' : undefined}>
               {data.deals.length} {data.deals.length === 1 ? 'deal' : 'deals'}
             </h2>
             {many && (
