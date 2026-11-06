@@ -121,6 +121,34 @@ describe('Scores', () => {
     expect(screen.getByText(/Best free agent in this game/)).toHaveTextContent('Tari Eason')
   })
 
+  it('sorts each team on its own by a category, then back to the game order', async () => {
+    mockApi()
+    renderScores()
+    await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
+    const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
+    const order = () =>
+      [...box.querySelectorAll('tbody')].map((g) =>
+        [...g.querySelectorAll('th[scope="row"]')].map((th) => th.textContent?.split(' ')[0]),
+      )
+    expect(order()).toEqual([['Alperen', 'Amen', 'Tari'], ['Victor']])
+
+    const reb = within(box).getByRole('button', { name: 'Reb' })
+    fireEvent.click(reb)
+    // Most rebounds first inside Houston; the Spurs stay under their own name.
+    expect(order()).toEqual([['Amen', 'Alperen', 'Tari'], ['Victor']])
+    expect(reb.closest('th')).toHaveAttribute('aria-sort', 'descending')
+    expect(box).toHaveAttribute('data-col', '8')
+
+    fireEvent.click(reb)
+    expect(order()).toEqual([['Tari', 'Alperen', 'Amen'], ['Victor']])
+    expect(reb.closest('th')).toHaveAttribute('aria-sort', 'ascending')
+
+    fireEvent.click(reb)
+    expect(order()).toEqual([['Alperen', 'Amen', 'Tari'], ['Victor']])
+    expect(reb.closest('th')).not.toHaveAttribute('aria-sort')
+    expect(box).not.toHaveAttribute('data-col')
+  })
+
   it('puts tonight in your matchup against your opponent', async () => {
     mockApi()
     renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
