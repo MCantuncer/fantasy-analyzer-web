@@ -250,13 +250,13 @@ const MODES: Record<Mode, { label: string; hint: string; empty: string; why: str
     label: 'Fair',
     hint: "Both teams' playoff odds go up at least a point",
     empty:
-      "No trade raises both teams' playoff odds right now. Early in the season, a deal that helps you usually costs the other team, since you become a tougher rival for the same playoff spots. Check back after a few weeks of games.",
+      "No trade raises both teams' playoff odds right now. Early in the season, a deal that helps you usually costs the other team, since you become a tougher rival for the same playoff spots. Worth a Try has deals that look like a win for them on paper.",
     why: 'Why they might say yes',
   },
   edge: {
-    label: 'Edge',
-    hint: 'They win on paper, you win on the court',
-    empty: "No deal gives them the paper win while raising both teams' playoff odds right now.",
+    label: 'Worth a Try',
+    hint: 'They win on paper, you win on the court, and their odds dip 3 points at most',
+    empty: 'No deal gives them the paper win while raising your playoff odds right now.',
     why: 'Why it favors you',
   },
 }
@@ -283,12 +283,14 @@ export function Trades({
   const edgeSplit = useMemo(() => applyRules(rules, allEdge), [rules, allEdge])
   const fair = fairSplit.kept
   const edge = edgeSplit.kept
-  const [mode, setMode] = useState<Mode>('fair')
+  // Open on Fair when there's a deal that helps both teams, else on the deals worth a try.
+  const [mode, setMode] = useState<Mode>(allFair.length || !allEdge.length ? 'fair' : 'edge')
   const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
   const found = (mode === 'fair' ? allFair : allEdge).length
-  const [open, setOpen] = useState<string | null>(allFair[0] ? tradeKey(allFair[0]) : null)
+  const first = (mode === 'fair' ? allFair : allEdge)[0]
+  const [open, setOpen] = useState<string | null>(first ? tradeKey(first) : null)
   const keepRow = useKeepRowInView(open)
   const colours = useMemo(
     () =>

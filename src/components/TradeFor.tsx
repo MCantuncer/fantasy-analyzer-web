@@ -261,7 +261,8 @@ function Offers({
           Propose on ESPN
         </a>
       </div>
-      {data.note && <p className="target-note small">{data.note}</p>}
+      {/* With no offers the note is the empty text below, so it isn't shown twice. */}
+      {data.note && data.offers.length > 0 && <p className="target-note small">{data.note}</p>}
       {data.offers.length === 0 ? (
         <p className="empty">{data.note ?? 'No realistic offer for him right now.'}</p>
       ) : (
