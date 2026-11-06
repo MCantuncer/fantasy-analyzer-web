@@ -6,6 +6,7 @@ import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { ago } from '../lib/news'
+import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
 import {
   CATS,
   average,
@@ -23,7 +24,7 @@ import {
   usePlayerCard,
   withExtras,
 } from '../lib/playerCard'
-import type { CatKey, FormTile } from '../lib/playerCard'
+import type { FormTile } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
@@ -595,13 +596,9 @@ function GameTable({ card }: { card: Card }) {
             <th scope="col" className="pc-first">
               Game
             </th>
-            <th scope="col">MIN</th>
-            <th scope="col">PTS</th>
-            <th scope="col">FG</th>
-            <th scope="col">FT</th>
-            {REST_CATS.map((c) => (
-              <th key={c.key} scope="col">
-                {c.label}
+            {STAT_COLUMNS.map((k) => (
+              <th key={k} scope="col">
+                {k}
               </th>
             ))}
           </tr>
@@ -612,13 +609,20 @@ function GameTable({ card }: { card: Card }) {
               <th scope="row" className="pc-first">
                 Season avg
               </th>
-              <td>{line.per_game.minutes.toFixed(1)}</td>
-              <td>{line.per_game.pts.toFixed(1)}</td>
-              <td>{ratioPct(line.fg_pct)}</td>
-              <td>{ratioPct(line.ft_pct)}</td>
-              {REST_CATS.map((c) => (
-                <td key={c.key}>{line.per_game[c.key].toFixed(1)}</td>
-              ))}
+              {STAT_COLUMNS.map((k) => {
+                const cat = catOf(k)
+                return (
+                  <td key={k}>
+                    {k === 'MIN'
+                      ? line.per_game.minutes.toFixed(1)
+                      : k === 'FG'
+                        ? ratioPct(line.fg_pct)
+                        : k === 'FT'
+                          ? ratioPct(line.ft_pct)
+                          : cat && line.per_game[cat.key].toFixed(1)}
+                  </td>
+                )
+              })}
             </tr>
           )}
           {card.games.map((g) => (
@@ -640,25 +644,23 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
           <Opponent game={g} size={22} />
         </span>
       </th>
-      <td>{Math.round(s.minutes)}</td>
-      <CatCell cat={PTS_CAT} stats={s} base={base} />
-      <td className="shot-cell">
-        <ShotSplit made={s.fgm} attempts={s.fga} label="FG" />
-      </td>
-      <td className="shot-cell">
-        <ShotSplit made={s.ftm} attempts={s.fta} label="FT" />
-      </td>
-      {REST_CATS.map((c) => (
-        <CatCell key={c.key} cat={c} stats={s} base={base} />
-      ))}
+      {STAT_COLUMNS.map((k) => {
+        if (k === 'MIN') return <td key={k}>{Math.round(s.minutes)}</td>
+        if (k === 'FG' || k === 'FT')
+          return (
+            <td key={k} className="shot-cell">
+              <ShotSplit made={k === 'FG' ? s.fgm : s.ftm} attempts={k === 'FG' ? s.fga : s.fta} label={k} />
+            </td>
+          )
+        const cat = catOf(k)
+        return cat ? <CatCell key={k} cat={cat} stats={s} base={base} /> : <td key={k} />
+      })}
     </tr>
   )
 }
 
-// Game log order: MIN, PTS, FG, FT, then 3PM next to the shooting splits, then the rest.
-const catOf = (key: CatKey) => CATS.find((c) => c.key === key)!
-const PTS_CAT = catOf('pts')
-const REST_CATS = (['tpm', 'reb', 'ast', 'stl', 'blk', 'to'] as const).map(catOf)
+// Game log columns follow the site's one stat order (lib/statOrder); counting stats glow per category.
+const catOf = (col: StatColumn) => CATS.find((c) => c.label === col)
 
 /** One counting stat in a game row, glowing on a big night and fading on a quiet one. */
 function CatCell({ cat, stats: s, base }: { cat: (typeof CATS)[number]; stats: GameStats; base: GameStats | null }) {

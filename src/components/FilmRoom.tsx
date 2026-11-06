@@ -22,6 +22,7 @@ import {
 } from '@phosphor-icons/react'
 import { ApiError, fetchRecap, type LeagueRef, type RecapFreeAgent, type RecapPlayer, type WeekRecap } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
 import {
   CATS,
   afterLine,
@@ -678,18 +679,20 @@ function YourWeekRest({
   )
 }
 
-const LINE: [string, keyof RecapPlayer['totals'] | null][] = [
-  ['MIN', 'minutes'],
-  ['PTS', 'pts'],
-  ['FG', null],
-  ['FT', null],
-  ['3PM', 'tpm'],
-  ['REB', 'reb'],
-  ['AST', 'ast'],
-  ['STL', 'stl'],
-  ['BLK', 'blk'],
-  ['TO', 'to'],
-]
+// Columns in the site's one stat order; FG and FT show the made/attempted split instead of a total.
+const TOTAL_OF: Record<StatColumn, keyof RecapPlayer['totals'] | null> = {
+  MIN: 'minutes',
+  FG: null,
+  FT: null,
+  PTS: 'pts',
+  '3PM': 'tpm',
+  REB: 'reb',
+  AST: 'ast',
+  STL: 'stl',
+  BLK: 'blk',
+  TO: 'to',
+}
+const LINE = STAT_COLUMNS.map((k) => [k, TOTAL_OF[k]] as const)
 
 function BoxScoreTable({
   recap: r,

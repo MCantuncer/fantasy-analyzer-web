@@ -1,3 +1,4 @@
+import { CATEGORY_ORDER } from './statOrder'
 import type { RecapAfter, RecapFreeAgent, RecapMatchup, RecapPlayer, RecapSide, WeekRecap } from '../api/client'
 
 /** ESPN's NBA team ids (``pro_team_id``) and the abbreviations ESPN writes, from its NBA calendar. */
@@ -9,8 +10,8 @@ const NBA: Record<number, string> = {
 
 export const nbaAbbrev = (proTeamId: number): string | null => NBA[proTeamId] ?? null
 
-/** The site's one stat order: MIN, PTS, FG, FT, 3PM, REB, AST, STL, BLK, TO. Categories follow it too. */
-export const CATS = ['PTS', 'FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO'] as const
+/** Categories follow the site's one stat order (lib/statOrder). */
+export const CATS = CATEGORY_ORDER
 
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
 
