@@ -50,15 +50,6 @@ table.box {
   width: var(--owner-w);
   min-width: var(--owner-w);
 }
-:root table.box tr.box-team > th {
-  width: auto;
-  padding: 14px 20px 6px;
-}
-/* The team name rides along when the table scrolls sideways. */
-table.box .sc-team-name {
-  position: sticky;
-  left: 20px;
-}
 
 /* ---------- Header row ---------- */
 :root .table-wrap.box-scroll table.box thead th {
@@ -280,5 +271,36 @@ table.box .sc-key .sc-dir {
   table.box .sc-key::after,
   table.box .sc-key > .sc-caret {
     transition: none;
+  }
+}
+
+/* Team switch above the table: one team at a time. Logo + name, the name trims on narrow phones. */
+.card.box-card .sc-team-switch {
+  margin: 16px 20px;
+  max-width: 420px;
+}
+
+.card.box-card .sc-team-switch button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.card.box-card .sc-team-switch .sc-team-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .card.box-card .sc-team-switch {
+    margin: 12px 16px;
+    max-width: none;
   }
 }

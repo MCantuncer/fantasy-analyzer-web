@@ -117,34 +117,36 @@ describe('Scores', () => {
     const amen = within(box).getByRole('row', { name: /Amen Thompson/ })
     expect(amen).toHaveClass('mine')
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')
+    // One team at a time, opening on the team with my players; the switch shows the other one.
+    expect(screen.getByRole('button', { name: 'Houston Rockets' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(box).queryByRole('row', { name: /Wembanyama/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'San Antonio Spurs' }))
     expect(within(box).getByRole('row', { name: /Wembanyama/ })).toHaveTextContent('AVK')
+    expect(within(box).queryByRole('row', { name: /Amen Thompson/ })).not.toBeInTheDocument()
     expect(screen.getByText(/Best free agent in this game/)).toHaveTextContent('Tari Eason')
   })
 
-  it('sorts each team on its own by a category, then back to the game order', async () => {
+  it('sorts the team by a category, then back to the game order', async () => {
     mockApi()
     renderScores()
     await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
-    const order = () =>
-      [...box.querySelectorAll('tbody')].map((g) =>
-        [...g.querySelectorAll('th[scope="row"]')].map((th) => th.textContent?.split(' ')[0]),
-      )
-    expect(order()).toEqual([['Alperen', 'Amen', 'Tari'], ['Victor']])
+    const order = () => [...box.querySelectorAll('tbody th[scope="row"]')].map((th) => th.textContent?.split(' ')[0])
+    expect(order()).toEqual(['Alperen', 'Amen', 'Tari'])
 
     const reb = within(box).getByRole('button', { name: 'Reb' })
     fireEvent.click(reb)
-    // Most rebounds first inside Houston; the Spurs stay under their own name.
-    expect(order()).toEqual([['Amen', 'Alperen', 'Tari'], ['Victor']])
+    // Most rebounds first among Houston's players.
+    expect(order()).toEqual(['Amen', 'Alperen', 'Tari'])
     expect(reb.closest('th')).toHaveAttribute('aria-sort', 'descending')
     expect(box).toHaveAttribute('data-col', '8')
 
     fireEvent.click(reb)
-    expect(order()).toEqual([['Tari', 'Alperen', 'Amen'], ['Victor']])
+    expect(order()).toEqual(['Tari', 'Alperen', 'Amen'])
     expect(reb.closest('th')).toHaveAttribute('aria-sort', 'ascending')
 
     fireEvent.click(reb)
-    expect(order()).toEqual([['Alperen', 'Amen', 'Tari'], ['Victor']])
+    expect(order()).toEqual(['Alperen', 'Amen', 'Tari'])
     expect(reb.closest('th')).not.toHaveAttribute('aria-sort')
     expect(box).not.toHaveAttribute('data-col')
   })
