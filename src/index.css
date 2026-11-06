@@ -2951,7 +2951,9 @@ button.menu-item.danger {
 /* ---------- Background analysis ---------- */
 
 .analysis-card {
+  width: 100%;
   max-width: 640px;
+  margin: 0 auto;
   padding: 24px;
   gap: 16px;
 }
