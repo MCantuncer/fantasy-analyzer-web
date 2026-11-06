@@ -45,6 +45,8 @@ interface Props {
   creds: Credentials | null
   overview: Overview | null
   onTab: (tab: Tab) => void
+  film?: number | null
+  onFilm?: (period: number | null | undefined) => void
 }
 
 export function Report({
@@ -58,6 +60,8 @@ export function Report({
   creds,
   overview,
   onTab,
+  film,
+  onFilm,
 }: Props) {
   const [show, setShow] = useState<'trades' | 'pickups'>('trades')
   // Trade Park: players picked, and the set last searched (kept across tab switches).
@@ -166,11 +170,15 @@ export function Report({
                 projected={report.season}
                 leagueRef={{ leagueId: overview.league_id, season: overview.season }}
                 creds={creds}
+                film={film}
+                onFilm={onFilm}
               />
             ) : (
               <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
             )}
-            <Builds builds={report.builds} categories={report.league.categories} myTeamId={report.team_id} />
+            {film === undefined && (
+              <Builds builds={report.builds} categories={report.league.categories} myTeamId={report.team_id} />
+            )}
           </>
         )}
 

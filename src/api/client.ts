@@ -40,6 +40,16 @@ export type ShopDeal = components['schemas']['ShopDeal']
 export type ShopTeam = components['schemas']['ShopTeam']
 export type ShopTarget = components['schemas']['ShopTarget']
 export type ScoreDay = components['schemas']['ScoreDay']
+export type WeekRecap = components['schemas']['WeekRecap']
+export type RecapPlayer = components['schemas']['RecapPlayer']
+export type RecapTopPlayer = components['schemas']['RecapTopPlayer']
+export type RecapFreeAgent = components['schemas']['RecapFreeAgent']
+export type RecapAdd = components['schemas']['RecapAdd']
+export type RecapAfter = components['schemas']['RecapAfter']
+export type RecapTeam = components['schemas']['RecapTeam']
+export type RecapSide = components['schemas']['RecapSide']
+export type RecapMatchup = components['schemas']['RecapMatchup']
+export type WeekTotals = components['schemas']['WeekTotals']
 export type WeekSits = components['schemas']['WeekSits']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
@@ -173,6 +183,11 @@ export function removeLeague(ref: LeagueRef) {
 
 export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
   return post<LeagueOverview>('/api/league-overview', { league_id: ref.leagueId, season: ref.season }, creds)
+}
+
+/** A finished week in review (Film Room); ``period`` null = the last finished week. 404 before any week is over. */
+export function fetchRecap(ref: LeagueRef, period: number | null, creds: Credentials | null) {
+  return post<WeekRecap>('/api/recap', { league_id: ref.leagueId, season: ref.season, period }, creds, RECAP_TIMEOUT_MS)
 }
 
 export function fetchMatchupProjection(ref: LeagueRef, creds: Credentials | null) {
@@ -439,6 +454,8 @@ export function fetchTarget(
 
 // The free API server can take most of a minute to wake up; past that, show an error with a retry.
 export const SCORES_TIMEOUT_MS = 60_000
+// A week's first Film Room is built from a week of rosters on the server (a few seconds, more on a cold start).
+export const RECAP_TIMEOUT_MS = 60_000
 
 export function fetchScores(
   leagueId: number,

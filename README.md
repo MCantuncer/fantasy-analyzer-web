@@ -52,6 +52,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 🃏 | **Player cards** | Tap any player's name for his latest games, health, news and every move of him in your league. |
 | 📝 | **Trade feedback and rules** | Rate a trade idea to have it checked against today's league, and set rules (protect a category, skip a team, no injury-prone players) that hide ideas breaking them. |
 | 🏆 | **League** | Every team's build and punts, and simulated standings and playoff odds. |
+| 🎬 | **Film Room** | Every finished week in review on the League tab: your tape (score and all nine categories), game balls for the player, team and pickup of the week, standout free agents still on the wire or grabbed, the week's top ten players, every final score and a few awards. |
 | ⭐ | **Trade of the day** | One league-wide win-win trade between any two teams, the same for everyone that day, with a "Would you take it?" poll. |
 | 📅 | **Projected final** | Who wins your matchup and each category by Sunday, and who to bench on crowded days when more players have games than you have lineup spots. |
 | 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. |

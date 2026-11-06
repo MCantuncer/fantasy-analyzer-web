@@ -1,0 +1,1715 @@
+{
+ "league_id": 744636428,
+ "season": 2027,
+ "period": 2,
+ "start": "2026-10-26",
+ "end": "2026-11-01",
+ "categories": [
+  "FT%",
+  "REB",
+  "PTS",
+  "BLK",
+  "3PM",
+  "STL",
+  "TO",
+  "AST",
+  "FG%"
+ ],
+ "matchups": [
+  {
+   "home": {
+    "team_id": 8,
+    "wins": 0,
+    "losses": 9,
+    "ties": 0,
+    "values": {
+     "FT%": 0.82575758,
+     "REB": 246.0,
+     "PTS": 563.0,
+     "BLK": 11.0,
+     "3PM": 56.0,
+     "STL": 35.0,
+     "TO": 104.0,
+     "AST": 161.0,
+     "FG%": 0.44124169
+    }
+   },
+   "away": {
+    "team_id": 4,
+    "wins": 9,
+    "losses": 0,
+    "ties": 0,
+    "values": {
+     "FT%": 0.88321168,
+     "REB": 261.0,
+     "PTS": 720.0,
+     "BLK": 15.0,
+     "3PM": 79.0,
+     "STL": 41.0,
+     "TO": 87.0,
+     "AST": 168.0,
+     "FG%": 0.45060659
+    }
+   },
+   "winner_team_id": 4,
+   "margin": 9
+  },
+  {
+   "home": {
+    "team_id": 3,
+    "wins": 5,
+    "losses": 4,
+    "ties": 0,
+    "values": {
+     "FT%": 0.74666667,
+     "REB": 233.0,
+     "PTS": 618.0,
+     "BLK": 33.0,
+     "3PM": 40.0,
+     "STL": 36.0,
+     "TO": 74.0,
+     "AST": 181.0,
+     "FG%": 0.4884696
+    }
+   },
+   "away": {
+    "team_id": 7,
+    "wins": 4,
+    "losses": 5,
+    "ties": 0,
+    "values": {
+     "FT%": 0.74556213,
+     "REB": 237.0,
+     "PTS": 740.0,
+     "BLK": 23.0,
+     "3PM": 70.0,
+     "STL": 54.0,
+     "TO": 76.0,
+     "AST": 140.0,
+     "FG%": 0.4738676
+    }
+   },
+   "winner_team_id": 3,
+   "margin": 1
+  },
+  {
+   "home": {
+    "team_id": 5,
+    "wins": 4,
+    "losses": 5,
+    "ties": 0,
+    "values": {
+     "FT%": 0.79166667,
+     "REB": 212.0,
+     "PTS": 735.0,
+     "BLK": 18.0,
+     "3PM": 79.0,
+     "STL": 44.0,
+     "TO": 107.0,
+     "AST": 194.0,
+     "FG%": 0.49094203
+    }
+   },
+   "away": {
+    "team_id": 1,
+    "wins": 5,
+    "losses": 4,
+    "ties": 0,
+    "values": {
+     "FT%": 0.79617834,
+     "REB": 227.0,
+     "PTS": 700.0,
+     "BLK": 35.0,
+     "3PM": 91.0,
+     "STL": 28.0,
+     "TO": 66.0,
+     "AST": 161.0,
+     "FG%": 0.45660377
+    }
+   },
+   "winner_team_id": 1,
+   "margin": 1
+  },
+  {
+   "home": {
+    "team_id": 6,
+    "wins": 5,
+    "losses": 4,
+    "ties": 0,
+    "values": {
+     "FT%": 0.81679389,
+     "REB": 166.0,
+     "PTS": 557.0,
+     "BLK": 20.0,
+     "3PM": 68.0,
+     "STL": 42.0,
+     "TO": 62.0,
+     "AST": 130.0,
+     "FG%": 0.4547619
+    }
+   },
+   "away": {
+    "team_id": 9,
+    "wins": 4,
+    "losses": 5,
+    "ties": 0,
+    "values": {
+     "FT%": 0.78767123,
+     "REB": 200.0,
+     "PTS": 580.0,
+     "BLK": 25.0,
+     "3PM": 49.0,
+     "STL": 41.0,
+     "TO": 89.0,
+     "AST": 128.0,
+     "FG%": 0.47816092
+    }
+   },
+   "winner_team_id": 6,
+   "margin": 1
+  },
+  {
+   "home": {
+    "team_id": 11,
+    "wins": 5,
+    "losses": 4,
+    "ties": 0,
+    "values": {
+     "FT%": 0.75510204,
+     "REB": 242.0,
+     "PTS": 624.0,
+     "BLK": 43.0,
+     "3PM": 83.0,
+     "STL": 46.0,
+     "TO": 75.0,
+     "AST": 122.0,
+     "FG%": 0.42239686
+    }
+   },
+   "away": {
+    "team_id": 10,
+    "wins": 4,
+    "losses": 5,
+    "ties": 0,
+    "values": {
+     "FT%": 0.85616438,
+     "REB": 224.0,
+     "PTS": 626.0,
+     "BLK": 21.0,
+     "3PM": 71.0,
+     "STL": 42.0,
+     "TO": 103.0,
+     "AST": 153.0,
+     "FG%": 0.46840959
+    }
+   },
+   "winner_team_id": 11,
+   "margin": 1
+  }
+ ],
+ "players": [
+  {
+   "player_id": 5104157,
+   "name": "Victor Wembanyama",
+   "pro_team_id": 24,
+   "games": 3,
+   "value": 14.77,
+   "rank": 1,
+   "z": {
+    "FT%": -0.06,
+    "REB": 1.62,
+    "PTS": 2.79,
+    "BLK": 5.18,
+    "3PM": 0.45,
+    "STL": 1.35,
+    "TO": 0.78,
+    "AST": 0.06,
+    "FG%": 2.6
+   },
+   "totals": {
+    "minutes": 100,
+    "pts": 108,
+    "fgm": 45,
+    "fga": 80,
+    "ftm": 11,
+    "fta": 14,
+    "tpm": 7,
+    "reb": 31,
+    "ast": 11,
+    "stl": 6,
+    "blk": 13,
+    "to": 3
+   },
+   "owner_team_id": 11
+  },
+  {
+   "player_id": 3945274,
+   "name": "Luka Doncic",
+   "pro_team_id": 13,
+   "games": 3,
+   "value": 14.18,
+   "rank": 2,
+   "z": {
+    "FT%": 2.83,
+    "REB": 1.17,
+    "PTS": 3.45,
+    "BLK": 0.99,
+    "3PM": 3.81,
+    "STL": 1.35,
+    "TO": -1.68,
+    "AST": 1.34,
+    "FG%": 0.92
+   },
+   "totals": {
+    "minutes": 109,
+    "pts": 123,
+    "fgm": 36,
+    "fga": 72,
+    "ftm": 31,
+    "fta": 34,
+    "tpm": 20,
+    "reb": 27,
+    "ast": 20,
+    "stl": 6,
+    "blk": 4,
+    "to": 12
+   },
+   "owner_team_id": 10
+  },
+  {
+   "player_id": 3975,
+   "name": "Stephen Curry",
+   "pro_team_id": 9,
+   "games": 3,
+   "value": 10.29,
+   "rank": 3,
+   "z": {
+    "FT%": 3.18,
+    "REB": -0.18,
+    "PTS": 2.4,
+    "BLK": -0.4,
+    "3PM": 3.04,
+    "STL": 0.87,
+    "TO": -0.31,
+    "AST": 0.63,
+    "FG%": 1.06
+   },
+   "totals": {
+    "minutes": 90,
+    "pts": 99,
+    "fgm": 30,
+    "fga": 58,
+    "ftm": 22,
+    "fta": 22,
+    "tpm": 17,
+    "reb": 15,
+    "ast": 15,
+    "stl": 5,
+    "blk": 1,
+    "to": 7
+   },
+   "owner_team_id": 4
+  },
+  {
+   "player_id": 4433287,
+   "name": "Brandon Miller",
+   "pro_team_id": 30,
+   "games": 4,
+   "value": 9.06,
+   "rank": 4,
+   "z": {
+    "FT%": 0.23,
+    "REB": 1.51,
+    "PTS": 3.01,
+    "BLK": 0.99,
+    "3PM": 2.78,
+    "STL": 2.31,
+    "TO": -0.86,
+    "AST": 0.06,
+    "FG%": -0.97
+   },
+   "totals": {
+    "minutes": 144,
+    "pts": 113,
+    "fgm": 42,
+    "fga": 98,
+    "ftm": 13,
+    "fta": 16,
+    "tpm": 16,
+    "reb": 30,
+    "ast": 11,
+    "stl": 8,
+    "blk": 4,
+    "to": 9
+   },
+   "owner_team_id": 7
+  },
+  {
+   "player_id": 5041939,
+   "name": "Cooper Flagg",
+   "pro_team_id": 6,
+   "games": 3,
+   "value": 8.26,
+   "rank": 5,
+   "z": {
+    "FT%": 0.37,
+    "REB": 0.38,
+    "PTS": 1.92,
+    "BLK": 0.99,
+    "3PM": -0.32,
+    "STL": 1.83,
+    "TO": -0.59,
+    "AST": 2.06,
+    "FG%": 1.62
+   },
+   "totals": {
+    "minutes": 112,
+    "pts": 88,
+    "fgm": 35,
+    "fga": 65,
+    "ftm": 14,
+    "fta": 17,
+    "tpm": 4,
+    "reb": 20,
+    "ast": 25,
+    "stl": 7,
+    "blk": 4,
+    "to": 8
+   },
+   "owner_team_id": 7
+  },
+  {
+   "player_id": 4432639,
+   "name": "Jabari Smith Jr.",
+   "pro_team_id": 10,
+   "games": 4,
+   "value": 7.15,
+   "rank": 6,
+   "z": {
+    "FT%": 0.92,
+    "REB": 1.06,
+    "PTS": 1.65,
+    "BLK": 0.53,
+    "3PM": 2.26,
+    "STL": -0.09,
+    "TO": 0.23,
+    "AST": 0.49,
+    "FG%": 0.1
+   },
+   "totals": {
+    "minutes": 137,
+    "pts": 82,
+    "fgm": 27,
+    "fga": 58,
+    "ftm": 14,
+    "fta": 16,
+    "tpm": 14,
+    "reb": 26,
+    "ast": 14,
+    "stl": 3,
+    "blk": 3,
+    "to": 5
+   },
+   "owner_team_id": 1
+  },
+  {
+   "player_id": 3936299,
+   "name": "Jamal Murray",
+   "pro_team_id": 7,
+   "games": 3,
+   "value": 6.56,
+   "rank": 7,
+   "z": {
+    "FT%": 0.08,
+    "REB": -0.18,
+    "PTS": 1.61,
+    "BLK": 0.53,
+    "3PM": 2.52,
+    "STL": 0.39,
+    "TO": -0.86,
+    "AST": 1.2,
+    "FG%": 1.27
+   },
+   "totals": {
+    "minutes": 111,
+    "pts": 81,
+    "fgm": 27,
+    "fga": 50,
+    "ftm": 12,
+    "fta": 15,
+    "tpm": 15,
+    "reb": 15,
+    "ast": 19,
+    "stl": 4,
+    "blk": 3,
+    "to": 9
+   },
+   "owner_team_id": 1
+  },
+  {
+   "player_id": 4065648,
+   "name": "Jayson Tatum",
+   "pro_team_id": 2,
+   "games": 4,
+   "value": 6.22,
+   "rank": 8,
+   "z": {
+    "FT%": 1.7,
+    "REB": 0.72,
+    "PTS": 3.36,
+    "BLK": 0.53,
+    "3PM": 0.45,
+    "STL": -1.05,
+    "TO": -1.68,
+    "AST": 2.49,
+    "FG%": -0.3
+   },
+   "totals": {
+    "minutes": 139,
+    "pts": 121,
+    "fgm": 34,
+    "fga": 76,
+    "ftm": 46,
+    "fta": 55,
+    "tpm": 7,
+    "reb": 23,
+    "ast": 28,
+    "stl": 1,
+    "blk": 3,
+    "to": 12
+   },
+   "owner_team_id": 3
+  },
+  {
+   "player_id": 4066328,
+   "name": "Jarrett Allen",
+   "pro_team_id": 5,
+   "games": 4,
+   "value": 6.11,
+   "rank": 9,
+   "z": {
+    "FT%": -0.75,
+    "REB": 2.63,
+    "PTS": 0.56,
+    "BLK": 2.39,
+    "3PM": -1.09,
+    "STL": -0.09,
+    "TO": 0.78,
+    "AST": -0.22,
+    "FG%": 1.9
+   },
+   "totals": {
+    "minutes": 111,
+    "pts": 57,
+    "fgm": 23,
+    "fga": 37,
+    "ftm": 10,
+    "fta": 14,
+    "tpm": 1,
+    "reb": 40,
+    "ast": 9,
+    "stl": 3,
+    "blk": 7,
+    "to": 3
+   },
+   "owner_team_id": 3
+  },
+  {
+   "player_id": 4433136,
+   "name": "Walker Kessler",
+   "pro_team_id": 13,
+   "games": 4,
+   "value": 5.75,
+   "rank": 10,
+   "z": {
+    "FT%": -1.85,
+    "REB": 3.2,
+    "PTS": 0.25,
+    "BLK": 4.25,
+    "3PM": -1.35,
+    "STL": 0.39,
+    "TO": -0.31,
+    "AST": -0.94,
+    "FG%": 2.11
+   },
+   "totals": {
+    "minutes": 121,
+    "pts": 50,
+    "fgm": 20,
+    "fga": 29,
+    "ftm": 10,
+    "fta": 16,
+    "tpm": 0,
+    "reb": 45,
+    "ast": 4,
+    "stl": 4,
+    "blk": 11,
+    "to": 7
+   },
+   "owner_team_id": 9
+  }
+ ],
+ "free_agents": [
+  {
+   "player_id": 4433249,
+   "name": "Moussa Diabate",
+   "pro_team_id": 30,
+   "games": 4,
+   "value": 4.17,
+   "rank": 21,
+   "z": {
+    "FT%": -0.23,
+    "REB": 3.31,
+    "PTS": -0.18,
+    "BLK": 1.92,
+    "3PM": -1.35,
+    "STL": -0.09,
+    "TO": -0.59,
+    "AST": -0.22,
+    "FG%": 1.6
+   },
+   "totals": {
+    "minutes": 129,
+    "pts": 40,
+    "fgm": 17,
+    "fga": 26,
+    "ftm": 6,
+    "fta": 8,
+    "tpm": 0,
+    "reb": 46,
+    "ast": 9,
+    "stl": 3,
+    "blk": 6,
+    "to": 8
+   },
+   "picked_up": {
+    "team_id": 4,
+    "day": 9,
+    "weekday": 2,
+    "after": {
+     "games": 3,
+     "started": 3,
+     "value": -0.52,
+     "totals": {
+      "minutes": 94,
+      "pts": 29,
+      "fgm": 13,
+      "fga": 20,
+      "ftm": 3,
+      "fta": 4,
+      "tpm": 0,
+      "reb": 29,
+      "ast": 6,
+      "stl": 2,
+      "blk": 3,
+      "to": 7
+     }
+    }
+   },
+   "owner_now_team_id": 4
+  },
+  {
+   "player_id": 4431767,
+   "name": "Christian Braun",
+   "pro_team_id": 7,
+   "games": 3,
+   "value": 4.13,
+   "rank": 23,
+   "z": {
+    "FT%": 0.29,
+    "REB": -1.08,
+    "PTS": 0.47,
+    "BLK": -0.4,
+    "3PM": 1.49,
+    "STL": 2.79,
+    "TO": -0.04,
+    "AST": -0.51,
+    "FG%": 1.12
+   },
+   "totals": {
+    "minutes": 107,
+    "pts": 55,
+    "fgm": 21,
+    "fga": 38,
+    "ftm": 2,
+    "fta": 2,
+    "tpm": 11,
+    "reb": 7,
+    "ast": 7,
+    "stl": 9,
+    "blk": 1,
+    "to": 6
+   },
+   "picked_up": {
+    "team_id": 3,
+    "day": 13,
+    "weekday": 6,
+    "after": {
+     "games": 0,
+     "started": 0,
+     "value": 0.0,
+     "totals": {
+      "minutes": 0,
+      "pts": 0,
+      "fgm": 0,
+      "fga": 0,
+      "ftm": 0,
+      "fta": 0,
+      "tpm": 0,
+      "reb": 0,
+      "ast": 0,
+      "stl": 0,
+      "blk": 0,
+      "to": 0
+     }
+    }
+   },
+   "owner_now_team_id": 3
+  },
+  {
+   "player_id": 4351851,
+   "name": "Anfernee Simons",
+   "pro_team_id": 20,
+   "games": 3,
+   "value": 4.04,
+   "rank": 24,
+   "z": {
+    "FT%": 0.58,
+    "REB": -1.3,
+    "PTS": 0.69,
+    "BLK": -0.87,
+    "3PM": 2.78,
+    "STL": 0.39,
+    "TO": 1.33,
+    "AST": -0.94,
+    "FG%": 1.38
+   },
+   "totals": {
+    "minutes": 83,
+    "pts": 60,
+    "fgm": 20,
+    "fga": 34,
+    "ftm": 4,
+    "fta": 4,
+    "tpm": 16,
+    "reb": 5,
+    "ast": 4,
+    "stl": 4,
+    "blk": 0,
+    "to": 1
+   },
+   "picked_up": null,
+   "owner_now_team_id": null
+  },
+  {
+   "player_id": 4066436,
+   "name": "De'Anthony Melton",
+   "pro_team_id": 9,
+   "games": 4,
+   "value": 3.57,
+   "rank": 33,
+   "z": {
+    "FT%": 0.46,
+    "REB": 0.5,
+    "PTS": 0.17,
+    "BLK": 0.06,
+    "3PM": 2.0,
+    "STL": 0.87,
+    "TO": -0.04,
+    "AST": -0.22,
+    "FG%": -0.23
+   },
+   "totals": {
+    "minutes": 88,
+    "pts": 48,
+    "fgm": 14,
+    "fga": 32,
+    "ftm": 7,
+    "fta": 8,
+    "tpm": 13,
+    "reb": 21,
+    "ast": 9,
+    "stl": 5,
+    "blk": 2,
+    "to": 6
+   },
+   "picked_up": null,
+   "owner_now_team_id": null
+  },
+  {
+   "player_id": 4433192,
+   "name": "Tari Eason",
+   "pro_team_id": 10,
+   "games": 4,
+   "value": 3.2,
+   "rank": 37,
+   "z": {
+    "FT%": 0.46,
+    "REB": 1.85,
+    "PTS": -0.31,
+    "BLK": 2.85,
+    "3PM": -0.32,
+    "STL": -0.09,
+    "TO": -0.04,
+    "AST": -0.51,
+    "FG%": -0.69
+   },
+   "totals": {
+    "minutes": 109,
+    "pts": 37,
+    "fgm": 13,
+    "fga": 33,
+    "ftm": 7,
+    "fta": 8,
+    "tpm": 4,
+    "reb": 33,
+    "ast": 7,
+    "stl": 3,
+    "blk": 8,
+    "to": 6
+   },
+   "picked_up": null,
+   "owner_now_team_id": null
+  },
+  {
+   "player_id": 4873138,
+   "name": "Ace Bailey",
+   "pro_team_id": 26,
+   "games": 3,
+   "value": 2.04,
+   "rank": 44,
+   "z": {
+    "FT%": 0.29,
+    "REB": 0.72,
+    "PTS": 0.04,
+    "BLK": 2.39,
+    "3PM": -0.06,
+    "STL": -0.57,
+    "TO": -0.31,
+    "AST": -0.94,
+    "FG%": 0.48
+   },
+   "totals": {
+    "minutes": 111,
+    "pts": 45,
+    "fgm": 19,
+    "fga": 38,
+    "ftm": 2,
+    "fta": 2,
+    "tpm": 5,
+    "reb": 23,
+    "ast": 4,
+    "stl": 2,
+    "blk": 7,
+    "to": 7
+   },
+   "picked_up": {
+    "team_id": 10,
+    "day": 8,
+    "weekday": 1,
+    "after": {
+     "games": 2,
+     "started": 2,
+     "value": -2.9,
+     "totals": {
+      "minutes": 77,
+      "pts": 28,
+      "fgm": 13,
+      "fga": 28,
+      "ftm": 0,
+      "fta": 0,
+      "tpm": 2,
+      "reb": 13,
+      "ast": 1,
+      "stl": 2,
+      "blk": 4,
+      "to": 6
+     }
+    }
+   },
+   "owner_now_team_id": 10
+  },
+  {
+   "player_id": 4433083,
+   "name": "Cam Spencer",
+   "pro_team_id": 29,
+   "games": 3,
+   "value": 2.03,
+   "rank": 45,
+   "z": {
+    "FT%": 0.14,
+    "REB": -0.07,
+    "PTS": -0.8,
+    "BLK": -0.87,
+    "3PM": -0.06,
+    "STL": -0.09,
+    "TO": 1.33,
+    "AST": 2.2,
+    "FG%": 0.25
+   },
+   "totals": {
+    "minutes": 66,
+    "pts": 26,
+    "fgm": 10,
+    "fga": 20,
+    "ftm": 1,
+    "fta": 1,
+    "tpm": 5,
+    "reb": 16,
+    "ast": 26,
+    "stl": 3,
+    "blk": 0,
+    "to": 1
+   },
+   "picked_up": null,
+   "owner_now_team_id": null
+  },
+  {
+   "player_id": 4395630,
+   "name": "Devin Vassell",
+   "pro_team_id": 24,
+   "games": 3,
+   "value": 1.7,
+   "rank": 53,
+   "z": {
+    "FT%": 0.75,
+    "REB": -0.29,
+    "PTS": -0.01,
+    "BLK": -0.4,
+    "3PM": -0.06,
+    "STL": 1.35,
+    "TO": 0.51,
+    "AST": 0.2,
+    "FG%": -0.35
+   },
+   "totals": {
+    "minutes": 96,
+    "pts": 44,
+    "fgm": 15,
+    "fga": 35,
+    "ftm": 9,
+    "fta": 10,
+    "tpm": 5,
+    "reb": 14,
+    "ast": 12,
+    "stl": 6,
+    "blk": 1,
+    "to": 4
+   },
+   "picked_up": null,
+   "owner_now_team_id": 6
+  }
+ ],
+ "teams": [
+  {
+   "team_id": 1,
+   "abbrev": "WP",
+   "name": "Sariyer Wolfpack",
+   "mvp": {
+    "player_id": 4432639,
+    "name": "Jabari Smith Jr.",
+    "pro_team_id": 10,
+    "games": 4,
+    "value": 7.15,
+    "rank": 6,
+    "z": {
+     "FT%": 0.92,
+     "REB": 1.06,
+     "PTS": 1.65,
+     "BLK": 0.53,
+     "3PM": 2.26,
+     "STL": -0.09,
+     "TO": 0.23,
+     "AST": 0.49,
+     "FG%": 0.1
+    },
+    "totals": {
+     "minutes": 137,
+     "pts": 82,
+     "fgm": 27,
+     "fga": 58,
+     "ftm": 14,
+     "fta": 16,
+     "tpm": 14,
+     "reb": 26,
+     "ast": 14,
+     "stl": 3,
+     "blk": 3,
+     "to": 5
+    }
+   },
+   "best_add": null,
+   "bench": {
+    "games": 3,
+    "pts": 64,
+    "reb": 18,
+    "ast": 22,
+    "stl": 2,
+    "blk": 4,
+    "tpm": 6
+   }
+  },
+  {
+   "team_id": 3,
+   "abbrev": "KEA",
+   "name": "Kucukesat Aspavas",
+   "mvp": {
+    "player_id": 4065648,
+    "name": "Jayson Tatum",
+    "pro_team_id": 2,
+    "games": 4,
+    "value": 6.22,
+    "rank": 8,
+    "z": {
+     "FT%": 1.7,
+     "REB": 0.72,
+     "PTS": 3.36,
+     "BLK": 0.53,
+     "3PM": 0.45,
+     "STL": -1.05,
+     "TO": -1.68,
+     "AST": 2.49,
+     "FG%": -0.3
+    },
+    "totals": {
+     "minutes": 139,
+     "pts": 121,
+     "fgm": 34,
+     "fga": 76,
+     "ftm": 46,
+     "fta": 55,
+     "tpm": 7,
+     "reb": 23,
+     "ast": 28,
+     "stl": 1,
+     "blk": 3,
+     "to": 12
+    }
+   },
+   "best_add": {
+    "player_id": 4432170,
+    "name": "Isaiah Jackson",
+    "pro_team_id": 12,
+    "games": 3,
+    "value": -0.94,
+    "rank": 126,
+    "z": {
+     "FT%": 0.46,
+     "REB": 0.38,
+     "PTS": -1.1,
+     "BLK": 0.99,
+     "3PM": -1.35,
+     "STL": 0.39,
+     "TO": 0.23,
+     "AST": -0.51,
+     "FG%": -0.43
+    },
+    "totals": {
+     "minutes": 63,
+     "pts": 19,
+     "fgm": 6,
+     "fga": 16,
+     "ftm": 7,
+     "fta": 8,
+     "tpm": 0,
+     "reb": 20,
+     "ast": 7,
+     "stl": 4,
+     "blk": 4,
+     "to": 5
+    },
+    "day": 13,
+    "weekday": 6,
+    "after": {
+     "games": 1,
+     "started": 1,
+     "value": -7.12,
+     "totals": {
+      "minutes": 22,
+      "pts": 5,
+      "fgm": 2,
+      "fga": 7,
+      "ftm": 1,
+      "fta": 2,
+      "tpm": 0,
+      "reb": 8,
+      "ast": 2,
+      "stl": 0,
+      "blk": 0,
+      "to": 1
+     }
+    }
+   },
+   "bench": {
+    "games": 1,
+    "pts": 20,
+    "reb": 4,
+    "ast": 4,
+    "stl": 0,
+    "blk": 1,
+    "tpm": 1
+   }
+  },
+  {
+   "team_id": 4,
+   "abbrev": "KVK",
+   "name": "Kavaklidere Boytoys",
+   "mvp": {
+    "player_id": 3975,
+    "name": "Stephen Curry",
+    "pro_team_id": 9,
+    "games": 3,
+    "value": 10.29,
+    "rank": 3,
+    "z": {
+     "FT%": 3.18,
+     "REB": -0.18,
+     "PTS": 2.4,
+     "BLK": -0.4,
+     "3PM": 3.04,
+     "STL": 0.87,
+     "TO": -0.31,
+     "AST": 0.63,
+     "FG%": 1.06
+    },
+    "totals": {
+     "minutes": 90,
+     "pts": 99,
+     "fgm": 30,
+     "fga": 58,
+     "ftm": 22,
+     "fta": 22,
+     "tpm": 17,
+     "reb": 15,
+     "ast": 15,
+     "stl": 5,
+     "blk": 1,
+     "to": 7
+    }
+   },
+   "best_add": {
+    "player_id": 4433249,
+    "name": "Moussa Diabate",
+    "pro_team_id": 30,
+    "games": 4,
+    "value": 4.17,
+    "rank": 21,
+    "z": {
+     "FT%": -0.23,
+     "REB": 3.31,
+     "PTS": -0.18,
+     "BLK": 1.92,
+     "3PM": -1.35,
+     "STL": -0.09,
+     "TO": -0.59,
+     "AST": -0.22,
+     "FG%": 1.6
+    },
+    "totals": {
+     "minutes": 129,
+     "pts": 40,
+     "fgm": 17,
+     "fga": 26,
+     "ftm": 6,
+     "fta": 8,
+     "tpm": 0,
+     "reb": 46,
+     "ast": 9,
+     "stl": 3,
+     "blk": 6,
+     "to": 8
+    },
+    "day": 9,
+    "weekday": 2,
+    "after": {
+     "games": 3,
+     "started": 3,
+     "value": -0.52,
+     "totals": {
+      "minutes": 94,
+      "pts": 29,
+      "fgm": 13,
+      "fga": 20,
+      "ftm": 3,
+      "fta": 4,
+      "tpm": 0,
+      "reb": 29,
+      "ast": 6,
+      "stl": 2,
+      "blk": 3,
+      "to": 7
+     }
+    }
+   },
+   "bench": {
+    "games": 1,
+    "pts": 11,
+    "reb": 4,
+    "ast": 4,
+    "stl": 0,
+    "blk": 1,
+    "tpm": 1
+   }
+  },
+  {
+   "team_id": 5,
+   "abbrev": "CG3Y",
+   "name": "Antalya Apaches",
+   "mvp": {
+    "player_id": 3112335,
+    "name": "Nikola Jokic",
+    "pro_team_id": 7,
+    "games": 3,
+    "value": 4.98,
+    "rank": 16,
+    "z": {
+     "FT%": 0.75,
+     "REB": 1.17,
+     "PTS": 0.6,
+     "BLK": 0.53,
+     "3PM": -1.09,
+     "STL": 0.87,
+     "TO": -1.95,
+     "AST": 2.91,
+     "FG%": 1.19
+    },
+    "totals": {
+     "minutes": 106,
+     "pts": 58,
+     "fgm": 24,
+     "fga": 44,
+     "ftm": 9,
+     "fta": 10,
+     "tpm": 1,
+     "reb": 27,
+     "ast": 31,
+     "stl": 5,
+     "blk": 3,
+     "to": 13
+    }
+   },
+   "best_add": {
+    "player_id": 5107199,
+    "name": "Daniss Jenkins",
+    "pro_team_id": 8,
+    "games": 3,
+    "value": -1.81,
+    "rank": 146,
+    "z": {
+     "FT%": 0.58,
+     "REB": -0.97,
+     "PTS": -0.58,
+     "BLK": -0.87,
+     "3PM": -0.06,
+     "STL": -0.57,
+     "TO": 1.33,
+     "AST": -0.08,
+     "FG%": -0.59
+    },
+    "totals": {
+     "minutes": 72,
+     "pts": 31,
+     "fgm": 11,
+     "fga": 28,
+     "ftm": 4,
+     "fta": 4,
+     "tpm": 5,
+     "reb": 8,
+     "ast": 10,
+     "stl": 2,
+     "blk": 0,
+     "to": 1
+    },
+    "day": 8,
+    "weekday": 1,
+    "after": {
+     "games": 3,
+     "started": 3,
+     "value": -1.81,
+     "totals": {
+      "minutes": 72,
+      "pts": 31,
+      "fgm": 11,
+      "fga": 28,
+      "ftm": 4,
+      "fta": 4,
+      "tpm": 5,
+      "reb": 8,
+      "ast": 10,
+      "stl": 2,
+      "blk": 0,
+      "to": 1
+     }
+    }
+   },
+   "bench": {
+    "games": 1,
+    "pts": 11,
+    "reb": 4,
+    "ast": 3,
+    "stl": 1,
+    "blk": 0,
+    "tpm": 1
+   }
+  },
+  {
+   "team_id": 6,
+   "abbrev": "FUCk",
+   "name": "\u00c7ayyolu Bastards",
+   "mvp": {
+    "player_id": 4397002,
+    "name": "Ayo Dosunmu",
+    "pro_team_id": 16,
+    "games": 4,
+    "value": 5.67,
+    "rank": 11,
+    "z": {
+     "FT%": 0.72,
+     "REB": 0.38,
+     "PTS": 1.04,
+     "BLK": 0.06,
+     "3PM": 0.97,
+     "STL": 2.31,
+     "TO": -0.86,
+     "AST": -0.22,
+     "FG%": 1.27
+    },
+    "totals": {
+     "minutes": 126,
+     "pts": 68,
+     "fgm": 27,
+     "fga": 50,
+     "ftm": 5,
+     "fta": 5,
+     "tpm": 9,
+     "reb": 20,
+     "ast": 9,
+     "stl": 8,
+     "blk": 2,
+     "to": 9
+    }
+   },
+   "best_add": {
+    "player_id": 4592479,
+    "name": "Julian Champagnie",
+    "pro_team_id": 24,
+    "games": 3,
+    "value": 1.02,
+    "rank": 66,
+    "z": {
+     "FT%": 0.43,
+     "REB": -0.52,
+     "PTS": -0.01,
+     "BLK": -0.87,
+     "3PM": 2.0,
+     "STL": -1.05,
+     "TO": 1.33,
+     "AST": -0.94,
+     "FG%": 0.65
+    },
+    "totals": {
+     "minutes": 83,
+     "pts": 44,
+     "fgm": 14,
+     "fga": 26,
+     "ftm": 3,
+     "fta": 3,
+     "tpm": 13,
+     "reb": 12,
+     "ast": 4,
+     "stl": 1,
+     "blk": 0,
+     "to": 1
+    },
+    "day": 10,
+    "weekday": 3,
+    "after": {
+     "games": 1,
+     "started": 1,
+     "value": -4.85,
+     "totals": {
+      "minutes": 27,
+      "pts": 12,
+      "fgm": 3,
+      "fga": 7,
+      "ftm": 3,
+      "fta": 3,
+      "tpm": 3,
+      "reb": 3,
+      "ast": 1,
+      "stl": 1,
+      "blk": 0,
+      "to": 0
+     }
+    }
+   },
+   "bench": {
+    "games": 0,
+    "pts": 0,
+    "reb": 0,
+    "ast": 0,
+    "stl": 0,
+    "blk": 0,
+    "tpm": 0
+   }
+  },
+  {
+   "team_id": 7,
+   "abbrev": "D7RE",
+   "name": "Los Avokados",
+   "mvp": {
+    "player_id": 4433287,
+    "name": "Brandon Miller",
+    "pro_team_id": 30,
+    "games": 4,
+    "value": 9.06,
+    "rank": 4,
+    "z": {
+     "FT%": 0.23,
+     "REB": 1.51,
+     "PTS": 3.01,
+     "BLK": 0.99,
+     "3PM": 2.78,
+     "STL": 2.31,
+     "TO": -0.86,
+     "AST": 0.06,
+     "FG%": -0.97
+    },
+    "totals": {
+     "minutes": 144,
+     "pts": 113,
+     "fgm": 42,
+     "fga": 98,
+     "ftm": 13,
+     "fta": 16,
+     "tpm": 16,
+     "reb": 30,
+     "ast": 11,
+     "stl": 8,
+     "blk": 4,
+     "to": 9
+    }
+   },
+   "best_add": null,
+   "bench": {
+    "games": 2,
+    "pts": 39,
+    "reb": 10,
+    "ast": 14,
+    "stl": 5,
+    "blk": 3,
+    "tpm": 4
+   }
+  },
+  {
+   "team_id": 8,
+   "abbrev": "ERY",
+   "name": "Eryaman Lakers",
+   "mvp": {
+    "player_id": 4251,
+    "name": "Paul George",
+    "pro_team_id": 2,
+    "games": 4,
+    "value": 5.51,
+    "rank": 12,
+    "z": {
+     "FT%": 0.9,
+     "REB": 0.83,
+     "PTS": 1.17,
+     "BLK": 0.06,
+     "3PM": 0.97,
+     "STL": 1.83,
+     "TO": -1.95,
+     "AST": 2.06,
+     "FG%": -0.36
+    },
+    "totals": {
+     "minutes": 121,
+     "pts": 71,
+     "fgm": 26,
+     "fga": 59,
+     "ftm": 10,
+     "fta": 11,
+     "tpm": 9,
+     "reb": 24,
+     "ast": 25,
+     "stl": 7,
+     "blk": 2,
+     "to": 13
+    }
+   },
+   "best_add": {
+    "player_id": 4222252,
+    "name": "Isaiah Hartenstein",
+    "pro_team_id": 25,
+    "games": 3,
+    "value": 1.19,
+    "rank": 63,
+    "z": {
+     "FT%": 1.3,
+     "REB": 1.96,
+     "PTS": -0.4,
+     "BLK": -0.87,
+     "3PM": -1.35,
+     "STL": -0.09,
+     "TO": 0.23,
+     "AST": -0.65,
+     "FG%": 1.06
+    },
+    "totals": {
+     "minutes": 77,
+     "pts": 35,
+     "fgm": 13,
+     "fga": 21,
+     "ftm": 9,
+     "fta": 9,
+     "tpm": 0,
+     "reb": 34,
+     "ast": 6,
+     "stl": 3,
+     "blk": 0,
+     "to": 5
+    },
+    "day": 9,
+    "weekday": 2,
+    "after": {
+     "games": 2,
+     "started": 2,
+     "value": -2.39,
+     "totals": {
+      "minutes": 51,
+      "pts": 20,
+      "fgm": 7,
+      "fga": 14,
+      "ftm": 6,
+      "fta": 6,
+      "tpm": 0,
+      "reb": 21,
+      "ast": 3,
+      "stl": 3,
+      "blk": 0,
+      "to": 4
+     }
+    }
+   },
+   "bench": {
+    "games": 0,
+    "pts": 0,
+    "reb": 0,
+    "ast": 0,
+    "stl": 0,
+    "blk": 0,
+    "tpm": 0
+   }
+  },
+  {
+   "team_id": 9,
+   "abbrev": "3G4X",
+   "name": "Aliaga Hermanos",
+   "mvp": {
+    "player_id": 4433136,
+    "name": "Walker Kessler",
+    "pro_team_id": 13,
+    "games": 4,
+    "value": 5.75,
+    "rank": 10,
+    "z": {
+     "FT%": -1.85,
+     "REB": 3.2,
+     "PTS": 0.25,
+     "BLK": 4.25,
+     "3PM": -1.35,
+     "STL": 0.39,
+     "TO": -0.31,
+     "AST": -0.94,
+     "FG%": 2.11
+    },
+    "totals": {
+     "minutes": 121,
+     "pts": 50,
+     "fgm": 20,
+     "fga": 29,
+     "ftm": 10,
+     "fta": 16,
+     "tpm": 0,
+     "reb": 45,
+     "ast": 4,
+     "stl": 4,
+     "blk": 11,
+     "to": 7
+    }
+   },
+   "best_add": null,
+   "bench": {
+    "games": 0,
+    "pts": 0,
+    "reb": 0,
+    "ast": 0,
+    "stl": 0,
+    "blk": 0,
+    "tpm": 0
+   }
+  },
+  {
+   "team_id": 10,
+   "abbrev": "ASM",
+   "name": "Aachen ShowManners",
+   "mvp": {
+    "player_id": 3945274,
+    "name": "Luka Doncic",
+    "pro_team_id": 13,
+    "games": 3,
+    "value": 14.18,
+    "rank": 2,
+    "z": {
+     "FT%": 2.83,
+     "REB": 1.17,
+     "PTS": 3.45,
+     "BLK": 0.99,
+     "3PM": 3.81,
+     "STL": 1.35,
+     "TO": -1.68,
+     "AST": 1.34,
+     "FG%": 0.92
+    },
+    "totals": {
+     "minutes": 109,
+     "pts": 123,
+     "fgm": 36,
+     "fga": 72,
+     "ftm": 31,
+     "fta": 34,
+     "tpm": 20,
+     "reb": 27,
+     "ast": 20,
+     "stl": 6,
+     "blk": 4,
+     "to": 12
+    }
+   },
+   "best_add": {
+    "player_id": 3135045,
+    "name": "Grayson Allen",
+    "pro_team_id": 30,
+    "games": 4,
+    "value": 1.34,
+    "rank": 60,
+    "z": {
+     "FT%": 1.18,
+     "REB": -0.29,
+     "PTS": 0.52,
+     "BLK": 0.53,
+     "3PM": 1.74,
+     "STL": -0.09,
+     "TO": -1.41,
+     "AST": -0.37,
+     "FG%": -0.47
+    },
+    "totals": {
+     "minutes": 109,
+     "pts": 56,
+     "fgm": 16,
+     "fga": 38,
+     "ftm": 12,
+     "fta": 13,
+     "tpm": 12,
+     "reb": 14,
+     "ast": 8,
+     "stl": 3,
+     "blk": 3,
+     "to": 11
+    },
+    "day": 11,
+    "weekday": 4,
+    "after": {
+     "games": 2,
+     "started": 2,
+     "value": -2.07,
+     "totals": {
+      "minutes": 51,
+      "pts": 32,
+      "fgm": 11,
+      "fga": 22,
+      "ftm": 2,
+      "fta": 2,
+      "tpm": 8,
+      "reb": 7,
+      "ast": 5,
+      "stl": 1,
+      "blk": 1,
+      "to": 4
+     }
+    }
+   },
+   "bench": {
+    "games": 0,
+    "pts": 0,
+    "reb": 0,
+    "ast": 0,
+    "stl": 0,
+    "blk": 0,
+    "tpm": 0
+   }
+  },
+  {
+   "team_id": 11,
+   "abbrev": "JST",
+   "name": "Jze's Scary Team",
+   "mvp": {
+    "player_id": 5104157,
+    "name": "Victor Wembanyama",
+    "pro_team_id": 24,
+    "games": 3,
+    "value": 14.77,
+    "rank": 1,
+    "z": {
+     "FT%": -0.06,
+     "REB": 1.62,
+     "PTS": 2.79,
+     "BLK": 5.18,
+     "3PM": 0.45,
+     "STL": 1.35,
+     "TO": 0.78,
+     "AST": 0.06,
+     "FG%": 2.6
+    },
+    "totals": {
+     "minutes": 100,
+     "pts": 108,
+     "fgm": 45,
+     "fga": 80,
+     "ftm": 11,
+     "fta": 14,
+     "tpm": 7,
+     "reb": 31,
+     "ast": 11,
+     "stl": 6,
+     "blk": 13,
+     "to": 3
+    }
+   },
+   "best_add": null,
+   "bench": {
+    "games": 2,
+    "pts": 21,
+    "reb": 15,
+    "ast": 4,
+    "stl": 1,
+    "blk": 0,
+    "tpm": 2
+   }
+  }
+ ],
+ "weeks": [
+  {
+   "period": 1,
+   "start": "2026-10-20",
+   "end": "2026-10-25"
+  },
+  {
+   "period": 2,
+   "start": "2026-10-26",
+   "end": "2026-11-01"
+  }
+ ]
+}
