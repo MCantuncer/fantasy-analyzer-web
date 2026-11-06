@@ -598,6 +598,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Week Recap
+         * @description A finished week in review: matchup results, players of the week, the free agents who stood
+         *     out and each team's MVP, best add and bench. Built once per league and week, then stored.
+         */
+        post: operations["week_recap_api_recap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/news/refresh": {
         parameters: {
             query?: never;
@@ -2502,6 +2523,292 @@ export interface components {
              */
             ratio?: number | null;
         };
+        /** RecapAdd */
+        RecapAdd: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Games */
+            games: number;
+            /**
+             * Value
+             * @description Sum of the week's category z-scores against the 200 busiest players
+             */
+            value: number;
+            /**
+             * Rank
+             * @description Rank by value among every NBA player that week
+             */
+            rank: number;
+            /**
+             * Z
+             * @description Category name -> z-score; turnovers count against
+             */
+            z: {
+                [key: string]: number;
+            };
+            totals: components["schemas"]["WeekTotals"];
+            /** Day */
+            day: number;
+            /** Weekday */
+            weekday: number;
+            /** @description His games for this team after the pickup, which is what ranks the adds */
+            after: components["schemas"]["RecapAfter"];
+        };
+        /**
+         * RecapAfter
+         * @description What a player did for the team that added him, from the day it added him to the week's end.
+         */
+        RecapAfter: {
+            /** Games */
+            games: number;
+            /**
+             * Started
+             * @description Of those games, how many he started (not on the bench or IR)
+             */
+            started: number;
+            /**
+             * Value
+             * @description The same 9-cat value as the week's, for these games only
+             */
+            value: number;
+            totals: components["schemas"]["WeekTotals"];
+        };
+        /** RecapBench */
+        RecapBench: {
+            /**
+             * Games
+             * @default 0
+             */
+            games: number;
+            /**
+             * Pts
+             * @default 0
+             */
+            pts: number;
+            /**
+             * Reb
+             * @default 0
+             */
+            reb: number;
+            /**
+             * Ast
+             * @default 0
+             */
+            ast: number;
+            /**
+             * Stl
+             * @default 0
+             */
+            stl: number;
+            /**
+             * Blk
+             * @default 0
+             */
+            blk: number;
+            /**
+             * Tpm
+             * @default 0
+             */
+            tpm: number;
+        };
+        /** RecapFreeAgent */
+        RecapFreeAgent: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Games */
+            games: number;
+            /**
+             * Value
+             * @description Sum of the week's category z-scores against the 200 busiest players
+             */
+            value: number;
+            /**
+             * Rank
+             * @description Rank by value among every NBA player that week
+             */
+            rank: number;
+            /**
+             * Z
+             * @description Category name -> z-score; turnovers count against
+             */
+            z: {
+                [key: string]: number;
+            };
+            totals: components["schemas"]["WeekTotals"];
+            /** @description Who added him during the week, if anyone */
+            picked_up?: components["schemas"]["RecapPickup"] | null;
+            /**
+             * Owner Now Team Id
+             * @description Fantasy team today; none = still free
+             */
+            owner_now_team_id?: number | null;
+        };
+        /** RecapMatchup */
+        RecapMatchup: {
+            home: components["schemas"]["RecapSide"];
+            away: components["schemas"]["RecapSide"];
+            /**
+             * Winner Team Id
+             * @description None = tied
+             */
+            winner_team_id?: number | null;
+            /**
+             * Margin
+             * @description Category wins between the two sides
+             */
+            margin: number;
+        };
+        /** RecapPickup */
+        RecapPickup: {
+            /** Team Id */
+            team_id: number;
+            /**
+             * Day
+             * @description Scoring period he first appeared on that roster
+             */
+            day: number;
+            /**
+             * Weekday
+             * @description 0 = the week's first day (Monday), 6 = Sunday
+             */
+            weekday: number;
+            /** @description His games for that team after the pickup; his week's rank counts all of them */
+            after: components["schemas"]["RecapAfter"];
+        };
+        /** RecapPlayer */
+        RecapPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Games */
+            games: number;
+            /**
+             * Value
+             * @description Sum of the week's category z-scores against the 200 busiest players
+             */
+            value: number;
+            /**
+             * Rank
+             * @description Rank by value among every NBA player that week
+             */
+            rank: number;
+            /**
+             * Z
+             * @description Category name -> z-score; turnovers count against
+             */
+            z: {
+                [key: string]: number;
+            };
+            totals: components["schemas"]["WeekTotals"];
+        };
+        /** RecapRequest */
+        RecapRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Period
+             * @description Matchup period (week). Default: the last week that has finished
+             */
+            period?: number | null;
+        };
+        /** RecapSide */
+        RecapSide: {
+            /** Team Id */
+            team_id: number;
+            /** Wins */
+            wins: number;
+            /** Losses */
+            losses: number;
+            /** Ties */
+            ties: number;
+            /**
+             * Values
+             * @description Category name -> the week's total (ratios as fractions)
+             */
+            values: {
+                [key: string]: number;
+            };
+        };
+        /** RecapTeam */
+        RecapTeam: {
+            /** Team Id */
+            team_id: number;
+            /**
+             * Abbrev
+             * @default
+             */
+            abbrev: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** @description Best player among the games the team started */
+            mvp?: components["schemas"]["RecapPlayer"] | null;
+            /** @description The add who did the most for the team after it added him, this week */
+            best_add?: components["schemas"]["RecapAdd"] | null;
+            /** @description Games played while on the bench or IR, and what they scored */
+            bench: components["schemas"]["RecapBench"];
+        };
+        /** RecapTopPlayer */
+        RecapTopPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Games */
+            games: number;
+            /**
+             * Value
+             * @description Sum of the week's category z-scores against the 200 busiest players
+             */
+            value: number;
+            /**
+             * Rank
+             * @description Rank by value among every NBA player that week
+             */
+            rank: number;
+            /**
+             * Z
+             * @description Category name -> z-score; turnovers count against
+             */
+            z: {
+                [key: string]: number;
+            };
+            totals: components["schemas"]["WeekTotals"];
+            /**
+             * Owner Team Id
+             * @description Fantasy team on the week's last day; none = free
+             */
+            owner_team_id?: number | null;
+        };
+        /** RecapWeekRef */
+        RecapWeekRef: {
+            /** Period */
+            period: number;
+            /** Start */
+            start?: string | null;
+            /** End */
+            end?: string | null;
+        };
         /** RepliesPage */
         RepliesPage: {
             /** Target */
@@ -3746,6 +4053,52 @@ export interface components {
              */
             close_categories: string[];
         };
+        /** WeekRecap */
+        WeekRecap: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Period */
+            period: number;
+            /**
+             * Start
+             * @description First day's US date
+             */
+            start?: string | null;
+            /**
+             * End
+             * @description Last day's US date
+             */
+            end?: string | null;
+            /**
+             * Categories
+             * @description The league's categories, in its order
+             */
+            categories: string[];
+            /**
+             * Matchups
+             * @description Biggest margin first
+             */
+            matchups: components["schemas"]["RecapMatchup"][];
+            /**
+             * Players
+             * @description Players of the week, best first
+             */
+            players: components["schemas"]["RecapTopPlayer"][];
+            /**
+             * Free Agents
+             * @description Best players who were free when the week began
+             */
+            free_agents: components["schemas"]["RecapFreeAgent"][];
+            /** Teams */
+            teams: components["schemas"]["RecapTeam"][];
+            /**
+             * Weeks
+             * @description Every finished week, for a week picker
+             */
+            weeks: components["schemas"]["RecapWeekRef"][];
+        };
         /** WeekSits */
         WeekSits: {
             /**
@@ -3753,6 +4106,36 @@ export interface components {
              * @description Each day left this week, as in ScoreDay.week
              */
             days: components["schemas"]["DaySits"][];
+        };
+        /**
+         * WeekTotals
+         * @description A player's totals over the week, in the site's stat order.
+         */
+        WeekTotals: {
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+            /** Tpm */
+            tpm: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** To */
+            to: number;
         };
     };
     responses: never;
@@ -5199,6 +5582,61 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    week_recap_api_recap_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecapRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeekRecap"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

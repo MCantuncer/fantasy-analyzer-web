@@ -55,7 +55,7 @@ const ANALYSIS_TABS = new Set(['moves', 'park', 'trade-for', 'team'])
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
 
-function readUrl(): { selection: Selection | null; tab: string; verifying: boolean } {
+function readUrl(): { selection: Selection | null; tab: string; verifying: boolean; film: number | null | undefined } {
   const q = new URLSearchParams(window.location.search)
   const league = Number(q.get('league'))
   const season = Number(q.get('season'))
@@ -63,16 +63,18 @@ function readUrl(): { selection: Selection | null; tab: string; verifying: boole
     selection: league > 0 ? { leagueId: league, season: season > 0 ? season : null } : null,
     tab: ALL_TABS.find((t) => t.id === q.get('tab'))?.id ?? '',
     verifying: q.get('view') === 'verify',
+    film: q.get('film') === 'last' ? null : Number(q.get('film')) > 0 ? Number(q.get('film')) : undefined,
   }
 }
 
 // Only IDs go in the URL, never cookies or tokens.
-function writeUrl(selection: Selection | null, tab: string, verifying: boolean) {
+function writeUrl(selection: Selection | null, tab: string, verifying: boolean, film: number | null | undefined) {
   const q = new URLSearchParams()
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')
   else if (selection && tab) q.set('tab', tab)
+  if (selection && !verifying && film !== undefined) q.set('film', film === null ? 'last' : String(film))
   const search = q.toString()
   window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname)
 }
@@ -106,6 +108,8 @@ export default function App() {
   const [selection, setSelection] = useState<Selection | null>(initial.selection)
   const [tab, setTab] = useState<string>(initial.tab)
   const [verifying, setVerifying] = useState(initial.verifying)
+  // Film Room week on the League tab (null = last finished week); undefined = the overview.
+  const [film, setFilm] = useState<number | null | undefined>(initial.film)
   const [theme, setTheme] = useState<Theme>(() => loadTheme())
   const [creds, setCreds] = useState<Credentials | null>(() => loadCredentials())
   const [keep, setKeep] = useState<number[]>([])
@@ -117,7 +121,7 @@ export default function App() {
   // Bumped by the top bar's "Add a league" so My leagues focuses its add box.
   const [focusAdd, setFocusAdd] = useState(0)
 
-  useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
+  useEffect(() => writeUrl(selection, tab, verifying, film), [selection, tab, verifying, film])
   // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
   const isPrivate = useRef(creds !== null)
   isPrivate.current = creds !== null
@@ -263,6 +267,7 @@ export default function App() {
     setSelection({ leagueId: l.league_id, season: l.season })
     setTab('')
     setVerifying(false)
+    setFilm(undefined)
     setReport(null)
     stopAnalysis()
   }
@@ -271,6 +276,7 @@ export default function App() {
     setSelection(null)
     setFocusAdd(0)
     setVerifying(false)
+    setFilm(undefined)
     setReport(null)
     stopAnalysis()
   }
@@ -508,7 +514,14 @@ export default function App() {
         )}
 
         {overview.data && ref && !verifying && !verified && activeTab === 'overview' && (
-          <LeagueOverview overview={overview.data} onVerify={() => setVerifying(true)} />
+          <LeagueOverview
+            overview={overview.data}
+            onVerify={() => setVerifying(true)}
+            leagueRef={ref}
+            creds={creds}
+            film={film}
+            onFilm={setFilm}
+          />
         )}
 
         {overview.data && ref && !verifying && !verified && activeTab === 'feed' && (
@@ -534,8 +547,10 @@ export default function App() {
                   onVerify={() => undefined}
                   leagueRef={ref ?? undefined}
                   creds={creds}
+                  film={film}
+                  onFilm={setFilm}
                 />
-                {analysis.isPending && (
+                {analysis.isPending && film === undefined && (
                   <div className="card pending-note">
                     <div className="progress" aria-hidden="true">
                       <span style={{ width: percent(shownProgress) }} />
@@ -598,6 +613,8 @@ export default function App() {
               creds={creds}
               overview={overview.data ?? null}
               onTab={(t) => setTab(t)}
+              film={film}
+              onFilm={setFilm}
             />
           </RoundValuesContext.Provider>
         )}

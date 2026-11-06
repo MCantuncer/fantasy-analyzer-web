@@ -2,9 +2,11 @@ import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactN
 import { CalendarDots, Target } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { isFresh } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
+import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
 import { TeamCrest } from './TeamCrest'
@@ -17,6 +19,10 @@ interface Props {
   /** For your matchup's Projected final; left out, the card shows today's box score only. */
   leagueRef?: LeagueRef
   creds?: Credentials | null
+  /** The Film Room week on show (null = the last finished week); undefined = the overview. Kept by the app, so
+   * finishing the analysis (which swaps this page for the report's) never closes it. */
+  film?: number | null
+  onFilm?: (period: number | null | undefined) => void
 }
 
 function shortDate(iso: string | null | undefined) {
@@ -65,7 +71,7 @@ function Tile({ icon, value, label, tone }: { icon: string; value: ReactNode; la
 }
 
 /** The League page: your matchup as a box score, the league's pulse, every matchup and the standings. */
-export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, creds }: Props) {
+export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, creds, film, onFilm }: Props) {
   const verified = o.my_team_id != null
   const colours = useMemo(
     () =>
@@ -78,6 +84,10 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
   const team = (id: number) => o.teams.find((t) => t.id === id)
   const nameOf = (id: number | null | undefined) => (id != null ? team(id)?.name : undefined) ?? 'Unknown team'
   const [open, setOpen] = useState<string | null>(null)
+  const openFilm = (period: number | null) => {
+    onFilm?.(period)
+    window.scrollTo?.({ top: 0 })
+  }
 
   const mine = o.matchups.find((m) => m.home.team_id === o.my_team_id || m.away.team_id === o.my_team_id)
   const mvpKey = o.mvp ? o.matchups.find((m) => [m.home.team_id, m.away.team_id].includes(o.mvp!.team_id)) : undefined
@@ -102,6 +112,10 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
 
   const pulse = o.pulse
   const week = [shortDate(o.week_start), shortDate(o.week_end)].filter(Boolean).join(' – ')
+  const finished = Array.from({ length: Math.max(0, o.matchup_period - 1) }, (_, i) => i + 1)
+  // The week before this one ended the day before this one started.
+  const lastEnd = o.week_start ? new Date(Date.parse(`${o.week_start}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10) : null
+  const fresh = finished.length > 0 && isFresh(lastEnd, new Date())
   const openMatchup = o.matchups.find((m) => key(m) === open)
   // The box score opens right under the card that was tapped; bring it into view on phones.
   useEffect(() => {
@@ -138,6 +152,20 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
     </div>
   )
 
+  if (film !== undefined && leagueRef && onFilm)
+    return (
+      <FilmRoom
+        leagueRef={leagueRef}
+        creds={creds ?? null}
+        teams={o.teams}
+        colours={colours}
+        myTeamId={o.my_team_id ?? null}
+        period={film}
+        onPeriod={openFilm}
+        onBack={() => onFilm(undefined)}
+      />
+    )
+
   return (
     <div className="overview stack">
       {!verified && (
@@ -155,7 +183,18 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
           Week {o.matchup_period}
           {week ? ` · ${week}` : ''}
         </span>
+        {leagueRef && onFilm && <FilmRoomPicker weeks={finished} onPick={openFilm} />}
       </div>
+
+      {leagueRef && onFilm && fresh && (
+        <FilmRoomEntry
+          leagueRef={leagueRef}
+          creds={creds ?? null}
+          period={o.matchup_period - 1}
+          myTeamId={o.my_team_id ?? null}
+          onOpen={() => openFilm(null)}
+        />
+      )}
 
       {featured && hasBox(featured) && (
         <section className={`card featured${mine ? ' mine' : ''}`} aria-labelledby="featured-title">
