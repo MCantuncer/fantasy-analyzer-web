@@ -195,3 +195,68 @@ export function isFresh(end: string | null | undefined, now: Date): boolean {
   const days = (now.getTime() - ended) / 86_400_000
   return days >= 0 && days < 3.5
 }
+
+const TOTAL_KEYS: Record<string, keyof RecapPlayer['totals']> = {
+  PTS: 'pts', REB: 'reb', AST: 'ast', STL: 'stl', BLK: 'blk', '3PM': 'tpm',
+}
+
+/** His best counting category over the week: "13 BLK, 3 G". */
+export function bestTotal(p: RecapPlayer): string {
+  const cat = Object.keys(TOTAL_KEYS).sort((a, b) => (p.z[b] ?? 0) - (p.z[a] ?? 0))[0]
+  return `${p.totals[TOTAL_KEYS[cat]]} ${cat}, ${p.games} G`
+}
+
+// ---- Sharing game balls to League Chat ----
+
+/** A League Chat post that shares a week's game balls starts with this line; chat shows it as a card. */
+const FILM_POST = /^🎬 Week (\d{1,2}) Film Room\b/u
+const POST_MAX = 500
+
+export function filmPostPeriod(body: string): number | null {
+  const m = FILM_POST.exec(body)
+  return m ? Number(m[1]) : null
+}
+
+/** What follows the shared line: the poster's own words, if any. */
+export function filmPostNote(body: string): string {
+  const i = body.indexOf('\n')
+  return i < 0 ? '' : body.slice(i + 1).trim()
+}
+
+/** The post text, readable on its own: "🎬 Week 2 Film Room. Game balls: ...", then the note. */
+export function gameBallsPost(r: WeekRecap, d: FilmRoomData, name: (id: number) => string, note = ''): string {
+  const balls: string[] = []
+  const p = r.players[0]
+  if (p) balls.push(`${p.name} (${bestTotal(p)}${p.owner_team_id != null ? `, ${name(p.owner_team_id)}` : ''})`)
+  const tw = d.topWin
+  if (tw) balls.push(`${name(tw.sides[0].team_id)} (${tw.sides[0].wins}–${tw.sides[1].wins} over ${name(tw.sides[1].team_id)})`)
+  const tp = d.topPickup
+  if (tp) balls.push(`${tp.name} (pickup, ${games(tp.after.games)} for ${name(tp.by)})`)
+  const head = `🎬 Week ${r.period} Film Room.${balls.length ? ` Game balls: ${balls.join(', ')}.` : ''}`
+  const clean = note.trim()
+  if (!clean) return head.slice(0, POST_MAX)
+  return `${head}\n${clean}`.slice(0, POST_MAX)
+}
+
+/** Room left for the poster's own line. */
+export const noteRoom = (head: string) => Math.max(0, POST_MAX - head.length - 1)
+
+// ---- The "new tape" dot: the last week this browser opened in the Film Room, per league ----
+
+const seenKey = (leagueId: number, season: number | null) => `film-seen:${leagueId}:${season ?? ''}`
+
+export function seenWeek(leagueId: number, season: number | null): number {
+  try {
+    return Number(localStorage.getItem(seenKey(leagueId, season))) || 0
+  } catch {
+    return 0
+  }
+}
+
+export function markWeekSeen(leagueId: number, season: number | null, period: number): void {
+  try {
+    if (period > seenWeek(leagueId, season)) localStorage.setItem(seenKey(leagueId, season), String(period))
+  } catch {
+    // storage blocked: the dot just stays
+  }
+}

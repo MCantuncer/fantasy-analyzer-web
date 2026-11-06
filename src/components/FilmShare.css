@@ -1,0 +1,165 @@
+/* Film Room game balls shared to League Chat (FilmShare.tsx): the share panel under the game balls and the
+   card a shared post shows in chat. Every class is prefixed fs-. */
+
+.fs-open-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+button.fs-open {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-weight: 650;
+  gap: 7px;
+}
+
+.fs-done {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--good);
+  font-weight: 650;
+}
+
+.card.fs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.fs-h {
+  margin: 0;
+  font-size: 17px;
+}
+
+.fs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 8px;
+  border-radius: var(--radius-tile);
+  border: 1px solid var(--border);
+  background: radial-gradient(80% 140% at 0% 100%, var(--glow), transparent 70%), var(--surface-2);
+  min-width: 0;
+}
+
+:root[data-theme='light'] .fs-card {
+  background: radial-gradient(80% 140% at 0% 100%, var(--glow), transparent 70%), var(--raised);
+}
+
+.fs-card-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+}
+
+.fs-balls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fs-ball {
+  display: grid;
+  grid-template-columns: 52px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 0;
+  border-top: 1px solid var(--divider);
+}
+
+.fs-ball:first-child {
+  border-top: 0;
+}
+
+.fs-ball > .crest {
+  margin: 0 1px;
+}
+
+.fs-lab {
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fs-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.fs-name {
+  font-weight: 650;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fs-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+button.fs-go {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-weight: 650;
+  font-size: 13.5px;
+  gap: 4px;
+}
+
+.fs-note {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fs-note textarea {
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.fs-err {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--bad);
+}
+
+.fs-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
