@@ -43,36 +43,74 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 
 | | Feature | What you get |
 | --- | --- | --- |
+| ⚡ | **Moves** | Your best move today (a pickup or a trade) with your playoff odds before and after, trades to offer (Fair, where both teams' odds rise, and Worth a Try, a win on paper for them), and how often you win each category. |
 | 🔁 | **Trade Park** | Pick up to four of your players and see every team's best deal for them, with acceptance odds, a ready-to-send pitch and your playoff odds before and after. |
 | 🧊 | **Injury risk** | Players who keep missing games carry an amber durability score (tap it for what it means), and every trade's odds count them for fewer games. |
-| 🎯 | **Trade for** | Pick any rostered player: his fit with your build, his owner's needs, and three offers (best, safer, cheaper). |
-| 📊 | **My team** | How often you win each category in an average week (locked, swing or losing), your roster's trade and category value, and keepers that are never offered or dropped. |
-| 🛒 | **FA Targets** | Free agents paired with the right drop and their effect on your playoff odds. |
+| 🎯 | **Trade For** | Pick any rostered player: his fit with your build, his owner's needs, and three offers (best, safer, cheaper). |
+| 📊 | **My Team** | How often you win each category in an average week (locked, swing or losing), your roster's trade and category value, and keepers that are never offered or dropped. |
+| 🛒 | **FA Targets** | Free agents paired with the right drop, their effect on your playoff odds, and the best day to add them. |
+| 🃏 | **Player cards** | Tap any player's name for his latest games, health, news and every move of him in your league. |
+| 📝 | **Trade feedback and rules** | Rate a trade idea to have it checked against today's league, and set rules (protect a category, skip a team, no injury-prone players) that hide ideas breaking them. |
 | 🏆 | **League** | Every team's build and punts, and simulated standings and playoff odds. |
 | ⭐ | **Trade of the day** | One league-wide win-win trade between any two teams, the same for everyone that day, with a "Would you take it?" poll. |
 | 📅 | **Projected final** | Who wins your matchup and each category by Sunday, and who to bench on crowded days when more players have games than you have lineup spots. |
 | 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. |
 | 📰 | **NBA News** | Injuries, trades and role changes checked against several sources, and who gains minutes when a player is out. |
-| 💬 | **Moves feed and league chat** | Claims, bids, adds, drops and trades, with reactions, replies and trade votes for verified managers. |
+| 💬 | **League Chat** | The league's moves feed (claims, bids, adds, drops and trades) and chat, with reactions, replies and trade votes for verified managers. |
 | 🔐 | **Accounts** | Email or Google sign-in, followed leagues, and team verification through ESPN. |
 | 🌗 | **Light and dark themes** | Designed for data-heavy screens on desktop and phone. |
 
 ## Screenshots
 
+From a real league (Chill Primera Division), in the dark theme.
+
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/trade-park.png" alt="Trade Park: the best deals for two picked players, with acceptance odds and playoff odds" /></td>
-    <td width="50%"><img src="docs/screenshots/trade-for.png" alt="Trade for: the playoff-odds and category impact of acquiring one player" /></td>
+    <td colspan="2"><img src="docs/screenshots/moves.webp" alt="Moves: the best move today with playoff odds before and after, the season outlook and how often you win each category" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><b>Moves</b></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/trade-park.webp" alt="Trade Park: two picked players and the best deal for them, with acceptance odds, both teams' playoff odds and the pitch" /></td>
+    <td width="50%"><img src="docs/screenshots/trade-for.webp" alt="Trade For: one player's fit with your build, your playoff odds if you add him, and the best offer for him" /></td>
   </tr>
   <tr>
     <td align="center"><b>Trade Park</b></td>
-    <td align="center"><b>Trade for</b></td>
+    <td align="center"><b>Trade For</b></td>
   </tr>
   <tr>
-    <td colspan="2"><img src="docs/screenshots/scores.png" alt="Scores: a night of NBA games with your fantasy players highlighted" /></td>
+    <td width="50%"><img src="docs/screenshots/my-team.webp" alt="My Team: weekly win chance per category and the roster with trade and category value" /></td>
+    <td width="50%"><img src="docs/screenshots/league.webp" alt="League: your matchup by category, the projected final and this week's matchups" /></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><b>Scores</b></td>
+    <td align="center"><b>My Team</b></td>
+    <td align="center"><b>League</b></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/scores.webp" alt="Scores: a night of NBA games, with your players' combined line against your opponent's" /></td>
+    <td width="50%"><img src="docs/screenshots/league-chat.webp" alt="League Chat: the league's waiver claims, adds and drops with reactions and replies, and FAAB spent per team" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Scores</b></td>
+    <td align="center"><b>League Chat</b></td>
+  </tr>
+</table>
+
+### On a phone
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/moves-phone.webp" alt="Moves on a phone" /></td>
+    <td width="25%"><img src="docs/screenshots/league-phone.webp" alt="League on a phone" /></td>
+    <td width="25%"><img src="docs/screenshots/scores-phone.webp" alt="Scores on a phone" /></td>
+    <td width="25%"><img src="docs/screenshots/my-team-phone.webp" alt="My Team on a phone" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Moves</b></td>
+    <td align="center"><b>League</b></td>
+    <td align="center"><b>Scores</b></td>
+    <td align="center"><b>My Team</b></td>
   </tr>
 </table>
 
