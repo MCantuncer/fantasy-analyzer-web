@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WeekRecap } from '../api/client'
@@ -13,7 +14,8 @@ const ref = { leagueId: 744636428, season: 2027 }
 
 function show(myTeamId: number | null = 3) {
   return render(
-    <FilmRoomPage
+    <QueryClientProvider client={new QueryClient()}>
+      <FilmRoomPage
       recap={recap}
       head={null}
       teams={teams}
@@ -23,7 +25,8 @@ function show(myTeamId: number | null = 3) {
       )}
       myTeamId={myTeamId}
       leagueRef={ref}
-    />,
+      />
+    </QueryClientProvider>,
   )
 }
 
@@ -68,6 +71,13 @@ describe('Film Room', () => {
     expect(screen.queryByRole('region', { name: 'Your tape' })).not.toBeInTheDocument()
     expect(screen.queryByText(/Your MVP, adds/)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Final scores' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Post game balls/ })).not.toBeInTheDocument()
+  })
+
+  it('clears the new-tape dot for the week it opens', () => {
+    localStorage.clear()
+    show()
+    expect(localStorage.getItem('film-seen:744636428:2027')).toBe('2')
   })
 })
 

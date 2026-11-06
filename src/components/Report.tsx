@@ -203,7 +203,17 @@ export function Report({
           />
         )}
 
-        {tab === 'chat' && <LeagueChat leagueId={report.league.id} season={report.league.season} creds={creds} />}
+        {tab === 'chat' && (
+          <LeagueChat
+            leagueId={report.league.id}
+            season={report.league.season}
+            creds={creds}
+            onOpenFilm={(p) => {
+              onFilm?.(p)
+              onTab('league')
+            }}
+          />
+        )}
 
         {keepChanged && (
           <div className="sticky-action">

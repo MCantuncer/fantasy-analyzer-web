@@ -1,7 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import type { RecapSide, WeekRecap } from '../api/client'
 import week2 from '../test/recap-week2.json'
-import { afterLine, catValue, gap, isFresh, readMatchup, readRecap, shortName, sideResult } from './filmRoom'
+import {
+  afterLine,
+  catValue,
+  filmPostNote,
+  filmPostPeriod,
+  gameBallsPost,
+  gap,
+  isFresh,
+  markWeekSeen,
+  readMatchup,
+  readRecap,
+  seenWeek,
+  shortName,
+  sideResult,
+} from './filmRoom'
 
 const recap = week2 as unknown as WeekRecap
 
@@ -79,5 +93,37 @@ describe('reading a real week (League A, week 2)', () => {
   it('lists your adds and the standout another team grabbed', () => {
     expect(d.myAdds.map((a) => a.name)).toContain('Isaiah Jackson')
     expect(d.miss?.picked_up?.team_id).not.toBe(3)
+  })
+})
+
+describe('sharing to League Chat', () => {
+  const name = (id: number) => recap.teams.find((t) => t.team_id === id)?.name ?? '?'
+  const d = readRecap(recap, 3)
+
+  it('writes a post that reads on its own and that chat can turn back into a card', () => {
+    const body = gameBallsPost(recap, d, name, 'Good week.')
+    expect(body).toContain("Victor Wembanyama (13 BLK, 3 G, Jze's Scary Team)")
+    expect(body).toContain('Kavaklidere Boytoys (9–0 over Eryaman Lakers)')
+    expect(body).toContain('pickup, 3 games for Kavaklidere Boytoys')
+    expect(filmPostPeriod(body)).toBe(2)
+    expect(filmPostNote(body)).toBe('Good week.')
+    expect(body.length).toBeLessThanOrEqual(500)
+    expect(gameBallsPost(recap, d, name, 'x'.repeat(600)).length).toBe(500)
+  })
+
+  it('leaves ordinary chat alone', () => {
+    expect(filmPostPeriod('Week 2 Film Room was great')).toBeNull()
+    expect(filmPostPeriod('nice steal')).toBeNull()
+  })
+})
+
+describe('the new-tape dot', () => {
+  it('remembers the latest week opened, per league, and never goes back', () => {
+    localStorage.clear()
+    expect(seenWeek(1, 2027)).toBe(0)
+    markWeekSeen(1, 2027, 2)
+    markWeekSeen(1, 2027, 1)
+    expect(seenWeek(1, 2027)).toBe(2)
+    expect(seenWeek(2, 2027)).toBe(0)
   })
 })

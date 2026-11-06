@@ -525,7 +525,16 @@ export default function App() {
         )}
 
         {overview.data && ref && !verifying && !verified && activeTab === 'feed' && (
-          <LeagueChat leagueId={ref.leagueId} season={ref.season} creds={creds} onVerify={() => setVerifying(true)} />
+          <LeagueChat
+            leagueId={ref.leagueId}
+            season={ref.season}
+            creds={creds}
+            onVerify={() => setVerifying(true)}
+            onOpenFilm={(p) => {
+              setFilm(p)
+              setTab('overview')
+            }}
+          />
         )}
 
         {overview.data && ref && !verifying && !verified && activeTab === 'news' && (
@@ -579,7 +588,17 @@ export default function App() {
                 creds={creds}
               />
             )}
-            {activeTab === 'chat' && <LeagueChat leagueId={ref.leagueId} season={ref.season} creds={creds} />}
+            {activeTab === 'chat' && (
+              <LeagueChat
+                leagueId={ref.leagueId}
+                season={ref.season}
+                creds={creds}
+                onOpenFilm={(p) => {
+                  setFilm(p)
+                  setTab('league')
+                }}
+              />
+            )}
           </div>
         )}
 

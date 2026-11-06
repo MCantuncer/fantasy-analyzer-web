@@ -29,6 +29,8 @@ import './LeagueChat.css'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import { PlayerLink } from './PlayerCard'
+import { FilmPostCard } from './FilmShare'
+import { filmPostNote, filmPostPeriod } from '../lib/filmRoom'
 
 interface Props {
   leagueId: number
@@ -36,6 +38,8 @@ interface Props {
   creds: Credentials | null
   /** Shown instead of the composer to accounts that haven't verified a team here. */
   onVerify?: () => void
+  /** Opens a week's Film Room from a shared game-balls card. */
+  onOpenFilm?: (period: number) => void
 }
 
 // The verified team this account posts as; null shows moves only.
@@ -59,9 +63,10 @@ interface Ctx {
   creds: Credentials | null
   onReact: (item: FeedItem, reaction: string, on: boolean) => void
   onDelete: (item: FeedItem) => void
+  onOpenFilm?: (period: number) => void
 }
 
-export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
+export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Props) {
   const ref: LeagueRef = { leagueId, season }
   const qc = useQueryClient()
   const [filter, setFilter] = useState<Filter>('all')
@@ -139,6 +144,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify }: Props) {
     creds,
     onReact: (item, r, on) => reaction.mutate({ item, reaction: r, on }),
     onDelete: (item) => removal.mutate(item),
+    onOpenFilm,
   }
 
   return (
@@ -414,7 +420,24 @@ function Post({ item, ctx, compact = false }: { item: FeedItem; ctx: Ctx; compac
             </button>
           )}
         </div>
-        <p className="feed-text">{item.body}</p>
+        {(() => {
+          const period = filmPostPeriod(item.body ?? '')
+          if (period == null) return <p className="feed-text">{item.body}</p>
+          const note = filmPostNote(item.body ?? '')
+          return (
+            <>
+              {note && <p className="feed-text">{note}</p>}
+              <FilmPostCard
+                leagueRef={ctx.ref}
+                creds={ctx.creds}
+                period={period}
+                name={(id) => teamName(ctx.teams, id)}
+                colours={ctx.colours}
+                onOpen={ctx.onOpenFilm}
+              />
+            </>
+          )
+        })()}
         <Social item={item} ctx={ctx} canReply={!compact} />
       </div>
     </article>

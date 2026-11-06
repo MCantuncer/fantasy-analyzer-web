@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowSquareOut,
@@ -26,11 +26,13 @@ import {
   CATS,
   afterLine,
   bestCats,
+  bestTotal,
   catValue,
   dayName,
   games,
   gap,
   HAIR,
+  markWeekSeen,
   nbaAbbrev,
   perGame,
   readRecap,
@@ -39,6 +41,7 @@ import {
   weekDates,
   type Matchup,
 } from '../lib/filmRoom'
+import { FilmShare } from './FilmShare'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
@@ -166,6 +169,8 @@ export function FilmRoomPage({
   leagueRef: LeagueRef
 }) {
   const d = useMemo(() => readRecap(r, myTeamId), [r, myTeamId])
+  // Opening a week clears the "new tape" dot for it.
+  useEffect(() => markWeekSeen(leagueRef.leagueId, leagueRef.season, r.period), [leagueRef.leagueId, leagueRef.season, r.period])
   const name = (id: number) =>
     teams.find((t) => t.id === id)?.name ?? r.teams.find((t) => t.team_id === id)?.name ?? 'Unknown team'
   const team = (id: number, size = 22) => (
@@ -194,6 +199,7 @@ export function FilmRoomPage({
           <div className="fr-first o-1">
             {d.mine && myTeamId != null && <YourTape m={d.mine} myTeamId={myTeamId} team={team} />}
             <GameBalls recap={r} d={d} team={team} name={name} colours={colours} />
+            {myTeamId != null && <FilmShare recap={r} d={d} name={name} colours={colours} leagueRef={leagueRef} />}
           </div>
           <div className="o-4">
             <BoxScoreTable recap={r} myTeamId={myTeamId} colours={colours} name={name} />
@@ -292,16 +298,6 @@ function YourTape({ m, myTeamId, team }: { m: Matchup; myTeamId: number; team: T
       )}
     </section>
   )
-}
-
-const KEYS: Record<string, keyof RecapPlayer['totals']> = {
-  PTS: 'pts', REB: 'reb', AST: 'ast', STL: 'stl', BLK: 'blk', '3PM': 'tpm',
-}
-
-/** His best counting category over the week: "13 BLK, 3 G". */
-function bestTotal(p: RecapPlayer): string {
-  const cat = Object.keys(KEYS).sort((a, b) => (p.z[b] ?? 0) - (p.z[a] ?? 0))[0]
-  return `${p.totals[KEYS[cat]]} ${cat}, ${p.games} G`
 }
 
 function GameBalls({
@@ -1005,6 +1001,7 @@ export function FilmRoomEntry({
   creds,
   period,
   myTeamId,
+  unseen = false,
   onOpen,
 }: {
   leagueRef: LeagueRef
@@ -1012,6 +1009,7 @@ export function FilmRoomEntry({
   /** The week that just ended. */
   period: number
   myTeamId: number | null
+  unseen?: boolean
   onOpen: () => void
 }) {
   // Same key as the page, so the tape is ready by the time it opens.
@@ -1037,7 +1035,17 @@ export function FilmRoomEntry({
         )}
       </span>
       <span className="fr-drop-t">
-        <span className="fr-drop-h">Week {period} Film Room is in</span>
+        <span className="fr-drop-h">
+          Week {period} Film Room is{' '}
+          <span className="fr-nowrap">
+            in
+            {unseen && (
+              <span className="fr-dot">
+                <span className="sr-only">, not opened yet</span>
+              </span>
+            )}
+          </span>
+        </span>
         <span className="fr-drop-l">
           {r ? (
             <>
@@ -1063,7 +1071,16 @@ export function FilmRoomEntry({
 }
 
 /** "Film Room" button on the League tab: a menu of every finished week. */
-export function FilmRoomPicker({ weeks, onPick }: { weeks: number[]; onPick: (period: number) => void }) {
+export function FilmRoomPicker({
+  weeks,
+  unseen = false,
+  onPick,
+}: {
+  weeks: number[]
+  /** The latest finished week hasn't been opened here yet: a gold dot on the button and that week. */
+  unseen?: boolean
+  onPick: (period: number) => void
+}) {
   const [open, setOpen] = useState(false)
   if (!weeks.length) return null
   return (
@@ -1085,6 +1102,11 @@ export function FilmRoomPicker({ weeks, onPick }: { weeks: number[]; onPick: (pe
       >
         <FilmSlate size={17} aria-hidden="true" />
         Film Room
+        {unseen && (
+          <span className="fr-dot">
+            <span className="sr-only">, new week in</span>
+          </span>
+        )}
         <CaretDown size={14} aria-hidden="true" />
       </button>
       {open && (
@@ -1101,7 +1123,10 @@ export function FilmRoomPicker({ weeks, onPick }: { weeks: number[]; onPick: (pe
               <FilmSlate size={16} aria-hidden="true" />
               <span>
                 <span className="fr-m1">Week {w}</span>
-                <span className="fr-m2">{i === 0 ? 'Last week' : `${i + 1} weeks ago`}</span>
+                <span className="fr-m2">
+                  {i === 0 ? 'Last week' : `${i + 1} weeks ago`}
+                  {i === 0 && unseen ? ' · new' : ''}
+                </span>
               </span>
             </button>
           ))}

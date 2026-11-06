@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactN
 import { CalendarDots, Target } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { isFresh } from '../lib/filmRoom'
+import { isFresh, seenWeek } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
@@ -116,6 +116,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
   // The week before this one ended the day before this one started.
   const lastEnd = o.week_start ? new Date(Date.parse(`${o.week_start}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10) : null
   const fresh = finished.length > 0 && isFresh(lastEnd, new Date())
+  const unseen = !!leagueRef && finished.length > 0 && seenWeek(leagueRef.leagueId, leagueRef.season) < finished[finished.length - 1]
   const openMatchup = o.matchups.find((m) => key(m) === open)
   // The box score opens right under the card that was tapped; bring it into view on phones.
   useEffect(() => {
@@ -183,7 +184,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
           Week {o.matchup_period}
           {week ? ` · ${week}` : ''}
         </span>
-        {leagueRef && onFilm && <FilmRoomPicker weeks={finished} onPick={openFilm} />}
+        {leagueRef && onFilm && <FilmRoomPicker weeks={finished} unseen={unseen} onPick={openFilm} />}
       </div>
 
       {leagueRef && onFilm && fresh && (
@@ -192,6 +193,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
           creds={creds ?? null}
           period={o.matchup_period - 1}
           myTeamId={o.my_team_id ?? null}
+          unseen={unseen}
           onOpen={() => openFilm(null)}
         />
       )}
