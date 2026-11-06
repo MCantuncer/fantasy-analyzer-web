@@ -16,6 +16,7 @@ import {
   tipOff,
 } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
+import { useFitsWidth } from '../lib/useFitsWidth'
 import './Scores.css'
 import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
@@ -457,10 +458,15 @@ function BoxScore({
     else ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [game.id])
 
+  // The header row stays in view while you scroll down the players. A table that fits sticks
+  // under the top bar; one too wide for the card scrolls in a window-tall box of its own.
+  const wrap = useRef<HTMLDivElement>(null)
+  const fits = useFitsWidth(wrap)
+
   const sides = [game.away, game.home]
   const fa = best(game.lines.filter((l) => l.owner_team_id == null))
   return (
-    <section className="card flush" ref={ref} aria-labelledby="box-title">
+    <section className="card flush box-card" ref={ref} aria-labelledby="box-title">
       <div className="card-head">
         <h2 id="box-title">
           {game.away.abbrev} <span className="num">{game.away.score ?? ''}</span> · {game.home.abbrev}{' '}
@@ -471,7 +477,11 @@ function BoxScore({
           is the fantasy team in this league.
         </span>
       </div>
-      <div className="table-wrap">
+      <div
+        ref={wrap}
+        className={`table-wrap box-scroll${fits ? ' fits' : ''}`}
+        {...(fits ? {} : { tabIndex: 0, role: 'region', 'aria-label': 'Box score' })}
+      >
         <table className="box">
           <thead>
             <tr>
