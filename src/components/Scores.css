@@ -99,3 +99,41 @@
     background: var(--surface);
   }
 }
+
+/* Box score: the column names (Min, Pts, ... Ast, Stl) stay in view while you scroll down the
+   players, so you never scroll back up to check which column is which. */
+.table-wrap.box-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  /* Collapsed borders don't travel with a sticky cell, so the rule under the header is a shadow. */
+  box-shadow: inset 0 -1px 0 var(--divider);
+}
+
+/* The card rounds its corners with overflow: hidden, which would make it the header's scroller.
+   clip trims the same way without becoming one. */
+.card.flush.box-card {
+  overflow: clip;
+}
+
+/* Wide screens: the table fits its card, so the header sticks to the page, under the top bar. */
+.table-wrap.box-scroll.fits {
+  overflow: visible;
+}
+
+.table-wrap.box-scroll.fits thead th {
+  top: var(--box-head-top, 111px);
+}
+
+/* Too wide for its card: the table already scrolls sideways in its own box, and a header can only
+   stick inside that box. So the box gets at most a screen's height and scrolls both ways. */
+.table-wrap.box-scroll:not(.fits) {
+  overflow: auto;
+  max-height: calc(100dvh - 111px - 24px);
+}
+
+.table-wrap.box-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}

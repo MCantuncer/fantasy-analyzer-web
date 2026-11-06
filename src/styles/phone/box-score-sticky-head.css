@@ -1,0 +1,16 @@
+/* Scores box score on phones: the table scrolls inside its card (see Scores.css), so its height
+   leaves room for the shorter top bar and the bottom tab bar. The Player header cell is pinned
+   both ways, above the pinned player names sliding under it. */
+@media (max-width: 640px) {
+  .table-wrap.box-scroll:not(.fits) {
+    max-height: calc(100dvh - 65px - 62px - env(safe-area-inset-bottom, 0px) - 16px);
+  }
+
+  .table-wrap.box-scroll table.box thead tr > th.left:first-child {
+    top: 0;
+    z-index: 3;
+    box-shadow:
+      inset 0 -1px 0 var(--divider),
+      1px 0 0 var(--divider);
+  }
+}
