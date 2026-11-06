@@ -1,0 +1,284 @@
+/* Scores box score: "Category Plates" (Can, 2026-11-06). The header used to be faint labels spread
+   across the whole width. Now the stat columns keep a fixed width (Player takes the rest), so each
+   label sits right over its numbers, and the nine categories sit on plates in groups:
+     Min (context, plain) | Pts FG FT 3PM | Reb Ast Stl Blk | TO
+   Tapping a category sorts each team on its own and lights the column (table[data-col]); hovering
+   previews the column on desktop. Classes are prefixed sc-; :root lifts rules over index.css. */
+
+table.box {
+  --stat-w: 56px;
+  --split-w: 72px;
+  --owner-w: 76px;
+  --gap: 24px;          /* between clusters */
+  --cell-x: 4px;        /* number padding inside a column */
+  --end: 16px;          /* breathing room after TO */
+  --head-h: 44px;
+  --key-h: 26px;
+  --plate: var(--track);
+  --head-fall: inset 0 -1px 0 var(--divider), 0 10px 14px -12px rgb(0 0 0 / 0.55);
+  --pin-edge: rgb(0 0 0 / 0.38);
+}
+:root[data-theme='light'] table.box {
+  --plate: var(--raised);
+  --head-fall: inset 0 -1px 0 var(--divider), 0 10px 14px -10px rgb(70 45 20 / 0.3);
+  --pin-edge: rgb(70 45 20 / 0.12);
+}
+
+/* ---------- Rhythm: fixed stat block, Player takes the rest ---------- */
+:root table.box tr > :nth-child(n + 3) {
+  --w: var(--stat-w);
+  --gx: 0px;            /* cluster gap in front of this column */
+  --ex: 0px;            /* end pad after this column */
+  box-sizing: border-box;
+  width: calc(var(--w) + var(--gx) + var(--ex));
+  min-width: calc(var(--w) + var(--gx) + var(--ex));
+  padding-left: calc(var(--gx) + var(--cell-x));
+  padding-right: calc(var(--ex) + var(--cell-x));
+}
+:root table.box tr > :is(:nth-child(5), :nth-child(6)) {
+  --w: var(--split-w);
+}
+/* cluster starts: Pts, Reb, TO (Min sits right after Owner, no gap) */
+:root table.box tr > :is(:nth-child(4), :nth-child(8), :nth-child(12)) {
+  --gx: var(--gap);
+}
+:root table.box tr > :nth-child(12) {
+  --ex: var(--end);
+}
+:root table.box tr > :nth-child(2) {
+  box-sizing: border-box;
+  width: var(--owner-w);
+  min-width: var(--owner-w);
+}
+:root table.box tr.box-team > th {
+  width: auto;
+  padding: 14px 20px 6px;
+}
+/* The team name rides along when the table scrolls sideways. */
+table.box .sc-team-name {
+  position: sticky;
+  left: 20px;
+}
+
+/* ---------- Header row ---------- */
+:root .table-wrap.box-scroll table.box thead th {
+  height: var(--head-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0;
+  border-bottom: 0;
+  /* lifts off the rows when stuck: the rows' own divider + a soft fall (cream needs both) */
+  box-shadow: var(--head-fall);
+}
+:root .table-wrap.box-scroll table.box thead th:first-child {
+  padding-left: 20px;
+}
+
+/* Stat header cells hold a full-cell button; its plate is exactly as wide as the numbers' column. */
+:root .table-wrap.box-scroll table.box thead th:nth-child(n + 4) {
+  padding-left: var(--gx);
+  padding-right: var(--ex);
+}
+table.box .sc-key {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  height: var(--head-h);
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: calc(600 + var(--on, 0) * 100);
+  color: color-mix(in srgb, var(--on-accent) calc(var(--on, 0) * 100%), var(--text));
+  -webkit-tap-highlight-color: transparent;
+}
+/* the plate segment */
+table.box .sc-key::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--key-h) / 2);
+  height: var(--key-h);
+  background: var(--plate);
+  box-shadow: inset 0 1px 0 rgb(255 240 220 / 0.035);
+}
+/* plate ends round at cluster edges only: Pts|3PM, Reb|Blk, TO */
+table.box th:is(:nth-child(4), :nth-child(8), :nth-child(12)) .sc-key::before {
+  border-top-left-radius: var(--radius-tag);
+  border-bottom-left-radius: var(--radius-tag);
+}
+table.box th:is(:nth-child(7), :nth-child(11), :nth-child(12)) .sc-key::before {
+  border-top-right-radius: var(--radius-tag);
+  border-bottom-right-radius: var(--radius-tag);
+}
+/* the focus pill, with a small caret pointing into its column (stays inside the header) */
+table.box .sc-key::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--key-h) / 2);
+  height: var(--key-h);
+  border-radius: var(--radius-tag);
+  background: var(--accent);
+  opacity: var(--on, 0);
+  transform: scale(calc(0.92 + var(--on, 0) * 0.08));
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+table.box th:nth-child(n + 4) > .sc-key > .sc-caret {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: calc(50% + var(--key-h) / 2 - 1px);
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  border-bottom: 0;
+  border-top-color: var(--accent);
+  transform: translateX(-50%);
+  opacity: var(--on, 0);
+  transition: opacity 0.14s ease;
+}
+table.box .sc-key:focus-visible {
+  outline: none;
+}
+table.box .sc-key:focus-visible::before {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-tag);
+}
+
+/* ---------- Column focus ---------- */
+/* The sorted column: table[data-col] (set by the sort state). Hover previews a column on desktop. */
+table.box[data-col='4'] tr > :nth-child(4),
+table.box[data-col='5'] tr > :nth-child(5),
+table.box[data-col='6'] tr > :nth-child(6),
+table.box[data-col='7'] tr > :nth-child(7),
+table.box[data-col='8'] tr > :nth-child(8),
+table.box[data-col='9'] tr > :nth-child(9),
+table.box[data-col='10'] tr > :nth-child(10),
+table.box[data-col='11'] tr > :nth-child(11),
+table.box[data-col='12'] tr > :nth-child(12) {
+  --on: 1;
+}
+@media (hover: hover) {
+  table.box:not([data-col]):has(tr > :nth-child(4):hover) tr > :nth-child(4),
+  table.box:not([data-col]):has(tr > :nth-child(5):hover) tr > :nth-child(5),
+  table.box:not([data-col]):has(tr > :nth-child(6):hover) tr > :nth-child(6),
+  table.box:not([data-col]):has(tr > :nth-child(7):hover) tr > :nth-child(7),
+  table.box:not([data-col]):has(tr > :nth-child(8):hover) tr > :nth-child(8),
+  table.box:not([data-col]):has(tr > :nth-child(9):hover) tr > :nth-child(9),
+  table.box:not([data-col]):has(tr > :nth-child(10):hover) tr > :nth-child(10),
+  table.box:not([data-col]):has(tr > :nth-child(11):hover) tr > :nth-child(11),
+  table.box:not([data-col]):has(tr > :nth-child(12):hover) tr > :nth-child(12) {
+    --on: 1;
+  }
+}
+/* the wash covers the column itself, never the cluster gap in front of it */
+table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
+  --wash: color-mix(in srgb, var(--accent) calc(var(--on, 0) * 7%), transparent);
+  background-image: linear-gradient(
+    to right,
+    transparent var(--gx),
+    var(--wash) var(--gx),
+    var(--wash) calc(100% - var(--ex)),
+    transparent calc(100% - var(--ex))
+  );
+}
+table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
+  font-weight: calc(400 + var(--on, 0) * 200);
+}
+
+/* ---------- Phones (the table scrolls sideways in its card; Player is pinned) ---------- */
+@media (max-width: 640px) {
+  table.box {
+    --stat-w: 46px;
+    --split-w: 62px;
+    --owner-w: 58px;
+    --gap: 12px;
+    --end: 10px;
+  }
+  /* A tapped key scrolls into view beside the pinned Player column, not under it. */
+  .table-wrap.box-scroll:not(.fits) {
+    scroll-padding-left: 44vw;
+  }
+
+  :root .table-wrap.box-scroll:not(.fits) table.box {
+    width: max-content;
+    min-width: 100%;
+  }
+  :root .table-wrap.box-scroll table.box tr > :nth-child(2) {
+    padding-left: 8px;
+    padding-right: 4px;
+  }
+  :root .table-wrap.box-scroll table.box tr > :nth-child(3) {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  :root .table-wrap.box-scroll table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
+    padding-left: calc(var(--gx) + var(--cell-x));
+    padding-right: calc(var(--ex) + var(--cell-x));
+  }
+  :root .table-wrap.box-scroll table.box thead th:nth-child(n + 4) {
+    padding-left: var(--gx);
+    padding-right: var(--ex);
+  }
+
+  /* pinned Player column: header keeps the surface; a soft fall on the right edge appears only once
+     the columns start sliding under it (scroll-driven, so it never sits there at rest) */
+  :root .table-wrap.box-scroll table.box thead tr > th:first-child {
+    background: var(--surface);
+    box-shadow: var(--head-fall);
+  }
+  :root .table-wrap.box-scroll table.box tbody th[scope='row'] {
+    box-shadow: none;
+  }
+  :root .table-wrap.box-scroll table.box tbody tr.mine > th[scope='row'] {
+    box-shadow: inset 3px 0 0 var(--gold);
+  }
+  :root .table-wrap.box-scroll table.box :is(thead tr > th:first-child, tbody th[scope='row'])::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: -1px;
+    left: 100%;
+    width: 12px;
+    pointer-events: none;
+    background: linear-gradient(to right, var(--pin-edge), transparent);
+    opacity: 0;
+    animation: sc-pin-edge linear both;
+    animation-timeline: scroll(nearest inline);
+    animation-range: 0 32px;
+  }
+}
+@keyframes sc-pin-edge {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sort direction: a small arrow after the label on the lit key. */
+table.box .sc-key .sc-dir {
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  table.box .sc-key::after,
+  table.box .sc-key > .sc-caret {
+    transition: none;
+  }
+}

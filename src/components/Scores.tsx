@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bone, ScoresSkeleton } from './Skeleton'
 import { useEffect, useRef, useState } from 'react'
-import { Television } from '@phosphor-icons/react'
+import { ArrowDown, ArrowUp, Television } from '@phosphor-icons/react'
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -18,6 +18,9 @@ import {
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { useFitsWidth } from '../lib/useFitsWidth'
 import './Scores.css'
+import './ScoresBox.css'
+import { BOX_CATS, nextSort, sortLines } from '../lib/boxSort'
+import type { BoxSort } from '../lib/boxSort'
 import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
 import { ScoresLens } from './ScoresLens'
@@ -609,6 +612,11 @@ function BoxScore({
   const wrap = useRef<HTMLDivElement>(null)
   const fits = useFitsWidth(wrap)
 
+  // Tapping a category sorts each team's players on their own, under their team's name, and
+  // lights that column. Columns 1-3 are Player, Owner and Min; the categories follow.
+  const [sort, setSort] = useState<BoxSort>(null)
+  const col = sort ? BOX_CATS.findIndex((c) => c.key === sort.cat) + 4 : undefined
+
   const sides = [game.away, game.home]
   const fa = best(game.lines.filter((l) => l.owner_team_id == null))
   return (
@@ -628,35 +636,57 @@ function BoxScore({
         className={`table-wrap box-scroll${fits ? ' fits' : ''}`}
         {...(fits ? {} : { tabIndex: 0, role: 'region', 'aria-label': 'Box score' })}
       >
-        <table className="box">
+        <table className="box" data-col={col}>
           <thead>
             <tr>
-              <th className="left">Player</th>
-              <th className="left">Owner</th>
-              <th>Min</th>
-              <th>Pts</th>
-              <th>FG</th>
-              <th>FT</th>
-              <th>3PM</th>
-              <th>Reb</th>
-              <th>Ast</th>
-              <th>Stl</th>
-              <th>Blk</th>
-              <th>TO</th>
+              <th scope="col" className="left">
+                Player
+              </th>
+              <th scope="col" className="left">
+                Owner
+              </th>
+              <th scope="col">Min</th>
+              {BOX_CATS.map((c) => {
+                const on = sort?.cat === c.key ? sort : null
+                return (
+                  <th
+                    key={c.key}
+                    scope="col"
+                    aria-sort={on ? (on.dir === 'desc' ? 'descending' : 'ascending') : undefined}
+                  >
+                    <button
+                      type="button"
+                      className="sc-key"
+                      title={`Sort each team by ${c.name}`}
+                      onClick={() => setSort((s) => nextSort(s, c.key))}
+                    >
+                      {c.label}
+                      {on &&
+                        (on.dir === 'desc' ? (
+                          <ArrowDown className="sc-dir" size={10} weight="bold" aria-hidden />
+                        ) : (
+                          <ArrowUp className="sc-dir" size={10} weight="bold" aria-hidden />
+                        ))}
+                      <span className="sc-caret" aria-hidden="true" />
+                    </button>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           {sides.map((side) => (
             <tbody key={side.pro_team_id}>
               <tr className="box-team">
                 <th className="left" colSpan={12} scope="rowgroup">
-                  {side.name}
+                  <span className="sc-team-name">{side.name}</span>
                 </th>
               </tr>
-              {game.lines
-                .filter((l) => l.pro_team_id === side.pro_team_id)
-                .map((l) => (
-                  <BoxRow key={l.player_id} line={l} mine={l.owner_team_id === teamId} abbrev={abbrev} />
-                ))}
+              {sortLines(
+                game.lines.filter((l) => l.pro_team_id === side.pro_team_id),
+                sort,
+              ).map((l) => (
+                <BoxRow key={l.player_id} line={l} mine={l.owner_team_id === teamId} abbrev={abbrev} />
+              ))}
             </tbody>
           ))}
         </table>
