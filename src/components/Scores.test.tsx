@@ -17,6 +17,7 @@ const DAY: ScoreDay = {
   date: '2026-10-23',
   live: false,
   updated_at: '2026-10-24T08:00:00Z',
+  complete: true,
   days: [
     { day: 3, date: '2026-10-22', games: 2 },
     { day: 4, date: '2026-10-23', games: 2 },
@@ -69,8 +70,21 @@ const DAY: ScoreDay = {
   ],
 }
 
-function mockApi() {
-  return vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(JSON.stringify(DAY))))
+/** Every Scores request answers with DAY, unless a route is given its own answer (a promise holds it back). */
+function mockApi(routes: Record<string, () => Promise<unknown> | unknown> = {}) {
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const path = new URL(String(input), 'http://x').pathname
+    const route = routes[path]
+    const body = route ? await route() : path === '/api/scores/sits' ? { days: [] } : DAY
+    return new Response(JSON.stringify(body))
+  })
+}
+
+/** The request bodies sent to one endpoint, in order. */
+function bodies(fetchMock: ReturnType<typeof mockApi>, path: string) {
+  return fetchMock.mock.calls
+    .filter(([input]) => new URL(String(input), 'http://x').pathname === path)
+    .map(([, init]) => JSON.parse(String(init?.body)))
 }
 
 function renderScores(matchup: TonightMatchup | null = null) {
@@ -184,12 +198,14 @@ describe('Scores', () => {
     const fetchMock = mockApi()
     renderScores()
     ;(await screen.findByRole('button', { name: 'Later day' })).click()
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ league_id: 1, day: 5 })
+    await vi.waitFor(() =>
+      expect(bodies(fetchMock, '/api/scores/games')).toContainEqual(expect.objectContaining({ league_id: 1, day: 5 })),
+    )
+    expect(bodies(fetchMock, '/api/scores')).toContainEqual(expect.objectContaining({ day: 5, with_sits: false }))
   })
 
   it("draws this week's games as a grid: opponent per cell, who is out and who sits", async () => {
-    mockApi()
+    mockApi({ '/api/scores/sits': () => ({ days: [{ day: 5, date: '2026-10-24', sits: [13] }] }) })
     renderScores()
     const week = await screen.findByRole('region', { name: 'Still to play this week' })
     expect(week).toHaveTextContent('1 start left · 1 player sits on full days')
@@ -208,7 +224,35 @@ describe('Scores', () => {
     renderScores()
     const picker = await screen.findByLabelText('Jump to a day')
     fireEvent.change(picker, { target: { value: '3' } })
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ day: 3, team_id: 3 })
+    await vi.waitFor(() =>
+      expect(bodies(fetchMock, '/api/scores/games')).toContainEqual(expect.objectContaining({ day: 3, team_id: 3 })),
+    )
+  })
+
+  it('shows the games first, then fills in the scores, with a spinner in the box score meanwhile', async () => {
+    let release!: (v: unknown) => void
+    const held = new Promise((r) => (release = r))
+    const quick: ScoreDay = {
+      ...DAY,
+      complete: false,
+      games: DAY.games.map((g) =>
+        g.status === 'scheduled'
+          ? g
+          : { ...g, lines: [], away: { ...g.away, score: null }, home: { ...g.home, score: null } },
+      ),
+    }
+    mockApi({ '/api/scores/games': () => quick, '/api/scores': () => held })
+    renderScores()
+    // The game cards are up before the scores.
+    expect(await screen.findByText('Fetching box score')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /HOU/ })).toHaveTextContent('Fetching the box score')
+    expect(screen.getByText('Fetching the scores')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Mine, still counting' })).toBeInTheDocument()
+    expect(screen.queryByText('Your night')).not.toBeInTheDocument()
+
+    release(DAY)
+    expect(await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)).toBeInTheDocument()
+    expect(screen.queryByText('Fetching box score')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('table').some((t) => t.classList.contains('box'))).toBe(true)
   })
 })

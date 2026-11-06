@@ -137,3 +137,63 @@
   outline: 2px solid var(--focus);
   outline-offset: -2px;
 }
+
+/* Games first: the cards are up at once and the numbers fill in. While a new day loads,
+   the last one stays on screen, a little faded, instead of going back to grey blocks. */
+.scores.scores-switching .game-grid,
+.scores.scores-switching .your-night {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.game-card .team-row .score .sc-score-bone {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.sc-filling {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.sc-filling .sc-retry {
+  padding: 0;
+  min-height: 0;
+  text-decoration: underline;
+}
+
+.sc-box-wait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 160px;
+  padding: 24px 16px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* Fade the numbers in when they land. */
+.game-card .team-row .score,
+.card .box tbody {
+  animation: sc-fade-in 0.25s ease both;
+}
+
+@keyframes sc-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scores.scores-switching .game-grid,
+  .scores.scores-switching .your-night,
+  .game-card .team-row .score,
+  .card .box tbody {
+    transition: none;
+    animation: none;
+  }
+}

@@ -555,6 +555,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Score Games
+         * @description The day's games at once: teams, tip-off and status from the NBA calendar, with no stats call.
+         *
+         *     Scores and box scores come along only when the day is already in memory (``complete``);
+         *     otherwise ask ``/api/scores`` for them. Who sits on crowded days is ``/api/scores/sits``.
+         */
+        post: operations["score_games_api_scores_games_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scores/sits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Score Sits
+         * @description Who sits on each crowded day left this week: the slow part of the Scores page, on its own.
+         */
+        post: operations["score_sits_api_scores_sits_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/news/refresh": {
         parameters: {
             query?: never;
@@ -1031,6 +1074,18 @@ export interface components {
              * @description Players with a game who don't make the best lineup
              */
             sit: components["schemas"]["BenchedPlayer"][];
+        };
+        /** DaySits */
+        DaySits: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /**
+             * Sits
+             * @description Your players with a game that day whom the best lineup leaves out
+             */
+            sits: number[];
         };
         /** DeletePostRequest */
         DeletePostRequest: {
@@ -2498,6 +2553,12 @@ export interface components {
             week: components["schemas"]["FixtureDay"][];
             /** Updated At */
             updated_at: string;
+            /**
+             * Complete
+             * @description Scores and box scores are in. False from /api/scores/games before the day's stats are fetched: started games have no score or lines yet
+             * @default true
+             */
+            complete: boolean;
         };
         /** ScoreDayRef */
         ScoreDayRef: {
@@ -2527,6 +2588,12 @@ export interface components {
              * @description Your team: this week's fixtures name your players
              */
             team_id?: number | null;
+            /**
+             * With Sits
+             * @description Work out who sits on crowded days (slow on a cold server). False leaves ``sits`` empty; ask /api/scores/sits for them on their own
+             * @default true
+             */
+            with_sits: boolean;
         };
         /** SeasonRow */
         SeasonRow: {
@@ -2801,6 +2868,18 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** SitsRequest */
+        SitsRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
         };
         /** TargetFit */
         TargetFit: {
@@ -3666,6 +3745,14 @@ export interface components {
              * @description Categories still close this week on today's rosters: ones a move can steal
              */
             close_categories: string[];
+        };
+        /** WeekSits */
+        WeekSits: {
+            /**
+             * Days
+             * @description Each day left this week, as in ScoreDay.week
+             */
+            days: components["schemas"]["DaySits"][];
         };
     };
     responses: never;
@@ -5016,6 +5103,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScoreDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    score_games_api_scores_games_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoresRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreDay"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    score_sits_api_scores_sits_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SitsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeekSits"];
                 };
             };
             /** @description Unauthorized */

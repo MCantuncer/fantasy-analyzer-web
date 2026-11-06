@@ -8,7 +8,8 @@ interface Props {
   value: Lens
   onChange: (value: Lens) => void
   all: number
-  mine: number
+  /** Null while the scores are on their way: who played isn't known yet. */
+  mine: number | null
 }
 
 const OPTIONS: Lens[] = ['all', 'mine']
@@ -40,12 +41,16 @@ export function ScoresLens({ value, onChange, all, mine }: Props) {
           role="radio"
           className="sl-seg"
           aria-checked={value === o}
-          aria-label={`${o === 'all' ? 'All' : 'Mine'} ${count[o]} ${count[o] === 1 ? 'game' : 'games'}`}
+          aria-label={
+            count[o] === null
+              ? 'Mine, still counting'
+              : `${o === 'all' ? 'All' : 'Mine'} ${count[o]} ${count[o] === 1 ? 'game' : 'games'}`
+          }
           tabIndex={value === o ? 0 : -1}
           onClick={() => onChange(o)}
           onKeyDown={(e) => onKeyDown(e, i)}
         >
-          {o === 'all' ? 'All' : 'Mine'} <span className="sl-n num">{count[o]}</span>
+          {o === 'all' ? 'All' : 'Mine'} <span className="sl-n num">{count[o] ?? '·'}</span>
         </button>
       ))}
     </div>
