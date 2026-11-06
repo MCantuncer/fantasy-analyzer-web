@@ -11,6 +11,7 @@ import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Scores } from './Scores'
+import { tradeKey } from '../lib/format'
 import { tonightMatchup } from '../lib/league'
 import { Season } from './Season'
 import { TradeFor } from './TradeFor'
@@ -100,7 +101,7 @@ export function Report({
             <div className="moves stack" data-show={show}>
               <div className="moves-switch segmented" role="group" aria-label="Show">
                 <button type="button" aria-pressed={show === 'trades'} onClick={() => setShow('trades')}>
-                  Trades · {report.trades.length}
+                  Trades · {new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size}
                 </button>
                 <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
                   FA Targets · {report.pickups.length}
