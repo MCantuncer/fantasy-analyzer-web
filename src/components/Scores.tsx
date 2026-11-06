@@ -612,12 +612,18 @@ function BoxScore({
   const wrap = useRef<HTMLDivElement>(null)
   const fits = useFitsWidth(wrap)
 
-  // Tapping a category sorts each team's players on their own, under their team's name, and
-  // lights that column. Columns 1-3 are Player, Owner and Min; the categories follow.
+  // Tapping a category sorts the team's players by it and lights that column. Columns 1-3 are Player, Owner and Min; the categories follow.
   const [sort, setSort] = useState<BoxSort>(null)
   const col = sort ? BOX_CATS.findIndex((c) => c.key === sort.cat) + 4 : undefined
 
+  // One team at a time keeps the box score short (Can, 2026-11-06). It opens on the team with more
+  // of your players (the away team on a tie) and keeps your pick until another game is opened.
   const sides = [game.away, game.home]
+  const mineOn = (side: Game['away']) =>
+    game.lines.filter((l) => l.pro_team_id === side.pro_team_id && l.owner_team_id === teamId).length
+  const opening = mineOn(game.home) > mineOn(game.away) ? game.home : game.away
+  const [picked, setPicked] = useState<{ game: number; team: number } | null>(null)
+  const side = sides.find((s) => picked?.game === game.id && s.pro_team_id === picked.team) ?? opening
   const fa = best(game.lines.filter((l) => l.owner_team_id == null))
   return (
     <section className="card flush box-card" ref={ref} aria-labelledby="box-title">
@@ -630,6 +636,19 @@ function BoxScore({
           {game.status === 'live' ? `Live${game.clock ? ` · ${game.clock}` : ''}` : 'Final'} · {dayLabel(date)}. Owner
           is the fantasy team in this league.
         </span>
+      </div>
+      <div className="segmented sc-team-switch" role="group" aria-label="Team">
+        {sides.map((s) => (
+          <button
+            key={s.pro_team_id}
+            type="button"
+            aria-pressed={s.pro_team_id === side.pro_team_id}
+            onClick={() => setPicked({ game: game.id, team: s.pro_team_id })}
+          >
+            <TeamLogo abbrev={s.abbrev} size={20} />
+            <span className="sc-team-label">{s.name}</span>
+          </button>
+        ))}
       </div>
       <div
         ref={wrap}
@@ -657,7 +676,7 @@ function BoxScore({
                     <button
                       type="button"
                       className="sc-key"
-                      title={`Sort each team by ${c.name}`}
+                      title={`Sort by ${c.name}`}
                       onClick={() => setSort((s) => nextSort(s, c.key))}
                     >
                       {c.label}
@@ -674,21 +693,14 @@ function BoxScore({
               })}
             </tr>
           </thead>
-          {sides.map((side) => (
-            <tbody key={side.pro_team_id}>
-              <tr className="box-team">
-                <th className="left" colSpan={12} scope="rowgroup">
-                  <span className="sc-team-name">{side.name}</span>
-                </th>
-              </tr>
-              {sortLines(
-                game.lines.filter((l) => l.pro_team_id === side.pro_team_id),
-                sort,
-              ).map((l) => (
-                <BoxRow key={l.player_id} line={l} mine={l.owner_team_id === teamId} abbrev={abbrev} />
-              ))}
-            </tbody>
-          ))}
+          <tbody key={side.pro_team_id}>
+            {sortLines(
+              game.lines.filter((l) => l.pro_team_id === side.pro_team_id),
+              sort,
+            ).map((l) => (
+              <BoxRow key={l.player_id} line={l} mine={l.owner_team_id === teamId} abbrev={abbrev} />
+            ))}
+          </tbody>
         </table>
       </div>
       {fa && (
