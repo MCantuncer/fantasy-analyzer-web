@@ -30,6 +30,7 @@ import { VerifyTeam } from './components/VerifyTeam'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
 import { clearSavedReports, loadSavedReport, saveReport } from './lib/savedReport'
+import { clearPages, prefetchPages, restorePages, savePages } from './lib/pageCache'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
@@ -117,6 +118,11 @@ export default function App() {
   const [focusAdd, setFocusAdd] = useState(0)
 
   useEffect(() => writeUrl(selection, tab, verifying), [selection, tab, verifying])
+  // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
+  const isPrivate = useRef(creds !== null)
+  isPrivate.current = creds !== null
+  useState(() => restorePages(qc)) // before the first render, so a page opened by URL starts filled
+  useEffect(() => savePages(qc, () => isPrivate.current), [qc])
   useEffect(() => applyTheme(theme), [theme])
 
   const me = useQuery({
@@ -147,6 +153,15 @@ export default function App() {
   })
   const myTeamId = overview.data?.my_team_id ?? null
   const ref = overview.data ? { leagueId: overview.data.league_id, season: overview.data.season } : null
+
+  // Once the league is in, fetch the first screen of the "While you wait" pages in the
+  // background, so opening one of them during the analysis finds it ready.
+  const refLeague = ref?.leagueId
+  const refSeason = ref?.season
+  useEffect(() => {
+    if (refLeague === undefined || refSeason === undefined) return
+    prefetchPages(qc, { leagueId: refLeague, season: refSeason }, myTeamId, creds)
+  }, [qc, refLeague, refSeason, myTeamId, creds])
 
   // The analysis is only for the team this account verified.
   const league = useQuery({
@@ -231,6 +246,7 @@ export default function App() {
   function endSession() {
     clearToken()
     clearSavedReports()
+    clearPages()
     qc.clear()
     setSignedIn(false)
     goHome()
