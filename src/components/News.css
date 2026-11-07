@@ -55,14 +55,15 @@
 
 .news-refresh-status {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .news-refresh-status[data-state='fresh'] {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .news-refresh-status[data-state='error'] {
