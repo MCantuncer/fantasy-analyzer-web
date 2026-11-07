@@ -43,7 +43,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 
 | | Feature | What you get |
 | --- | --- | --- |
-| ⚡ | **Moves** | Your best move today (a pickup or a trade) with your playoff odds before and after, trades to offer (Fair, where both teams' odds rise, and Worth a Try, a win on paper for them), and how often you win each category. |
+| ⚡ | **Moves** | Your best move today (a pickup or a trade) with your playoff odds before and after, trades to offer (Fair, where both teams' odds rise, and Bold, a win on paper for them), and how often you win each category. |
 | 🔁 | **Trade Park** | Pick up to four of your players and see every team's best deal for them, with acceptance odds, a ready-to-send pitch and your playoff odds before and after. |
 | 🧊 | **Injury risk** | Players who keep missing games carry an amber durability score (tap it for what it means), and every trade's odds count them for fewer games. |
 | 🎯 | **Trade For** | Pick any rostered player: his fit with your build, his owner's needs, and three offers (best, safer, cheaper). |

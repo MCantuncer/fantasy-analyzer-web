@@ -30,10 +30,10 @@ const idea = {
 const show = (ui: ReactElement) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>)
 
 describe('Trades', () => {
-  it('opens on Worth a Try when no trade helps both teams', () => {
+  it('opens on Bold when no trade helps both teams', () => {
     const { container } = show(<Trades fair={[]} edge={[idea]} />)
     const view = within(container)
-    expect(view.getByRole('button', { name: 'Worth a Try · 1' })).toHaveAttribute('aria-pressed', 'true')
+    expect(view.getByRole('button', { name: 'Bold · 1' })).toHaveAttribute('aria-pressed', 'true')
     expect(view.getByText(/They win on paper/)).toBeInTheDocument()
   })
 
