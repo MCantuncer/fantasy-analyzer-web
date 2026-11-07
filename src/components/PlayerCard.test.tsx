@@ -168,7 +168,11 @@ const card: PlayerCard = {
     fg_pct: 0.553,
     ft_pct: 0.778,
   },
-  games: [game(19), game(23, { game_id: 2, home: true, opponent: 'LAC' }), game(11, { game_id: 3 })],
+  games: [
+    game(19),
+    game(23, { game_id: 2, home: true, opponent: 'LAC', won: true }),
+    game(11, { game_id: 3, won: false }),
+  ],
   news: [
     {
       id: 'n1',
@@ -236,6 +240,16 @@ describe('PlayerCard', () => {
     expect(logos.length).toBe(2) // minutes chart and game log
     fireEvent.error(logos[0])
     expect(dialog.querySelectorAll('.pc-opp-logo img[src$="/lac.png"]').length).toBe(1)
+
+    // Each finished game leads with his team's result, read before the date; a game in play has none.
+    const rows = [...dialog.querySelectorAll('.pc-table tbody tr:not(.pc-avg) th')]
+    expect(rows.map((r) => r.querySelector('.pc-result .sr-only')?.textContent ?? null)).toEqual([
+      null,
+      'Won',
+      'Lost',
+    ])
+    expect(rows[1].textContent).toMatch(/^Won/)
+    expect(rows[0].querySelector('.pc-result')).toHaveAttribute('aria-hidden', 'true')
 
     // Game log columns: points right after minutes, then the shooting splits and threes.
     const heads = [...dialog.querySelectorAll('.pc-table thead th')].map((h) => h.textContent)

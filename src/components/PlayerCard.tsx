@@ -640,6 +640,7 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
     <tr>
       <th scope="row" className="pc-first">
         <span className="pc-game">
+          <GameResult won={g.won} />
           <span className="pc-date">{gameDate(g.date)}</span>
           <Opponent game={g} size={22} />
         </span>
@@ -656,6 +657,27 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         return cat ? <CatCell key={k} cat={cat} stats={s} base={base} /> : <td key={k} />
       })}
     </tr>
+  )
+}
+
+// A small rounded tile stamped W or L: the same tile for both, so the letter carries the result.
+const STAMP = { W: 'M4.7 4.6L6.35 11.4L8 6.6L9.65 11.4L11.3 4.6', L: 'M5.95 4.6V11.4H10.05' }
+
+/**
+ * His team's result for one game, read before the date. While a game may still be going the
+ * slot stays empty, so the dates keep one column.
+ */
+function GameResult({ won }: { won?: boolean | null }) {
+  if (won == null) return <span className="pc-result" aria-hidden="true" />
+  const word = won ? 'Won' : 'Lost'
+  return (
+    <span className={`pc-result ${won ? 'pc-result-w' : 'pc-result-l'}`} title={word}>
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <rect className="pc-result-tile" x=".5" y=".5" width="15" height="15" rx="4" />
+        <path className="pc-result-ink" d={won ? STAMP.W : STAMP.L} />
+      </svg>
+      <span className="sr-only">{word}</span>
+    </span>
   )
 }
 

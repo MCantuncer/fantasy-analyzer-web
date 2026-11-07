@@ -2286,6 +2286,11 @@ export interface components {
             opponent: string;
             /** Home */
             home?: boolean | null;
+            /**
+             * Won
+             * @description Whether his team won; none while the game may still be going or when unknown
+             */
+            won?: boolean | null;
             stats: components["schemas"]["GameStats"];
         };
         /** PlayerMove */
