@@ -2,12 +2,71 @@
    Player first, then the headline, then one quiet line of details. Your team is marked
    with a small accent touch (a tinted chip and a bar), never a big pill. */
 
+/* Title and line on the left, the page's own refresh on the right. It is a labelled button,
+   unlike the top bar's round icon, which reruns the trade analysis instead. */
+.news-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title refresh'
+    'line refresh';
+  column-gap: 24px;
+  align-items: start;
+}
+
 .news-head h2 {
+  grid-area: title;
   margin: 0;
 }
 
 .news-head p {
+  grid-area: line;
   margin: 4px 0 0;
+}
+
+.news-refresh {
+  grid-area: refresh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.news-refresh-btn {
+  min-height: 40px;
+  padding: 0 16px 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .news-refresh-btn:hover:not(:disabled) {
+    background: var(--accent-soft);
+  }
+}
+
+/* While it checks, the button stays readable (not the faded disabled look) and its arrow turns. */
+.news-refresh-btn:disabled,
+.news-refresh-btn[aria-busy] {
+  opacity: 1;
+  color: var(--text-2);
+}
+
+.news-refresh-status {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.news-refresh-status[data-state='fresh'] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.news-refresh-status[data-state='error'] {
+  color: var(--bad);
 }
 
 /* One toolbar: whose players, then what kind of news. Never wraps into a block. */

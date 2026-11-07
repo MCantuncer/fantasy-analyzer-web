@@ -639,6 +639,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/news/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * News Check
+         * @description A reader's "refresh": check every news source now. The feed is shared, so this runs at most
+         *     once every two minutes for everyone; a press inside that gap just says when the last check was.
+         */
+        post: operations["news_check_api_news_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/news": {
         parameters: {
             query?: never;
@@ -1790,6 +1811,24 @@ export interface components {
              * @description The team this account is the verified manager of
              */
             team_id?: number | null;
+        };
+        /** NewsCheck */
+        NewsCheck: {
+            /**
+             * Refreshing
+             * @description A check of every source is running; ask /api/news again in a few seconds
+             */
+            refreshing: boolean;
+            /**
+             * Updated At
+             * @description Last time every source was checked, UTC
+             */
+            updated_at?: string | null;
+            /**
+             * Next Check At
+             * @description Before this time a new check is not started (the news is already this fresh), UTC
+             */
+            next_check_at?: string | null;
         };
         /** NewsPage */
         NewsPage: {
@@ -5861,6 +5900,46 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    news_check_api_news_check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsCheck"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

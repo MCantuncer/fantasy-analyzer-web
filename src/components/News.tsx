@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { NewsSkeleton } from './Skeleton'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
@@ -31,8 +31,9 @@ import {
 import type { NewsFilter, NewsScope } from '../lib/news'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import { NewsRefresh } from './NewsRefresh'
+import { useNewsRefresh } from '../lib/useNewsRefresh'
 import './News.css'
-
 
 interface Props {
   leagueId: number
@@ -52,8 +53,16 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
     retry: false,
     staleTime: 60_000,
     // While the server is checking its sources, ask again shortly; otherwise every 5 minutes.
+    // A check the reader asked for is followed more closely by the refresh button itself.
     refetchInterval: (q) => (q.state.data?.refreshing ? 15_000 : 300_000),
   })
+  const refresh = useNewsRefresh(news.data, news.refetch)
+  // "Updated 4 min ago" keeps counting while the page stays open.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const t = window.setInterval(() => tick((n) => n + 1), 30_000)
+    return () => window.clearInterval(t)
+  }, [])
 
   if (news.isLoading) return <NewsSkeleton />
   if (news.error || !news.data) {
@@ -88,6 +97,7 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
         <p className="small muted">
           Injuries, trades and role changes from around the NBA, checked against several sources before they show.
         </p>
+        <NewsRefresh data={data} now={now} refresh={refresh} />
       </header>
 
       <div className="news-toolbar">
@@ -539,7 +549,8 @@ function HowItWorks() {
       <summary>How a story gets published</summary>
       <ul>
         <li>
-          Every 15 minutes the site reads ESPN's player data and several news outlets. Reddit counts only as a tip.
+          Every 15 minutes, or when you press Refresh news, the site reads ESPN's player data and several news outlets.
+          Reddit counts only as a tip.
         </li>
         <li>Items naming the same player and the same kind of news within two days become one story.</li>
         <li>
@@ -557,4 +568,3 @@ function HowItWorks() {
     </details>
   )
 }
-

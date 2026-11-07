@@ -1,6 +1,31 @@
 /* NBA News on phones: the scope control takes the full width with equal segments (it
    used to wrap into a two-row block), and the kind filters scroll sideways under it. */
 @media (max-width: 720px) {
+  /* The refresh button stays on the title line; its "Updated 4 min ago" moves under the line. */
+  .news-head {
+    grid-template-areas:
+      'title button'
+      'line line'
+      'status status';
+    column-gap: 12px;
+    align-items: center;
+  }
+
+  .news-refresh {
+    display: contents;
+  }
+
+  .news-refresh-btn {
+    grid-area: button;
+    min-height: 44px;
+  }
+
+  .news-refresh-status {
+    grid-area: status;
+    margin-top: 6px;
+    white-space: normal;
+  }
+
   .news-toolbar {
     flex-direction: column;
     align-items: stretch;
