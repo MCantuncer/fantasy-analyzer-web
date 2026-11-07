@@ -56,6 +56,7 @@ export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
 export type FixtureDay = components['schemas']['FixtureDay']
 export type NewsPage = components['schemas']['NewsPage']
+export type NewsCheck = components['schemas']['NewsCheck']
 export type NewsStory = components['schemas']['NewsStory']
 export type NewsPlayer = components['schemas']['NewsPlayer']
 export type NewsSourceLink = components['schemas']['NewsSourceLink']
@@ -508,6 +509,11 @@ export function fetchNews(leagueId: number, season: number | null, includeHeld: 
     creds,
     SCORES_TIMEOUT_MS,
   )
+}
+
+/** A reader's refresh: the server checks every news source now (at most once every 2 minutes for everyone). */
+export function checkNews() {
+  return post<NewsCheck>('/api/news/check', {})
 }
 
 export function fetchInjuryImpact(

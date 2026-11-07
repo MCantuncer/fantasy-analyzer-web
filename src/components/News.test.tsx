@@ -251,4 +251,45 @@ describe('News', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Hide' }))
     expect(screen.queryByText('Cason Wallace')).not.toBeInTheDocument()
   })
+
+  it('has its own refresh that checks every source and says what came in', async () => {
+    let checked = false
+    const later: NewsPage = {
+      ...PAGE,
+      updated_at: new Date().toISOString(),
+      stories: [story({ kind: 'trade', headline: 'Kris Dunn traded to the Kings' }), ...PAGE.stories],
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input)
+      if (url.includes('/api/news/check')) {
+        checked = true
+        return Promise.resolve(new Response(JSON.stringify({ refreshing: true, updated_at: PAGE.updated_at })))
+      }
+      return Promise.resolve(new Response(JSON.stringify(checked ? later : PAGE)))
+    })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <News leagueId={1} season={2027} myTeamId={3} teams={TEAMS} creds={null} />
+      </QueryClientProvider>,
+    )
+    expect(await screen.findByText('Updated 12 min ago')).toBeInTheDocument()
+    // Not the top bar's analysis refresh: a labelled button of its own.
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh news' }))
+    expect(await screen.findByText('1 new story')).toBeInTheDocument()
+    expect(screen.getByText('Kris Dunn traded to the Kings')).toBeInTheDocument()
+  })
+
+  it('says the news is up to date when the sources were just checked', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const body = String(input).includes('/api/news/check') ? { refreshing: false, updated_at: PAGE.updated_at } : PAGE
+      return Promise.resolve(new Response(JSON.stringify(body)))
+    })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <News leagueId={1} season={2027} myTeamId={3} teams={TEAMS} creds={null} />
+      </QueryClientProvider>,
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Refresh news' }))
+    expect(await screen.findByText('Up to date')).toBeInTheDocument()
+  })
 })
