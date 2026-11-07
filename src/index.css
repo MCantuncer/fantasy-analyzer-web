@@ -701,23 +701,6 @@ th .badge {
   font-size: 15px;
 }
 
-.totd-gains {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.totd-gains li {
-  font-size: 15px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--good-soft);
-}
-
 .totd-why p {
   margin: 4px 0 0;
 }
@@ -790,8 +773,7 @@ th .badge {
     margin: -4px 0;
   }
 
-  .totd:not(.open) .totd-why,
-  .totd:not(.open) .totd-gains {
+  .totd:not(.open) .totd-why {
     display: none;
   }
 
