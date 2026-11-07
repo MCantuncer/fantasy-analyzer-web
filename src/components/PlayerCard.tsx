@@ -640,6 +640,7 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
     <tr>
       <th scope="row" className="pc-first">
         <span className="pc-game">
+          <GameResult won={g.won} />
           <span className="pc-date">{gameDate(g.date)}</span>
           <Opponent game={g} size={22} />
         </span>
@@ -656,6 +657,29 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         return cat ? <CatCell key={k} cat={cat} stats={s} base={base} /> : <td key={k} />
       })}
     </tr>
+  )
+}
+
+// A ticket stub stamped W or L: the same die-cut shape for both, so the letter carries the result.
+const STUB =
+  'M3 .5H10A2.5 2.5 0 0 1 12.5 3V7.25A1.75 1.75 0 0 0 12.5 10.75V15A2.5 2.5 0 0 1 10 17.5H3A2.5 2.5 0 0 1 .5 15V10.75A1.75 1.75 0 0 0 .5 7.25V3A2.5 2.5 0 0 1 3 .5Z'
+const STAMP = { W: 'M3.2 5.6L4.85 12.4L6.5 7.6L8.15 12.4L9.8 5.6', L: 'M4.8 5.6V12.4H8.9' }
+
+/**
+ * His team's result for one game, read before the date. While a game may still be going the
+ * slot stays empty, so the dates keep one column.
+ */
+function GameResult({ won }: { won?: boolean | null }) {
+  if (won == null) return <span className="pc-result" aria-hidden="true" />
+  const word = won ? 'Won' : 'Lost'
+  return (
+    <span className={`pc-result ${won ? 'pc-result-w' : 'pc-result-l'}`} title={word}>
+      <svg viewBox="0 0 13 18" aria-hidden="true" focusable="false">
+        <path className="pc-result-stub" d={STUB} />
+        <path className="pc-result-ink" d={won ? STAMP.W : STAMP.L} />
+      </svg>
+      <span className="sr-only">{word}</span>
+    </span>
   )
 }
 
