@@ -1,11 +1,29 @@
+import {
+  ArrowUpRight,
+  ArrowsClockwise,
+  ArrowsLeftRight,
+  CaretRight,
+  ChatCircleDots,
+  CircleDashed,
+  Database,
+  FirstAidKit,
+  Heartbeat,
+  Megaphone,
+  SealCheck,
+  Signature,
+  UserMinus,
+  Warning,
+  XCircle,
+} from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
-import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame } from '../api/client'
+import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame, PlayerNews } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { ago } from '../lib/news'
+import { KIND_LABEL, ago, statusText } from '../lib/news'
 import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
 import {
   CATS,
@@ -290,6 +308,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
   }
 
   const card = useMemo(() => (q.data ? withExtras(q.data, extras.data) : undefined), [q.data, extras.data])
+  const [tab, setTab] = useState<CardTab>('log')
   const status = card ? healthStatus(card.injury_status) : null
   const abbrev = card?.pro_team ?? ''
   const colour = teamColour(abbrev)
@@ -353,7 +372,10 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
               season={leagueRef.season}
               teams={teams}
               myTeamId={myTeamId}
-              news={extras.isPending ? 'loading' : extras.isError ? 'failed' : 'ready'}
+              news={extras.isFetching && !extras.data ? 'loading' : extras.isError ? 'failed' : 'ready'}
+              onRetryNews={() => void extras.refetch()}
+              tab={tab}
+              onTab={setTab}
             />
           )}
         </div>
@@ -381,7 +403,13 @@ interface BodyProps {
   myTeamId: number | null
   /** News arrives after the rest of the card. */
   news: 'loading' | 'ready' | 'failed'
+  onRetryNews: () => void
+  tab: CardTab
+  onTab: (tab: CardTab) => void
 }
+
+/** The card's two tabs: his games (form, minutes, game log, moves) and his news. */
+type CardTab = 'log' | 'news'
 
 function Section({
   id,
@@ -407,97 +435,90 @@ function Section({
   )
 }
 
-function CardBody({ card, season, teams, myTeamId, news }: BodyProps) {
+function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab }: BodyProps) {
   const now = new Date()
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
   const recent = card.games.slice(0, 5)
   const last5 = recent.length >= 3 ? average(recent) : null
   const line = card.season_line
+  const ids = useId()
+  const top = useRef<HTMLDivElement>(null)
+
+  // A tab switch from far down the game log starts the other tab at its top, under the tabs.
+  // The sheet keeps its height, so a short tab doesn't make it jump.
+  const show = (next: CardTab) => {
+    const mark = top.current
+    const scroller = mark?.closest<HTMLElement>('.pc-body')
+    if (scroller) scroller.style.minHeight = `${scroller.clientHeight}px`
+    onTab(next)
+    if (!mark || !scroller) return
+    const at = mark.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop
+    if (scroller.scrollTop > at) scroller.scrollTop = at
+  }
+
   return (
     <>
-      {injury && card.injury_status !== 'ACTIVE' && (
-        <p className="pc-injury">
-          <span className="pc-injury-label">Latest</span> {injury.headline}{' '}
-          <span className="muted">· {ago(injury.updated_at, now)}</span>
-        </p>
-      )}
+      <div ref={top} className="pc-tabs-mark" aria-hidden="true" />
+      <CardTabs tab={tab} onTab={show} ids={ids} newsCount={news === 'ready' ? card.news.length : null} />
 
-      {!card.games.length && !line ? (
-        <p className="pc-empty">No games played yet this season.</p>
-      ) : (
-        <>
-          {last5 && (
-            <Section
-              id="pc-form-title"
-              title={`Form · last ${recent.length} games`}
-              aside={line && !lastSeason ? '▲▼ vs his season average' : undefined}
-            >
-              <FormTiles
-                tiles={formTiles(
-                  last5,
-                  line && !lastSeason ? line.per_game : null,
-                  line?.fg_pct ?? null,
-                  line?.ft_pct ?? null,
-                )}
-              />
-            </Section>
-          )}
-          {card.games.length > 1 && (
-            <Section
-              id="pc-minutes-title"
-              title="Minutes"
-              aside={line ? `dashed line: season ${line.per_game.minutes.toFixed(1)} a game` : undefined}
-            >
-              <MinutesChart games={card.games} average={line?.per_game.minutes ?? null} />
-            </Section>
-          )}
-          <Section
-            id="pc-games-title"
-            title={lastSeason ? 'Game log · last season' : 'Game log'}
-            aside={line ? `season ${line.games} G` : undefined}
-          >
-            <GameTable card={card} />
-            <p className="pc-legend small muted">
-              <span className="pc-legend-glow" aria-hidden="true" /> a big night for him
-              <span className="pc-legend-quiet" aria-hidden="true">
-                0
-              </span>{' '}
-              a quiet one
-              <span className="pc-swipe"> · swipe for all categories</span>
-            </p>
-          </Section>
-        </>
-      )}
+      <div
+        id={`${ids}-log`}
+        role="tabpanel"
+        aria-labelledby={`${ids}-log-tab`}
+        className="pc-panel"
+        hidden={tab !== 'log'}
+      >
+        {injury && card.injury_status !== 'ACTIVE' && (
+          <button type="button" className="pc-injury" onClick={() => show('news')}>
+            <span>
+              <span className="pc-injury-label">Latest</span> {injury.headline}{' '}
+              <span className="muted">· {ago(injury.updated_at, now)}</span>
+            </span>
+            <CaretRight className="pc-injury-go" size={16} weight="bold" aria-hidden="true" />
+            <span className="sr-only"> · Open his news</span>
+          </button>
+        )}
 
-      <div className="pc-two">
-        <Section id="pc-news-title" title="News">
-          {news === 'loading' ? (
-            <div className="pc-news-loading" role="status">
-              <span className="sr-only">Loading his news…</span>
-              <span className="pc-skeleton pc-skeleton-line" aria-hidden="true" />
-              <span className="pc-skeleton pc-skeleton-line pc-skeleton-short" aria-hidden="true" />
-            </div>
-          ) : news === 'failed' ? (
-            <p className="pc-quiet">His news didn't load. Open the card again to retry.</p>
-          ) : card.news.length ? (
-            <ul className="pc-list">
-              {card.news.map((n) => (
-                <li key={n.id} className="pc-news">
-                  <a href={n.url} target="_blank" rel="noopener noreferrer">
-                    {n.headline}
-                  </a>
-                  <span className="small muted">
-                    {n.source} · {ago(n.updated_at, now)}
-                    {n.status === 'reported' && ' · one source'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="pc-quiet">Quiet: no news about him in the last few days.</p>
-          )}
-        </Section>
+        {!card.games.length && !line ? (
+          <p className="pc-empty">No games played yet this season.</p>
+        ) : (
+          <>
+            {last5 && (
+              <Section
+                id="pc-form-title"
+                title={`Form · last ${recent.length} games`}
+                aside={line && !lastSeason ? '▲▼ vs his season average' : undefined}
+              >
+                <FormTiles
+                  tiles={formTiles(
+                    last5,
+                    line && !lastSeason ? line.per_game : null,
+                    line?.fg_pct ?? null,
+                    line?.ft_pct ?? null,
+                  )}
+                />
+              </Section>
+            )}
+            {card.games.length > 1 && (
+              <Section
+                id="pc-minutes-title"
+                title="Minutes"
+                aside={line ? `dashed line: season ${line.per_game.minutes.toFixed(1)} a game` : undefined}
+              >
+                <MinutesChart games={card.games} average={line?.per_game.minutes ?? null} />
+              </Section>
+            )}
+            <Section
+              id="pc-games-title"
+              title={lastSeason ? 'Game log · last season' : 'Game log'}
+              aside={line ? `season ${line.games} G` : undefined}
+            >
+              <GameTable card={card} />
+              <p className="pc-swipe small muted">Swipe for all categories</p>
+            </Section>
+          </>
+        )}
 
         <Section id="pc-moves-title" title="Moves in this league">
           {card.moves.length ? (
@@ -520,7 +541,191 @@ function CardBody({ card, season, teams, myTeamId, news }: BodyProps) {
           )}
         </Section>
       </div>
+
+      <div
+        id={`${ids}-news`}
+        role="tabpanel"
+        aria-labelledby={`${ids}-news-tab`}
+        className="pc-panel"
+        hidden={tab !== 'news'}
+      >
+        {news === 'loading' ? (
+          <div className="pc-news-loading" role="status">
+            <span className="sr-only">Loading his news…</span>
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="pc-skeleton pc-skeleton-story" aria-hidden="true" />
+            ))}
+          </div>
+        ) : news === 'failed' ? (
+          <div className="pc-news-empty">
+            <p>His news didn't load.</p>
+            <button type="button" className="secondary" onClick={onRetryNews}>
+              Try again
+            </button>
+          </div>
+        ) : card.news.length ? (
+          <>
+            <ol className="pc-stories">
+              {card.news.map((n) => (
+                <Story key={n.id} story={n} playerId={card.player_id} now={now} />
+              ))}
+            </ol>
+            <p className="pc-news-note small muted">
+              Headlines and summaries are the sources' own words, from the last 7 days.
+            </p>
+          </>
+        ) : (
+          <div className="pc-news-empty">
+            <p>No news about him in the last 7 days.</p>
+          </div>
+        )}
+      </div>
     </>
+  )
+}
+
+function CardTabs({
+  tab,
+  onTab,
+  ids,
+  newsCount,
+}: {
+  tab: CardTab
+  onTab: (tab: CardTab) => void
+  ids: string
+  newsCount: number | null
+}) {
+  const tabs: { id: CardTab; label: string }[] = [
+    { id: 'log', label: 'Game Log' },
+    { id: 'news', label: 'News' },
+  ]
+  // Arrow keys move between the tabs, as in any tab list.
+  const onKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return
+    e.preventDefault()
+    const next = tab === 'log' ? 'news' : 'log'
+    const to = e.key === 'Home' ? 'log' : e.key === 'End' ? 'news' : next
+    onTab(to)
+    document.getElementById(`${ids}-${to}-tab`)?.focus()
+  }
+  return (
+    <div className="pc-tabs" role="tablist" aria-label="Player card" onKeyDown={onKey}>
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          id={`${ids}-${t.id}-tab`}
+          type="button"
+          role="tab"
+          aria-selected={tab === t.id}
+          aria-controls={`${ids}-${t.id}`}
+          tabIndex={tab === t.id ? 0 : -1}
+          className="pc-tab"
+          aria-label={
+            t.id === 'news' && newsCount ? `News, ${newsCount} ${newsCount === 1 ? 'story' : 'stories'}` : undefined
+          }
+          onClick={() => onTab(t.id)}
+        >
+          {t.label}
+          {t.id === 'news' && newsCount ? (
+            <span className="pc-tab-count tnum" aria-hidden="true">
+              {newsCount}
+            </span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const STORY_ICON: Record<PlayerNews['kind'], Icon> = {
+  injury: FirstAidKit,
+  return: Heartbeat,
+  trade: ArrowsLeftRight,
+  rumor: ChatCircleDots,
+  signing: Signature,
+  waive: UserMinus,
+  role: ArrowsClockwise,
+  other: Megaphone,
+}
+
+/** Only health outcomes get colour: red for a long absence, amber for a short one, green for a return. */
+function storyTone(n: PlayerNews): 'bad' | 'warn' | 'good' | 'plain' {
+  if (n.kind === 'return') return 'good'
+  if (n.kind !== 'injury') return 'plain'
+  return n.severity >= 2 ? 'bad' : 'warn'
+}
+
+/** One story: what kind of news, the source's own headline and summary, and who reported it. */
+function Story({ story: n, playerId, now }: { story: PlayerNews; playerId: number; now: Date }) {
+  const KindIcon = STORY_ICON[n.kind]
+  const sources = n.sources?.length
+    ? n.sources
+    : [
+        {
+          source_id: n.source,
+          name: n.source,
+          kind: 'outlet' as const,
+          title: n.headline,
+          url: n.url,
+          published_at: n.updated_at,
+          summary: '',
+        },
+      ]
+  const summary = n.summary && n.summary.trim() !== n.headline.trim() ? n.summary : ''
+  const VerifyIcon = n.status === 'confirmed' ? SealCheck : n.status === 'didnt_happen' ? XCircle : CircleDashed
+  return (
+    <li className={`pc-story pc-story-${storyTone(n)}${n.status === 'didnt_happen' ? ' pc-story-off' : ''}`}>
+      <span className="pc-story-icon" aria-hidden="true">
+        <KindIcon size={20} weight="bold" />
+      </span>
+      <div className="pc-story-main">
+        <p className="pc-story-top">
+          <span className="pc-story-kind">{KIND_LABEL[n.kind]}</span>
+          <time className="muted" dateTime={n.updated_at}>
+            {ago(n.updated_at, now)}
+          </time>
+        </p>
+        <h4 className="pc-story-head">{n.headline}</h4>
+        {summary && <p className="pc-story-sum">{summary}</p>}
+        {n.conflict && (
+          <p className="pc-story-conflict" role="note">
+            <Warning size={16} weight="bold" aria-hidden="true" /> {n.conflict}
+          </p>
+        )}
+        <div className="pc-story-foot">
+          <span className={`pc-verify pc-verify-${n.status}`}>
+            <VerifyIcon size={16} weight="bold" aria-hidden="true" />
+            {statusText({ status: n.status, sources })}
+          </span>
+          <ul className="pc-sources" aria-label="Sources">
+            {sources.map((src, i) => {
+              const url = src.url || (src.kind === 'fact' ? `https://www.espn.com/nba/player/_/id/${playerId}` : '')
+              const label = (
+                <>
+                  {src.kind === 'fact' && <Database size={14} weight="bold" aria-hidden="true" />}
+                  {src.kind === 'fact' ? 'ESPN data' : src.name}
+                </>
+              )
+              return (
+                <li key={`${src.source_id}-${i}`}>
+                  {url ? (
+                    <a className="pc-source" href={url} target="_blank" rel="noopener noreferrer" title={src.title}>
+                      {label}
+                      <ArrowUpRight size={12} weight="bold" aria-hidden="true" />
+                      <span className="sr-only"> (opens a new tab)</span>
+                    </a>
+                  ) : (
+                    <span className="pc-source" title={src.title}>
+                      {label}
+                    </span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+    </li>
   )
 }
 
@@ -541,7 +746,9 @@ function FormTiles({ tiles }: { tiles: FormTile[] }) {
                 (t.note ?? '')
               ) : moved ? (
                 <>
-                  <span className="pc-tile-arrow" aria-hidden="true">{t.delta > 0 ? '▲' : '▼'}</span>
+                  <span className="pc-tile-arrow" aria-hidden="true">
+                    {t.delta > 0 ? '▲' : '▼'}
+                  </span>
                   <span className="sr-only">{t.delta > 0 ? 'up' : 'down'}</span> {Math.abs(t.delta).toFixed(1)}
                 </>
               ) : (
@@ -689,7 +896,11 @@ function CatCell({ cat, stats: s, base }: { cat: (typeof CATS)[number]; stats: G
   const glow = base ? spotlight(cat.key, s[cat.key], base[cat.key]) : 0
   if (glow > 0) {
     return (
-      <td className="pc-glow" style={{ '--pc-glow': (0.18 + glow * 0.3).toFixed(2) } as CSSProperties}>
+      <td
+        className="pc-glow"
+        title="A big night for him"
+        style={{ '--pc-glow': (0.18 + glow * 0.3).toFixed(2) } as CSSProperties}
+      >
         {s[cat.key]}
         <span className="sr-only"> (big night)</span>
       </td>

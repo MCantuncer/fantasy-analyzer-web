@@ -58,10 +58,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .pc-two {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .pc-table th,
   .pc-table td {
     padding: 10px 8px;
@@ -69,7 +65,30 @@
 
   /* Eleven columns don't fit: say the rest are a swipe away. */
   .pc-swipe {
-    display: inline;
+    display: block;
+  }
+
+  .pc-tabs {
+    top: -16px;
+    margin: -16px -16px 0;
+    padding: 10px 16px 8px;
+  }
+
+  .pc-story {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .pc-story-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Thumb-sized source links on phones. */
+  .pc-source {
+    min-height: 36px;
+    padding: 0 12px;
   }
 }
 
