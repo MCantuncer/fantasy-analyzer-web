@@ -114,12 +114,12 @@ table.box .sc-cut-count {
 
 /* ---------- Sorted: "Lit five" (Can, 2026-11-07) ---------- */
 /* A starter's face keeps his team's light (the Front Office face: glow from below, 2px team edge),
-   a little brighter, with a thin team-colour ring; bench faces stay unlit. No glyph beside the name. */
+   a little brighter, with a team-colour ring (made a touch bolder, Can 2026-11-07); bench faces stay unlit. No glyph beside the name. */
 :root table.box tr.sc-starter .box-player .head-team {
-  --head-glow: 52%;
+  --head-glow: 56%;
   box-shadow:
     inset 0 -2px 0 var(--tc),
-    0 0 0 1px color-mix(in srgb, var(--tc) 55%, transparent);
+    0 0 0 1.5px color-mix(in srgb, var(--tc) 85%, transparent);
 }
 :root[data-theme='light'] table.box tr.sc-starter .box-player .head-team {
   --head-glow: 42%;
