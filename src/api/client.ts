@@ -5,6 +5,7 @@ import { loadToken } from '../lib/session'
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
 export type AnalysisJob = components['schemas']['AnalysisJob']
+export type ReportChange = components['schemas']['ReportChange']
 export type TradeIdea = components['schemas']['TradeIdea']
 export type PickupIdea = components['schemas']['PickupIdea']
 export type PlayerRef = components['schemas']['PlayerRef']
@@ -203,6 +204,10 @@ export interface AnalysisProgress {
   stage: string
   /** The report so far while trades are still screened: free agents first, trade lists in ``pending``. */
   preview?: AnalysisReport | null
+  /** The last saved report, shown while a new one is worked out because the league moved (or it got old). */
+  saved?: AnalysisReport | null
+  /** What moved since ``saved`` was built, your team's news first. */
+  changes?: ReportChange[]
 }
 
 const POLL_MS = 1500
@@ -317,7 +322,13 @@ export async function fetchAnalysis(
     if (job.status === 'failed') {
       throw new ApiError(500, job.error?.code ?? 'analysis_failed', job.error?.message ?? 'The analysis failed.')
     }
-    onProgress?.({ progress: job.progress, stage: job.stage, ...(job.preview ? { preview: job.preview } : {}) })
+    onProgress?.({
+      progress: job.progress,
+      stage: job.stage,
+      ...(job.preview ? { preview: job.preview } : {}),
+      ...(job.saved ? { saved: job.saved } : {}),
+      ...(job.changes?.length ? { changes: job.changes } : {}),
+    })
     await wait(POLL_MS, signal)
   }
 }

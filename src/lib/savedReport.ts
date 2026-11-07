@@ -4,8 +4,8 @@ import type { AnalysisReport } from '../api/client'
 // tab it put to sleep) shows it at once instead of starting the "Finding your best moves" wait.
 
 const PREFIX = 'analysis:'
-// Rosters and free agents barely move in this window, and the server caches the report about as
-// long, so a refresh inside it reuses the saved report without asking the server at all.
+// A report this young is still fresh. The page asks the server on every open anyway (it answers at
+// once when the league hasn't moved, and says what moved when it has), so urgent news isn't hidden.
 export const FRESH_MS = 10 * 60_000
 // Older reports still show at once while a fresh one is worked out quietly; past this they're dropped.
 export const KEEP_MS = 12 * 60 * 60_000

@@ -828,6 +828,13 @@ export interface components {
             report?: components["schemas"]["AnalysisReport"] | null;
             /** @description While running: the report so far, once free agents and the season table are in. Its trade lists are empty and named in its `pending`; the finished report replaces it. */
             preview?: components["schemas"]["AnalysisReport"] | null;
+            /** @description While running: the last saved report, out of date because of `changes` (or its age). Show it until the new one is done. */
+            saved?: components["schemas"]["AnalysisReport"] | null;
+            /**
+             * Changes
+             * @description What moved in the league since `saved` was built, the asking team's news first
+             */
+            changes?: components["schemas"]["ReportChange"][];
             error?: components["schemas"]["ErrorBody"] | null;
         };
         /** AnalysisReport */
@@ -2905,6 +2912,36 @@ export interface components {
             season?: number | null;
             /** Target */
             target: string;
+        };
+        /**
+         * ReportChange
+         * @description Something that moved in the league since a saved report was built.
+         */
+        ReportChange: {
+            /**
+             * Kind
+             * @description status: an injury tag or IR slot changed; added/dropped/moved: a roster move; games: new box scores
+             * @enum {string}
+             */
+            kind: "status" | "added" | "dropped" | "moved" | "games";
+            /**
+             * Text
+             * @description Plain words, e.g. 'Jayson Tatum is out'
+             */
+            text: string;
+            /** Player Id */
+            player_id?: number | null;
+            /**
+             * Team Id
+             * @description The fantasy team the player is on now (or left)
+             */
+            team_id?: number | null;
+            /**
+             * Mine
+             * @description True when it touches the team asking
+             * @default false
+             */
+            mine: boolean;
         };
         /** ScoreDay */
         ScoreDay: {

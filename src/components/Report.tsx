@@ -21,6 +21,7 @@ import { TradePark } from './TradePark'
 import { Trades } from './Trades'
 import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
+import { NewsSince, type NewsSinceProps } from './NewsSince'
 import type { Credentials } from '../lib/credentials'
 
 export const TABS = [
@@ -51,6 +52,9 @@ interface Props {
   onFilm?: (period: number | null | undefined) => void
   /** Where the run is, for a preview whose trades are still being screened. */
   tradesStatus?: TradesStatus
+  /** What moved since this report was built, while (and after) it is updated. */
+  news?: Omit<NewsSinceProps, 'onDismiss'>
+  onDismissNews?: () => void
 }
 
 export function Report({
@@ -67,6 +71,8 @@ export function Report({
   film,
   onFilm,
   tradesStatus = { progress: 0, running: true },
+  news,
+  onDismissNews = () => {},
 }: Props) {
   // A preview: free agents are in, trades are still being screened.
   const tradesPending = (report.pending ?? []).includes('trades')
@@ -93,6 +99,7 @@ export function Report({
       <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'moves' && (
           <>
+            {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} />}
             <TradeOfTheDay
               leagueId={report.league.id}
               season={report.league.season}
