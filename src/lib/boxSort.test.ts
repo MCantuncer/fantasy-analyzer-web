@@ -19,6 +19,7 @@ function line(name: string, s: Partial<GameLine> = {}): GameLine {
     fga: 0,
     ftm: 0,
     fta: 0,
+    starter: false,
     ...s,
   }
 }

@@ -9,13 +9,17 @@ const STEPS = [
     label: 'Loading your league',
     stages: ['Starting', 'Loading your league', 'Reading rosters'],
   },
+  // Free agents come first: the Moves page opens with them while trades are still screened.
+  {
+    short: 'FAs',
+    label: 'Screening free agents',
+    stages: ['Screening free agents', 'Screening pickups', 'Simulating the season'],
+  },
   {
     short: 'Trades',
     label: 'Screening trades',
-    stages: ['Screening trades', 'Screening edge trades'],
+    stages: ['Screening trades', 'Screening edge trades', 'Screening vision trades'],
   },
-  { short: 'FAs', label: 'Screening free agents', stages: ['Screening pickups'] },
-  { short: 'Season', label: 'Simulating the season', stages: ['Simulating the season'] },
 ]
 
 function stepIndex(stage: string) {
