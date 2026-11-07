@@ -24,11 +24,12 @@
   margin: 4px 0 0;
 }
 
+/* The status line is centred under the button on every screen. */
 .news-refresh {
   grid-area: refresh;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 6px;
 }
 
@@ -55,8 +56,9 @@
 
 .news-refresh-status {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.01em;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

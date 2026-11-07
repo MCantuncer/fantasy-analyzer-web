@@ -15,11 +15,6 @@
     margin-top: 8px;
   }
 
-  .news-refresh {
-    align-items: center;
-    gap: 6px;
-  }
-
   /* Room between the button's status and the intro, so the two never read as one line. */
   .news-head p {
     margin-top: 12px;
