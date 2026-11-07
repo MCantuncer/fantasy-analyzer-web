@@ -660,10 +660,8 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
   )
 }
 
-// A ticket stub stamped W or L: the same die-cut shape for both, so the letter carries the result.
-const STUB =
-  'M3 .5H10A2.5 2.5 0 0 1 12.5 3V7.25A1.75 1.75 0 0 0 12.5 10.75V15A2.5 2.5 0 0 1 10 17.5H3A2.5 2.5 0 0 1 .5 15V10.75A1.75 1.75 0 0 0 .5 7.25V3A2.5 2.5 0 0 1 3 .5Z'
-const STAMP = { W: 'M3.2 5.6L4.85 12.4L6.5 7.6L8.15 12.4L9.8 5.6', L: 'M4.8 5.6V12.4H8.9' }
+// A small rounded tile stamped W or L: the same tile for both, so the letter carries the result.
+const STAMP = { W: 'M4.7 4.6L6.35 11.4L8 6.6L9.65 11.4L11.3 4.6', L: 'M5.95 4.6V11.4H10.05' }
 
 /**
  * His team's result for one game, read before the date. While a game may still be going the
@@ -674,8 +672,8 @@ function GameResult({ won }: { won?: boolean | null }) {
   const word = won ? 'Won' : 'Lost'
   return (
     <span className={`pc-result ${won ? 'pc-result-w' : 'pc-result-l'}`} title={word}>
-      <svg viewBox="0 0 13 18" aria-hidden="true" focusable="false">
-        <path className="pc-result-stub" d={STUB} />
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <rect className="pc-result-tile" x=".5" y=".5" width="15" height="15" rx="4" />
         <path className="pc-result-ink" d={won ? STAMP.W : STAMP.L} />
       </svg>
       <span className="sr-only">{word}</span>

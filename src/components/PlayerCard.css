@@ -631,8 +631,8 @@ table.pc-table {
   gap: 8px;
 }
 
-/* Game rows lead with the result stub: +13px stub, paid back by a tighter date/opponent gap and
-   sticky-column padding (MIN is right-aligned, so its digits keep their air). Net +12px on phones. */
+/* Game rows lead with the result tile: +15px tile, mostly paid back by a tighter date/opponent gap
+   and sticky-column padding (MIN is right-aligned, so its digits keep their air). */
 .pc-table .pc-first {
   padding-right: 4px;
 }
@@ -641,7 +641,7 @@ table.pc-table {
   gap: 6px;
 }
 
-/* W/L ticket stub. Outcome colours, toned so the stub stays quieter than the big-night cells. */
+/* W/L tile. Outcome colours, toned so the tile stays quieter than the big-night cells. */
 .pc-result {
   --pc-w-ink: color-mix(in srgb, var(--good) 88%, var(--surface));
   --pc-l-ink: var(--bad);
@@ -649,11 +649,10 @@ table.pc-table {
   --pc-l-edge: color-mix(in srgb, var(--bad) 60%, var(--surface));
   flex: none;
   display: block;
-  width: 13px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   margin-right: -1px;
   line-height: 0;
-  transform: translateY(-1px);
 }
 
 :root[data-theme='light'] .pc-result {
@@ -664,11 +663,11 @@ table.pc-table {
 
 .pc-result svg {
   display: block;
-  width: 13px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
-.pc-result-stub {
+.pc-result-tile {
   stroke-width: 1;
 }
 
@@ -679,7 +678,7 @@ table.pc-table {
   stroke-linejoin: round;
 }
 
-.pc-result-w .pc-result-stub {
+.pc-result-w .pc-result-tile {
   fill: var(--good-soft);
   stroke: var(--pc-w-edge);
 }
@@ -688,7 +687,7 @@ table.pc-table {
   stroke: var(--pc-w-ink);
 }
 
-.pc-result-l .pc-result-stub {
+.pc-result-l .pc-result-tile {
   fill: var(--bad-soft);
   stroke: var(--pc-l-edge);
 }
