@@ -183,6 +183,7 @@ const card: PlayerCard = {
       updated_at: new Date().toISOString(),
       source: 'RotoWire',
       url: 'https://example.com/n1',
+      summary: '',
       severity: 1,
     },
   ],
@@ -243,11 +244,7 @@ describe('PlayerCard', () => {
 
     // Each finished game leads with his team's result, read before the date; a game in play has none.
     const rows = [...dialog.querySelectorAll('.pc-table tbody tr:not(.pc-avg) th')]
-    expect(rows.map((r) => r.querySelector('.pc-result .sr-only')?.textContent ?? null)).toEqual([
-      null,
-      'Won',
-      'Lost',
-    ])
+    expect(rows.map((r) => r.querySelector('.pc-result .sr-only')?.textContent ?? null)).toEqual([null, 'Won', 'Lost'])
     expect(rows[1].textContent).toMatch(/^Won/)
     expect(rows[0].querySelector('.pc-result')).toHaveAttribute('aria-hidden', 'true')
 
@@ -265,6 +262,37 @@ describe('PlayerCard', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(document.activeElement).toBe(link)
+  })
+
+  it('splits the card into Game Log and News tabs, and the Latest line opens his news', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
+      String(url).endsWith('/extras')
+        ? new Response(JSON.stringify({ news: card.news, names: {} }), { status: 200 })
+        : new Response(JSON.stringify({ ...card, news: [] }), { status: 200 }),
+    )
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+
+    const log = await within(dialog).findByRole('tab', { name: 'Game Log' })
+    expect(log).toHaveAttribute('aria-selected', 'true')
+    expect(within(dialog).getByRole('tabpanel', { name: 'Game Log' })).toBeVisible()
+    const latest = await within(dialog).findByRole('button', { name: /Open his news/ })
+    expect(within(dialog).getByRole('tab', { name: 'News, 1 story' })).toBeInTheDocument()
+
+    fireEvent.click(latest)
+    const news = within(dialog).getByRole('tab', { name: 'News, 1 story' })
+    expect(news).toHaveAttribute('aria-selected', 'true')
+    const panel = within(dialog).getByRole('tabpanel', { name: 'News, 1 story' })
+    expect(within(panel).getByRole('heading', { name: 'McDaniels (ankle) questionable Friday' })).toBeVisible()
+    expect(within(panel).getByText('Injury')).toBeInTheDocument()
+    expect(within(panel).getByRole('link', { name: /RotoWire/ })).toHaveAttribute('href', 'https://example.com/n1')
+    expect(document.getElementById(log.getAttribute('aria-controls') ?? '')).not.toBeVisible()
+
+    // Arrow keys move between the tabs.
+    fireEvent.keyDown(news, { key: 'ArrowLeft' })
+    expect(log).toHaveAttribute('aria-selected', 'true')
+    expect(document.activeElement).toBe(log)
   })
 
   it('starts loading a card when a name is pressed, before the tap opens it', async () => {

@@ -2387,6 +2387,22 @@ export interface components {
              * @default 0
              */
             severity: number;
+            /**
+             * Summary
+             * @description The lead source's own summary; never written by us
+             * @default
+             */
+            summary: string;
+            /**
+             * Sources
+             * @description Every source for this story, oldest first
+             */
+            sources?: components["schemas"]["NewsSourceLink"][];
+            /**
+             * Conflict
+             * @description Set when sources disagree on how bad an injury is
+             */
+            conflict?: string | null;
         };
         /** PlayerRef */
         PlayerRef: {

@@ -54,11 +54,11 @@ export function countBy(stories: NewsStory[], filter: NewsFilter): number {
 }
 
 /** How many independent places said it: outlets and ESPN's data, not social sites. */
-export function sourceCount(story: NewsStory): number {
+export function sourceCount(story: Pick<NewsStory, 'sources'>): number {
   return new Set(story.sources.filter((s) => s.kind !== 'tip').map((s) => s.source_id)).size
 }
 
-export function statusText(story: NewsStory): string {
+export function statusText(story: Pick<NewsStory, 'status' | 'sources'>): string {
   if (story.status === 'reported') return '1 source · Reported'
   if (story.status === 'confirmed') {
     const n = sourceCount(story)
