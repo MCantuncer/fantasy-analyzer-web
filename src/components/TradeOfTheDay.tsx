@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TradeOfTheDaySkeleton } from './Skeleton'
+import { Spinner } from './Spinner'
+import { percent, useSmoothProgress } from '../lib/progress'
 import { useState } from 'react'
 import { ApiError, fetchTradeOfTheDay, voteTradeOfTheDay } from '../api/client'
 import type { TradeOfTheDay as Pick, TradeSide } from '../api/client'
@@ -288,7 +290,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
     retry: 1,
     staleTime: 10 * 60_000,
     // The league scan runs in the background on the server; ask again until it's done.
-    refetchInterval: (q) => (q.state.data?.status === 'pending' ? 5000 : false),
+    refetchInterval: (q) => (q.state.data?.status === 'pending' ? 2500 : false),
   })
   const vote = useMutation({
     mutationFn: (v: { teamId: number; take: boolean; date: string; pickId: string | null }) =>
@@ -302,19 +304,28 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
   })
 
   const pick = query.data
+  const scanning = !pick || pick.status === 'pending'
+  // Eases toward the server's reading and keeps moving between polls, like the analysis bar.
+  const shown = useSmoothProgress(pick?.progress ?? 0, scanning && (pick?.progress ?? 0) > 0)
   // Not essential to the page: stay out of the way if it fails.
   if (query.isError) return null
 
-  if (!pick || pick.status === 'pending') {
+  if (scanning) {
+    // The server says where its league scan is (older servers don't, so this falls back to a plain line).
     return (
       <section className="card totd totd-loading" aria-busy="true" aria-labelledby="totd-title">
-        <span className="eyebrow totd-eyebrow" id="totd-title">
-          Trade of the day
-        </span>
+        <div className="totd-load-head">
+          <span className="eyebrow totd-eyebrow" id="totd-title">
+            Trade of the day
+          </span>
+          <span className="totd-load-status small" role="status">
+            <Spinner />
+            <span className="muted">{pick?.stage || "Finding today's trade"}</span>
+            {shown > 0 && <span className="tnum totd-load-pct">{percent(shown)}</span>}
+          </span>
+        </div>
+        <p className="small muted totd-load-note">Looking at every pair of teams for a deal both sides win.</p>
         <TradeOfTheDaySkeleton />
-        <span className="sr-only" role="status">
-          Finding today's trade
-        </span>
       </section>
     )
   }

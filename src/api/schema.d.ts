@@ -3931,6 +3931,16 @@ export interface components {
              * @description When the pick was last checked against the league
              */
             checked_at?: string | null;
+            /**
+             * Progress
+             * @description While pending: rough share of the league scan done, 0 to 1
+             */
+            progress?: number | null;
+            /**
+             * Stage
+             * @description While pending: what the scan is doing (Waiting its turn, while the league's analyses run first; Loading the league; Screening deals; Simulating the season)
+             */
+            stage?: string | null;
         };
         /** TradeRule */
         TradeRule: {

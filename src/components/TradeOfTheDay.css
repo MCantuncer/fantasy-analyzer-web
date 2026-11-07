@@ -1,3 +1,28 @@
+/* While the league scan runs: the title with where the scan is, like the Best move card. */
+.totd-load-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+}
+
+.totd-load-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.totd-load-pct {
+  min-width: 3ch;
+  text-align: right;
+}
+
+.totd-load-note {
+  margin: 0 0 4px;
+}
+
 /* Trade of the Day: a face beside each player who moves. Kept next to the component so page
    changes don't collide in the shared stylesheet. */
 .totd-players {

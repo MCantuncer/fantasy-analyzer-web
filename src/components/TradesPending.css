@@ -7,6 +7,12 @@
   white-space: nowrap;
 }
 
+/* The Trades tab's count while trades are screened: a small ring sitting on the text line. */
+.tp-count-spin {
+  vertical-align: -2px;
+  opacity: 0.8;
+}
+
 .tp-pct {
   min-width: 3ch;
   text-align: right;

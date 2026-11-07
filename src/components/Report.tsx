@@ -19,6 +19,7 @@ import { TradeOfTheDay } from './TradeOfTheDay'
 import { FeedbackContext } from './TradeFeedback'
 import { TradePark } from './TradePark'
 import { Trades } from './Trades'
+import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
 import type { Credentials } from '../lib/credentials'
 
@@ -117,7 +118,16 @@ export function Report({
               <div className="moves-switch segmented" role="group" aria-label="Show">
                 <button type="button" aria-pressed={show === 'trades'} onClick={() => setShow('trades')}>
                   Trades ·{' '}
-                  {tradesPending ? '…' : new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size}
+                  {!tradesPending ? (
+                    new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size
+                  ) : tradesStatus.running ? (
+                    <>
+                      <Spinner size={13} className="tp-count-spin" />
+                      <span className="sr-only">still screening</span>
+                    </>
+                  ) : (
+                    '–'
+                  )}
                 </button>
                 <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
                   FA Targets · {report.pickups.length}
