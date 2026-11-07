@@ -43,3 +43,23 @@ export function sortLines(lines: GameLine[], sort: BoxSort): GameLine[] {
     .sort((a, b) => sign * (a.v[0] - b.v[0]) || sign * (a.v[1] - b.v[1]) || a.i - b.i)
     .map((x) => x.line)
 }
+
+/**
+ * With no sort, a team reads like a real box score: the starting five, then the bench, each by minutes
+ * (the game's order). Any sort ranks the whole team together, so there is no split. No split either when
+ * the lines don't say who started (a day the server hasn't tagged yet).
+ */
+export function splitStarters(
+  lines: GameLine[],
+  sort: BoxSort,
+): { starters: GameLine[]; bench: GameLine[] } | null {
+  if (sort) return null
+  const starters = lines.filter((l) => l.starter)
+  if (!starters.length) return null
+  const byMinutes = (a: GameLine, b: GameLine) => b.minutes - a.minutes
+  return {
+    starters: [...starters].sort(byMinutes),
+    bench: lines.filter((l) => !l.starter).sort(byMinutes),
+  }
+}
+
