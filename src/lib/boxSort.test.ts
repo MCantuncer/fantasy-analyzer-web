@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { GameLine } from '../api/client'
-import { nextSort, sortLines } from './boxSort'
+import { nextSort, sortLines, splitStarters } from './boxSort'
 
 function line(name: string, s: Partial<GameLine> = {}): GameLine {
   return {
@@ -66,3 +66,28 @@ describe('sortLines', () => {
     expect(names(lines)).toEqual(['A', 'B', 'C', 'D'])
   })
 })
+
+describe('splitStarters', () => {
+  const team = [
+    line('Bench Big', { minutes: 30 }),
+    line('Starter A', { minutes: 34, starter: true }),
+    line('Bench Guard', { minutes: 12 }),
+    line('Starter B', { minutes: 24, starter: true }),
+    line('Garbage', { minutes: 2 }),
+  ]
+
+  it('puts the starters first and the bench after, each by minutes', () => {
+    const split = splitStarters(team, null)!
+    expect(names(split.starters)).toEqual(['Starter A', 'Starter B'])
+    expect(names(split.bench)).toEqual(['Bench Big', 'Bench Guard', 'Garbage'])
+  })
+
+  it('drops the split once a category is sorted', () => {
+    expect(splitStarters(team, { cat: 'pts', dir: 'desc' })).toBeNull()
+  })
+
+  it('drops the split when nobody is marked as a starter', () => {
+    expect(splitStarters(team.map((l) => ({ ...l, starter: false })), null)).toBeNull()
+  })
+})
+

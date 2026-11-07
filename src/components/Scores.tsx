@@ -19,7 +19,8 @@ import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { useFitsWidth } from '../lib/useFitsWidth'
 import './Scores.css'
 import './ScoresBox.css'
-import { BOX_CATS, nextSort, sortLines } from '../lib/boxSort'
+import { BOX_CATS, nextSort, sortLines, splitStarters } from '../lib/boxSort'
+import { BenchBreak, StarterNote } from './StartersSplit'
 import type { BoxSort } from '../lib/boxSort'
 import { ScoresWeek } from './ScoresWeek'
 import { PlayerLink } from './PlayerCard'
@@ -625,6 +626,20 @@ function BoxScore({
   const [picked, setPicked] = useState<{ game: number; team: number } | null>(null)
   const side = sides.find((s) => picked?.game === game.id && s.pro_team_id === picked.team) ?? opening
   const fa = best(game.lines.filter((l) => l.owner_team_id == null))
+  // No sort: the starting five, a break, then the bench (Can, 2026-11-06). A sort ranks the whole team.
+  const teamLines = game.lines.filter((l) => l.pro_team_id === side.pro_team_id)
+  const split = splitStarters(teamLines, sort)
+  // Sorted, the five lose their block, so each keeps his face lit by the team's colour.
+  const row = (l: GameLine) => (
+    <BoxRow
+      key={l.player_id}
+      line={l}
+      mine={l.owner_team_id === teamId}
+      abbrev={abbrev}
+      starter={!split && l.starter}
+      team={side.abbrev}
+    />
+  )
   return (
     <section className="card flush box-card" ref={ref} aria-labelledby="box-title">
       <div className="card-head">
@@ -693,14 +708,19 @@ function BoxScore({
               })}
             </tr>
           </thead>
-          <tbody key={side.pro_team_id}>
-            {sortLines(
-              game.lines.filter((l) => l.pro_team_id === side.pro_team_id),
-              sort,
-            ).map((l) => (
-              <BoxRow key={l.player_id} line={l} mine={l.owner_team_id === teamId} abbrev={abbrev} />
-            ))}
-          </tbody>
+          {split ? (
+            <>
+              <tbody key={`${side.pro_team_id}-starters`} className="sc-starters">
+                {split.starters.map(row)}
+              </tbody>
+              <tbody key={`${side.pro_team_id}-bench`} className="sc-bench">
+                <BenchBreak count={split.bench.length} abbrev={side.abbrev} />
+                {split.bench.map(row)}
+              </tbody>
+            </>
+          ) : (
+            <tbody key={side.pro_team_id}>{sortLines(teamLines, sort).map(row)}</tbody>
+          )}
         </table>
       </div>
       {fa && (
@@ -716,16 +736,30 @@ function BoxScore({
   )
 }
 
-function BoxRow({ line: l, mine, abbrev }: { line: GameLine; mine: boolean; abbrev: Map<number, string> }) {
+function BoxRow({
+  line: l,
+  mine,
+  abbrev,
+  starter = false,
+  team,
+}: {
+  line: GameLine
+  mine: boolean
+  abbrev: Map<number, string>
+  /** Marks a starter while a sort has merged the list. */
+  starter?: boolean
+  team: string
+}) {
   const owner = l.owner_team_id == null ? 'FA' : (abbrev.get(l.owner_team_id) ?? '')
   return (
-    <tr className={mine ? 'mine' : undefined}>
+    <tr className={[mine && 'mine', starter && 'sc-starter'].filter(Boolean).join(' ') || undefined}>
       <th scope="row">
         <span className="box-player">
           <PlayerLink player={{ id: l.player_id, name: l.name }} decorative>
-            <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} />
+            <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} team={starter ? team : undefined} />
           </PlayerLink>
           <PlayerLink player={{ id: l.player_id, name: l.name }} />
+          {starter && <StarterNote />}
         </span>
       </th>
       <td className={`left${l.owner_team_id == null ? ' good' : ''}`}>{owner}</td>
