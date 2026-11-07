@@ -10,7 +10,7 @@ import {
   retryDroppedDelay,
   signOut,
 } from './api/client'
-import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague } from './api/client'
+import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague, ReportChange } from './api/client'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
@@ -117,6 +117,8 @@ export default function App() {
   const [report, setReport] = useState<AnalysisReport | null>(null)
   const [job, setJob] = useState<AnalysisProgress>({ progress: 0, stage: 'Starting' })
   const [readyToast, setReadyToast] = useState(false)
+  // What moved in the league since the report on screen was built (from the server's saved report).
+  const [since, setSince] = useState<ReportChange[]>([])
   const running = useRef<AbortController | null>(null)
   // Bumped by the top bar's "Add a league" so My leagues focuses its add box.
   const [focusAdd, setFocusAdd] = useState(0)
@@ -195,12 +197,17 @@ export default function App() {
   })
   const shownProgress = useSmoothProgress(job.progress, analysis.isPending)
 
-  // The Moves page opens as soon as free agents are in; the trades fill in when the run finishes.
+  // The Moves page opens as soon as there is something to show: the server's last saved report
+  // (out of date, so it is being worked out again), else the free agents while trades are screened.
   // A report already on screen (a saved one being refreshed) stays until the new one is complete.
-  const preview = job.preview
+  const early = job.saved ?? job.preview
   useEffect(() => {
-    if (preview && !report && analysis.isPending && preview.league.id === selection?.leagueId) setReport(preview)
-  }, [preview, report, analysis.isPending, selection?.leagueId])
+    if (early && !report && analysis.isPending && early.league.id === selection?.leagueId) setReport(early)
+  }, [early, report, analysis.isPending, selection?.leagueId])
+  const changes = job.changes
+  useEffect(() => {
+    if (changes?.length && analysis.isPending) setSince(changes)
+  }, [changes, analysis.isPending])
 
   const { mutate } = analysis
   const leagueReady = league.isSuccess && league.data.supported
@@ -208,11 +215,12 @@ export default function App() {
     if (!selection || !myTeamId || !leagueReady) return
     const stored = loadKeep(selection.leagueId, myTeamId)
     setKeep(stored)
-    // A refresh shows the last finished report at once; only an old one is worked out again, quietly.
+    // A refresh shows the last finished report at once, and always asks the server too: it answers
+    // at once when nothing in the league moved, and says what did (an injury, a trade) when it did.
     const saved = loadSavedReport(selection.leagueId, myTeamId, selection.season, stored)
     setReport(saved?.report ?? null)
+    setSince([])
     if (saved) setAppliedKeep(stored)
-    if (saved?.fresh) return
     mutate({ teamId: myTeamId, keep: stored, quiet: saved !== null })
   }, [selection, myTeamId, leagueReady, mutate])
 
@@ -277,6 +285,7 @@ export default function App() {
     setVerifying(false)
     setFilm(undefined)
     setReport(null)
+    setSince([])
     stopAnalysis()
   }
 
@@ -643,6 +652,8 @@ export default function App() {
               film={film}
               onFilm={setFilm}
               tradesStatus={{ progress: shownProgress, running: analysis.isPending }}
+              news={{ changes: since, running: analysis.isPending, progress: shownProgress }}
+              onDismissNews={() => setSince([])}
             />
           </RoundValuesContext.Provider>
         )}

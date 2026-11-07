@@ -1,0 +1,77 @@
+/* "News since your last look": what moved in the league while a saved report is updated (ns- prefix). */
+.ns-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.ns-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+}
+
+.ns-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ns-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ns-pct {
+  min-width: 3ch;
+  text-align: right;
+}
+
+.ns-close {
+  margin: -6px -8px -6px 0;
+}
+
+.ns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ns-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--muted);
+}
+
+/* Your own team's news: gold marks what is yours. */
+.ns-mine {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ns-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.5;
+  transform: translateY(-2px);
+}
+
+.ns-mine .ns-dot {
+  background: var(--gold);
+  opacity: 1;
+}
+
+.ns-more {
+  align-self: flex-start;
+}

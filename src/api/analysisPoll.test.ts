@@ -50,6 +50,24 @@ describe('analysis polling', () => {
     expect(progress).toHaveBeenNthCalledWith(2, { progress: 0.4, stage: 'Screening trades', preview })
   })
 
+  it('hands on the saved report and what changed since it was built', async () => {
+    vi.useFakeTimers()
+    const saved = { team_id: 3, pending: [], trades: [] }
+    const changes = [{ kind: 'status', text: 'Jayson Tatum is out', player_id: 1, team_id: 3, mine: true }]
+    const answers = [
+      () => reply({ ...running, saved, changes }),
+      () => reply({ ...running, changes: [] }),
+      () => reply(done),
+    ]
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => answers.shift()!())
+    const progress = vi.fn()
+    const result = fetchAnalysis(1, 3, 2027, [], null, progress)
+    await vi.advanceTimersByTimeAsync(10_000)
+    await expect(result).resolves.toMatchObject({ team_id: 3 })
+    expect(progress).toHaveBeenNthCalledWith(1, { progress: 0.4, stage: 'Screening trades', saved, changes })
+    expect(progress).toHaveBeenNthCalledWith(2, { progress: 0.4, stage: 'Screening trades' })
+  })
+
   it('gives up only after several misses in a row with the page open', async () => {
     vi.useFakeTimers()
     vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.reject(new TypeError('Failed to fetch')))
