@@ -10789,6 +10789,14 @@
             "title": "Pitch Needs",
             "description": "`pitch` as data"
           },
+          "gains": {
+            "items": {
+              "$ref": "#/components/schemas/PitchNeed"
+            },
+            "type": "array",
+            "title": "Gains",
+            "description": "Every category this team gains 2+ points of weekly win chance in (up to 4), biggest first, with its rank now and the per-game change"
+          },
           "playoff_pct_before": {
             "type": "number",
             "title": "Playoff Pct Before"

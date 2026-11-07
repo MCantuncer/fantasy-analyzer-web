@@ -13,7 +13,8 @@ import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import './TradeOfTheDay.css'
-import { loadVote, pickKey, shareText, storeVote, topGains, voterId } from '../lib/tradeOfTheDay'
+import { gainTiles, loadVote, pickKey, shareText, storeVote, voterId } from '../lib/tradeOfTheDay'
+import type { GainTile as Tile } from '../lib/tradeOfTheDay'
 import { PlayerLink } from './PlayerCard'
 
 interface Props {
@@ -93,9 +94,11 @@ function Side({
   pick,
   onVote,
   busy,
+  teams,
 }: {
   side: TradeSide
   gets: TradeSide
+  teams: number
   isMe: boolean
   colour: string | undefined
   pick: Pick
@@ -103,8 +106,6 @@ function Side({
   busy: boolean
 }) {
   const diff = ptsDiff(side.playoff_pct_before, side.playoff_pct_after)
-  const needCats = new Set((side.pitch_needs ?? []).map((n) => n.category))
-  const gains = topGains(side.category_changes).filter((g) => !needCats.has(g.category))
   return (
     <div className={isMe ? 'totd-side me' : 'totd-side'} style={{ '--team': colour ?? 'var(--muted)' } as CSSProperties}>
       <div className="totd-team">
@@ -150,34 +151,81 @@ function Side({
           </span>
         </div>
       )}
-      {gains.length > 0 && (
-        <ul className="totd-gains" aria-label="Biggest category gains, in points of weekly win chance">
-          {gains.map((g) => (
-            <li key={g.category} className="num" title="Points of weekly win chance">
-              {g.category}{' '}
-              <span className="good">
-                {signedInt(g.pts)}
-                <span className="tw-unit">% win</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      <WhyYes side={side} />
+      <WhyYes side={side} teams={teams} />
       <Poll side={side} pick={pick} onVote={onVote} busy={busy} />
     </div>
   )
 }
 
-/** "Why they say yes" drawn from the deal's data: the categories it fills, the punts it costs, the standings. */
-function WhyYes({ side }: { side: TradeSide }) {
-  const needs = side.pitch_needs ?? []
+// What the per-game number counts.
+const UNIT: Record<string, string> = {
+  PTS: 'points',
+  REB: 'rebounds',
+  AST: 'assists',
+  STL: 'steals',
+  BLK: 'blocks',
+  '3PM': 'threes',
+  TO: 'turnovers',
+}
+
+function perGameText(t: Tile): string | null {
+  if (t.perGame == null) return null
+  // per_game is the gain, already flipped for TO: shown as fewer turnovers.
+  const turnover = t.category === 'TO'
+  const what = UNIT[t.category] ? `${UNIT[t.category]} a game` : 'a game'
+  return `${turnover ? '−' : '+'}${t.perGame.toFixed(1)} ${what}`
+}
+
+/** "9th of 10": their rank in the category today, before the trade. */
+function rankText(t: Tile, teams: number): string | null {
+  if (t.rank == null) return null
+  return teams > 0 ? `${ordinal(t.rank)} of ${teams}` : ordinal(t.rank)
+}
+
+/** One category: the weekly win-chance gain, big, with their rank now and what it adds a game. */
+function GainTile({ tile: t, teams }: { tile: Tile; teams: number }) {
+  const per = perGameText(t)
+  const rank = rankText(t, teams)
+  return (
+    <li>
+      <span className="sr-only">
+        {t.category}: {signedInt(t.pts)} points of weekly win chance{rank ? `, ${rank} in the league now` : ''}
+        {per ? `, ${per}` : ''}
+      </span>
+      <div className="tw-top" aria-hidden="true">
+        <span className="tw-cat num">{t.category}</span>
+        {rank && (
+          <span className="tw-rank num" title={`${rank} in the league in ${t.category} today, before the trade`}>
+            now {rank}
+          </span>
+        )}
+      </div>
+      <div className="tw-pts num good" aria-hidden="true">
+        {signedInt(t.pts)}
+        <span className="tw-unit">pts</span>
+      </div>
+      <div className="tw-key" aria-hidden="true">
+        weekly win chance
+      </div>
+      {per && (
+        <div className="tw-per small muted num" aria-hidden="true">
+          {per}
+        </div>
+      )}
+    </li>
+  )
+}
+
+/** What this side gains, drawn from the deal's data: its category gains, the punts it costs, the standings. */
+function WhyYes({ side, teams }: { side: TradeSide; teams: number }) {
+  const tiles = gainTiles(side)
   const facts = side.facts ?? []
-  if (!needs.length && !facts.length) {
+  const label = `After this trade, ${side.team_name} have better odds in`
+  if (!tiles.length && !facts.length) {
     // Older pick without the data: the sentences.
     return (
       <div className="totd-why">
-        <div className="kpi-label">Why they say yes</div>
+        <div className="kpi-label">{label}</div>
         <p>{side.pitch}</p>
         {side.reasons.slice(0, 2).map((r) => (
           <p key={r} className="small muted">
@@ -192,35 +240,12 @@ function WhyYes({ side }: { side: TradeSide }) {
   const rest = facts.filter((f) => f !== punts && f !== chasing).slice(0, punts || chasing ? 1 : 2)
   return (
     <div className="totd-why">
-      <div className="kpi-label">Why they say yes</div>
-      {needs.length > 0 ? (
-        <ul className="tw-needs" aria-label="Categories this fills">
-          {needs.map((n) => {
-            const pts = Math.round((side.category_changes[n.category] ?? 0) * 100)
-            return (
-              <li key={n.category}>
-                <div className="tw-top">
-                  <span className="tw-cat num">{n.category}</span>
-                  <span className="tw-rank" title={`${ordinal(n.league_rank)} in the league in ${n.category} now`}>
-                    <span className="sr-only">ranked </span>
-                    {ordinal(n.league_rank)}
-                  </span>
-                </div>
-                {pts >= 1 && (
-                  <div className="tw-pts num good" title="Points of weekly win chance">
-                    {signedInt(pts)}
-                    <span className="tw-unit">% win</span>
-                    <span className="sr-only"> weekly win chance in {n.category}</span>
-                  </div>
-                )}
-                {n.per_game != null && (
-                  <div className="tw-per small muted">
-                    <span className="num">+{n.per_game.toFixed(1)}</span> a game
-                  </div>
-                )}
-              </li>
-            )
-          })}
+      <div className="kpi-label">{label}</div>
+      {tiles.length > 0 ? (
+        <ul className="tw-needs" aria-label={label}>
+          {tiles.map((t) => (
+            <GainTile key={t.category} tile={t} teams={teams} />
+          ))}
         </ul>
       ) : (
         <p>{side.pitch}</p>
@@ -390,6 +415,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
           pick={pick}
           onVote={onVote(a.team_id)}
           busy={vote.isPending}
+          teams={teamIds.length}
         />
         <SwapIcon />
         <Side
@@ -400,10 +426,11 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
           pick={pick}
           onVote={onVote(b.team_id)}
           busy={vote.isPending}
+          teams={teamIds.length}
         />
       </div>
       <button type="button" className="secondary totd-more" aria-expanded={open} onClick={() => setOpen(!open)}>
-        {open ? 'Show less' : 'Why both sides say yes'}
+        {open ? 'Show less' : 'What each side gains'}
       </button>
       <div className="row totd-actions">
         {me && other && (

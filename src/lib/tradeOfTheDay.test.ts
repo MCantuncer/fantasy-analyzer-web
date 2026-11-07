@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TradeOfTheDay, TradeSide } from '../api/client'
-import { shareText, topGains } from './tradeOfTheDay'
+import { gainTiles, shareText } from './tradeOfTheDay'
 
 function side(team_name: string, sends: string[], before: number, after: number): TradeSide {
   return {
@@ -33,11 +33,29 @@ function side(team_name: string, sends: string[], before: number, after: number)
 }
 
 describe('trade of the day', () => {
-  it('keeps the biggest category gains only', () => {
-    expect(topGains({ AST: 0.3, STL: 0.1, FG: 0.01, TO: -0.2, PTS: 0.05, REB: 0.07 })).toEqual([
-      { category: 'AST', pts: 30 },
-      { category: 'STL', pts: 10 },
-      { category: 'REB', pts: 7 },
+  it('puts every category gain in one list, biggest first, with its rank and per-game change', () => {
+    const s = {
+      ...side('Boomers', ['A'], 0.7, 0.71),
+      category_changes: { STL: 0.19, 'FG%': 0.09, TO: 0.05, PTS: 0.01, '3PM': -0.07 },
+      pitch_needs: [{ category: 'STL', league_rank: 9, per_game: 1.7 }],
+      gains: [
+        { category: 'STL', league_rank: 9, per_game: 1.7 },
+        { category: 'FG%', league_rank: 3, per_game: null },
+        { category: 'TO', league_rank: 6, per_game: 0.6 },
+      ],
+    }
+    expect(gainTiles(s)).toEqual([
+      { category: 'STL', pts: 19, rank: 9, perGame: 1.7 },
+      { category: 'FG%', pts: 9, rank: 3, perGame: null },
+      { category: 'TO', pts: 5, rank: 6, perGame: 0.6 },
+    ])
+  })
+
+  it('still shows the gains of an older pick without ranks for them', () => {
+    const s = { ...side('Boomers', ['A'], 0.7, 0.71), category_changes: { AST: 0.3, REB: 0.07 } }
+    expect(gainTiles(s)).toEqual([
+      { category: 'AST', pts: 30, rank: null, perGame: null },
+      { category: 'REB', pts: 7, rank: null, perGame: null },
     ])
   })
 

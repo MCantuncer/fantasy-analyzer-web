@@ -45,12 +45,11 @@
   margin-top: 4px;
 }
 
-/* "Why they say yes" as data: category rows, punt chips, standings. */
+/* What each side gains, as data: one tile per category, punt chips, standings. */
 .tw-needs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 8px;
-  max-width: 360px;
   margin: 6px 0 0;
   padding: 0;
   list-style: none;
@@ -171,20 +170,10 @@
   box-shadow: var(--shadow);
 }
 
-/* Deltas and gains as plain coloured numbers with a small triangle, no pills. */
+/* Deltas as plain coloured numbers with a small triangle, no pills. */
 .totd-delta {
   font-size: 16px;
   font-weight: 700;
-}
-
-.totd .totd-gains li {
-  padding: 0;
-  background: none;
-  color: var(--text-2);
-}
-
-.totd .totd-gains {
-  gap: 4px 14px;
 }
 
 /* Poll buttons sit on the tinted side, so give them the card surface. */
@@ -200,4 +189,17 @@
   .totd .totd-swap {
     justify-self: center;
   }
+}
+
+/* Gain tiles: the weekly win-chance gain with its plain-words key under it. */
+.tw-key {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tw-needs .tw-per {
+  margin-top: 4px;
+  font-size: 12px;
 }

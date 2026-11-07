@@ -42,15 +42,6 @@ export function storeVote(leagueId: number, pick: string, teamId: number, take: 
   }
 }
 
-/** The categories a side gains most in, as weekly win-chance points, biggest first. */
-export function topGains(changes: Record<string, number>, max = 3): { category: string; pts: number }[] {
-  return Object.entries(changes)
-    .map(([category, v]) => ({ category, pts: Math.round(v * 100) }))
-    .filter((c) => c.pts >= 2)
-    .sort((a, b) => b.pts - a.pts)
-    .slice(0, max)
-}
-
 function oddsLine(s: TradeSide): string {
   const diff = Math.round(s.playoff_pct_after * 100) - Math.round(s.playoff_pct_before * 100)
   return `${s.team_name}: playoff odds ${pct(s.playoff_pct_before)} → ${pct(s.playoff_pct_after)} (${signedInt(diff)})`
@@ -67,4 +58,28 @@ export function shareText(pick: TradeOfTheDay, leagueName: string, url: string):
     oddsLine(b),
     `Would you take it? ${url}`,
   ].join('\n')
+}
+
+/** One category a side gains in: weekly win-chance points, their rank in it now, and what it adds a game. */
+export interface GainTile {
+  category: string
+  pts: number
+  rank: number | null
+  perGame: number | null
+}
+
+/**
+ * Every category this side gains at least 2 points of weekly win chance in, biggest first, in one list,
+ * each with its rank now and per-game change (older picks only have them for the pitch's two categories).
+ */
+export function gainTiles(side: TradeSide, max = 4): GainTile[] {
+  const needs = new Map([...(side.pitch_needs ?? []), ...(side.gains ?? [])].map((n) => [n.category, n]))
+  return Object.entries(side.category_changes)
+    .map(([category, v]) => {
+      const n = needs.get(category)
+      return { category, pts: Math.round(v * 100), rank: n?.league_rank ?? null, perGame: n?.per_game ?? null }
+    })
+    .filter((t) => t.pts >= 2)
+    .sort((a, b) => b.pts - a.pts)
+    .slice(0, max)
 }

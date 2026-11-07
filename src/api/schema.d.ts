@@ -4179,6 +4179,11 @@ export interface components {
              * @description `pitch` as data
              */
             pitch_needs?: components["schemas"]["PitchNeed"][];
+            /**
+             * Gains
+             * @description Every category this team gains 2+ points of weekly win chance in (up to 4), biggest first, with its rank now and the per-game change
+             */
+            gains?: components["schemas"]["PitchNeed"][];
             /** Playoff Pct Before */
             playoff_pct_before: number;
             /** Playoff Pct After */
