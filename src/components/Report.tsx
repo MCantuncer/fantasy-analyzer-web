@@ -19,6 +19,7 @@ import { TradeOfTheDay } from './TradeOfTheDay'
 import { FeedbackContext } from './TradeFeedback'
 import { TradePark } from './TradePark'
 import { Trades } from './Trades'
+import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
 import type { Credentials } from '../lib/credentials'
 
 export const TABS = [
@@ -47,6 +48,8 @@ interface Props {
   onTab: (tab: Tab) => void
   film?: number | null
   onFilm?: (period: number | null | undefined) => void
+  /** Where the run is, for a preview whose trades are still being screened. */
+  tradesStatus?: TradesStatus
 }
 
 export function Report({
@@ -62,8 +65,12 @@ export function Report({
   onTab,
   film,
   onFilm,
+  tradesStatus = { progress: 0, running: true },
 }: Props) {
-  const [show, setShow] = useState<'trades' | 'pickups'>('trades')
+  // A preview: free agents are in, trades are still being screened.
+  const tradesPending = (report.pending ?? []).includes('trades')
+  // On phones one list shows at a time: open on the one that's ready.
+  const [show, setShow] = useState<'trades' | 'pickups'>(tradesPending ? 'pickups' : 'trades')
   // Trade Park: players picked, and the set last searched (kept across tab switches).
   const [picks, setPicks] = useState<number[]>([])
   const [searched, setSearched] = useState<number[]>([])
@@ -95,7 +102,11 @@ export function Report({
             />
             <div className="split">
               <div className="wide">
-                <BestMove report={report} />
+                {tradesPending ? (
+                  <BestMovePending status={tradesStatus} onRetry={onRerun} />
+                ) : (
+                  <BestMove report={report} />
+                )}
               </div>
               <div className="narrow">
                 <Outlook report={report} />
@@ -105,7 +116,8 @@ export function Report({
             <div className="moves stack" data-show={show}>
               <div className="moves-switch segmented" role="group" aria-label="Show">
                 <button type="button" aria-pressed={show === 'trades'} onClick={() => setShow('trades')}>
-                  Trades · {new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size}
+                  Trades ·{' '}
+                  {tradesPending ? '…' : new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size}
                 </button>
                 <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
                   FA Targets · {report.pickups.length}
@@ -113,14 +125,18 @@ export function Report({
               </div>
               <div className="split">
                 <div className="wide">
-                  <Trades
-                    fair={report.trades}
-                    edge={report.edge_trades}
-                    categories={report.league.categories}
-                    teams={report.league.teams}
-                    myTeamId={report.team_id}
-                    keepNames={report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)}
-                  />
+                  {tradesPending ? (
+                    <TradesPending status={tradesStatus} onRetry={onRerun} />
+                  ) : (
+                    <Trades
+                      fair={report.trades}
+                      edge={report.edge_trades}
+                      categories={report.league.categories}
+                      teams={report.league.teams}
+                      myTeamId={report.team_id}
+                      keepNames={report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)}
+                    />
+                  )}
                 </div>
                 <div className="narrow">
                   <Pickups

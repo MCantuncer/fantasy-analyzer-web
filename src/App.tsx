@@ -195,6 +195,13 @@ export default function App() {
   })
   const shownProgress = useSmoothProgress(job.progress, analysis.isPending)
 
+  // The Moves page opens as soon as free agents are in; the trades fill in when the run finishes.
+  // A report already on screen (a saved one being refreshed) stays until the new one is complete.
+  const preview = job.preview
+  useEffect(() => {
+    if (preview && !report && analysis.isPending && preview.league.id === selection?.leagueId) setReport(preview)
+  }, [preview, report, analysis.isPending, selection?.leagueId])
+
   const { mutate } = analysis
   const leagueReady = league.isSuccess && league.data.supported
   useEffect(() => {
@@ -221,7 +228,8 @@ export default function App() {
   const showTabs =
     selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
   const tabsRef = useTabInView(showTabs ? activeTab : null)
-  const firstRun = waitingForReport && analysis.isPending
+  const tradesPending = !!report?.pending?.length
+  const firstRun = (waitingForReport || tradesPending) && analysis.isPending
   // Between the league answering and the analysis starting there is nothing new to show,
   // so the loading card stays up instead of blanking the page for a moment.
   const preparing =
@@ -634,6 +642,7 @@ export default function App() {
               onTab={(t) => setTab(t)}
               film={film}
               onFilm={setFilm}
+              tradesStatus={{ progress: shownProgress, running: analysis.isPending }}
             />
           </RoundValuesContext.Provider>
         )}

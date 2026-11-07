@@ -826,6 +826,8 @@ export interface components {
              */
             stage: string;
             report?: components["schemas"]["AnalysisReport"] | null;
+            /** @description While running: the report so far, once free agents and the season table are in. Its trade lists are empty and named in its `pending`; the finished report replaces it. */
+            preview?: components["schemas"]["AnalysisReport"] | null;
             error?: components["schemas"]["ErrorBody"] | null;
         };
         /** AnalysisReport */
@@ -879,6 +881,11 @@ export interface components {
             generated_at: string;
             /** Elapsed Ms */
             elapsed_ms: number;
+            /**
+             * Pending
+             * @description Report sections still being worked out (in a preview: trades, edge_trades, vision_trades). Empty in a finished report.
+             */
+            pending?: string[];
         };
         /** AnalyzeRequest */
         AnalyzeRequest: {
@@ -985,6 +992,42 @@ export interface components {
             confidence: "strong" | "some" | "estimate";
             /** Note */
             note?: string | null;
+        };
+        /** CategoryDetail */
+        CategoryDetail: {
+            /** Category */
+            category: string;
+            /**
+             * Mine Before
+             * @description My weekly projection in this category today (a percentage as 0-1)
+             */
+            mine_before: number;
+            /**
+             * Mine After
+             * @description The same after the deal
+             */
+            mine_after: number;
+            /**
+             * My Win Before
+             * @description My chance to win this category in a week against an average team
+             */
+            my_win_before: number;
+            /** My Win After */
+            my_win_after: number;
+            /**
+             * Theirs Before
+             * @description The other team's weekly projection today
+             */
+            theirs_before: number;
+            /** Theirs After */
+            theirs_after: number;
+            /**
+             * Their Win Before
+             * @description The other team's weekly chance to win this category
+             */
+            their_win_before: number;
+            /** Their Win After */
+            their_win_after: number;
         };
         /** CategoryGains */
         CategoryGains: {
@@ -1362,6 +1405,12 @@ export interface components {
             ftm: number;
             /** Fta */
             fta: number;
+            /**
+             * Starter
+             * @description In his team's starting five
+             * @default false
+             */
+            starter: boolean;
         };
         /** GameSide */
         GameSide: {
@@ -2372,6 +2421,35 @@ export interface components {
             /** Ft Pct */
             ft_pct?: number | null;
         };
+        /** PlayoffWeek */
+        PlayoffWeek: {
+            /**
+             * Period
+             * @description Matchup period
+             */
+            period: number;
+            /**
+             * Starts On
+             * @description First day, ISO date
+             */
+            starts_on: string;
+            /**
+             * Ends On
+             * @description Last day, ISO date
+             */
+            ends_on: string;
+            /**
+             * My Cats Before
+             * @description My expected categories won that week against an average team, on its real games, today
+             */
+            my_cats_before: number;
+            /** My Cats After */
+            my_cats_after: number;
+            /** Their Cats Before */
+            their_cats_before: number;
+            /** Their Cats After */
+            their_cats_after: number;
+        };
         /** PollTally */
         PollTally: {
             /**
@@ -3047,6 +3125,27 @@ export interface components {
                 [key: string]: number;
             };
             /**
+             * Category Detail
+             * @description Both teams, every category: weekly projection and win chance, before and after
+             */
+            category_detail?: components["schemas"]["CategoryDetail"][];
+            /**
+             * Playoff Weeks
+             * @description Each fantasy playoff week, both teams, before and after
+             */
+            playoff_weeks?: components["schemas"]["PlayoffWeek"][];
+            /**
+             * Finish Before
+             * @description My projected final place in the standings (average over simulated seasons)
+             */
+            finish_before?: number | null;
+            /** Finish After */
+            finish_after?: number | null;
+            /** Partner Finish Before */
+            partner_finish_before?: number | null;
+            /** Partner Finish After */
+            partner_finish_after?: number | null;
+            /**
              * Kind
              * @description win_win: their build improves too. paper_win: they win on trade value, you win on the court
              * @enum {string}
@@ -3345,6 +3444,27 @@ export interface components {
             category_changes: {
                 [key: string]: number;
             };
+            /**
+             * Category Detail
+             * @description Both teams, every category: weekly projection and win chance, before and after
+             */
+            category_detail?: components["schemas"]["CategoryDetail"][];
+            /**
+             * Playoff Weeks
+             * @description Each fantasy playoff week, both teams, before and after
+             */
+            playoff_weeks?: components["schemas"]["PlayoffWeek"][];
+            /**
+             * Finish Before
+             * @description My projected final place in the standings (average over simulated seasons)
+             */
+            finish_before?: number | null;
+            /** Finish After */
+            finish_after?: number | null;
+            /** Partner Finish Before */
+            partner_finish_before?: number | null;
+            /** Partner Finish After */
+            partner_finish_after?: number | null;
             /**
              * Angle
              * @enum {string}
@@ -3724,6 +3844,27 @@ export interface components {
             category_changes: {
                 [key: string]: number;
             };
+            /**
+             * Category Detail
+             * @description Both teams, every category: weekly projection and win chance, before and after
+             */
+            category_detail?: components["schemas"]["CategoryDetail"][];
+            /**
+             * Playoff Weeks
+             * @description Each fantasy playoff week, both teams, before and after
+             */
+            playoff_weeks?: components["schemas"]["PlayoffWeek"][];
+            /**
+             * Finish Before
+             * @description My projected final place in the standings (average over simulated seasons)
+             */
+            finish_before?: number | null;
+            /** Finish After */
+            finish_after?: number | null;
+            /** Partner Finish Before */
+            partner_finish_before?: number | null;
+            /** Partner Finish After */
+            partner_finish_after?: number | null;
         };
         /** TradeOfTheDay */
         TradeOfTheDay: {

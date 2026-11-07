@@ -18,6 +18,7 @@ export function line(over: Partial<GameLine>): GameLine {
     fga: 9,
     ftm: 1,
     fta: 2,
+    starter: false,
     ...over,
   }
 }

@@ -201,6 +201,8 @@ export function fetchLeague(leagueId: number, season: number | null, creds: Cred
 export interface AnalysisProgress {
   progress: number
   stage: string
+  /** The report so far while trades are still screened: free agents first, trade lists in ``pending``. */
+  preview?: AnalysisReport | null
 }
 
 const POLL_MS = 1500
@@ -315,7 +317,7 @@ export async function fetchAnalysis(
     if (job.status === 'failed') {
       throw new ApiError(500, job.error?.code ?? 'analysis_failed', job.error?.message ?? 'The analysis failed.')
     }
-    onProgress?.({ progress: job.progress, stage: job.stage })
+    onProgress?.({ progress: job.progress, stage: job.stage, ...(job.preview ? { preview: job.preview } : {}) })
     await wait(POLL_MS, signal)
   }
 }
