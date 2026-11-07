@@ -16,7 +16,7 @@ import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
-import { DealChips } from './PlayerCard'
+import { PlayerLink } from './PlayerCard'
 import { ReasonTiles } from './ReasonTiles'
 import { shortListNote } from '../lib/tradeList'
 
@@ -38,8 +38,19 @@ function WarningMark() {
 }
 
 /** One side of a trade row: a label, then a small team-lit face, name, injury pill and "MIL · PF" per player.
- *  Plain text only, since the whole row is the button that opens the details. */
-function RowLane({ label, players, extra }: { label: string; players: TradeIdea['give']; extra?: string }) {
+ *  Names are plain text while the row is closed, so a tap anywhere opens the details; once it is open
+ *  each name opens the player's card. */
+function RowLane({
+  label,
+  players,
+  extra,
+  linked,
+}: {
+  label: string
+  players: TradeIdea['give']
+  extra?: string
+  linked: boolean
+}) {
   return (
     <span className="tr-lane">
       <span className="tr-lane-label">{label}</span>
@@ -48,8 +59,14 @@ function RowLane({ label, players, extra }: { label: string; players: TradeIdea[
           <PlayerHead player={p} size={32} team={p.pro_team} />
           <span className="tr-player-text">
             <span className="tr-name">
-              {p.name}
-              <InjuryBadges players={[p]} />
+              {linked ? (
+                <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
+              ) : (
+                <>
+                  {p.name}
+                  <InjuryBadges players={[p]} />
+                </>
+              )}
             </span>
             <span className="tr-meta">{[p.pro_team, p.positions.join('/')].filter(Boolean).join(' · ')}</span>
           </span>
@@ -101,7 +118,6 @@ export function TradeItem({
   const overview = (
     <>
       <div>
-        <DealChips deal={t} />
         {t.warnings && t.warnings.length > 0 && (
           <ul className="trades-warning">
             {t.warnings.map((w) => (
@@ -131,14 +147,22 @@ export function TradeItem({
           </p>
         )}
         <ul className="reasons">
-          {t.my_drop && <li>You drop {t.my_drop.name} to make room.</li>}
-          {t.my_add && (
+          {t.my_drop && (
             <li>
-              You send more than you get back: pick up {t.my_add.name} from free agency for the open spot. The odds
-              above include him.
+              You drop <PlayerLink player={t.my_drop} /> to make room.
             </li>
           )}
-          {t.their_drop && <li>They would likely drop {t.their_drop.name}.</li>}
+          {t.my_add && (
+            <li>
+              You send more than you get back: pick up <PlayerLink player={t.my_add} /> from free agency for the open
+              spot. The odds above include him.
+            </li>
+          )}
+          {t.their_drop && (
+            <li>
+              They would likely drop <PlayerLink player={t.their_drop} />.
+            </li>
+          )}
           {extra}
         </ul>
         <BadgeNotes players={t.get} />
@@ -148,7 +172,9 @@ export function TradeItem({
   )
   return (
     <li id={id} className={open ? 'move open' : 'move'}>
-      <button type="button" className="tr-row" aria-expanded={open} aria-controls={`${id}-detail`} onClick={onToggle}>
+      {/* The row is a box, not a button, so the names inside can open player cards. The Details button
+          stretches over the whole row (Trades.css), so a tap anywhere else still opens or closes it. */}
+      <div className="tr-row">
         <span className="tr-top">
           <span className="tr-with">
             <span className="sr-only">Trade with </span>
@@ -166,8 +192,13 @@ export function TradeItem({
           </span>
         </span>
         <span className="tr-deal">
-          <RowLane label="You give" players={t.give} extra={faab > 0 ? `+ $${faab} FAAB` : undefined} />
-          <RowLane label="You get" players={t.get} />
+          <RowLane
+            label="You give"
+            players={t.give}
+            extra={faab > 0 ? `+ $${faab} FAAB` : undefined}
+            linked={open}
+          />
+          <RowLane label="You get" players={t.get} linked={open} />
           <span className="tr-odds">
             <span className="tr-ol">
               <span className="tr-who">You</span>
@@ -181,11 +212,21 @@ export function TradeItem({
             )}
           </span>
         </span>
-        <span className="tr-more" aria-hidden="true">
-          {open ? 'Hide details' : 'Details'}
-          <CaretDown size={14} weight="bold" />
-        </span>
-      </button>
+        <button
+          type="button"
+          className="tr-more"
+          aria-expanded={open}
+          aria-controls={`${id}-detail`}
+          onClick={onToggle}
+        >
+          {open ? 'Hide details' : 'Details'}{' '}
+          <span className="sr-only">
+            of the trade with {t.partner_team_name}: you give {t.give.map((p) => p.name).join(', ')}, you get{' '}
+            {t.get.map((p) => p.name).join(', ')}
+          </span>
+          <CaretDown size={14} weight="bold" aria-hidden="true" />
+        </button>
+      </div>
       {open && !tabs && (
         <div className="move-detail" id={`${id}-detail`}>
           {overview}

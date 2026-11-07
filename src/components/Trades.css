@@ -34,6 +34,7 @@
 /* Front Office trade row (tr- prefix): partner and accept chance on top, then You give / You get
    lanes with small team-lit faces, then both teams' playoff odds, so their gain is always visible. */
 .tr-row {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -171,21 +172,50 @@
   text-align: left;
 }
 
-.tr-more {
+/* The Details button: a plain text toggle whose hit area stretches over the whole row, so a tap
+   anywhere opens or closes the trade. Player names and the durability mark sit above that layer. */
+.tr-row .tr-more {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
+  justify-content: flex-start;
   gap: 4px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
+}
+
+.tr-row .tr-more::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.tr-row .tr-more:focus-visible {
+  outline: none;
+}
+
+.tr-row .tr-more:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.tr-row .pc-link,
+.tr-row .dur-chip {
+  position: relative;
+  z-index: 1;
 }
 
 .tr-more svg {
   transition: transform 0.2s ease;
 }
 
-.tr-row[aria-expanded='true'] .tr-more svg {
+.tr-more[aria-expanded='true'] svg {
   transform: rotate(180deg);
 }
 

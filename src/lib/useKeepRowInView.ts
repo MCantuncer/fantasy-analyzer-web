@@ -25,7 +25,9 @@ export function useKeepRowInView(open: unknown) {
     // Undo the slide first, before paint, so nothing visibly jumps.
     const drift = p.row.getBoundingClientRect().top - p.top
     if (drift) window.scrollBy(0, drift)
-    if (p.row.getAttribute('aria-expanded') !== 'true') return
+    // The row is the toggle itself, or (trade rows) holds a Details toggle stretched over it.
+    const toggle = p.row.matches('[aria-expanded]') ? p.row : p.row.querySelector('[aria-expanded]')
+    if (toggle?.getAttribute('aria-expanded') !== 'true') return
     const r = p.row.getBoundingClientRect()
     const barBottom = Math.max(0, document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 0)
     if (r.top >= barBottom && window.innerHeight - r.bottom >= window.innerHeight * MIN_ROOM) return
