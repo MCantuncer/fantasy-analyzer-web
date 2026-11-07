@@ -80,9 +80,22 @@
   color: var(--gold);
 }
 
+/* The gold ring goes all the way round the row: drawn on a layer above the cells so a leading or tied
+   cell can't cover its edges, and mixed into the card colour (not see-through) so it reads the same over
+   a filled cell and over the bare card. */
 .box-compact-rows li.close {
+  position: relative;
   border-radius: 12px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.box-compact-rows li.close::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 50%, var(--surface));
+  pointer-events: none;
 }
 
 /* Games today and the week bar: neutral, the team colour stays on the crest. */
