@@ -6,8 +6,8 @@
    previews the column on desktop. Classes are prefixed sc-; :root lifts rules over index.css. */
 
 table.box {
-  --stat-w: 56px;
-  --split-w: 72px;
+  --stat-w: 48px;
+  --split-w: 64px;
   --owner-w: 76px;
   --gap: 8px;           /* between clusters (Can, 2026-11-08: tight) */
   --cell-x: 4px;        /* number padding inside a column */
@@ -197,8 +197,8 @@ table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
 /* ---------- Phones (the table scrolls sideways in its card; Player is pinned) ---------- */
 @media (max-width: 640px) {
   table.box {
-    --stat-w: 46px;
-    --split-w: 62px;
+    --stat-w: 42px;
+    --split-w: 58px;
     --owner-w: 58px;
     --gap: 6px;
     --end: 10px;
