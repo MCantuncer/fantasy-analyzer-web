@@ -22,6 +22,7 @@ import { Trades } from './Trades'
 import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
 import { NewsSince, type NewsSinceProps } from './NewsSince'
+import type { NewsRowKind } from '../lib/newsSince'
 import type { Credentials } from '../lib/credentials'
 
 export const TABS = [
@@ -36,6 +37,14 @@ export const TABS = [
 ] as const
 
 export type Tab = (typeof TABS)[number]['id']
+
+/** The heading each news card row takes you to. */
+const NEWS_TARGETS: Record<NewsRowKind, string> = {
+  best: 'moves-best',
+  trades: 'trades-title',
+  fa: 'pickups-title',
+  odds: 'outlook-title',
+}
 
 interface Props {
   report: AnalysisReport
@@ -53,7 +62,7 @@ interface Props {
   /** Where the run is, for a preview whose trades are still being screened. */
   tradesStatus?: TradesStatus
   /** What moved since this report was built, while (and after) it is updated. */
-  news?: Omit<NewsSinceProps, 'onDismiss'>
+  news?: Omit<NewsSinceProps, 'onDismiss' | 'onGo'>
   onDismissNews?: () => void
 }
 
@@ -88,6 +97,21 @@ export function Report({
   const teamId = report.team_id
   const feedbackScope = useMemo(() => ({ leagueId, season, teamId, creds }), [leagueId, season, teamId, creds])
 
+  // From the news card to the part of Moves it names: phones show one list at a time, so open it first.
+  const goTo = (kind: NewsRowKind) => {
+    if (kind === 'trades') setShow('trades')
+    if (kind === 'fa') setShow('pickups')
+    requestAnimationFrame(() => {
+      const heading = document.getElementById(NEWS_TARGETS[kind])
+      const target = heading?.closest('section, #moves-best') ?? heading
+      if (!target) return
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      target.classList.add('ns-flash')
+      target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+      window.setTimeout(() => target.classList.remove('ns-flash'), 1200)
+    })
+  }
+
   const shopPlayer = (id: number) => {
     setPicks([id])
     setSearched([id])
@@ -99,7 +123,7 @@ export function Report({
       <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'moves' && (
           <>
-            {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} />}
+            {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} onGo={goTo} />}
             <TradeOfTheDay
               leagueId={report.league.id}
               season={report.league.season}
@@ -109,7 +133,7 @@ export function Report({
               creds={creds}
             />
             <div className="split">
-              <div className="wide">
+              <div className="wide" id="moves-best">
                 {tradesPending ? (
                   <BestMovePending status={tradesStatus} onRetry={onRerun} />
                 ) : (

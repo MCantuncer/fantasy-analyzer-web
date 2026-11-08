@@ -53,6 +53,13 @@ const LEAGUE_TABS = [
 // Tabs that show the analysis; the rest work while it runs.
 const ANALYSIS_TABS = new Set(['moves', 'park', 'trade-for', 'team'])
 
+/** The league news since the report on screen was built, and that report (what the moves are compared with). */
+interface NewsSnapshot {
+  before: AnalysisReport | null
+  changes: ReportChange[]
+}
+const NO_NEWS: NewsSnapshot = { before: null, changes: [] }
+
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
 
 function readUrl(): { selection: Selection | null; tab: string; verifying: boolean; film: number | null | undefined } {
@@ -118,7 +125,8 @@ export default function App() {
   const [job, setJob] = useState<AnalysisProgress>({ progress: 0, stage: 'Starting' })
   const [readyToast, setReadyToast] = useState(false)
   // What moved in the league since the report on screen was built (from the server's saved report).
-  const [since, setSince] = useState<ReportChange[]>([])
+  // ``before`` is the report the changes are measured from, so the card can say which moves changed.
+  const [since, setSince] = useState<NewsSnapshot>(NO_NEWS)
   const running = useRef<AbortController | null>(null)
   // Bumped by the top bar's "Add a league" so My leagues focuses its add box.
   const [focusAdd, setFocusAdd] = useState(0)
@@ -205,9 +213,11 @@ export default function App() {
     if (early && !report && analysis.isPending && early.league.id === selection?.leagueId) setReport(early)
   }, [early, report, analysis.isPending, selection?.leagueId])
   const changes = job.changes
+  const savedBefore = job.saved
   useEffect(() => {
-    if (changes?.length && analysis.isPending) setSince(changes)
-  }, [changes, analysis.isPending])
+    if (changes?.length && analysis.isPending)
+      setSince((prev) => (prev.changes === changes ? prev : { before: savedBefore ?? null, changes }))
+  }, [changes, savedBefore, analysis.isPending])
 
   const { mutate } = analysis
   const leagueReady = league.isSuccess && league.data.supported
@@ -219,7 +229,7 @@ export default function App() {
     // at once when nothing in the league moved, and says what did (an injury, a trade) when it did.
     const saved = loadSavedReport(selection.leagueId, myTeamId, selection.season, stored)
     setReport(saved?.report ?? null)
-    setSince([])
+    setSince(NO_NEWS)
     if (saved) setAppliedKeep(stored)
     mutate({ teamId: myTeamId, keep: stored, quiet: saved !== null })
   }, [selection, myTeamId, leagueReady, mutate])
@@ -285,7 +295,7 @@ export default function App() {
     setVerifying(false)
     setFilm(undefined)
     setReport(null)
-    setSince([])
+    setSince(NO_NEWS)
     stopAnalysis()
   }
 
@@ -652,8 +662,14 @@ export default function App() {
               film={film}
               onFilm={setFilm}
               tradesStatus={{ progress: shownProgress, running: analysis.isPending }}
-              news={{ changes: since, running: analysis.isPending, progress: shownProgress }}
-              onDismissNews={() => setSince([])}
+              news={{
+                changes: since.changes,
+                before: since.before,
+                after: report,
+                running: analysis.isPending,
+                progress: shownProgress,
+              }}
+              onDismissNews={() => setSince(NO_NEWS)}
             />
           </RoundValuesContext.Provider>
         )}

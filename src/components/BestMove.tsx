@@ -16,6 +16,7 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import type { AnalysisReport, PickupIdea, PlayerRef } from '../api/client'
+import { bestMoveOf } from '../lib/bestMove'
 import { pct, ptsDiff } from '../lib/format'
 import { teamColours } from '../lib/league'
 import { ifMade, keptDays, lastName, longDay, shortDay, spotGames, waitLabel } from '../lib/moveTiming'
@@ -226,18 +227,14 @@ export function OddsMeter({
 }
 
 export function BestMove({ report }: { report: AnalysisReport }) {
-  const trade = report.trades[0]
-  // Only a straight add/drop counts here: a pickup that needs a trade first does need someone to agree.
-  const pickup = report.pickups.find((p) => !p.open_spot_by_trade)
-  const tradeGain = trade ? trade.playoff_pct_after - trade.playoff_pct_before : -1
-  const pickupGain = pickup ? pickup.playoff_pct_after - pickup.playoff_pct_before : -1
+  const best = bestMoveOf(report)
   const league = report.league
   const colours = teamColours(
     report.season.map((r) => r.team_id),
     report.team_id,
   )
 
-  if (tradeGain <= 0 && pickupGain <= 0) {
+  if (best.kind === 'hold') {
     return (
       <section className="card best">
         <header className="bm-head">
@@ -253,9 +250,10 @@ export function BestMove({ report }: { report: AnalysisReport }) {
     )
   }
 
-  if (pickup && pickupGain >= tradeGain) {
-    return <BestPickup report={report} pickup={pickup} colours={colours} />
+  if (best.kind === 'pickup') {
+    return <BestPickup report={report} pickup={best.pickup} colours={colours} />
   }
+  const trade = best.trade
 
   const theirs = colours.get(trade.partner_team_id)
   const acc = ACCEPTANCE[trade.acceptance_label]
