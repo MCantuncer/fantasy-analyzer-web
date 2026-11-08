@@ -199,3 +199,8 @@
 .feed-social .feed-reaction[aria-pressed='true'] {
   background: var(--accent-soft);
 }
+
+/* A refresh that failed while the feed stays on screen. */
+.chat-stale {
+  margin: 0;
+}

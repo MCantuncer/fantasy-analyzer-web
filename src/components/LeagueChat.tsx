@@ -3,7 +3,7 @@ import { FeedSkeleton } from './Skeleton'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { createPost, deletePost, fetchFeed, fetchReplies, react } from '../api/client'
+import { createPost, deletePost, fetchFeed, fetchReplies, react, retryDropped, retryDroppedDelay } from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef, Reactions } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import {
@@ -78,6 +78,9 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
     initialPageParam: 0,
     getNextPageParam: (last: FeedPage) => (last.has_more ? last.page + 1 : undefined),
     refetchInterval: REFRESH_MS,
+    // A dropped request (a phone switching apps, Render restarting) is asked again, not shown as a failure.
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
   })
 
   const first = feed.data?.pages[0]
@@ -111,11 +114,12 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
   if (feed.isPending) {
     return <FeedSkeleton />
   }
-  if (feed.isError || !first) {
+  // A failed refresh keeps the feed on screen; only a feed that never loaded shows the error card.
+  if (!feed.data || !first) {
     return (
       <div className="card error stack">
         <h2>Couldn't load the league feed</h2>
-        <p>{feed.error?.message}</p>
+        <p>{feed.error instanceof Error ? feed.error.message : 'Try again in a moment.'}</p>
         <div className="row">
           <button className="secondary" onClick={() => feed.refetch()}>
             Try again
@@ -161,6 +165,12 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
               </button>
             </div>
           )
+        )}
+
+        {feed.isError && (
+          <p className="chat-stale small muted" role="status">
+            Couldn't refresh the feed just now. Trying again shortly.
+          </p>
         )}
 
         <div className="chat-filters" role="group" aria-label="Show">

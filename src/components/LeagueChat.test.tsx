@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { ApiError, fetchFeed } from '../api/client'
 import type { FeedItem, FeedPage } from '../api/client'
 import { LeagueChat } from './LeagueChat'
 
@@ -66,5 +67,22 @@ describe('LeagueChat cards', () => {
     expect(container.querySelector('.feed-post.feed-wide')).not.toBeNull()
     expect(container.querySelectorAll('.feed-tile img')).toHaveLength(4)
     expect(container.querySelector('.feed-day-summary')?.textContent).toContain('2 moves · $12 spent')
+  })
+})
+
+describe('LeagueChat refresh', () => {
+  it('keeps the feed on screen when a refresh fails', async () => {
+    const client = new QueryClient()
+    const { container } = render(
+      <QueryClientProvider client={client}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+    await screen.findByText('Tristan da Silva')
+    vi.mocked(fetchFeed).mockRejectedValue(new ApiError(500, 'server', 'Something broke.'))
+    await act(() => client.refetchQueries({ queryKey: ['feed', 1, 2027] }))
+    await screen.findByText(/Couldn't refresh the feed just now/)
+    expect(screen.queryByText("Couldn't load the league feed")).toBeNull()
+    expect(container.querySelectorAll('.feed-grid .feed-tile')).toHaveLength(2)
   })
 })
