@@ -65,7 +65,8 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
   }, [])
 
   if (news.isLoading) return <NewsSkeleton />
-  if (news.error || !news.data) {
+  // A failed refresh keeps the stories on screen; only news that never loaded shows the error card.
+  if (!news.data) {
     return (
       <div className="card error stack">
         <h2>Couldn't load the news</h2>
@@ -98,6 +99,11 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
           Injuries, trades and role changes from around the NBA, checked against several sources before they show.
         </p>
         <NewsRefresh data={data} now={now} refresh={refresh} />
+        {news.isError && (
+          <p className="small muted" role="status">
+            Couldn't refresh the news just now. Trying again shortly.
+          </p>
+        )}
       </header>
 
       <div className="news-toolbar">
