@@ -113,7 +113,7 @@ describe('Scores', () => {
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
     // Points right after minutes, then the shooting splits, like the player card game log.
     const heads = [...box.querySelectorAll('thead th')].map((h) => h.textContent)
-    expect(heads).toEqual(['Player', 'Owner', 'Min', 'FG', 'FT', 'Pts', '3PM', 'Reb', 'Ast', 'Stl', 'Blk', 'TO'])
+    expect(heads).toEqual(['PLAYER', 'OWNER', 'MIN', 'FG', 'FT', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
     const amen = within(box).getByRole('row', { name: /Amen Thompson/ })
     expect(amen).toHaveClass('mine')
     expect(within(box).getByRole('row', { name: /Tari Eason/ })).toHaveTextContent('FA')
@@ -134,12 +134,12 @@ describe('Scores', () => {
     const order = () => [...box.querySelectorAll('tbody th[scope="row"]')].map((th) => th.textContent?.split(' ')[0])
     expect(order()).toEqual(['Alperen', 'Amen', 'Tari'])
 
-    const reb = within(box).getByRole('button', { name: 'Reb' })
+    const reb = within(box).getByRole('button', { name: 'REB' })
     fireEvent.click(reb)
     // Most rebounds first among Houston's players.
     expect(order()).toEqual(['Amen', 'Alperen', 'Tari'])
     expect(reb.closest('th')).toHaveAttribute('aria-sort', 'descending')
-    expect(box).toHaveAttribute('data-col', '8')
+    expect(box).toHaveAttribute('data-col', '7')
 
     fireEvent.click(reb)
     expect(order()).toEqual(['Tari', 'Alperen', 'Amen'])

@@ -674,12 +674,12 @@ function BoxScore({
           <thead>
             <tr>
               <th scope="col" className="left">
-                Player
+                PLAYER
               </th>
               <th scope="col" className="left">
-                Owner
+                OWNER
               </th>
-              <th scope="col">Min</th>
+              <th scope="col">MIN</th>
               {BOX_CATS.map((c) => {
                 const on = sort?.cat === c.key ? sort : null
                 return (

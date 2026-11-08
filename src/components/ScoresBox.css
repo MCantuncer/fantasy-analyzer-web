@@ -1,17 +1,17 @@
 /* Scores box score: "Category Plates" (Can, 2026-11-06). The header used to be faint labels spread
    across the whole width. Now the stat columns keep a fixed width (Player takes the rest), so each
    label sits right over its numbers, and the nine categories sit on plates in groups:
-     Min (context, plain) | FG FT Pts 3PM | Reb Ast Stl Blk | TO
+     MIN (context, plain) | FG FT 3PM | REB AST STL BLK | TO | PTS (Can, 2026-11-08)
    Tapping a category sorts each team on its own and lights the column (table[data-col]); hovering
    previews the column on desktop. Classes are prefixed sc-; :root lifts rules over index.css. */
 
 table.box {
-  --stat-w: 56px;
-  --split-w: 72px;
+  --stat-w: 48px;
+  --split-w: 64px;
   --owner-w: 76px;
-  --gap: 24px;          /* between clusters */
+  --gap: 8px;           /* between clusters (Can, 2026-11-08: tight) */
   --cell-x: 4px;        /* number padding inside a column */
-  --end: 16px;          /* breathing room after TO */
+  --end: 16px;          /* breathing room after PTS */
   --head-h: 44px;
   --key-h: 26px;
   --plate: var(--track);
@@ -38,8 +38,8 @@ table.box {
 :root table.box tr > :is(:nth-child(4), :nth-child(5)) {
   --w: var(--split-w);
 }
-/* cluster starts: FG, Reb, TO (Min sits right after Owner, no gap) */
-:root table.box tr > :is(:nth-child(4), :nth-child(8), :nth-child(12)) {
+/* cluster starts: FG, REB, TO, PTS (MIN sits right after OWNER, no gap) */
+:root table.box tr > :is(:nth-child(4), :nth-child(7), :nth-child(11), :nth-child(12)) {
   --gx: var(--gap);
 }
 :root table.box tr > :nth-child(12) {
@@ -106,12 +106,12 @@ table.box .sc-key::before {
   background: var(--plate);
   box-shadow: inset 0 1px 0 rgb(255 240 220 / 0.035);
 }
-/* plate ends round at cluster edges only: FG|3PM, Reb|Blk, TO */
-table.box th:is(:nth-child(4), :nth-child(8), :nth-child(12)) .sc-key::before {
+/* plate ends round at cluster edges only: FG|3PM, REB|BLK, TO, PTS */
+table.box th:is(:nth-child(4), :nth-child(7), :nth-child(11), :nth-child(12)) .sc-key::before {
   border-top-left-radius: var(--radius-tag);
   border-bottom-left-radius: var(--radius-tag);
 }
-table.box th:is(:nth-child(7), :nth-child(11), :nth-child(12)) .sc-key::before {
+table.box th:is(:nth-child(6), :nth-child(10), :nth-child(11), :nth-child(12)) .sc-key::before {
   border-top-right-radius: var(--radius-tag);
   border-bottom-right-radius: var(--radius-tag);
 }
@@ -197,10 +197,10 @@ table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
 /* ---------- Phones (the table scrolls sideways in its card; Player is pinned) ---------- */
 @media (max-width: 640px) {
   table.box {
-    --stat-w: 46px;
-    --split-w: 62px;
+    --stat-w: 42px;
+    --split-w: 58px;
     --owner-w: 58px;
-    --gap: 12px;
+    --gap: 6px;
     --end: 10px;
   }
   /* A tapped key scrolls into view beside the pinned Player column, not under it. */
