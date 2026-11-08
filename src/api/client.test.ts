@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS } from './client'
+import { ApiError, createPost, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS } from './client'
 import { clearToken, saveToken } from '../lib/session'
 
 describe('api client', () => {
@@ -45,5 +45,42 @@ describe('api client', () => {
     await vi.advanceTimersByTimeAsync(SCORES_TIMEOUT_MS)
     await outcome
     vi.useRealTimers()
+  })
+
+  it('asks again when Render answers 503 or the request is dropped', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response('', { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 1 })))
+    const pending = fetchLeague(1, null, null)
+    await vi.runAllTimersAsync()
+    await expect(pending).resolves.toEqual({ id: 1 })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    vi.useRealTimers()
+  })
+
+  it('gives up on a read after a few drops', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
+    const pending = fetchLeague(1, null, null)
+    const outcome = expect(pending).rejects.toMatchObject({ code: 'network' })
+    await vi.runAllTimersAsync()
+    await outcome
+    expect(fetchMock).toHaveBeenCalledTimes(4)
+    vi.useRealTimers()
+  })
+
+  it('never sends a write twice', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(createPost({ leagueId: 1, season: 2027 }, 'hello', null)).rejects.toMatchObject({ code: 'network' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not ask again after a real error', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 500 }))
+    await expect(fetchLeague(1, null, null)).rejects.toMatchObject({ status: 500 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

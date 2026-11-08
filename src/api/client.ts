@@ -95,8 +95,36 @@ export class ApiError extends Error {
   }
 }
 
-// Every call carries the signed-in account's token; ESPN cookies only when the league is private.
+// Render's edge sometimes answers 502/503 for a few seconds, without CORS headers, so the browser
+// reports it as unreachable; a phone or laptop coming back to the tab can also drop the first
+// request. Reads ask again a few times before failing; writes never do, so a post isn't sent twice.
+const READ_RETRY_MS = [500, 1500, 3000]
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
 async function request<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body: unknown,
+  creds: Credentials | null,
+  timeoutMs?: number,
+  retries: readonly number[] = READ_RETRY_MS,
+): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await requestOnce<T>(method, path, body, creds, timeoutMs)
+    } catch (e) {
+      const dropped = e instanceof ApiError && e.code !== 'timeout' && isTransient(e)
+      if (!dropped || attempt >= retries.length) throw e
+      await sleep(retries[attempt])
+    }
+  }
+}
+
+// Every call carries the signed-in account's token; ESPN cookies only when the league is private.
+async function requestOnce<T>(
   method: 'GET' | 'POST',
   path: string,
   body: unknown,
@@ -143,8 +171,14 @@ async function request<T>(
   return res.json() as Promise<T>
 }
 
+/** A read: asked again if Render or the network drops it. */
 function post<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
   return request<T>('POST', path, body, creds, timeoutMs)
+}
+
+/** A write (or a paid check): sent once, since a dropped request may still have reached the server. */
+function send<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
+  return request<T>('POST', path, body, creds, timeoutMs, [])
 }
 
 export function fetchAuthConfig() {
@@ -152,19 +186,19 @@ export function fetchAuthConfig() {
 }
 
 export function signUp(email: string, password: string) {
-  return post<AuthResult>('/api/auth/signup', { email, password })
+  return send<AuthResult>('/api/auth/signup', { email, password })
 }
 
 export function signIn(email: string, password: string) {
-  return post<AuthResult>('/api/auth/login', { email, password })
+  return send<AuthResult>('/api/auth/login', { email, password })
 }
 
 export function signInWithGoogle(credential: string) {
-  return post<AuthResult>('/api/auth/google', { credential })
+  return send<AuthResult>('/api/auth/google', { credential })
 }
 
 export function signOut() {
-  return post<{ ok: boolean }>('/api/auth/logout', {})
+  return send<{ ok: boolean }>('/api/auth/logout', {})
 }
 
 export function fetchMe() {
@@ -172,15 +206,15 @@ export function fetchMe() {
 }
 
 export function clearNotices() {
-  return post<Me>('/api/me/notices/clear', {})
+  return send<Me>('/api/me/notices/clear', {})
 }
 
 export function addLeague(leagueId: number, season: number | null, creds: Credentials | null) {
-  return post<Me>('/api/my-leagues/add', { league_id: leagueId, season }, creds)
+  return send<Me>('/api/my-leagues/add', { league_id: leagueId, season }, creds)
 }
 
 export function removeLeague(ref: LeagueRef) {
-  return post<Me>('/api/my-leagues/remove', { league_id: ref.leagueId, season: ref.season })
+  return send<Me>('/api/my-leagues/remove', { league_id: ref.leagueId, season: ref.season })
 }
 
 export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
@@ -371,7 +405,7 @@ export function voteTradeOfTheDay(
   },
   creds: Credentials | null,
 ) {
-  return post<TradeOfTheDay>(
+  return send<TradeOfTheDay>(
     '/api/trade-of-the-day/vote',
     {
       league_id: vote.leagueId,
@@ -400,7 +434,7 @@ export function startTeamLink(ref: LeagueRef, teamId: number, creds: Credentials
 }
 
 export function verifyTeamLink(challenge: string, creds: Credentials | null) {
-  return post<LinkedTeam>('/api/team-link/verify', { challenge }, creds)
+  return send<LinkedTeam>('/api/team-link/verify', { challenge }, creds)
 }
 
 export function fetchFeed(ref: LeagueRef, page: number, creds: Credentials | null) {
@@ -416,7 +450,7 @@ export function fetchReplies(ref: LeagueRef, target: string) {
 }
 
 export function createPost(ref: LeagueRef, body: string, target: string | null) {
-  return post<FeedItem>('/api/posts', {
+  return send<FeedItem>('/api/posts', {
     league_id: ref.leagueId,
     season: ref.season,
     body,
@@ -425,7 +459,7 @@ export function createPost(ref: LeagueRef, body: string, target: string | null) 
 }
 
 export function deletePost(ref: LeagueRef, postId: number) {
-  return post<{ ok: boolean }>('/api/posts/delete', {
+  return send<{ ok: boolean }>('/api/posts/delete', {
     league_id: ref.leagueId,
     season: ref.season,
     post_id: postId,
@@ -433,7 +467,7 @@ export function deletePost(ref: LeagueRef, postId: number) {
 }
 
 export function react(ref: LeagueRef, target: string, reaction: string, on: boolean, creds: Credentials | null) {
-  return post<ReactionsOut>(
+  return send<ReactionsOut>(
     '/api/reactions',
     { league_id: ref.leagueId, season: ref.season, target, reaction, on },
     creds,
@@ -513,7 +547,7 @@ export function fetchNews(leagueId: number, season: number | null, includeHeld: 
 
 /** A reader's refresh: the server checks every news source now (at most once every 2 minutes for everyone). */
 export function checkNews() {
-  return post<NewsCheck>('/api/news/check', {})
+  return send<NewsCheck>('/api/news/check', {})
 }
 
 export function fetchInjuryImpact(
@@ -565,7 +599,7 @@ export function saveTradeFeedback(
     idea: TradeIdea
   },
 ) {
-  return post<TradeFeedback>('/api/trade-feedback', {
+  return send<TradeFeedback>('/api/trade-feedback', {
     league_id: seat.leagueId,
     season: seat.season,
     team_id: seat.teamId,
@@ -593,7 +627,7 @@ export function addTradeRule(
   seat: FeedbackSeat,
   rule: { kind: TradeRuleKind; value?: string; team_name?: string; why?: string },
 ) {
-  return post<TradeRule>('/api/trade-rules', {
+  return send<TradeRule>('/api/trade-rules', {
     league_id: seat.leagueId,
     season: seat.season,
     team_id: seat.teamId,
@@ -602,7 +636,7 @@ export function addTradeRule(
 }
 
 export function deleteTradeRule(seat: FeedbackSeat, ruleId: number) {
-  return post<{ rules: TradeRule[] }>('/api/trade-rules/delete', {
+  return send<{ rules: TradeRule[] }>('/api/trade-rules/delete', {
     league_id: seat.leagueId,
     season: seat.season,
     team_id: seat.teamId,
@@ -611,7 +645,7 @@ export function deleteTradeRule(seat: FeedbackSeat, ruleId: number) {
 }
 
 export function checkTrade(seat: FeedbackSeat, idea: TradeIdea, reasons: FeedbackReason[], creds: Credentials | null) {
-  return post<TradeCheck>(
+  return send<TradeCheck>(
     '/api/trade-check',
     {
       league_id: seat.leagueId,
