@@ -9,8 +9,7 @@ table.box {
   --stat-w: 56px;
   --split-w: 72px;
   --owner-w: 76px;
-  --gap: 24px;          /* between clusters */
-  --solo-gap: 8px;      /* between the lone plates, TO and PTS */
+  --gap: 8px;           /* between clusters (Can, 2026-11-08: tight) */
   --cell-x: 4px;        /* number padding inside a column */
   --end: 16px;          /* breathing room after PTS */
   --head-h: 44px;
@@ -43,9 +42,7 @@ table.box {
 :root table.box tr > :is(:nth-child(4), :nth-child(7), :nth-child(11), :nth-child(12)) {
   --gx: var(--gap);
 }
-/* PTS: TO and PTS are single plates, so they sit closer together than the groups */
 :root table.box tr > :nth-child(12) {
-  --gx: var(--solo-gap);
   --ex: var(--end);
 }
 :root table.box tr > :nth-child(2) {
@@ -203,8 +200,7 @@ table.box tbody tr:not(.box-team) > td:nth-child(n + 4) {
     --stat-w: 46px;
     --split-w: 62px;
     --owner-w: 58px;
-    --gap: 12px;
-    --solo-gap: 6px;
+    --gap: 6px;
     --end: 10px;
   }
   /* A tapped key scrolls into view beside the pinned Player column, not under it. */
