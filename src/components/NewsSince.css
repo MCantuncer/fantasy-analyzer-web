@@ -24,6 +24,40 @@
   font-size: 16.5px;
 }
 
+/* The title folds and unfolds the card once the moves are in. */
+.ns-card button.ns-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 6px 0 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.ns-toggle-caret {
+  flex: none;
+  color: var(--muted);
+  transform: rotate(180deg);
+  transition: transform 0.18s ease;
+}
+
+.ns-toggle[aria-expanded='false'] .ns-toggle-caret {
+  transform: none;
+}
+
+/* Folded: the new moves in one line under the title. */
+.ns-folded {
+  margin: -6px 0 0;
+  padding: 0 10px 14px;
+  color: var(--text-2);
+}
+
 .ns-status {
   display: inline-flex;
   align-items: center;
@@ -490,7 +524,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ns-progress,
-  .ns-caret {
+  .ns-caret,
+  .ns-toggle-caret {
     transition: none;
   }
 }

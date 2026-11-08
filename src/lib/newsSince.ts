@@ -421,3 +421,23 @@ export function buildNews(before: AnalysisReport | null, after: AnalysisReport |
     return out
   }
 }
+
+// Once the finished card has been read, it opens folded to one line on the next visit (this tab only).
+const SEEN_KEY = 'news-seen'
+
+/** Whether the news card for this finished report has already been read in this tab. */
+export function isNewsSeen(reportKey: string): boolean {
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === reportKey
+  } catch {
+    return false
+  }
+}
+
+export function markNewsSeen(reportKey: string) {
+  try {
+    sessionStorage.setItem(SEEN_KEY, reportKey)
+  } catch {
+    // Storage blocked (private mode): the card simply opens unfolded next time.
+  }
+}
