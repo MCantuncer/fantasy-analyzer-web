@@ -38,7 +38,7 @@ describe('Film Room', () => {
     const tape = screen.getByRole('region', { name: 'Your tape' })
     expect(within(tape).getByText(/Won/)).toBeInTheDocument()
     expect([...container.querySelectorAll('.fr-cl')].map((n) => n.textContent)).toEqual([
-      'FG%', 'FT%', 'PTS', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO',
+      'FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS',
     ])
   })
 
@@ -60,7 +60,7 @@ describe('Film Room', () => {
   it('lists players of the week in the site stat order, top five first', () => {
     const { container } = show()
     const heads = [...container.querySelectorAll('.fr-stats thead th')].map((n) => n.textContent)
-    expect(heads).toEqual(['Player', 'MIN', 'FG', 'FT', 'PTS', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'Value'])
+    expect(heads).toEqual(['Player', 'MIN', 'FG', 'FT', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS', 'Value'])
     expect(container.querySelectorAll('.fr-stats tbody tr')).toHaveLength(5)
     fireEvent.click(screen.getByRole('button', { name: 'Show all 10' }))
     expect(container.querySelectorAll('.fr-stats tbody tr')).toHaveLength(10)

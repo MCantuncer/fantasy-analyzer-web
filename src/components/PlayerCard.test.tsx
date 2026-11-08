@@ -250,7 +250,7 @@ describe('PlayerCard', () => {
 
     // Game log columns: points right after minutes, then the shooting splits and threes.
     const heads = [...dialog.querySelectorAll('.pc-table thead th')].map((h) => h.textContent)
-    expect(heads).toEqual(['Game', 'MIN', 'FG', 'FT', 'PTS', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO'])
+    expect(heads).toEqual(['Game', 'MIN', 'FG', 'FT', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
 
     const calls = vi.mocked(fetch).mock.calls.map(([url, init]) => [String(url), JSON.parse(String(init?.body))])
     expect(calls).toContainEqual([
