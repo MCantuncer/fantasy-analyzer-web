@@ -199,6 +199,9 @@ describe('News', () => {
     expect(link).toHaveAttribute('href', 'https://cbs.example/jw')
     const jw = link.closest('article') as HTMLElement
     expect(within(jw).getByText('Confirmed · 2 sources')).toBeInTheDocument()
+    // Dated by when the story broke, not by its latest source.
+    expect(within(jw).getByText('2h ago')).toBeInTheDocument()
+    expect(within(jw).queryByText('1h ago')).not.toBeInTheDocument()
     expect(within(jw).getByText('Sources disagree')).toBeInTheDocument()
     expect(within(jw).getByRole('note')).toHaveTextContent('ESPN status says day-to-day')
     expect(within(jw).getByText('ESPN: DTD')).toBeInTheDocument()

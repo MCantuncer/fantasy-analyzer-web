@@ -473,7 +473,7 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
           <button type="button" className="pc-injury" onClick={() => show('news')}>
             <span>
               <span className="pc-injury-label">Latest</span> {injury.headline}{' '}
-              <span className="muted">· {ago(injury.updated_at, now)}</span>
+              <span className="muted">· {ago(injury.published_at, now)}</span>
             </span>
             <CaretRight className="pc-injury-go" size={16} weight="bold" aria-hidden="true" />
             <span className="sr-only"> · Open his news</span>
@@ -681,8 +681,8 @@ function Story({ story: n, playerId, now }: { story: PlayerNews; playerId: numbe
       <div className="pc-story-main">
         <p className="pc-story-top">
           <span className="pc-story-kind">{KIND_LABEL[n.kind]}</span>
-          <time className="muted" dateTime={n.updated_at}>
-            {ago(n.updated_at, now)}
+          <time className="muted" dateTime={n.published_at}>
+            {ago(n.published_at, now)}
           </time>
         </p>
         <h4 className="pc-story-head">{n.headline}</h4>

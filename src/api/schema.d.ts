@@ -1967,7 +1967,7 @@ export interface components {
             summary: string;
             /**
              * Published At
-             * @description First seen, UTC
+             * @description When the story broke: its earliest source's own publish time, UTC. ESPN player data has no publish time, so its items carry the time a refresh noticed the change
              */
             published_at: string;
             /**

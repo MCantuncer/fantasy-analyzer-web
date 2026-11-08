@@ -94,7 +94,7 @@ export function dayHeading(iso: string, now: Date): string {
 export function groupByDay(stories: NewsStory[], now: Date): { day: string; stories: NewsStory[] }[] {
   const out: { day: string; stories: NewsStory[] }[] = []
   for (const s of stories) {
-    const day = dayHeading(s.updated_at, now)
+    const day = dayHeading(s.published_at, now)
     const last = out[out.length - 1]
     if (last && last.day === day) last.stories.push(s)
     else out.push({ day, stories: [s] })
