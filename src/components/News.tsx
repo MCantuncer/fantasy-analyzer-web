@@ -225,7 +225,10 @@ function Story({
         <span className={`news-kind news-kind-${story.kind}`}>{KIND_LABEL[story.kind]}</span>
         <span className={`news-status news-status-${story.status}`}>{statusText(story)}</span>
         {story.conflict && <span className="news-status news-status-conflict">Sources disagree</span>}
-        <span className="muted">{ago(story.updated_at, now)}</span>
+        {/* When the story broke (its earliest source), not when its latest source came in. */}
+        <time className="muted" dateTime={story.published_at}>
+          {ago(story.published_at, now)}
+        </time>
         <span className="news-sources">
           <span className="muted">{held ? 'Seen on' : 'via'}</span>{' '}
           {story.sources.map((s, i) => (
