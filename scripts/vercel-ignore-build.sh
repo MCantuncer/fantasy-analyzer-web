@@ -7,6 +7,13 @@
 # Markdown, GitHub workflows, lint config and test files. GitHub CI still runs
 # lint, tests and the build on every pull request.
 
+# Only production (main) builds. Pull request branches get no preview deployment:
+# GitHub CI already builds and tests every PR, and previews were about half our builds.
+if [ "${VERCEL_ENV:-}" != "production" ]; then
+  echo "Not a production build (VERCEL_ENV=${VERCEL_ENV:-unset}): skipping."
+  exit 0
+fi
+
 # Last commit Vercel deployed on this branch; fall back to the parent commit.
 base="${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}"
 
