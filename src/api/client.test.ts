@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, createPost, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS } from './client'
+import { ApiError, createPost, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS, signIn, signUp } from './client'
 import { clearToken, saveToken } from '../lib/session'
 
 describe('api client', () => {
@@ -70,6 +70,25 @@ describe('api client', () => {
     await outcome
     expect(fetchMock).toHaveBeenCalledTimes(4)
     vi.useRealTimers()
+  })
+
+  it('asks again when a sign-in is dropped', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token: 't' })))
+    const pending = signIn('me@example.com', 'secret')
+    await vi.runAllTimersAsync()
+    await expect(pending).resolves.toEqual({ token: 't' })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
+  })
+
+  it('never sends a sign-up twice', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(signUp('me@example.com', 'secret')).rejects.toMatchObject({ code: 'network' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('never sends a write twice', async () => {

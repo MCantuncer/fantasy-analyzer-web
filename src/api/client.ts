@@ -189,12 +189,14 @@ export function signUp(email: string, password: string) {
   return send<AuthResult>('/api/auth/signup', { email, password })
 }
 
+// Signing in is safe to ask again: a dropped first try at most leaves one unused session behind,
+// and Render's brief 503s shouldn't greet someone with "Could not reach the analyzer server".
 export function signIn(email: string, password: string) {
-  return send<AuthResult>('/api/auth/login', { email, password })
+  return post<AuthResult>('/api/auth/login', { email, password })
 }
 
 export function signInWithGoogle(credential: string) {
-  return send<AuthResult>('/api/auth/google', { credential })
+  return post<AuthResult>('/api/auth/google', { credential })
 }
 
 export function signOut() {
