@@ -147,12 +147,14 @@ export const CHANGES: ReportChange[] = [
 
 /** Before: add Lopez was the best move, one trade sent Barnes. After: add Dosunmu, a new idea gets Morant. */
 export const BEFORE = report({
+  generated_at: '2026-11-07T10:00:00Z',
   pickups: [pickup(P.lopez, 0.38, 0.42), pickup(P.dosunmu, 0.38, 0.41)],
   trades: [trade([7, 'Aliaga Hermanos'], [P.barnes], [P.brown], 0.38, 0.4)],
   odds: 0.38,
 })
 
 export const AFTER = report({
+  generated_at: '2026-11-08T10:00:00Z',
   pickups: [pickup(P.dosunmu, 0.39, 0.42)],
   trades: [trade([8, 'Gergin Atamans'], [P.holmgren], [P.morant], 0.39, 0.41)],
   odds: 0.39,

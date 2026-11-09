@@ -1,9 +1,17 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AFTER, BEFORE, CHANGES } from '../test/newsSince'
 import { NewsSince } from './NewsSince'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  sessionStorage.clear()
+  vi.unstubAllGlobals()
+  vi.useRealTimers()
+})
+
+const seenKey = `${AFTER.league.id}:${AFTER.team_id}:${AFTER.generated_at}`
 
 describe('NewsSince', () => {
   it('while the moves update, shows what is already known and the progress', () => {
@@ -60,5 +68,44 @@ describe('NewsSince', () => {
     )
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('None of your moves changed')
     expect(screen.queryByRole('button', { name: /Best move/ })).toBeNull()
+  })
+
+  it('folds to one line once read, and the title opens it again', () => {
+    sessionStorage.setItem('news-seen', seenKey)
+    render(
+      <NewsSince changes={CHANGES} before={BEFORE} after={AFTER} running={false} progress={1} onDismiss={() => {}} />,
+    )
+    const toggle = screen.getByRole('button', { name: /2 of your moves changed/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('Add Ayo Dosunmu · Get Ja Morant')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Best move/ })).toBeNull()
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: /Best move/ })).toBeInTheDocument()
+  })
+
+  it('counts the card as read after it has been on screen for a few seconds', () => {
+    vi.useFakeTimers()
+    let seen: (entries: { isIntersecting: boolean }[]) => void = () => {}
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(cb: typeof seen) {
+          seen = cb
+        }
+        observe() {}
+        disconnect() {}
+      },
+    )
+    render(
+      <NewsSince changes={CHANGES} before={BEFORE} after={AFTER} running={false} progress={1} onDismiss={() => {}} />,
+    )
+    act(() => seen([{ isIntersecting: true }]))
+    act(() => vi.advanceTimersByTime(4000))
+    expect(sessionStorage.getItem('news-seen')).toBeNull()
+    act(() => vi.advanceTimersByTime(1000))
+    expect(sessionStorage.getItem('news-seen')).toBe(seenKey)
+    // Still unfolded while it is being read.
+    expect(screen.getByRole('button', { name: /2 of your moves changed/ })).toHaveAttribute('aria-expanded', 'true')
   })
 })

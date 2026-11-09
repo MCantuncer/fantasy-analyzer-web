@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import {
   ArrowRight,
   ArrowsLeftRight,
@@ -17,7 +17,15 @@ import type { AnalysisReport, ReportChange } from '../api/client'
 import { pct } from '../lib/format'
 import { teamColours } from '../lib/league'
 import { lastName } from '../lib/moveTiming'
-import { buildNews, type NewsItem, type NewsReason, type NewsRow, type NewsRowKind } from '../lib/newsSince'
+import {
+  buildNews,
+  isNewsSeen,
+  markNewsSeen,
+  type NewsItem,
+  type NewsReason,
+  type NewsRow,
+  type NewsRowKind,
+} from '../lib/newsSince'
 import { percent } from '../lib/progress'
 import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
@@ -163,6 +171,11 @@ export function NewsSince({
   onGo,
 }: NewsSinceProps) {
   const [open, setOpen] = useState(false)
+  // A finished card that was read folds to one line next time Moves opens; the title unfolds it.
+  const seenKey = !running && before && after ? `${after.league.id}:${after.team_id}:${after.generated_at}` : null
+  const [folded, setFolded] = useState(() => seenKey !== null && isNewsSeen(seenKey))
+  const card = useRef<HTMLElement>(null)
+  useSeen(card, seenKey)
   const news = useMemo(() => buildNews(before, running ? null : after, changes), [before, after, running, changes])
   const ref = after ?? before
   const colours = useMemo(
@@ -191,10 +204,23 @@ export function NewsSince({
   const bandCrests = league.moves.slice(0, 4)
 
   return (
-    <section className="card ns-card" aria-labelledby="ns-title" aria-busy={running}>
+    <section className="card ns-card" ref={card} aria-labelledby="ns-title" aria-busy={running}>
       <div className="ns-head">
         <h2 className="ns-title" id="ns-title">
-          {title}
+          {running ? (
+            title
+          ) : (
+            <button
+              type="button"
+              className="ns-toggle"
+              aria-expanded={!folded}
+              aria-controls="ns-body"
+              onClick={() => setFolded(!folded)}
+            >
+              {title}
+              <CaretDown size={14} weight="bold" className="ns-toggle-caret" aria-hidden="true" />
+            </button>
+          )}
         </h2>
         {running ? (
           <span className="ns-status small" role="status">
@@ -209,140 +235,155 @@ export function NewsSince({
         )}
       </div>
 
-      {roster.length > 0 && (
-        <div className="ns-roster">
-          <User size={16} weight="bold" className="ns-you" aria-hidden="true" />
-          <span className="sr-only">Your team: </span>
-          <ul className="ns-roster-list">
-            {roster.map((i) => (
-              <li key={`${i.change.kind}-${i.player.id}`} className="ns-roster-item">
-                <PlayerLink player={i.player} className="ns-roster-link">
-                  <PlayerHead player={i.player} size={24} team={i.player.pro_team} />
-                  <span aria-hidden="true">
-                    {i.sign}
-                    {lastName(i.player.name)}
-                  </span>
-                  {i.tag && <Tag tag={i.tag} />}
-                  <span className="sr-only">{i.change.text}</span>
-                </PlayerLink>
-              </li>
+      {folded && !running && (
+        <p className="ns-folded small">
+          {rows.length
+            ? rows.map((r) => r.title).join(' · ')
+            : [
+                'Around the league',
+                [...counts, league.games ? `${league.games} new games` : ''].filter(Boolean).join(' · '),
+              ]
+                .filter(Boolean)
+                .join(': ')}
+        </p>
+      )}
+
+      <div id="ns-body" className="ns-body" hidden={folded && !running}>
+        {roster.length > 0 && (
+          <div className="ns-roster">
+            <User size={16} weight="bold" className="ns-you" aria-hidden="true" />
+            <span className="sr-only">Your team: </span>
+            <ul className="ns-roster-list">
+              {roster.map((i) => (
+                <li key={`${i.change.kind}-${i.player.id}`} className="ns-roster-item">
+                  <PlayerLink player={i.player} className="ns-roster-link">
+                    <PlayerHead player={i.player} size={24} team={i.player.pro_team} />
+                    <span aria-hidden="true">
+                      {i.sign}
+                      {lastName(i.player.name)}
+                    </span>
+                    {i.tag && <Tag tag={i.tag} />}
+                    <span className="sr-only">{i.change.text}</span>
+                  </PlayerLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {rows.length > 0 && (
+          <ul className="ns-rows">
+            {rows.map((r) => (
+              <Row key={r.kind} row={r} colours={colours} onGo={onGo} />
             ))}
           </ul>
-        </div>
-      )}
+        )}
 
-      {rows.length > 0 && (
-        <ul className="ns-rows">
-          {rows.map((r) => (
-            <Row key={r.kind} row={r} colours={colours} onGo={onGo} />
-          ))}
-        </ul>
-      )}
-
-      {(hasLanes || league.games > 0) && (
-        <div className="ns-league">
-          <button
-            type="button"
-            className="ns-band"
-            aria-expanded={hasLanes ? open : undefined}
-            disabled={!hasLanes}
-            onClick={() => setOpen(!open)}
-          >
-            {hasLanes && (
-              <span className="ns-band-art" aria-hidden="true">
-                {bandFaces.map((i) => (
-                  <PlayerHead key={i.player.id} player={i.player} size={28} team={i.player.pro_team} />
-                ))}
-                {bandCrests.map((g) => (
-                  <TeamCrest key={g.team.id} name={g.team.name} colour={colours.get(g.team.id)} size={22} />
-                ))}
-              </span>
-            )}
-            <span className="ns-band-text">
-              <span className="ns-band-title">Around the league</span>
-              <span className="ns-band-sum small">
-                {counts.join(' · ')}
-                {league.games > 0 && (
-                  <span className={counts.length ? 'ns-band-games ns-band-extra' : 'ns-band-games'}>
-                    {counts.length > 0 && ' · '}
-                    {league.games} new games
-                  </span>
-                )}
-              </span>
-            </span>
-            {hasLanes && <CaretDown size={16} weight="bold" className="ns-caret" aria-hidden="true" />}
-          </button>
-
-          {open && hasLanes && (
-            <div className="ns-lanes">
-              {league.moves.length > 0 && (
-                <section className="ns-lane ns-lane-moves" aria-label="Roster moves">
-                  <h3 className="ns-lane-title small">
-                    <ArrowsLeftRight size={14} aria-hidden="true" />
-                    Moves <span className="ns-count">{league.moves.reduce((n, g) => n + g.items.length, 0)}</span>
-                  </h3>
-                  {league.moves.map((g) => (
-                    <div key={g.team.id} className="ns-team-row">
-                      <div className="ns-team-name">
-                        <TeamCrest name={g.team.name} colour={colours.get(g.team.id)} size={26} />
-                        <span>
-                          <span className="ns-team-title">{g.team.name}</span>
-                          <span className="small muted">
-                            {g.items.length} {g.items.length === 1 ? 'move' : 'moves'}
-                          </span>
-                        </span>
-                      </div>
-                      <ul className="ns-tokens">
-                        {g.items.map((i) => (
-                          <Token key={`${i.change.kind}-${i.player.id}`} item={i} />
-                        ))}
-                      </ul>
-                    </div>
+        {(hasLanes || league.games > 0) && (
+          <div className="ns-league">
+            <button
+              type="button"
+              className="ns-band"
+              aria-expanded={hasLanes ? open : undefined}
+              disabled={!hasLanes}
+              onClick={() => setOpen(!open)}
+            >
+              {hasLanes && (
+                <span className="ns-band-art" aria-hidden="true">
+                  {bandFaces.map((i) => (
+                    <PlayerHead key={i.player.id} player={i.player} size={28} team={i.player.pro_team} />
                   ))}
-                </section>
+                  {bandCrests.map((g) => (
+                    <TeamCrest key={g.team.id} name={g.team.name} colour={colours.get(g.team.id)} size={22} />
+                  ))}
+                </span>
               )}
-              {league.hurt.length > 0 && (
-                <section className="ns-lane" aria-label="Hurt">
-                  <h3 className="ns-lane-title small">
-                    <Bandaids size={14} aria-hidden="true" />
-                    Hurt <span className="ns-count">{league.hurt.length}</span>
-                  </h3>
-                  <ul className="ns-tokens">
-                    {league.hurt.map((i) => (
-                      <Token key={`h-${i.player.id}`} item={i} />
+              <span className="ns-band-text">
+                <span className="ns-band-title">Around the league</span>
+                <span className="ns-band-sum small">
+                  {counts.join(' · ')}
+                  {league.games > 0 && (
+                    <span className={counts.length ? 'ns-band-games ns-band-extra' : 'ns-band-games'}>
+                      {counts.length > 0 && ' · '}
+                      {league.games} new games
+                    </span>
+                  )}
+                </span>
+              </span>
+              {hasLanes && <CaretDown size={16} weight="bold" className="ns-caret" aria-hidden="true" />}
+            </button>
+
+            {open && hasLanes && (
+              <div className="ns-lanes">
+                {league.moves.length > 0 && (
+                  <section className="ns-lane ns-lane-moves" aria-label="Roster moves">
+                    <h3 className="ns-lane-title small">
+                      <ArrowsLeftRight size={14} aria-hidden="true" />
+                      Moves <span className="ns-count">{league.moves.reduce((n, g) => n + g.items.length, 0)}</span>
+                    </h3>
+                    {league.moves.map((g) => (
+                      <div key={g.team.id} className="ns-team-row">
+                        <div className="ns-team-name">
+                          <TeamCrest name={g.team.name} colour={colours.get(g.team.id)} size={26} />
+                          <span>
+                            <span className="ns-team-title">{g.team.name}</span>
+                            <span className="small muted">
+                              {g.items.length} {g.items.length === 1 ? 'move' : 'moves'}
+                            </span>
+                          </span>
+                        </div>
+                        <ul className="ns-tokens">
+                          {g.items.map((i) => (
+                            <Token key={`${i.change.kind}-${i.player.id}`} item={i} />
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
-                </section>
-              )}
-              {league.back.length > 0 && (
-                <section className="ns-lane" aria-label="Back">
-                  <h3 className="ns-lane-title small">
-                    <ArrowUUpLeft size={14} aria-hidden="true" />
-                    Back <span className="ns-count">{league.back.length}</span>
-                  </h3>
-                  <ul className="ns-tokens">
-                    {league.back.map((i) => (
-                      <Token key={`b-${i.player.id}`} item={i} />
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {league.games > 0 && (
-                <section className="ns-lane ns-lane-games" aria-label="Box scores">
-                  <h3 className="ns-lane-title small">
-                    <Table size={14} aria-hidden="true" />
-                    Box scores
-                  </h3>
-                  <p className="ns-games">
-                    <span className="num ns-games-n">{league.games}</span>
-                    <span className="small muted">player games of new stats, already in your odds</span>
-                  </p>
-                </section>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                  </section>
+                )}
+                {league.hurt.length > 0 && (
+                  <section className="ns-lane" aria-label="Hurt">
+                    <h3 className="ns-lane-title small">
+                      <Bandaids size={14} aria-hidden="true" />
+                      Hurt <span className="ns-count">{league.hurt.length}</span>
+                    </h3>
+                    <ul className="ns-tokens">
+                      {league.hurt.map((i) => (
+                        <Token key={`h-${i.player.id}`} item={i} />
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {league.back.length > 0 && (
+                  <section className="ns-lane" aria-label="Back">
+                    <h3 className="ns-lane-title small">
+                      <ArrowUUpLeft size={14} aria-hidden="true" />
+                      Back <span className="ns-count">{league.back.length}</span>
+                    </h3>
+                    <ul className="ns-tokens">
+                      {league.back.map((i) => (
+                        <Token key={`b-${i.player.id}`} item={i} />
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {league.games > 0 && (
+                  <section className="ns-lane ns-lane-games" aria-label="Box scores">
+                    <h3 className="ns-lane-title small">
+                      <Table size={14} aria-hidden="true" />
+                      Box scores
+                    </h3>
+                    <p className="ns-games">
+                      <span className="num ns-games-n">{league.games}</span>
+                      <span className="small muted">player games of new stats, already in your odds</span>
+                    </p>
+                  </section>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {running && (
         <span className="ns-progress" aria-hidden="true" style={{ transform: `scaleX(${Math.max(0.02, progress)})` }} />
@@ -350,3 +391,26 @@ export function NewsSince({
     </section>
   )
 }
+
+/** Marks the finished card read once at least half of it has been on screen for a few seconds. */
+function useSeen(card: RefObject<HTMLElement | null>, key: string | null) {
+  useEffect(() => {
+    const el = card.current
+    if (!key || !el || typeof IntersectionObserver === 'undefined') return
+    let timer: number | undefined
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        window.clearTimeout(timer)
+        if (entry.isIntersecting) timer = window.setTimeout(() => markNewsSeen(key), SEEN_AFTER_MS)
+      },
+      { threshold: 0.5 },
+    )
+    io.observe(el)
+    return () => {
+      window.clearTimeout(timer)
+      io.disconnect()
+    }
+  }, [card, key])
+}
+
+const SEEN_AFTER_MS = 5000
