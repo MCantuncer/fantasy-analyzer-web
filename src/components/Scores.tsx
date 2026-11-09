@@ -214,14 +214,15 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         </div>
       )}
 
-      {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
-
       {selected &&
         (pending ? (
           <BoxScoreFetching game={selected} failed={failed} onRetry={() => scores.refetch()} />
         ) : (
           <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />
         ))}
+
+      {/* The rest of the week sits below tonight's games and box score, not between them. */}
+      {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
 
       <p className="small muted">
         Scores are added up from ESPN's fantasy stats
