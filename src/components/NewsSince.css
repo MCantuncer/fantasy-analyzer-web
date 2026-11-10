@@ -126,10 +126,16 @@
   list-style: none;
 }
 
+/* Side by side the rows are one strip of equal tiles: every row takes the height of the
+   tallest, and the label, title and face sit on the same lines in each, hovered or not. */
+.ns-rows li {
+  display: flex;
+}
+
 .ns-card button.ns-row {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 12px;
   width: 100%;
   min-height: 68px;
@@ -159,7 +165,9 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  color: var(--muted);
+  border-radius: 34%;
+  background: var(--raised);
+  color: var(--text-2);
 }
 
 .ns-row-body {
@@ -540,7 +548,6 @@
   }
 
   .ns-card button.ns-row {
-    align-items: start;
     min-height: 72px;
   }
 
