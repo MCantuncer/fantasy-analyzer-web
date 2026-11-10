@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { game, line } from '../test/fixtures'
-import { best, dayLabel, leader, nightTotals, ratio, statLine, winner } from './scores'
+import { best, dayLabel, leader, nightTotals, ratio, statLine, usToday, winner } from './scores'
 
 describe('scores helpers', () => {
+  it("dates tonight in New York time, so a late game still counts as the evening's", () => {
+    expect(usToday(new Date('2026-11-10T03:30:00Z'))).toBe('2026-11-09')
+    expect(usToday(new Date('2026-11-10T18:00:00Z'))).toBe('2026-11-10')
+  })
+
   it('adds up only my players, with shooting from makes and attempts', () => {
     const games = [
       game({
