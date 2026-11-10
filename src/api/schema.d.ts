@@ -598,6 +598,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores/lineup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Day Lineup
+         * @description A team's lineup on one day, read fresh from ESPN: who starts, who sits on the bench or IR,
+         *     and each player's game that day. Follows a change made in the ESPN app within half a minute.
+         */
+        post: operations["day_lineup_api_scores_lineup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recap": {
         parameters: {
             query?: never;
@@ -1167,6 +1188,34 @@ export interface components {
              */
             sit: components["schemas"]["BenchedPlayer"][];
         };
+        /** DayLineup */
+        DayLineup: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Team Id */
+            team_id: number;
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /**
+             * Spots
+             * @description Starting slots in ESPN's order, then the bench, then IR
+             */
+            spots: components["schemas"]["LineupSpot"][];
+            /**
+             * Open Slots
+             * @description Starting slots nobody fills that day, one entry per empty seat
+             */
+            open_slots: string[];
+            /**
+             * Fetched At
+             * @description When this lineup was read from ESPN, UTC ISO 8601
+             */
+            fetched_at: string;
+        };
         /** DaySits */
         DaySits: {
             /** Day */
@@ -1643,6 +1692,56 @@ export interface components {
              * @description Snake leagues: trade value of the last pick in each draft round, round 1 first. A trade value at or above entry k is worth a round k+1 pick. Null in auction leagues.
              */
             round_values?: number[] | null;
+        };
+        /** LineupRequest */
+        LineupRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Day
+             * @description ESPN scoring period (a day). Default: the last day a game started
+             */
+            day?: number | null;
+        };
+        /** LineupSpot */
+        LineupSpot: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /**
+             * Slot
+             * @description ESPN lineup slot: "PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "BE", "IR", ...
+             */
+            slot: string;
+            /** Slot Id */
+            slot_id: number;
+            /**
+             * Starting
+             * @description In a starting slot: only these players' lines count that day
+             */
+            starting: boolean;
+            /** Injury Status */
+            injury_status: string;
+            /**
+             * Game Id
+             * @description His NBA team's game that day; none = no game
+             */
+            game_id?: number | null;
+            /**
+             * Eligible
+             * @description Starting slots he can fill, so a bench player who plays can be moved up
+             */
+            eligible?: string[];
         };
         /** LinkedTeam */
         LinkedTeam: {
@@ -5831,6 +5930,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WeekSits"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    day_lineup_api_scores_lineup_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DayLineup"];
                 };
             };
             /** @description Unauthorized */

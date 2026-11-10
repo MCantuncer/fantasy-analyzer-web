@@ -1,0 +1,490 @@
+/* My Players (My Team tab): your lineup in ESPN's slot order, each row with its game and its line.
+   Rows carry their own state: live rows are lifted, finished rows sit flat, the rest stay quiet.
+   Gold only for live (dot, clock) and the one swap you can still make. */
+
+.mp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: radial-gradient(120% 140px at 0% 0%, var(--house), transparent 70%), var(--surface);
+}
+
+.mp-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+
+.mp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 24px;
+  margin-right: auto;
+}
+
+.mp-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.mp-day .icon-btn {
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mp-day-label {
+  padding: 0 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mp-fetched {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.mp-spin {
+  animation: mp-spin 1s linear infinite;
+}
+
+@keyframes mp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mp-espn {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.mp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin: -4px 0 0;
+  color: var(--text-2);
+}
+
+.mp-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mp-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: none;
+}
+
+/* The one fix you can still make before tip: a gold edge here and on the two rows involved. */
+.mp-swap-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-row);
+  border: 1.5px solid var(--gold);
+  background: var(--gold-soft);
+}
+
+.mp-swap-note p {
+  margin: 0;
+  flex: 1 1 260px;
+}
+
+.mp-swap-go {
+  flex: none;
+}
+
+/* One grid for the column heads, the rows and the totals: mark, slot, player, game, then the ten
+   stats as columns of the same grid (the stat list is display: contents), so every number lines up. */
+.mp-cols,
+.mp-row,
+.mp-totals {
+  display: grid;
+  grid-template-columns: 24px 52px minmax(190px, 1.6fr) minmax(150px, 1fr) repeat(10, minmax(40px, 0.45fr));
+  align-items: center;
+  column-gap: 8px;
+}
+
+.mp-cols {
+  padding: 0 17px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mp-cols .mp-col-slot {
+  grid-column: 2;
+}
+
+.mp-cols .mp-col-stat {
+  text-align: center;
+}
+
+.mp-group {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mp-group .muted {
+  font-weight: 400;
+}
+
+.mp-group-note {
+  font-size: 13px;
+}
+
+.mp-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mp-row {
+  position: relative;
+  min-height: 60px;
+  padding: 8px 16px;
+  border-radius: var(--radius-row);
+  border: 1px solid var(--border);
+  transition:
+    background-color 300ms ease,
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+/* Live: lifted. Final: flat. Later, bench and IR: quiet outline. */
+.mp-row.mp-live {
+  background: var(--raised);
+  border-color: var(--rim);
+  box-shadow: var(--lift);
+}
+
+.mp-row.mp-final,
+.mp-row.mp-dnp {
+  background: var(--surface-2);
+  border-color: transparent;
+}
+
+.mp-row.mp-later,
+.mp-row.mp-sub {
+  background: transparent;
+}
+
+/* A starting slot with no game counts for nothing: a strong outline says so. */
+.mp-row.mp-starter.mp-idle {
+  border: 1.5px solid var(--text-2);
+}
+
+.mp-row.mp-sub.mp-idle,
+.mp-row.mp-ir {
+  color: var(--text-2);
+}
+
+.mp-row.mp-sub .mp-stats {
+  opacity: 0.6;
+}
+
+.mp-row.mp-swap {
+  border: 1.5px solid var(--gold);
+}
+
+.mp-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.mp-mark.final,
+.mp-mark.dnp {
+  color: var(--text-2);
+}
+
+.mp-mark.live .mp-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.mp-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: var(--radius-tag);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mp-row.mp-final .mp-slot,
+.mp-row.mp-dnp .mp-slot {
+  background: var(--surface);
+}
+
+.mp-slot.sub {
+  background: transparent;
+  color: var(--text-2);
+}
+
+.mp-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mp-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* One line per name: a long one ends in an ellipsis, and its injury pill stays beside it. */
+.mp-name button.pc-link {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-name button.pc-link.pc-link-split {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mp-name .pc-link-split .pc-link-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.mp-name .mp-inj {
+  flex: none;
+}
+
+.mp-inj {
+  margin-left: 8px;
+  padding: 1px 5px;
+  border-radius: var(--radius-tag);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.mp-inj.out {
+  color: var(--text);
+}
+
+.mp-nocount {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.mp-game {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mp-score-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.mp-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mp-side.lead {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.mp-abbrev {
+  font-size: 13px;
+}
+
+.mp-score {
+  font-size: 15px;
+}
+
+.mp-vs {
+  color: var(--muted);
+}
+
+.mp-status {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mp-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-note {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.mp-short,
+.mp-short-name {
+  display: none;
+}
+
+.mp-stats {
+  display: contents;
+}
+
+.mp-note {
+  grid-column: 5 / -1;
+}
+
+.mp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+.mp-stat dt {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.mp-stat dd {
+  margin: 0;
+  font-size: 16px;
+  text-align: center;
+}
+
+.mp-stat.min dd {
+  color: var(--text-2);
+}
+
+.mp-stat.pts dd {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* What counts so far: under the last starting slot, lit with the house light like your side of a card. */
+.mp-totals {
+  margin-top: 8px;
+  min-height: 60px;
+  padding: 8px 16px;
+  border-radius: var(--radius-row);
+  background: linear-gradient(90deg, var(--house), transparent 70%), var(--surface-2);
+}
+
+.mp-totals-label {
+  grid-column: 1 / 5;
+}
+
+.mp-totals .mp-stat dd {
+  font-weight: 600;
+}
+
+.mp-left-out {
+  margin: 8px 0 0;
+  color: var(--text-2);
+}
+
+.mp-bone {
+  border-radius: var(--radius-row);
+}
+
+.mp-switching .mp-table {
+  opacity: 0.55;
+  transition: opacity 200ms ease;
+}
+
+.mp-error {
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-spin {
+    animation: none;
+  }
+
+  .mp-row {
+    transition: none;
+  }
+}
+
+/* Narrow desktops and tablets: the columns give a little. */
+@media (max-width: 1100px) and (min-width: 641px) {
+  .mp-cols,
+  .mp-row,
+  .mp-totals {
+    grid-template-columns: 20px 48px minmax(130px, 1.2fr) minmax(120px, 1fr) repeat(10, minmax(34px, 0.5fr));
+    column-gap: 6px;
+  }
+
+  .mp-row,
+  .mp-totals {
+    padding: 8px 12px;
+  }
+
+  .mp-cols {
+    padding: 0 13px 4px;
+  }
+}

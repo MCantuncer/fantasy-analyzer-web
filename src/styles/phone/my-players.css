@@ -1,0 +1,434 @@
+/* My Players on phones (My Team tab): "Ledger". One label strip (FG FT 3PM REB AST STL BLK TO PTS)
+   under "Starting" labels every row and the starters' total. A playing row is two lines: mark, slot,
+   face, name and a small scorebug, then the numbers lined up under the strip (MIN is left to
+   desktop; FG/FT keep a small percentage underneath). Later, no-game, bench and IR rows are one
+   44px line. Long names show the last name alone so the pill and the score keep their room. */
+@media (max-width: 640px) {
+  .mp-title {
+    font-size: 20px;
+  }
+
+  .mp-day {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mp-day .icon-btn {
+    width: 44px;
+    min-height: 44px;
+  }
+
+  .mp-sync {
+    order: 4;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mp-espn {
+    min-height: 44px;
+  }
+
+  .mp-summary {
+    gap: 4px 12px;
+  }
+
+  .mp-long {
+    display: none;
+  }
+
+  .mp-short {
+    display: inline;
+  }
+
+  .mp-name .pc-link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* Long names: the last name alone, so the pill and the score keep their room. */
+  .mp-has-short .mp-full-name {
+    display: none;
+  }
+
+  .mp-has-short .mp-short-name {
+    display: inline;
+  }
+
+  .mp .mp-name .pc-link.mp-has-short {
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    padding-inline-end: 0;
+  }
+
+  .mp .mp-name .mp-has-short .mp-inj {
+    margin-left: 3px;
+  }
+
+  .mp-totals-label {
+    grid-column: 1 / -1;
+  }
+
+  .mp-swap-note .mp-swap-go {
+    width: 100%;
+  }
+
+  .mp {
+    --lg-mark: 8px;
+    --lg-chip: 34px;
+    --lg-gap: 7px;
+    --lg-pad: 10px;
+    /* the nine stat columns, shared by the strip, every row and the totals */
+    --lg-cols: minmax(0, 1.55fr) minmax(0, 1.35fr) repeat(6, minmax(0, 1fr)) minmax(0, 1.3fr);
+    padding: 16px 12px;
+  }
+
+  /* --- table becomes a flex column so the strip can sit under the "Starting" heading --- */
+  .mp .mp-table {
+    display: flex;
+    flex-direction: column;
+  }
+  .mp .mp-table > h3.mp-group:first-of-type {
+    order: -2;
+    margin-top: 4px;
+  }
+  .mp .mp-table > .mp-cols {
+    order: -1;
+  }
+
+  /* --- the shared label strip --- */
+  .mp .mp-cols {
+    display: grid;
+    grid-template-columns: var(--lg-cols);
+    column-gap: 0;
+    align-items: center;
+    height: 26px;
+    margin: 0 0 6px;
+    padding: 0 calc(var(--lg-pad) + 1px) 0 calc(1px + var(--lg-pad) + var(--lg-mark) + var(--lg-gap));
+    border-radius: 9px;
+    background: var(--surface-2);
+    box-shadow: var(--recess);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  .mp .mp-cols > span:nth-child(-n + 4) {
+    display: none;
+  }
+  .mp .mp-cols .mp-col-stat {
+    text-align: center;
+  }
+  .mp .mp-cols .mp-col-stat:last-child {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* --- rows --- */
+  .mp .mp-rows {
+    gap: 6px;
+  }
+
+  .mp .mp-row,
+  .mp .mp-totals {
+    grid-template-columns: var(--lg-mark) var(--lg-chip) minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    column-gap: var(--lg-gap);
+    row-gap: 8px;
+    min-height: 44px;
+    padding: 6px var(--lg-pad);
+    border-radius: 14px;
+  }
+
+  .mp .mp-row > .mp-mark {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+  .mp .mp-row > .mp-slot {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .mp .mp-row > .mp-who {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .mp .mp-row > .mp-game,
+  .mp .mp-row > .mp-note {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  /* mark: a small, centred signal in the gutter */
+  .mp .mp-mark svg {
+    width: 13px;
+    height: 13px;
+  }
+  .mp .mp-mark.live .mp-dot {
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 0 3px var(--gold-soft);
+  }
+
+  /* slot chip: the lineup spine */
+  .mp .mp-row .mp-slot {
+    min-width: 0;
+    width: var(--lg-chip);
+    height: 22px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .mp .mp-row .mp-slot.sub {
+    background: transparent;
+    color: var(--muted);
+  }
+
+  /* who: small face + name */
+  .mp .mp-who {
+    gap: 8px;
+  }
+  .mp .mp-who .head {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 8px;
+  }
+  .mp .mp-name {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  .mp .mp-name .pc-link {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    padding-inline-end: 2px;
+  }
+  .mp .mp-name .pc-link-split {
+    gap: 0;
+  }
+  .mp .mp-name .pc-link-split .pc-link-name {
+    flex: 0 1 auto;
+    padding-inline-end: 1px;
+  }
+  .mp .mp-inj {
+    margin-left: 5px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 15px;
+  }
+  .mp .mp-nocount {
+    white-space: nowrap;
+    font-size: 10.5px;
+  }
+
+  /* game: a two-line scorebug on the right of line 1 */
+  .mp .mp-row .mp-game {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    line-height: 13px;
+    text-align: right;
+  }
+  .mp .mp-game .team-logo {
+    display: none;
+  }
+  .mp .mp-score-line {
+    gap: 2px;
+    font-size: 11px;
+  }
+  .mp .mp-side {
+    gap: 2px;
+  }
+  .mp .mp-abbrev {
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  .mp .mp-side.lead .mp-abbrev {
+    color: var(--text-2);
+  }
+  .mp .mp-score {
+    font-size: 11.5px;
+  }
+  /* The clock reads smaller than the score, with air between them. */
+  .mp .mp-status {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 12px;
+  }
+  .mp .mp-clock {
+    gap: 0;
+  }
+  .mp .mp-clock .mp-dot {
+    display: none;
+  }
+
+  /* line 2: the stat line, aligned to the strip */
+  .mp .mp-row .mp-stats,
+  .mp .mp-totals .mp-stats {
+    display: grid;
+    grid-column: 2 / -1;
+    grid-row: 2;
+    grid-template-columns: var(--lg-cols);
+    column-gap: 0;
+    row-gap: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .mp .mp-stat dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .mp .mp-stat.min {
+    display: none;
+  }
+  .mp .mp-stat dd {
+    font-size: 13.5px;
+    line-height: 18px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .mp .mp-row .shot-split-ma {
+    font-weight: 500;
+  }
+  /* FG/FT percentages sit small under the made/att, as in the box score. */
+  .mp .mp-row .shot-split-pct {
+    font-size: 9.5px;
+    line-height: 11px;
+  }
+  .mp .mp-stat.pts dd {
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+  }
+
+  /* --- surfaces --- */
+  /* live: lifted, with a low gold light rising from the mark */
+  .mp .mp-row.mp-live {
+    background:
+      radial-gradient(90px 48px at 0% 32%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 80%),
+      var(--raised);
+    border-color: var(--rim);
+    box-shadow: var(--lift);
+  }
+  /* final: flat, settled */
+  .mp .mp-row.mp-final,
+  .mp .mp-row.mp-dnp {
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .mp .mp-row.mp-final .mp-slot {
+    background: transparent;
+  }
+  .mp .mp-row.mp-final .mp-stat dd {
+    color: var(--text-2);
+  }
+  .mp .mp-row.mp-final .mp-stat.pts dd {
+    color: var(--text);
+  }
+
+  /* quiet rows: single line, 44px, outline only */
+  .mp .mp-row.mp-later,
+  .mp .mp-row.mp-idle {
+    background: transparent;
+    border-color: var(--border);
+  }
+  .mp .mp-row.mp-starter.mp-idle {
+    border: 1px solid color-mix(in srgb, var(--text-2) 38%, transparent);
+  }
+  .mp .mp-row.mp-later .mp-game,
+  .mp .mp-row.mp-idle .mp-game,
+  .mp .mp-row.mp-ir .mp-game {
+    display: none;
+  }
+  .mp .mp-note {
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .mp .mp-row.mp-later .mp-note .num {
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .mp .mp-row.mp-starter.mp-idle .mp-note b {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .mp .mp-note:empty {
+    display: none;
+  }
+  /* a bench player with no game says so, quietly */
+  .mp .mp-row.mp-sub.mp-idle:not(.mp-ir) .mp-game {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* bench and IR recede */
+  .mp .mp-row.mp-sub {
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .mp .mp-row.mp-sub .mp-name .pc-link {
+    font-weight: 500;
+    color: var(--text-2);
+  }
+  .mp .mp-row.mp-sub .head {
+    opacity: 0.7;
+    filter: saturate(0.5);
+  }
+  .mp .mp-row.mp-sub .mp-mark {
+    opacity: 0.6;
+  }
+  .mp .mp-row.mp-ir .mp-slot {
+    border-style: solid;
+    color: var(--muted);
+  }
+
+  /* --- the starters' total: the ledger's sum line --- */
+  .mp .mp-totals {
+    margin-top: 6px;
+    row-gap: 4px;
+    padding: 9px var(--lg-pad) 9px;
+  }
+  .mp .mp-totals .mp-totals-label {
+    grid-column: 2 / -1;
+    grid-row: 1;
+    font-size: 13px;
+  }
+  .mp .mp-totals .mp-stat dd {
+    font-weight: 650;
+  }
+  .mp .mp-totals .mp-stat.pts dd {
+    font-weight: 800;
+  }
+  .mp .mp-totals .shot-split-pct {
+    font-size: 10px;
+  }
+
+  .mp .mp-group {
+    margin: 14px 0 6px;
+    font-size: 14px;
+  }
+}
+
+/* IR on phones: the slot chip already says IR, so the row keeps the name and its OUT pill room. */
+@media (max-width: 640px) {
+  .mp-row.mp-ir .mp-note {
+    display: none;
+  }
+}
