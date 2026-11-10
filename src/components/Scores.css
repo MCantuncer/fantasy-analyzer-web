@@ -197,3 +197,89 @@
     animation: none;
   }
 }
+
+/* ---------- Game Night: game cards ----------
+   A game you or your rival have players in lifts off the page and its club logos glow in their team
+   colour; faces carry a ring (gold yours, rival colour theirs). A started game with neither sits
+   back: flat, grey logos, "Not in your matchup". The winning score gets a small caret. */
+.game-grid .game-card.stake {
+  border-color: transparent;
+  box-shadow: var(--lift);
+}
+
+/* The open game keeps its outline. */
+.game-grid .game-card.stake[aria-pressed='true'],
+.game-grid .game-card.cold[aria-pressed='true'] {
+  border-color: var(--accent);
+}
+
+.game-grid .game-card.cold {
+  background: transparent;
+  box-shadow: var(--recess);
+}
+
+.game-card.cold .team-logo-slot img {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.game-cold {
+  font-size: 12px;
+}
+
+.team-logo-slot.halo {
+  position: relative;
+}
+
+.team-logo-slot.halo::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--tl) var(--halo-a), transparent) 0%,
+    color-mix(in srgb, var(--tl) calc(var(--halo-a) * 0.35), transparent) 38%,
+    transparent 66%
+  );
+  pointer-events: none;
+}
+
+.team-logo-slot.halo > * {
+  position: relative;
+}
+
+.game-faces {
+  display: inline-flex;
+  align-items: center;
+}
+
+.game-faces .face-ring {
+  display: inline-flex;
+  border-radius: 34%;
+  box-shadow:
+    0 0 0 1.5px var(--surface),
+    0 0 0 3px var(--gold);
+}
+
+.game-faces .face-ring.rival {
+  box-shadow:
+    0 0 0 1.5px var(--surface),
+    0 0 0 3px var(--rival);
+}
+
+.game-faces .face-ring + .face-ring {
+  margin-left: 2px;
+}
+
+.team-row .score .win-caret {
+  margin-left: 4px;
+  vertical-align: 0.12em;
+  fill: var(--text-2);
+}
+
+/* A game outside your matchup reads in secondary ink, winner included. */
+.game-card.cold .team-row.lead .score,
+.game-card.cold .team-row.lead .team-name b {
+  color: var(--text-2);
+}

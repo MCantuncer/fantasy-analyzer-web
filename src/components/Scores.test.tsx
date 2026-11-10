@@ -162,6 +162,20 @@ describe('Scores', () => {
     expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
   })
 
+  it("lifts games with your or your rival's players and rings their faces", async () => {
+    mockApi()
+    renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
+    await screen.findByRole('heading', { name: /Tonight in your matchup/ })
+    const card = document.querySelector('.game-card.stake')!
+    expect(card).not.toBeNull()
+    expect(card.querySelectorAll('.face-ring.you')).toHaveLength(1)
+    expect(card.querySelectorAll('.face-ring.rival')).toHaveLength(2)
+    expect(
+      within(card as HTMLElement).getByText(/Your opponent's players: Alperen Sengun, Victor Wembanyama/),
+    ).toBeInTheDocument()
+    expect(document.querySelector('.game-card.cold')).toBeNull()
+  })
+
   it('shows the quarter and clock of a live game', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve(
