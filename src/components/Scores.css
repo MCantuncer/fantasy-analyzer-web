@@ -453,3 +453,20 @@
 .game-card.cold .team-row.lead .team-name b {
   color: var(--text-2);
 }
+
+/* ---------- Game Night: tonight in the date strip ----------
+   Today's chip carries a small gold dot in its corner, so the way back to tonight is easy to spot. */
+.day-strip .day-chip {
+  position: relative;
+}
+
+.day-strip .day-chip .day-tonight {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
+}

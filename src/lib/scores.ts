@@ -89,6 +89,11 @@ export function dayLabel(date: string | null | undefined): string {
   return `${dt.toLocaleDateString('en-US', { weekday: 'short' })} ${d}`
 }
 
+/** Today's US date of games (YYYY-MM-DD, New York time), to mark tonight in the date strip. */
+export function usToday(now: Date = new Date()): string {
+  return now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
+}
+
 /** Tip-off in the viewer's own time zone. */
 export function tipOff(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })

@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Television } from '@phosphor-icons/react'
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, tipOff } from '../lib/scores'
+import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, tipOff, usToday } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
@@ -307,6 +307,7 @@ function DayStrip({ data, onPick }: { data: ScoreDay; onPick: (day: number) => v
   const around = data.days.slice(Math.max(0, i - 2), i + 3)
   const prev = data.days[i - 1]
   const next = data.days[i + 1]
+  const today = usToday()
   return (
     <nav className="row day-strip" aria-label="Game days">
       <button
@@ -322,9 +323,10 @@ function DayStrip({ data, onPick }: { data: ScoreDay; onPick: (day: number) => v
           key={d.day}
           className="secondary day-chip"
           aria-pressed={d.day === data.day}
-          aria-label={`${dayLabel(d.date)}, ${d.games} games`}
+          aria-label={`${dayLabel(d.date)}${d.date === today ? ', tonight' : ''}, ${d.games} games`}
           onClick={() => onPick(d.day)}
         >
+          {d.date === today && <span className="day-tonight" aria-hidden="true" />}
           <span>{dayLabel(d.date)}</span>
           <span className="muted small tnum">{d.games}</span>
         </button>
