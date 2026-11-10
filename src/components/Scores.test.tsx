@@ -187,6 +187,23 @@ describe('Scores', () => {
     expect(document.querySelector('.game-card.cold')).toBeNull()
   })
 
+  it("edges the open game in its clubs' lights and marks your rival's rows in the box score", async () => {
+    mockApi()
+    renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
+    await screen.findByRole('heading', { name: /Tonight in your matchup/ })
+    const open = screen.getByRole('button', { pressed: true, name: /HOU/ })
+    expect(open.style.getPropertyValue('--ta')).not.toBe('')
+    expect(open.style.getPropertyValue('--tb')).not.toBe('')
+
+    const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
+    expect(within(box).getByRole('row', { name: /Amen Thompson/ })).toHaveClass('mine')
+    const sengun = within(box).getByRole('row', { name: /Alperen Sengun/ })
+    expect(sengun).toHaveClass('rival')
+    expect(sengun).toHaveTextContent('(your opponent)')
+    expect(within(box).getByRole('row', { name: /Tari Eason/ })).not.toHaveClass('rival')
+    expect(screen.getByRole('button', { name: 'Houston Rockets' }).style.getPropertyValue('--tl')).not.toBe('')
+  })
+
   it('shows the quarter and clock of a live game', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve(
