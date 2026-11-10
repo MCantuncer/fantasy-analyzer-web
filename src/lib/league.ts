@@ -2,6 +2,7 @@
 // "what can still change this week" hint.
 
 import type { CategoryScore, LeagueOverview, MatchupSide } from '../api/client'
+import { CATEGORY_ORDER } from './statOrder'
 
 /** Team colours are CSS variables (--team-0 … --team-11), defined for both themes in index.css. */
 export const TEAM_COLOURS = 12
@@ -29,8 +30,8 @@ export function initials(name: string): string {
   return (words[0][0] + words[1][0]).toLocaleUpperCase('en-US')
 }
 
-// The order ESPN shows categories in a box score.
-const ORDER = ['PTS', 'REB', 'AST', 'STL', 'BLK', '3PM', 'FG%', 'FT%', 'TO']
+// The site's one category order (lib/statOrder): shooting, box stats, then TO and PTS.
+const ORDER: readonly string[] = CATEGORY_ORDER
 
 export function boxOrder<T extends { stat: string }>(cats: T[]): T[] {
   const rank = (s: string) => {
@@ -46,6 +47,32 @@ export const isRatio = (stat: string) => stat.endsWith('%')
 export function formatStat(stat: string, value: number): string {
   if (isRatio(stat)) return value.toFixed(3).replace(/^0(?=\.)/, '')
   return String(Math.round(value))
+}
+
+/** TO is the one category where fewer is better. */
+export const lowerIsBetter = (stat: string) => stat === 'TO'
+
+/**
+ * Your margin in a category, signed for you: "+7" when it helps you, "−42" when it helps them
+ * (so TO 52 vs 44 is −8), "±0" when level. Shooting margins read like the stat: "+.058".
+ */
+export function signedMargin(stat: string, mine: number, theirs: number): string {
+  const d = (mine - theirs) * (lowerIsBetter(stat) ? -1 : 1)
+  const size = Math.abs(d)
+  const body = isRatio(stat) ? size.toFixed(3).replace(/^0(?=\.)/, '') : String(Math.round(size))
+  if (body === '0' || /^\.0+$/.test(body)) return '±0'
+  return `${d > 0 ? '+' : '\u2212'}${body}`
+}
+
+/**
+ * How far a leader's light reaches across a box-score row, as a share of the row (0.10 to 0.62):
+ * a short reach is a lead that could still flip, a long one is safe. Counting stats use the gap as
+ * a share of the larger number; shooting percentages count .100 as a full lead.
+ */
+export function leadReach(stat: string, a: number, b: number): number {
+  const top = Math.max(Math.abs(a), Math.abs(b))
+  const gap = isRatio(stat) ? Math.abs(a - b) / 0.1 : top === 0 ? 0 : Math.abs(a - b) / top
+  return Math.min(0.62, 0.1 + gap * 1.5)
 }
 
 /**

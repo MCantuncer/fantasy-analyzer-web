@@ -139,3 +139,112 @@
   height: 16px;
   fill: var(--gold);
 }
+
+/* ---------- Game Night: your matchup lights up from the leader's side ----------
+   Only in a matchup with your team. Green light comes from your edge when you lead, coral from theirs
+   when they do, and it reaches further the safer the lead (--reach, from leadReach). A tie stays unlit.
+   The W/L/T letter on your side and the signed margin under the category keep it readable without colour. */
+.box-compact-rows li.gn {
+  position: relative;
+  min-height: 52px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.box-compact-rows li.lit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  --lit: var(--good);
+  --lit-a: var(--lead-good);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--lit) var(--lit-a), transparent),
+    color-mix(in srgb, var(--lit) calc(var(--lit-a) * 0.45), transparent) calc(var(--reach) * 0.7),
+    transparent var(--reach)
+  );
+  box-shadow: inset 3px 0 0 var(--lit);
+}
+
+.box-compact-rows li.lit.bad::before {
+  --lit: var(--bad);
+  --lit-a: var(--lead-bad);
+}
+
+.box-compact-rows li.lit.from-right::before {
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--lit) var(--lit-a), transparent),
+    color-mix(in srgb, var(--lit) calc(var(--lit-a) * 0.45), transparent) calc(var(--reach) * 0.7),
+    transparent var(--reach)
+  );
+  box-shadow: inset -3px 0 0 var(--lit);
+}
+
+/* The light replaces the filled slab: the leader's number stays bold ink, the other side quiet. */
+.box-compact-rows li.gn .box-cell,
+.box-compact-rows li.gn .box-cell.lead {
+  z-index: 1;
+  background: transparent;
+  box-shadow: none;
+}
+
+.box-compact-rows li.gn .box-cell.tie {
+  box-shadow: none;
+}
+
+.box-compact-rows li.gn .box-compact-stat {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  color: var(--text-2);
+}
+
+.box-stat-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.box-margin {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+
+/* Their "games left" bar in their crest colour; yours stays ink. */
+.box-compact .box-compact-team.rival .games-bar span {
+  background: var(--team);
+}
+
+/* Desktop table of your matchup: a cell you lead lights green from its top edge, one they lead lights
+   coral from the bottom edge (the same language as the Scores "Tonight" card). */
+.matchup-box .box-cell.lead.mine {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--good) var(--cell-good), transparent),
+    color-mix(in srgb, var(--good) 3%, transparent)
+  );
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--good) 75%, transparent);
+}
+
+.matchup-box .box-cell.lead.theirs {
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--bad) var(--cell-bad), transparent),
+    color-mix(in srgb, var(--bad) 3%, transparent)
+  );
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--bad) 75%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .box-compact-rows li.lit::before {
+    transition: opacity 320ms ease-out;
+  }
+}

@@ -121,3 +121,31 @@
 .standings tr.cutline.playoff th {
   border-bottom: 2px solid var(--text-2);
 }
+
+/* Game Night: your matchup card carries two lights, your warm Fireside light in the near corner and
+   your rival's crest colour (--rival, set on the card) in the far one. */
+.card.featured.mine {
+  background:
+    radial-gradient(
+      ellipse 560px 260px at 100% 0%,
+      color-mix(in srgb, var(--rival) var(--rival-a), transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%), var(--surface);
+  box-shadow: var(--lift);
+}
+
+/* Legend swatches: a short run of the same light as the rows. */
+.lo-lit {
+  display: inline-block;
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(to right, color-mix(in srgb, var(--good) 45%, transparent), transparent);
+  box-shadow: inset 2px 0 0 var(--good);
+}
+
+.lo-lit.bad {
+  background: linear-gradient(to left, color-mix(in srgb, var(--bad) 45%, transparent), transparent);
+  box-shadow: inset -2px 0 0 var(--bad);
+}

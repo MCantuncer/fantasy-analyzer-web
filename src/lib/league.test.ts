@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { MatchupSide } from '../api/client'
-import { boxOrder, flipHint, formatStat, initials, isClose, teamColours, tonightMatchup } from './league'
+import {
+  boxOrder,
+  flipHint,
+  formatStat,
+  initials,
+  isClose,
+  leadReach,
+  signedMargin,
+  teamColours,
+  tonightMatchup,
+} from './league'
 
 type Cat = [string, number, 'W' | 'L' | 'T']
 
@@ -60,20 +70,37 @@ describe('team identity', () => {
 })
 
 describe('box score', () => {
-  it('orders categories the way ESPN does and formats them', () => {
+  it("orders categories in the site's category order and formats them", () => {
     expect(boxOrder(side(3, ME).categories!).map((c) => c.stat)).toEqual([
-      'PTS',
+      'FG%',
+      'FT%',
+      '3PM',
       'REB',
       'AST',
       'STL',
       'BLK',
-      '3PM',
-      'FG%',
-      'FT%',
       'TO',
+      'PTS',
     ])
     expect(formatStat('FG%', 0.49768)).toBe('.498')
     expect(formatStat('PTS', 562.4)).toBe('562')
+  })
+
+  it('signs margins for you, with TO inverted', () => {
+    expect(signedMargin('AST', 85, 78)).toBe('+7')
+    expect(signedMargin('PTS', 313, 355)).toBe('\u221242')
+    expect(signedMargin('TO', 52, 44)).toBe('\u22128')
+    expect(signedMargin('TO', 40, 44)).toBe('+4')
+    expect(signedMargin('FG%', 0.496, 0.438)).toBe('+.058')
+    expect(signedMargin('FT%', 0.788, 0.788)).toBe('±0')
+  })
+
+  it('reaches further the safer the lead, within 10% to 62% of the row', () => {
+    expect(leadReach('STL', 26, 19)).toBeCloseTo(0.1 + (7 / 26) * 1.5)
+    expect(leadReach('AST', 85, 78)).toBeLessThan(leadReach('STL', 26, 19))
+    expect(leadReach('BLK', 14, 0)).toBe(0.62)
+    expect(leadReach('FT%', 0.788, 0.788)).toBe(0.1)
+    expect(leadReach('PTS', 0, 0)).toBe(0.1)
   })
 
   it('calls a category close when it could still flip', () => {
@@ -88,12 +115,12 @@ describe('box score', () => {
 
 describe('flip hint', () => {
   it('names the close categories that would win a 4-5 week', () => {
-    expect(flipHint(side(3, ME), side(7, THEM))).toBe('Flip REB or FT% to win 5-4-0')
+    expect(flipHint(side(3, ME), side(7, THEM))).toBe('Flip FT% or REB to win 5-4-0')
   })
 
   it('says when the other side has no games left', () => {
     expect(flipHint(side(3, ME, 4), side(7, THEM, 0))).toBe(
-      "They're done for the week. Your 4 games left can flip REB or FT% to win 5-4-0",
+      "They're done for the week. Your 4 games left can flip FT% or REB to win 5-4-0",
     )
   })
 
@@ -175,7 +202,7 @@ describe('flip hint', () => {
   })
 
   it('tells a narrow leader which close categories to hold', () => {
-    expect(flipHint(side(7, mirror(ME)), side(3, mirror(THEM)))).toBe('Hold REB and FT% to keep the win')
+    expect(flipHint(side(7, mirror(ME)), side(3, mirror(THEM)))).toBe('Hold FT% and REB to keep the win')
   })
 })
 

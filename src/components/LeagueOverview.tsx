@@ -199,7 +199,11 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       )}
 
       {featured && hasBox(featured) && (
-        <section className={`card featured${mine ? ' mine' : ''}`} aria-labelledby="featured-title">
+        <section
+          className={`card featured${mine ? ' mine' : ''}`}
+          aria-labelledby="featured-title"
+          style={mine ? ({ '--rival': colours.get(sides(mine)[1].team_id) } as CSSProperties) : undefined}
+        >
           <div className="featured-head">
             <h2 id="featured-title" className="lo-title">
               {mine ? 'Your matchup' : 'Matchup of the week'}
@@ -227,12 +231,25 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
             )
           })()}
           <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
-            <li>
-              <span className="box-cell lead num" aria-hidden="true">
-                12
-              </span>
-              leading
-            </li>
+            {mine ? (
+              <>
+                <li>
+                  <span className="lo-lit good" aria-hidden="true" />
+                  you lead
+                </li>
+                <li>
+                  <span className="lo-lit bad" aria-hidden="true" />
+                  they lead
+                </li>
+              </>
+            ) : (
+              <li>
+                <span className="box-cell lead num" aria-hidden="true">
+                  12
+                </span>
+                leading
+              </li>
+            )}
             {mine && (
               <li>
                 <span className="lo-res" aria-hidden="true">

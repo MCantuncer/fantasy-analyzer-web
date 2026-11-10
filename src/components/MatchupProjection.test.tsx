@@ -43,7 +43,7 @@ describe('projected final', () => {
     expect(screen.getByText('You win')).toBeInTheDocument()
     expect(screen.getByText('6-3')).toBeInTheDocument()
     const stats = [...container.querySelectorAll('.proj-stat')].map((n) => n.textContent)
-    expect(stats).toEqual(['PTS', 'REB', 'AST', 'STL', 'BLK', '3PM', 'FG%', 'FT%', 'TO'])
+    expect(stats).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
     expect(container.querySelector('.proj-cat.close .proj-stat')?.textContent).toBe('TO')
     expect(screen.getByText('Kavaklidere Boytoys, close')).toBeInTheDocument()
   })
