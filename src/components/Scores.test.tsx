@@ -160,6 +160,17 @@ describe('Scores', () => {
     expect(screen.queryByText(/Flip /)).not.toBeInTheDocument()
     expect(screen.getByText(/against 2 of theirs/)).toBeInTheDocument()
     expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
+    // Game Night: every category says who took it tonight, and the night's count leads the card.
+    const letters = [...document.querySelectorAll('.night-res')].map((n) => n.textContent)
+    expect(letters).toHaveLength(9)
+    const w = letters.filter((x) => x === 'W').length
+    const l = letters.filter((x) => x === 'L').length
+    expect(document.querySelector('.night-score b')?.textContent).toMatch(new RegExp(`^${w}-${l}`))
+    expect(screen.getByText(/the night|so far/)).toBeInTheDocument()
+    expect([...document.querySelectorAll('.night-cats dt')].slice(1, 3).map((n) => n.firstChild?.textContent)).toEqual([
+      'FG%',
+      'FT%',
+    ])
   })
 
   it('shows the quarter and clock of a live game', async () => {
