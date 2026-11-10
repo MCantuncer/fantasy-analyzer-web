@@ -56,6 +56,23 @@
   --glow: rgb(255 190 130 / 0.07);
   --die: #221b16;
   --sticker-shadow: rgb(0 0 0 / 0.55);
+  /* Game Night: colour arrives as light from a source that means something (see styles/game-night.css).
+     Strengths are mixed with color-mix(in srgb, <colour> <strength>, transparent). */
+  --lead-good: 22%; /* a category you lead: light from your edge */
+  --lead-bad: 22%; /* a category they lead: light from their edge */
+  --cell-good: 18%; /* tonight: a category you took */
+  --cell-bad: 18%;
+  --tile-good: 20%; /* season state Winning / Losing (fixed, never a level) */
+  --tile-bad: 20%;
+  --rival: var(--text-2); /* this week's opponent; pages set it to their crest colour */
+  --rival-a: 15%; /* rival light in the far corner of a you-vs-them card */
+  --rival-row: 10%; /* the rival's players' rows */
+  --house: rgb(255 190 130 / 0.12); /* your side: the warm Fireside light */
+  --halo-a: 52%; /* club light around an NBA logo, in games you have a stake in */
+  --face-a: 40%; /* club light around a player face */
+  --lift: 0 1px 0 rgb(255 240 220 / 0.05) inset, 0 14px 32px -14px rgb(0 0 0 / 0.75), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --recess: inset 0 0 0 1px rgb(255 240 220 / 0.035);
+  --rim: rgb(255 240 220 / 0.06);
   /* Front Office corners: a bit round, never pill-shaped. Cards 18, rows 16, tiles 14, buttons 12, tags 7. */
   --radius: 18px;
   --radius-row: 16px;
@@ -121,6 +138,20 @@
   --glow: rgb(255 196 140 / 0.22);
   --die: #ffffff;
   --sticker-shadow: rgb(60 40 20 / 0.28);
+  --lead-good: 16%;
+  --lead-bad: 13%;
+  --cell-good: 16%;
+  --cell-bad: 12%;
+  --tile-good: 14%;
+  --tile-bad: 10%;
+  --rival-a: 10%;
+  --rival-row: 7%;
+  --house: rgb(240 160 70 / 0.14);
+  --halo-a: 28%;
+  --face-a: 30%;
+  --lift: 0 1px 2px rgb(70 45 20 / 0.06), 0 12px 28px -12px rgb(70 45 20 / 0.22);
+  --recess: inset 0 0 0 1px rgb(70 45 20 / 0.07);
+  --rim: rgb(255 255 255 / 0.9);
 
   color-scheme: light;
 }

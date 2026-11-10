@@ -1,0 +1,68 @@
+/* Game Night shared pieces: one live pulse and the digit roll. Motion runs only when data changes,
+   never on load, and stops under prefers-reduced-motion (the final state shows at once). */
+
+/* A single gold ring when a live number changes. Add .gn-pulse for one run, remove after animationend. */
+.gn-pulse {
+  position: relative;
+}
+
+.gn-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  animation: gn-pulse 400ms ease-out 1;
+}
+
+@keyframes gn-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+/* The one digit that changed rolls up into place. */
+.gn-roll {
+  display: inline-block;
+  animation: gn-roll 220ms ease-out 1;
+}
+
+@keyframes gn-roll {
+  from {
+    transform: translateY(0.45em);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Light that grows from the leader's edge when a category changes hands. */
+.gn-grow {
+  animation: gn-grow 320ms ease-out 1;
+}
+
+@keyframes gn-grow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gn-pulse::after,
+  .gn-roll,
+  .gn-grow {
+    animation: none;
+  }
+}

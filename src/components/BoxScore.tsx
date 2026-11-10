@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { Target } from '@phosphor-icons/react'
 import type { MatchupSide } from '../api/client'
-import { boxOrder, formatStat, isClose, record } from '../lib/league'
+import { boxOrder, formatStat, isClose, leadReach, record, signedMargin } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import './BoxScore.css'
 
@@ -68,6 +68,10 @@ function Games({ team }: { team: BoxTeam }) {
  * An ESPN-style box score: both teams on two rows, every category with both numbers and each side's W-L-T
  * at the end. The leader's cell is filled, the other stays open, a tie fills neither. Your cells carry a
  * small W/L/T letter; close categories get a target mark.
+ *
+ * Game Night: in your own matchup the leader's side lights up instead of a filled cell, green when it's
+ * you and coral when it's them. On phones the light runs in from the leader's edge of the row and reaches
+ * further the safer the lead, with your signed margin under the category.
  */
 export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam; caption: string }) {
   const cats = boxOrder(home.side.categories ?? [])
@@ -79,7 +83,27 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
 
   const byTeam = teams.map((t) => new Map((t.side.categories ?? []).map((c) => [c.stat, c])))
   const hasMe = teams.some((t) => t.mine)
+  const meIdx = teams.findIndex((t) => t.mine)
   const side = (t: BoxTeam) => (t.mine ? 'mine' : hasMe ? 'theirs' : '')
+  /** Your matchup on phones: which edge the light comes from, its colour and its reach, and your margin. */
+  const light = (stat: string) => {
+    if (!hasMe) return null
+    const a = byTeam[0].get(stat)
+    const b = byTeam[1].get(stat)
+    if (!a || !b) return null
+    const mine = byTeam[meIdx].get(stat)!
+    const theirs = byTeam[1 - meIdx].get(stat)!
+    const margin = signedMargin(stat, mine.value, theirs.value)
+    const leader = a.result === 'W' ? 0 : b.result === 'W' ? 1 : -1
+    if (leader === -1) return { cls: ' gn', style: {}, margin }
+    return {
+      cls: ` gn lit ${leader === 0 ? 'from-left' : 'from-right'} ${leader === meIdx ? 'good' : 'bad'}`,
+      style: {
+        '--reach': `${Math.round(leadReach(stat, a.value, b.value) * 100)}%`,
+      } as CSSProperties,
+      margin,
+    }
+  }
   const cellClass = (r: string | undefined, stat: string, t: BoxTeam) =>
     ['box-cell', r === 'W' ? `lead ${side(t)}` : r === 'T' ? 'tie' : '', close.has(stat) ? 'close' : '']
       .filter(Boolean)
@@ -91,7 +115,11 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
       <div className="box-compact" role="group" aria-label={caption}>
         <div className="box-compact-head">
           {teams.map((t) => (
-            <div key={t.side.team_id} className="box-compact-team" style={{ '--team': t.colour } as CSSProperties}>
+            <div
+              key={t.side.team_id}
+              className={`box-compact-team${hasMe && !t.mine ? ' rival' : ''}`}
+              style={{ '--team': t.colour } as CSSProperties}
+            >
               <span className="box-crest-wrap">
                 <TeamCrest name={t.name} colour={t.colour} size={36} />
                 {t.mine && MINE_ICON}
@@ -105,32 +133,46 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
           ))}
         </div>
         <ul className="box-compact-rows">
-          {cats.map((c) => (
-            <li key={c.stat} className={close.has(c.stat) ? 'close' : undefined}>
-              {teams.map((t, i) => {
-                const cell = byTeam[i].get(c.stat)
-                return (
-                  <span
-                    key={t.side.team_id}
-                    className={`${cellClass(cell?.result, c.stat, t)} num`}
-                    style={
-                      {
-                        '--team': t.colour,
-                        order: i === 0 ? 0 : 2,
-                      } as CSSProperties
-                    }
-                  >
-                    {t.mine && cell?.result && <Result r={cell.result} />}
-                    {cell ? formatStat(c.stat, cell.value) : '–'}
+          {cats.map((c) => {
+            const lit = light(c.stat)
+            return (
+              <li
+                key={c.stat}
+                className={((close.has(c.stat) ? 'close' : '') + (lit?.cls ?? '')).trim() || undefined}
+                style={lit?.style}
+              >
+                {teams.map((t, i) => {
+                  const cell = byTeam[i].get(c.stat)
+                  return (
+                    <span
+                      key={t.side.team_id}
+                      className={`${cellClass(cell?.result, c.stat, t)} num`}
+                      style={
+                        {
+                          '--team': t.colour,
+                          order: i === 0 ? 0 : 2,
+                        } as CSSProperties
+                      }
+                    >
+                      {t.mine && cell?.result && <Result r={cell.result} />}
+                      {cell ? formatStat(c.stat, cell.value) : '–'}
+                    </span>
+                  )
+                })}
+                <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>
+                  <span className="box-stat-code">
+                    {c.stat}
+                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
                   </span>
-                )
-              })}
-              <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>
-                {c.stat}
-                {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
-              </span>
-            </li>
-          ))}
+                  {lit && (
+                    <span className="box-margin num" aria-label={`your margin ${lit.margin}`}>
+                      {lit.margin}
+                    </span>
+                  )}
+                </span>
+              </li>
+            )
+          })}
         </ul>
       </div>
       <div className="table-wrap box-wide">
