@@ -8,6 +8,7 @@ import type { Credentials } from '../lib/credentials'
 import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, tipOff } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { teamColours } from '../lib/league'
+import { teamLight } from '../lib/nbaTeams'
 import { useFitsWidth } from '../lib/useFitsWidth'
 import './Scores.css'
 import './ScoresBox.css'
@@ -136,7 +137,23 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const mineGames = data.games.filter((g) => mineByGame.get(g.id)!.length > 0)
   const players = new Set([...mineByGame.values()].flatMap((ps) => ps.map((p) => p.player_id))).size
   // Until the scores are in, who played isn't known: show every game rather than an empty Mine list.
-  const games = lens === 'mine' && !pending ? mineGames : data.games
+  const shown = lens === 'mine' && !pending ? mineGames : data.games
+  // Games outside your matchup (started, none of yours or your rival's) move to the end.
+  const rivalId = matchup?.opponentId
+  // The rival's crest colour lights the Tonight card's far corner and their face rings.
+  const rivalColour =
+    rivalId != null
+      ? teamColours(
+          teams.map((t) => t.id),
+          teamId,
+        ).get(rivalId)
+      : undefined
+  const cold = (g: Game) =>
+    !pending &&
+    g.status !== 'scheduled' &&
+    mineByGame.get(g.id)!.length === 0 &&
+    !g.lines.some((l) => rivalId != null && l.owner_team_id === rivalId)
+  const games = [...shown.filter((g) => !cold(g)), ...shown.filter(cold)]
   const selected =
     data.games.find((g) => g.id === picked) ??
     data.games.find((g) => g.status !== 'scheduled' && g.lines.some((l) => l.owner_team_id === teamId)) ??
@@ -184,14 +201,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           teamId={teamId}
           matchup={matchup ?? null}
           abbrev={abbrev}
-          rival={
-            matchup
-              ? teamColours(
-                  teams.map((t) => t.id),
-                  teamId,
-                ).get(matchup.opponentId)
-              : undefined
-          }
+          rival={rivalColour}
           day={dayLabel(data.date)}
         />
       )}
@@ -210,12 +220,13 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           )}
         </div>
       ) : (
-        <div className="game-grid">
+        <div className="game-grid" style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}>
           {games.map((g) => (
             <GameCard
               key={g.id}
               game={g}
               teamId={teamId}
+              rivalId={matchup?.opponentId ?? null}
               upcoming={upcoming.get(g.id) ?? []}
               selected={g.id === selected?.id}
               pending={pending}
@@ -468,9 +479,16 @@ function YourNight({
   )
 }
 
+/**
+ * One game. Game Night: a game with your players or your rival's lifts off the page, its club logos
+ * glow in their team colour and the faces carry a ring (gold yours, rival colour theirs). A finished
+ * or live game with neither sits back, flat with grey logos and "Not in your matchup". The winning
+ * score gets a small caret.
+ */
 function GameCard({
   game,
   teamId,
+  rivalId = null,
   upcoming,
   selected,
   pending = false,
@@ -478,6 +496,8 @@ function GameCard({
 }: {
   game: Game
   teamId: number
+  /** This week's opponent, whose players in the game count as a stake too. */
+  rivalId?: number | null
   /** Your players in this game from the week's fixtures, for games that haven't started. */
   upcoming: FixturePlayer[]
   selected: boolean
@@ -492,7 +512,21 @@ function GameCard({
   const top = best(game.lines)
   const rostered = game.lines.filter((l) => l.owner_team_id != null).length
   const tipping = live && !game.away.score && !game.home.score
-  const className = ['game-card', mine.length ? 'has-mine' : ''].filter(Boolean).join(' ')
+  const rivals =
+    rivalId == null
+      ? []
+      : game.lines.filter((l) => l.owner_team_id === rivalId).map((l) => ({ player_id: l.player_id, name: l.name }))
+  const known = !scheduled && !pending
+  const stake = mine.length > 0 || rivals.length > 0
+  const cold = known && !stake
+  const final = game.status === 'final'
+  const faces = [
+    ...mine.map((p) => ({ ...p, side: 'you' as const })),
+    ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
+  ].slice(0, 3)
+  const className = ['game-card', mine.length ? 'has-mine' : '', stake ? 'stake' : '', cold ? 'cold' : '']
+    .filter(Boolean)
+    .join(' ')
   const body = (
     <>
       <span className="game-status">
@@ -511,22 +545,35 @@ function GameCard({
         ) : (
           <span className="muted">Final</span>
         )}
-        {mine.length > 0 && (
-          <span className="game-mine">
-            <HeadStack players={mine.map((p) => ({ id: p.player_id, name: p.name }))} size={22} />
-            <span className="sr-only">Your players: {mine.map((p) => p.name).join(', ')}</span>
+        {faces.length > 0 ? (
+          <span className="game-mine game-faces">
+            {faces.map((p) => (
+              <span key={p.player_id} className={`face-ring ${p.side}`}>
+                <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
+              </span>
+            ))}
+            {mine.length > 0 && <span className="sr-only">Your players: {mine.map((p) => p.name).join(', ')}</span>}
+            {rivals.length > 0 && (
+              <span className="sr-only">. Your opponent's players: {rivals.map((p) => p.name).join(', ')}</span>
+            )}
           </span>
+        ) : (
+          cold && rivalId != null && <span className="game-cold muted">Not in your matchup</span>
         )}
       </span>
       <TeamRow
         side={game.away}
         state={scheduled ? 'pre' : lead === 'away' ? 'lead' : lead === 'home' ? 'trail' : 'level'}
         filling={pending && !scheduled}
+        halo={stake}
+        won={final && lead === 'away'}
       />
       <TeamRow
         side={game.home}
         state={scheduled ? 'pre' : lead === 'home' ? 'lead' : lead === 'away' ? 'trail' : 'level'}
         filling={pending && !scheduled}
+        halo={stake}
+        won={final && lead === 'home'}
         home
       />
       <span className="game-foot small">
@@ -566,16 +613,23 @@ function TeamRow({
   state,
   home = false,
   filling = false,
+  halo = false,
+  won = false,
 }: {
   side: Game['home']
   state: 'lead' | 'trail' | 'level' | 'pre'
   home?: boolean
   /** The score is on its way. */
   filling?: boolean
+  /** A game you have a stake in: the logo glows in its club's colour. */
+  halo?: boolean
+  /** The final winner: a small caret after the score. */
+  won?: boolean
 }) {
+  const tl = halo ? teamLight(side.abbrev) : undefined
   return (
     <span className={`team-row ${state}`}>
-      <span className="team-logo-slot">
+      <span className={`team-logo-slot${tl ? ' halo' : ''}`} style={tl ? ({ '--tl': tl } as CSSProperties) : undefined}>
         <TeamLogo abbrev={side.abbrev} size={28} />
       </span>
       <span className="team-name" title={home ? `${side.name} (home)` : side.name}>
@@ -585,6 +639,11 @@ function TeamRow({
       </span>
       <span className="num score">
         {filling ? <Bone w={26} h={16} className="sc-score-bone" /> : state === 'pre' ? '' : (side.score ?? '')}
+        {won && (
+          <svg className="win-caret" viewBox="0 0 6 8" width="6" height="8" aria-label=", won">
+            <path d="M6 0v8L0 4z" />
+          </svg>
+        )}
       </span>
     </span>
   )
