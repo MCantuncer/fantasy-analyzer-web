@@ -1,8 +1,8 @@
 /* My Players on phones (My Team tab): "Ledger". One label strip (FG FT 3PM REB AST STL BLK TO PTS)
    under "Starting" labels every row and the starters' total. A playing row is two lines: mark, slot,
-   face, name and a small scorebug, then the numbers lined up under the strip (MIN and the FG/FT
-   percentages are left to desktop). Later, no-game, bench and IR rows are one 44px line. Long names
-   switch to "G. Antetokounmpo" so the pill and the score keep their room. */
+   face, name and a small scorebug, then the numbers lined up under the strip (MIN is left to
+   desktop; FG/FT keep a small percentage underneath). Later, no-game, bench and IR rows are one
+   44px line. Long names show the last name alone so the pill and the score keep their room. */
 @media (max-width: 640px) {
   .mp-title {
     font-size: 20px;
@@ -136,7 +136,7 @@
     grid-template-columns: var(--lg-mark) var(--lg-chip) minmax(0, 1fr) auto;
     grid-template-rows: auto;
     column-gap: var(--lg-gap);
-    row-gap: 3px;
+    row-gap: 8px;
     min-height: 44px;
     padding: 6px var(--lg-pad);
     border-radius: 14px;
@@ -261,9 +261,11 @@
   .mp .mp-score {
     font-size: 11.5px;
   }
+  /* The clock reads smaller than the score, with air between them. */
   .mp .mp-status {
-    font-size: 11px;
-    line-height: 13px;
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 12px;
   }
   .mp .mp-clock {
     gap: 0;
@@ -303,8 +305,10 @@
   .mp .mp-row .shot-split-ma {
     font-weight: 500;
   }
+  /* FG/FT percentages sit small under the made/att, as in the box score. */
   .mp .mp-row .shot-split-pct {
-    display: none;
+    font-size: 9.5px;
+    line-height: 11px;
   }
   .mp .mp-stat.pts dd {
     font-size: 16px;
