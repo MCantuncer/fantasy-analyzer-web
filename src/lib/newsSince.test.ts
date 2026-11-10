@@ -12,6 +12,9 @@ describe('buildNews', () => {
       before: 0.39,
       after: 0.42,
       side: 'was Lopez',
+      was: { id: P.lopez.id, name: 'Brook Lopez', pro_team: 'LAC' },
+      // Lopez was taken, so only his gain when he led.
+      wasGain: { then: 4 },
     })
     expect(best.reason).toEqual({
       lead: 'Lopez went to',
@@ -25,6 +28,12 @@ describe('buildNews', () => {
       team: { id: 8, name: 'Gergin Atamans' },
       tail: 'just added him',
     })
+  })
+
+  it("gives the replaced best move's gain then and now when it is still on the list", () => {
+    const after = report({ ...AFTER, pickups: [pickup(P.dosunmu, 0.39, 0.42), pickup(P.lopez, 0.39, 0.4)] })
+    const best = buildNews(BEFORE, after, CHANGES).rows.find((r) => r.kind === 'best')
+    expect(best?.wasGain).toEqual({ then: 4, now: 1 })
   })
 
   it('puts your own roster news apart and groups the rest of the league', () => {

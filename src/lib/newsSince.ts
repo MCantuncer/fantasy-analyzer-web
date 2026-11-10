@@ -1,5 +1,5 @@
 import type { AnalysisReport, PickupIdea, PlayerRef, ReportChange, TradeIdea } from '../api/client'
-import { bestMoveOf, type BestMoveChoice } from './bestMove'
+import { bestMoveOf, pickupKey, type BestMoveChoice } from './bestMove'
 import { tradeKey } from './format'
 import { lastName } from './moveTiming'
 
@@ -55,6 +55,11 @@ export interface NewsRow {
   delta?: number
   /** "was Lopez", "1 new · 1 gone". */
   side?: string
+  /** Best move only: the move it replaced, shown as a small face beside "was Lopez". */
+  was?: NewsPlayer
+  /** Best move only: the replaced move's playoff-odds gain in whole points when it led, and now
+   *  (left out when it is no longer on the list), so the row shows why the lead changed. */
+  wasGain?: { then: number; now?: number }
   reason?: NewsReason
   /** Still being worked out: the number slot waits. */
   pending?: boolean
@@ -252,6 +257,19 @@ export function buildNews(before: AnalysisReport | null, after: AnalysisReport |
     if (b.kind === 'trade') return `Get ${b.trade.get.map((p) => p.name).join(' + ')}`
     return 'Hold for now'
   }
+  function gainPts(m: PickupIdea | TradeIdea) {
+    return pct(m.playoff_pct_after) - pct(m.playoff_pct_before)
+  }
+  /** The old best move's gain when it led, and the same move's gain in the new report. */
+  function gainOf(b0: BestMoveChoice, a: AnalysisReport): NewsRow['wasGain'] {
+    if (b0.kind === 'hold') return undefined
+    const then = gainPts(b0.kind === 'pickup' ? b0.pickup : b0.trade)
+    const same =
+      b0.kind === 'pickup'
+        ? straightAdds(a).find((p) => pickupKey(p) === b0.key)
+        : allTrades(a).find((t) => tradeKey(t) === b0.key)
+    return same ? { then, now: gainPts(same) } : { then }
+  }
   function odds(m: PickupIdea | TradeIdea) {
     return { before: m.playoff_pct_before, after: m.playoff_pct_after }
   }
@@ -279,6 +297,8 @@ export function buildNews(before: AnalysisReport | null, after: AnalysisReport |
         player: now && face(now),
         ...(move ? odds(move) : {}),
         side: was ? `was ${lastName(was.name)}` : 'was hold',
+        was: was && face(was),
+        wasGain: gainOf(b0, a),
         reason,
       })
       if (now) used.add(now.id)

@@ -75,6 +75,24 @@ function Reason({ reason, colours }: { reason: NewsReason; colours: Map<number, 
   )
 }
 
+const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0')
+
+/** The replaced best move's gain when it led and now: why the lead changed hands. */
+function WasGain({ gain }: { gain: NonNullable<NewsRow['wasGain']> }) {
+  return (
+    <span className="ns-was-gain">
+      <span className="num">{signed(gain.then)}</span> then
+      {gain.now != null && (
+        <>
+          <ArrowRight size={11} weight="bold" aria-label="," />
+          <span className="num ns-was-now">{signed(gain.now)}</span> now
+        </>
+      )}
+      <span className="sr-only"> playoff odds points</span>
+    </span>
+  )
+}
+
 function Row({ row, colours, onGo }: { row: NewsRow; colours: Map<number, string>; onGo?: (k: NewsRowKind) => void }) {
   const RowIcon = ROW_ICONS[row.kind]
   return (
@@ -95,7 +113,7 @@ function Row({ row, colours, onGo }: { row: NewsRow; colours: Map<number, string
               <RowIcon size={14} aria-hidden="true" />
               {row.label}
             </span>
-            {row.side && <span className="ns-side">{row.side}</span>}
+            {row.side && row.kind !== 'best' && <span className="ns-tally">{row.side}</span>}
           </span>
           <span className="ns-row-main">
             <span className="ns-row-title">{row.title}</span>
@@ -121,7 +139,18 @@ function Row({ row, colours, onGo }: { row: NewsRow; colours: Map<number, string
               )
             )}
           </span>
-          {row.reason && <Reason reason={row.reason} colours={colours} />}
+          {(row.kind === 'best' || row.reason) && (
+            <span className="ns-row-foot">
+              {row.side && row.kind === 'best' && (
+                <span className={row.was ? 'ns-side ns-side-was' : 'ns-side'}>
+                  {row.was && <PlayerHead player={row.was} size={20} team={row.was.pro_team} />}
+                  <span className="ns-side-text">{row.side}</span>
+                </span>
+              )}
+              {row.wasGain && <WasGain gain={row.wasGain} />}
+              {row.reason && <Reason reason={row.reason} colours={colours} />}
+            </span>
+          )}
         </span>
       </button>
     </li>
