@@ -4,7 +4,6 @@ import type { ReactNode } from 'react'
 import {
   ArrowSquareOut,
   ArrowsClockwise,
-  CaretDown,
   CaretLeft,
   CaretRight,
   CheckCircle,
@@ -338,7 +337,6 @@ function Mark({ state }: { state: RowState }) {
 }
 
 function Row({ row, past, swap }: { row: PlayerRow; past: boolean; swap: boolean }) {
-  const [open, setOpen] = useState(false)
   const { spot, game, line, state } = row
   const abbrev = nbaAbbrev(spot.pro_team_id)
   const counted = spot.starting
@@ -350,7 +348,6 @@ function Row({ row, past, swap }: { row: PlayerRow; past: boolean; swap: boolean
     counted ? 'mp-starter' : 'mp-sub',
     isIR(spot) ? 'mp-ir' : '',
     swap ? 'mp-swap' : '',
-    open ? 'open' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -365,8 +362,18 @@ function Row({ row, past, swap }: { row: PlayerRow; past: boolean; swap: boolean
         <span className="mp-name">
           <PlayerLink
             player={player}
+            className={phoneName(spot.name, injured) ? 'mp-has-short' : undefined}
             after={injured ? <span className={`mp-inj${spot.injury_status === 'OUT' ? ' out' : ''}`}>{injuryShort(spot.injury_status)}</span> : undefined}
-          />
+          >
+            {phoneName(spot.name, injured) ? (
+              <>
+                <span className="mp-full-name">{spot.name}</span>
+                <span className="mp-short-name">
+                  {phoneName(spot.name, injured)}
+                </span>
+              </>
+            ) : undefined}
+          </PlayerLink>
           {line && !counted && <span className="mp-nocount">{past ? "Didn't count" : "Doesn't count"}</span>}
         </span>
       </span>
@@ -374,18 +381,6 @@ function Row({ row, past, swap }: { row: PlayerRow; past: boolean; swap: boolean
       {line ? (
         <>
           <Stats line={line} />
-          <span className="mp-brief small">{brief(line)}</span>
-          {state === 'final' && (
-            <button
-              type="button"
-              className="mp-fold"
-              aria-expanded={open}
-              aria-label={open ? `Hide ${spot.name}'s line` : `Show ${spot.name}'s line`}
-              onClick={() => setOpen(!open)}
-            >
-              <CaretDown size={16} aria-hidden="true" />
-            </button>
-          )}
         </>
       ) : (
         <span className="mp-note">{quietNote(row, past)}</span>
@@ -516,14 +511,13 @@ function TotalsRow({ totals: t, past }: { totals: Totals; past: boolean }) {
   )
 }
 
-/** The folded phone line: "16 PTS · 3 REB · 7 AST · 6/13 FG". */
-function brief(l: GameLine): string {
-  const parts = [`${l.pts} PTS`]
-  if (l.reb) parts.push(`${l.reb} REB`)
-  if (l.ast) parts.push(`${l.ast} AST`)
-  if (l.tpm) parts.push(`${l.tpm} 3PM`)
-  if (l.fga) parts.push(`${l.fgm}/${l.fga} FG`)
-  return parts.join(' · ')
+/**
+ * The name phones show when the full one won't fit beside the face and the score: the last name
+ * ("Antetokounmpo"). Null when the full name fits (about 18 characters, 15 with an injury pill).
+ */
+function phoneName(name: string, pill: boolean): string | null {
+  if (!name.includes(' ') || name.length <= (pill ? 15 : 18)) return null
+  return lastName(name)
 }
 
 function MyPlayersLoading() {

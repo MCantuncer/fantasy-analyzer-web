@@ -214,8 +214,7 @@
   color: var(--text-2);
 }
 
-.mp-row.mp-sub .mp-stats,
-.mp-row.mp-sub .mp-brief {
+.mp-row.mp-sub .mp-stats {
   opacity: 0.6;
 }
 
@@ -383,8 +382,7 @@
 }
 
 .mp-short,
-.mp-brief,
-.mp-fold {
+.mp-short-name {
   display: none;
 }
 
