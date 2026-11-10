@@ -198,6 +198,153 @@
   }
 }
 
+/* ---------- Game Night: Tonight in your matchup ----------
+   The night's category count leads ("6-3 Won the night"). Each category carries a W/L letter, and
+   the winner's number lights: green from the top on your row, coral from the bottom on theirs.
+   Your warm light sits in the near corner, the rival's crest colour (--rival) in the far one. */
+.card.your-night.versus {
+  border-color: transparent;
+  background:
+    radial-gradient(
+      ellipse 560px 240px at 100% 0%,
+      color-mix(in srgb, var(--rival) var(--rival-a), transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%), var(--surface);
+  box-shadow: var(--lift);
+}
+
+.night-score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+}
+
+.night-score > b {
+  font-family: var(--font-num);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.night-score-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-2);
+}
+
+.night-verdict {
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.night-verdict.W {
+  color: var(--good);
+}
+
+.night-verdict.L {
+  color: var(--bad);
+}
+
+.night-cats.lit dt {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 3px;
+}
+
+.night-res {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-2);
+  background: var(--raised);
+}
+
+.night-res.W {
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 16%, transparent);
+}
+
+.night-res.L {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 16%, transparent);
+}
+
+.your-night.versus .night-cats.lit dd.num {
+  min-width: 44px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.your-night.versus .night-cats.lit dd.num.won {
+  color: var(--text);
+  font-weight: 700;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--good) var(--cell-good), transparent),
+    color-mix(in srgb, var(--good) 3%, transparent)
+  );
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--good) 75%, transparent);
+}
+
+.your-night.versus .night-cats.lit dd.num.lost {
+  color: var(--text);
+  font-weight: 700;
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--bad) var(--cell-bad), transparent),
+    color-mix(in srgb, var(--bad) 3%, transparent)
+  );
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--bad) 75%, transparent);
+}
+
+/* "You · big / KVK · small" explains the phone grid only. */
+.night-key {
+  display: none;
+}
+
+/* Rows line up with the You / opponent labels: every category head is the same height (letter over
+   name), your numbers sit on one 34px line and theirs on a 30px one, labels included. */
+.night-cats.lit dt {
+  height: 36px;
+  justify-content: flex-start;
+}
+
+.your-night.versus .night-cats.lit dd.num {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  padding-block: 0;
+}
+
+.your-night.versus .night-cats.lit dd.num.them {
+  height: 30px;
+  margin-top: 4px;
+}
+
+.night-cats.lit .night-who dd {
+  height: 34px;
+  line-height: 34px;
+}
+
+.night-cats.lit .night-who dd.them {
+  height: 30px;
+  line-height: 30px;
+  margin-top: 4px;
+}
+
 /* ---------- Game Night: game cards ----------
    A game you or your rival have players in lifts off the page and its club logos glow in their team
    colour; faces carry a ring (gold yours, rival colour theirs). A started game with neither sits
