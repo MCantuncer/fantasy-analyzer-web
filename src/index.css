@@ -1726,11 +1726,6 @@ button.game-card:hover {
   }
 }
 
-.day-jump select {
-  width: auto;
-  max-width: 220px;
-}
-
 table.box td,
 table.box th {
   padding: 8px 10px;

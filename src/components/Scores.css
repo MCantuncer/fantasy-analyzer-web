@@ -470,3 +470,32 @@
   background: var(--gold);
   box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
 }
+
+/* Jump to a day: the browser's own arrow sat almost on the border, 4px in against 12px of text
+   padding. Draw the switcher's chevron instead, with the same 14px of room on both sides. */
+.day-jump {
+  position: relative;
+}
+
+.day-jump select {
+  width: auto;
+  max-width: 240px;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 40px 0 14px;
+  cursor: pointer;
+}
+
+.day-jump-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.day-jump select:hover + .day-jump-chevron,
+.day-jump select:focus-visible + .day-jump-chevron {
+  color: var(--text);
+}
