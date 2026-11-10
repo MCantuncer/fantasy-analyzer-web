@@ -110,3 +110,27 @@
   font-weight: 550;
   color: var(--ct-word);
 }
+
+/* Game Night: Winning and Losing tiles light from their outcome edge at a fixed strength (never a
+   level, so it can't read as a gauge). Swing keeps its neutral edge and no light. */
+.ct-tile.ct-good {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--good) var(--tile-good), transparent),
+      color-mix(in srgb, var(--good) calc(var(--tile-good) * 0.3), transparent) 55%,
+      transparent 85%
+    ),
+    var(--surface);
+}
+
+.ct-tile.ct-bad {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bad) var(--tile-bad), transparent),
+      color-mix(in srgb, var(--bad) calc(var(--tile-bad) * 0.3), transparent) 55%,
+      transparent 85%
+    ),
+    var(--surface);
+}

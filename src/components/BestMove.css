@@ -439,3 +439,23 @@
   font-weight: 650;
   color: var(--text);
 }
+
+/* ---------- Game Night ----------
+   The Best Move card carries your warm light in its near corner and lifts off the page; the odds
+   gain glows green where it lands (a loss glows coral). */
+.card.best {
+  border-color: transparent;
+  background:
+    radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%),
+    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
+    var(--surface);
+  box-shadow: var(--lift);
+}
+
+.bm-gain {
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--good) 45%, transparent);
+}
+
+.bm-gain.bm-loss {
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--bad) 40%, transparent);
+}
