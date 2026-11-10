@@ -298,6 +298,9 @@ function DayJump({ data, onPick }: { data: ScoreDay; onPick: (day: number) => vo
           </option>
         ))}
       </select>
+      <svg className="day-jump-chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+        <path d="M3.5 5.5 7 9l3.5-3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+      </svg>
     </label>
   )
 }
