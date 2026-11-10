@@ -305,3 +305,52 @@ table.box .sc-key .sc-dir {
     margin: 12px auto;
   }
 }
+
+/* ---------- Game Night: you and your rival in the box score ----------
+   Your players' rows carry a gold edge and a faint warm wash, this week's opponent's the rival's crest
+   colour (--rival, set on the card). Everyone else stays ink. The open team's tab is underlined in its
+   club's light (--tl). */
+.card.box-card .sc-team-switch button[aria-pressed='true'] {
+  box-shadow:
+    inset 0 -2px 0 var(--tl),
+    0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+:root .table-wrap.box-scroll table.box tbody tr:is(.mine, .rival) {
+  --edge: var(--gold);
+  --row-wash: color-mix(in srgb, var(--edge) 5%, var(--surface));
+  background: var(--row-wash);
+  box-shadow: none;
+}
+
+:root .table-wrap.box-scroll table.box tbody tr.rival {
+  --edge: var(--rival, var(--text-2));
+}
+
+:root .table-wrap.box-scroll table.box tbody tr:is(.mine, .rival) > th[scope='row'] {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--edge) 13%, var(--surface)), var(--row-wash));
+  box-shadow: inset 3px 0 0 var(--edge);
+}
+
+:root .table-wrap.box-scroll table.box tbody tr.rival > :is(th, td) {
+  font-weight: 600;
+}
+
+table.box .sc-owner {
+  white-space: nowrap;
+  color: var(--text);
+}
+
+table.box .sc-owner-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: 0.08em;
+  background: var(--gold);
+}
+
+table.box .sc-owner-dot.rival {
+  background: var(--rival, var(--text-2));
+}

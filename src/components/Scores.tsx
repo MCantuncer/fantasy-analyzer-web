@@ -240,7 +240,14 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         (pending ? (
           <BoxScoreFetching game={selected} failed={failed} onRetry={() => scores.refetch()} />
         ) : (
-          <BoxScore game={selected} date={data.date} teamId={teamId} abbrev={abbrev} />
+          <BoxScore
+            game={selected}
+            date={data.date}
+            teamId={teamId}
+            rivalId={rivalId ?? null}
+            rivalColour={rivalColour}
+            abbrev={abbrev}
+          />
         ))}
 
       {/* The rest of the week sits below tonight's games and box score, not between them. */}
@@ -524,6 +531,13 @@ function GameCard({
     ...mine.map((p) => ({ ...p, side: 'you' as const })),
     ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
   ].slice(0, 3)
+  // The open game's edge runs from the away club's light to the home club's.
+  const edge = selected
+    ? ({
+        '--ta': teamLight(game.away.abbrev) ?? 'var(--accent)',
+        '--tb': teamLight(game.home.abbrev) ?? 'var(--accent)',
+      } as CSSProperties)
+    : undefined
   const className = ['game-card', mine.length ? 'has-mine' : '', stake ? 'stake' : '', cold ? 'cold' : '']
     .filter(Boolean)
     .join(' ')
@@ -602,7 +616,7 @@ function GameCard({
   // A game that hasn't started has no box score to open.
   if (scheduled) return <div className={className}>{body}</div>
   return (
-    <button className={className} aria-pressed={selected} onClick={onPick}>
+    <button className={className} aria-pressed={selected} onClick={onPick} style={edge}>
       {body}
     </button>
   )
@@ -717,11 +731,16 @@ function BoxScore({
   game,
   date,
   teamId,
+  rivalId = null,
+  rivalColour,
   abbrev,
 }: {
   game: Game
   date: string | null | undefined
   teamId: number
+  /** This week's opponent: their players' rows get an edge in the rival's crest colour. */
+  rivalId?: number | null
+  rivalColour?: string
   abbrev: Map<number, string>
 }) {
   const ref = useRef<HTMLElement>(null)
@@ -759,13 +778,19 @@ function BoxScore({
       key={l.player_id}
       line={l}
       mine={l.owner_team_id === teamId}
+      rival={rivalId != null && l.owner_team_id === rivalId}
       abbrev={abbrev}
       starter={!split && l.starter}
       team={side.abbrev}
     />
   )
   return (
-    <section className="card flush box-card" ref={ref} aria-labelledby="box-title">
+    <section
+      className="card flush box-card"
+      ref={ref}
+      aria-labelledby="box-title"
+      style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}
+    >
       <div className="card-head">
         <h2 id="box-title">
           {game.away.abbrev} <span className="num">{game.away.score ?? ''}</span> · {game.home.abbrev}{' '}
@@ -783,6 +808,7 @@ function BoxScore({
             type="button"
             aria-pressed={s.pro_team_id === side.pro_team_id}
             onClick={() => setPicked({ game: game.id, team: s.pro_team_id })}
+            style={{ '--tl': teamLight(s.abbrev) ?? 'var(--accent)' } as CSSProperties}
           >
             <TeamLogo abbrev={s.abbrev} size={20} />
             <span className="sc-team-label">{s.name}</span>
@@ -863,12 +889,15 @@ function BoxScore({
 function BoxRow({
   line: l,
   mine,
+  rival = false,
   abbrev,
   starter = false,
   team,
 }: {
   line: GameLine
   mine: boolean
+  /** One of this week's opponent's players. */
+  rival?: boolean
   abbrev: Map<number, string>
   /** Marks a starter while a sort has merged the list. */
   starter?: boolean
@@ -876,7 +905,7 @@ function BoxRow({
 }) {
   const owner = l.owner_team_id == null ? 'FA' : (abbrev.get(l.owner_team_id) ?? '')
   return (
-    <tr className={[mine && 'mine', starter && 'sc-starter'].filter(Boolean).join(' ') || undefined}>
+    <tr className={[mine && 'mine', rival && 'rival', starter && 'sc-starter'].filter(Boolean).join(' ') || undefined}>
       <th scope="row">
         <span className="box-player">
           <PlayerLink player={{ id: l.player_id, name: l.name }} decorative>
@@ -886,7 +915,12 @@ function BoxRow({
           {starter && <StarterNote />}
         </span>
       </th>
-      <td className={`left${l.owner_team_id == null ? ' good' : ''}`}>{owner}</td>
+      <td className="left sc-owner">
+        {(mine || rival) && <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />}
+        {owner}
+        {mine && <span className="sr-only"> (you)</span>}
+        {rival && <span className="sr-only"> (your opponent)</span>}
+      </td>
       <td className="muted">{l.minutes}</td>
       {BOX_CATS.map(({ key }) =>
         key === 'fg' || key === 'ft' ? (

@@ -354,10 +354,33 @@
   box-shadow: var(--lift);
 }
 
-/* The open game keeps its outline. */
+/* The open game: its edge runs in the two clubs' lights (away to home), and on wider screens a notch
+   points down at the box score. Replaces the cream outline. */
+.game-grid .game-card[aria-pressed='true'],
 .game-grid .game-card.stake[aria-pressed='true'],
 .game-grid .game-card.cold[aria-pressed='true'] {
-  border-color: var(--accent);
+  border: 1.5px solid transparent;
+  padding: 11.5px 13.5px;
+  background:
+    linear-gradient(var(--raised), var(--raised)) padding-box,
+    linear-gradient(100deg, var(--ta, var(--accent)), var(--tb, var(--accent))) border-box;
+}
+
+@media (min-width: 641px) {
+  .game-grid .game-card[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    left: calc(50% - 6px);
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    background: var(--raised);
+    border-right: 1.5px solid color-mix(in srgb, var(--ta, var(--accent)) 50%, var(--tb, var(--accent)));
+    border-bottom: 1.5px solid color-mix(in srgb, var(--ta, var(--accent)) 50%, var(--tb, var(--accent)));
+    border-bottom-right-radius: 2px;
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
 }
 
 .game-grid .game-card.cold {
