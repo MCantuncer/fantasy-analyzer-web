@@ -1,0 +1,166 @@
+/* My Players on phones (My Team tab): the same ESPN order, one card per player. Line 1 is the
+   status mark, slot, face and name; line 2 the game; then live lines as a 5x2 grid
+   (MIN FG FT 3PM REB / AST STL BLK TO PTS) so nothing scrolls sideways. Finished lines fold to one
+   line with a chevron to open them; later, idle, bench and IR rows stay a single line. */
+@media (max-width: 640px) {
+  .mp {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .mp-title {
+    font-size: 20px;
+  }
+
+  .mp-day {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mp-day .icon-btn {
+    width: 44px;
+    min-height: 44px;
+  }
+
+  .mp-sync {
+    order: 4;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mp-espn {
+    min-height: 44px;
+  }
+
+  .mp-summary {
+    gap: 4px 12px;
+  }
+
+  .mp-cols {
+    display: none;
+  }
+
+  .mp-row,
+  .mp-totals {
+    grid-template-columns: 20px 44px minmax(0, 1fr) auto;
+    column-gap: 8px;
+    row-gap: 8px;
+    padding: 10px 12px;
+    min-height: 56px;
+  }
+
+  .mp-row .mp-slot {
+    min-width: 36px;
+    padding: 0 4px;
+  }
+
+  .mp-name .pc-link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* The game sits on line 2, under the name, for players whose game is on or over. */
+  .mp-game {
+    grid-column: 3 / -1;
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .mp-row.mp-later .mp-game,
+  .mp-row.mp-idle .mp-game,
+  .mp-row.mp-ir .mp-game {
+    display: none;
+  }
+
+  .mp-note {
+    grid-column: 4;
+    grid-row: 1;
+    text-align: right;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .mp-long {
+    display: none;
+  }
+
+  .mp-short {
+    display: inline;
+  }
+
+  .mp-stats {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 10px;
+    padding: 4px 0 2px;
+  }
+
+  .mp-stat dt {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .mp-stat dd {
+    font-size: 15px;
+  }
+
+  .mp-stat.pts dd {
+    font-size: 17px;
+  }
+
+  /* A finished line folds to "16 PTS · 3 REB · 7 AST · 6/13 FG" until it is opened. */
+  .mp-row.mp-final:not(.open) .mp-stats {
+    display: none;
+  }
+
+  .mp-row.mp-final:not(.open) .mp-brief {
+    display: block;
+    grid-column: 3 / -1;
+    grid-row: 3;
+    color: var(--text-2);
+  }
+
+  .mp-fold {
+    display: inline-flex;
+    grid-column: 4;
+    grid-row: 1;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: -8px -8px -8px 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-2);
+  }
+
+  .mp-row.open .mp-fold svg {
+    transform: rotate(180deg);
+  }
+
+  .mp-totals-label {
+    grid-column: 1 / -1;
+  }
+
+  .mp-swap-note .mp-swap-go {
+    width: 100%;
+  }
+}
+
+/* IR on phones: the slot chip already says IR, so the row keeps the name and its OUT pill room. */
+@media (max-width: 640px) {
+  .mp-row.mp-ir .mp-note {
+    display: none;
+  }
+}

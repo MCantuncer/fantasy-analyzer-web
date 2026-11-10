@@ -52,6 +52,8 @@ export type RecapSide = components['schemas']['RecapSide']
 export type RecapMatchup = components['schemas']['RecapMatchup']
 export type WeekTotals = components['schemas']['WeekTotals']
 export type WeekSits = components['schemas']['WeekSits']
+export type DayLineup = components['schemas']['DayLineup']
+export type LineupSpot = components['schemas']['LineupSpot']
 export type Game = components['schemas']['Game']
 export type GameLine = components['schemas']['GameLine']
 export type FixtureDay = components['schemas']['FixtureDay']
@@ -536,6 +538,22 @@ export function fetchScoreGames(
 /** Who sits on each crowded day left this week: the slow part of the Scores page, fetched on its own. */
 export function fetchScoreSits(leagueId: number, season: number | null, teamId: number, creds: Credentials | null) {
   return post<WeekSits>('/api/scores/sits', { league_id: leagueId, season, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
+}
+
+/** Your lineup on a day, read fresh from ESPN (the server keeps it 30 s): who starts, who sits, each player's game. */
+export function fetchLineup(
+  leagueId: number,
+  season: number | null,
+  teamId: number,
+  day: number | null,
+  creds: Credentials | null,
+) {
+  return post<DayLineup>(
+    '/api/scores/lineup',
+    { league_id: leagueId, season, team_id: teamId, day },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
 }
 
 export function fetchNews(leagueId: number, season: number | null, includeHeld: boolean, creds: Credentials | null) {

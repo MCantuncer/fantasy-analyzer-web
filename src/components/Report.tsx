@@ -4,6 +4,7 @@ import { BestMove } from './BestMove'
 import { Builds } from './Builds'
 import { CategoryOutlook } from './CategoryOutlook'
 import { CategoryTiles } from './CategoryTiles'
+import { MyPlayers } from './MyPlayers'
 import { LeagueChat } from './LeagueChat'
 import { LeagueOverview } from './LeagueOverview'
 import { News } from './News'
@@ -208,14 +209,22 @@ export function Report({
         {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
 
         {tab === 'team' && (
-          <div className="split">
-            <div className="narrow">
-              <CategoryOutlook categories={report.categories} />
+          <>
+            <MyPlayers
+              leagueId={report.league.id}
+              season={report.league.season}
+              teamId={report.team_id}
+              creds={creds}
+            />
+            <div className="split">
+              <div className="narrow">
+                <CategoryOutlook categories={report.categories} />
+              </div>
+              <div className="wide">
+                <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} onShop={shopPlayer} />
+              </div>
             </div>
-            <div className="wide">
-              <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} onShop={shopPlayer} />
-            </div>
-          </div>
+          </>
         )}
 
         {tab === 'league' && (
