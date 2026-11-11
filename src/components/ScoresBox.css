@@ -342,8 +342,8 @@ table.box .sc-owner {
 }
 
 /* Your (and your rival's) team abbreviation sits on the same left edge and weight as everyone else's;
-   the dot rides at the top right of a box as wide as the league's widest abbreviation, so it marks the
-   name without pushing it over and sits in the same spot on every marked row. */
+   the dot rides at the top right of a box as wide as the wider of your and your rival's abbreviations, so
+   it marks the name without pushing it over and sits in the same spot on every marked row. */
 :root .table-wrap.box-scroll table.box tbody tr:is(.mine, .rival) > td.sc-owner,
 table.box tr:is(.mine, .rival) > td.sc-owner {
   font-weight: 500;
