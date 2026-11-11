@@ -12,12 +12,11 @@ import {
   UsersThree,
 } from '@phosphor-icons/react'
 import { fetchLineup, fetchScores } from '../api/client'
-import type { Game, GameLine, LineupDay, LineupSpot, SeasonAverage } from '../api/client'
+import type { Game, GameLine, LineupDay, SeasonAverage } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { nbaAbbrev } from '../lib/filmRoom'
 import { injuryShort } from '../lib/injury'
 import {
-  averageTotals,
   benchLeftOut,
   buildRows,
   countdown,
@@ -30,11 +29,9 @@ import {
   nextLabel,
   starterTotals,
   swapToMake,
-  tipGroups,
   weekday,
 } from '../lib/myPlayers'
-import type { Counts, PlayerRow, RowState, Swap, TipGroup, Totals } from '../lib/myPlayers'
-import { shotPct } from '../lib/shooting'
+import type { Counts, PlayerRow, RowState, Swap, Totals } from '../lib/myPlayers'
 import { leader, longDayLabel, tipOff } from '../lib/scores'
 import { STAT_COLUMNS } from '../lib/statOrder'
 import { PlayerLink } from './PlayerCard'
@@ -137,8 +134,6 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const next = data.days[i + 1]
   const espn = espnTeamUrl(leagueId, teamId, season)
   const swapIds = swap ? new Set([swap.bench.spot.player_id, swap.idle?.spot.player_id]) : new Set<number | undefined>()
-  const avg = past ? null : averageTotals(rows)
-  const pregame = !past && rows.some((r) => r.spot.starting && r.state === 'later' && r.spot.season_avg)
   const ctx: RowCtx = { past, now, day: lineup.data.day, week: lineup.data.week ?? [] }
 
   return (
@@ -185,7 +180,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </div>
       </header>
 
-      <NightStrip rows={rows} counts={c} groups={tipGroups(rows)} past={past} now={now} />
+      <NightLine rows={rows} counts={c} past={past} now={now} />
 
       {swap && <SwapNote swap={swap} espn={espn} />}
 
@@ -203,13 +198,6 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
 
         <h3 className="mp-group">
           Starting <span className="muted">· counts</span>
-          {pregame && (
-            <span className="mp-group-note mp-avg-cap muted">
-              <i className="mp-swatch" aria-hidden="true" />
-              <span className="mp-long">Season average per game · his line replaces it at tip</span>
-              <span className="mp-short">Season avg until tip</span>
-            </span>
-          )}
         </h3>
         <ul className="mp-rows">
           {starters.map((r) => (
@@ -227,11 +215,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
             </li>
           ))}
         </ul>
-        {avg ? (
-          <AverageRow totals={avg} />
-        ) : (
-          totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />
-        )}
+        {totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />}
 
         <h3 className="mp-group">
           Bench <span className="muted">· {past ? "didn't count" : "doesn't count"}</span>
@@ -391,7 +375,7 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
           {line ? (
             <Stats line={line} />
           ) : avg ? (
-            <AverageStats avg={avg} />
+            <AverageNote avg={avg} />
           ) : (
             <span className="mp-note">{quietNote(row)}</span>
           )}
@@ -412,7 +396,7 @@ function quietNote(row: PlayerRow): ReactNode {
 
 /**
  * A row with nothing on that day: an idle starting slot, a bench player without a game, or IR.
- * Says when he plays next and, on wide screens, his week as dots.
+ * Says when he plays next and how many games he has left this week.
  */
 function QuietCell({ row, ctx }: { row: PlayerRow; ctx: RowCtx }) {
   const { spot, game } = row
@@ -453,33 +437,12 @@ function QuietCell({ row, ctx }: { row: PlayerRow; ctx: RowCtx }) {
         </span>
       )}
       {ctx.week.length > 1 && (
-        <span className="mp-week" aria-label={weekWords(spot, ctx)}>
-          {ctx.week.map((w) => {
-            const plays = (spot.week_games ?? []).includes(w.day)
-            return (
-              <span
-                key={w.day}
-                className={`mp-wd${plays ? ' g' : ''}${w.day === ctx.day ? ' t' : ''}${w.day < ctx.day ? ' gone' : ''}`}
-                aria-hidden="true"
-              >
-                {weekday(w.date)}
-              </span>
-            )
-          })}
-        </span>
-      )}
-      {ctx.week.length > 1 && (
-        <span className="mp-left">
-          <b className="num">{gamesLeft(spot, ctx.day)}</b> left this week
+        <span className="mp-left muted">
+          <span className="num">{gamesLeft(spot, ctx.day)}</span> left this week
         </span>
       )}
     </span>
   )
-}
-
-function weekWords(spot: LineupSpot, ctx: RowCtx): string {
-  const days = ctx.week.filter((w) => (spot.week_games ?? []).includes(w.day)).map((w) => weekday(w.date))
-  return days.length ? `Plays ${days.join(', ')} this week` : 'No games this week'
 }
 
 function GameCell({ game, pro, now }: { game: Game | null; pro: number; now: number }) {
@@ -521,12 +484,11 @@ function GameCell({ game, pro, now }: { game: Game | null; pro: number; now: num
 }
 
 /**
- * A game still to come: the tip-off big ("5:00 AM") with the time left under it, gold inside the
- * last hour, and the matchup. Phones keep only the opponent beside the time.
+ * A game still to come, shaped like a live one: the matchup on top, and where the clock would be,
+ * the tip-off and the time left ("4:00 AM · in 11m", gold inside the last hour).
  */
 function TipCell({ game, pro, now }: { game: Game; pro: number; now: number }) {
   const cd = countdown(game.start, now)
-  const [time, ampm] = splitTime(tipOff(game.start))
   const home = game.home.pro_team_id === pro
   const side = (sd: Game['away'], own: boolean) => (
     <span className={`mp-side${own ? ' own' : ' opp'}`}>
@@ -536,29 +498,25 @@ function TipCell({ game, pro, now }: { game: Game; pro: number; now: number }) {
   )
   return (
     <span className="mp-game mp-tipcell">
-      <span className="mp-tip">
-        <b className="num">
-          {time}
-          {ampm && <small>{ampm}</small>}
-        </b>
-        <span className={`mp-cd num${cd.soon ? ' soon' : ''}`}>{cd.text}</span>
-      </span>
-      <span className="mp-match">
+      <span className="mp-score-line">
         <span className="mp-where" aria-hidden="true">
           {home ? 'vs' : '@'}
         </span>
         {side(game.away, !home)}
-        <span className="mp-vs">@</span>
+        <span className="mp-vs" aria-hidden="true">
+          @
+        </span>
         {side(game.home, home)}
+      </span>
+      <span className="mp-status small">
+        <span className="num mp-tip-time">{tipOff(game.start)}</span>
+        <span className="mp-sep" aria-hidden="true">
+          ·
+        </span>
+        <span className={`mp-cd num${cd.soon ? ' soon' : ''}`}>{cd.text}</span>
       </span>
     </span>
   )
-}
-
-/** "5:00 AM" -> ["5:00", "AM"]; a 24-hour clock keeps one part. */
-function splitTime(t: string): [string, string] {
-  const m = t.match(/^(.*?)\s?([AaPp]\.?[Mm]\.?)$/)
-  return m ? [m[1], m[2]] : [t, '']
 }
 
 function Stats({ line }: { line: GameLine }) {
@@ -577,9 +535,9 @@ function Stats({ line }: { line: GameLine }) {
   return <StatCells cells={cells} />
 }
 
-function StatCells({ cells, band, label }: { cells: [string, ReactNode][]; band?: boolean; label?: string }) {
+function StatCells({ cells }: { cells: [string, ReactNode][] }) {
   return (
-    <dl className={`mp-stats${band ? ' mp-band' : ''}`} aria-label={label}>
+    <dl className="mp-stats">
       {cells.map(([k, v]) => (
         <div key={k} className={`mp-stat${k === 'PTS' ? ' pts' : ''}${k === 'MIN' ? ' min' : ''}`}>
           <dt>{k === 'TO' ? 'TO↓' : k}</dt>
@@ -590,165 +548,44 @@ function StatCells({ cells, band, label }: { cells: [string, ReactNode][]; band?
   )
 }
 
-/** Before tip-off: his season per-game line in the stat columns, on a recessed band. */
-function AverageStats({ avg }: { avg: SeasonAverage }) {
-  return <StatCells band label={`Season average over ${avg.gp} games`} cells={averageCells(avg)} />
-}
-
-function averageCells(a: Omit<SeasonAverage, 'gp'>): [string, ReactNode][] {
+/** Before tip-off, one quiet line: what he usually brings ("Season avg 26.9 pts · 3.7 reb · 5.5 ast"). */
+function AverageNote({ avg }: { avg: SeasonAverage }) {
   const one = (v: number) => v.toFixed(1)
-  const split = (made: number, att: number, label: 'FG' | 'FT') => (
-    <span className="mp-avg-split" aria-label={`${label} ${one(made)} of ${one(att)} a game, ${shotPct(made, att)}`}>
-      <span className="mp-avg-ma" aria-hidden="true">
-        {one(made)}/{one(att)}
-      </span>
-      <span className="mp-avg-pct" aria-hidden="true">
-        {shotPct(made, att)}
-      </span>
+  return (
+    <span className="mp-note mp-avg-note" title={`Season average over ${avg.gp} games`}>
+      <span className="mp-long">Season avg </span>
+      <b className="num">{one(avg.pts)}</b> pts · <b className="num">{one(avg.reb)}</b> reb ·{' '}
+      <b className="num">{one(avg.ast)}</b> ast
     </span>
   )
-  return [
-    ['MIN', Math.round(a.min)],
-    ['FG', split(a.fgm, a.fga, 'FG')],
-    ['FT', split(a.ftm, a.fta, 'FT')],
-    ['3PM', one(a.tpm)],
-    ['REB', one(a.reb)],
-    ['AST', one(a.ast)],
-    ['STL', one(a.stl)],
-    ['BLK', one(a.blk)],
-    ['TO', one(a.to)],
-    ['PTS', one(a.pts)],
-  ]
 }
 
-/** "Tonight at their averages": the starters still to play, their season lines added up. */
-function AverageRow({ totals: t }: { totals: Totals & { players: number } }) {
-  return (
-    <div className="mp-totals mp-avg-totals">
-      <span className="mp-totals-label">
-        <b>Tonight at their averages</b>
-        <span className="small muted">
-          {' '}
-          {t.players} {t.players === 1 ? 'starter' : 'starters'} with a game
-        </span>
-      </span>
-      <StatCells band label="Season averages added up" cells={averageCells(t)} />
-    </div>
-  )
-}
-
-/**
- * The night at a glance: the next tip-off (or what's on now), how many starting slots play and who
- * sits, and your starters' faces in tip-off order.
- */
-function NightStrip({
-  rows,
-  counts: c,
-  groups,
-  past,
-  now,
-}: {
-  rows: PlayerRow[]
-  counts: Counts
-  groups: TipGroup[]
-  past: boolean
-  now: number
-}) {
-  const later = groups.find((g) => g.state === 'later')
-  const started = groups.some((g) => g.state !== 'later')
+/** The night in one calm line: the next tip-off (or what's on now), and how many starting slots play. */
+function NightLine({ rows, counts: c, past, now }: { rows: PlayerRow[]; counts: Counts; past: boolean; now: number }) {
+  const next = rows
+    .filter((r) => r.spot.starting && r.state === 'later' && r.game)
+    .sort((a, b) => a.game!.start.localeCompare(b.game!.start))[0]
   const idle = rows.filter((r) => r.spot.starting && r.state === 'idle').map((r) => lastName(r.spot.name))
-  const first = later?.rows[0]
-  const cd = later ? countdown(later.start, now) : null
-  const [time, ampm] = later ? splitTime(tipOff(later.start)) : ['', '']
-  const lead = past ? (
-    <div className="mp-seg">
-      <span className="mp-seg-lab">Played</span>
-      <span className="mp-seg-val">
-        <b className="num">{c.playing}</b>{' '}
-        <span className="mp-of">
-          of <span className="num">{c.starters}</span> slots
-        </span>
-      </span>
-    </div>
-  ) : later && first?.game ? (
-    <div className="mp-seg hero">
-      <span className="mp-seg-lab">{started ? 'Next tip' : 'First tip'}</span>
-      <span className="mp-seg-val">
-        <b className="num">
-          {time}
-          {ampm && <small>{ampm}</small>}
-        </b>
-        <span className={`mp-cd num${cd?.soon ? ' soon' : ''}`}>{cd?.text}</span>
-      </span>
-      <span className="mp-seg-sub">
-        {later.rows.map((r) => lastName(r.spot.name)).join(', ')} · {first.game.away.abbrev} @ {first.game.home.abbrev}
-      </span>
-    </div>
-  ) : c.live > 0 ? (
-    <div className="mp-seg hero">
-      <span className="mp-seg-lab">Live now</span>
-      <span className="mp-seg-val">
-        <i className="mp-dot" aria-hidden="true" />
-        <b className="num">{c.live}</b>{' '}
-        <span className="mp-of">of your starters</span>
-      </span>
-    </div>
-  ) : (
-    <div className="mp-seg">
-      <span className="mp-seg-lab">Tonight</span>
-      <span className="mp-seg-val">
-        <b>{c.playing ? 'All done' : 'No games'}</b>
-      </span>
-    </div>
-  )
+  const cd = next?.game ? countdown(next.game.start, now) : null
   return (
-    <div className="mp-strip">
-      {lead}
-      <div className="mp-seg mp-seg-play">
-        <span className="mp-seg-lab">{past ? 'Sat out' : 'Playing tonight'}</span>
-        <span className="mp-seg-val">
-          {past ? (
-            <b className="num">{c.idle}</b>
-          ) : (
-            <>
-              <b className="num">{c.playing}</b>{' '}
-              <span className="mp-of">
-                of <span className="num">{c.starters}</span> starting slots
-              </span>
-            </>
-          )}
+    <p className="mp-night">
+      {!past && next?.game ? (
+        <span className="mp-night-tip">
+          <span className="muted">{c.live + c.final > 0 ? 'Next tip' : 'First tip'}</span>{' '}
+          <b className="num">{tipOff(next.game.start)}</b>{' '}
+          <span className={`mp-cd num${cd?.soon ? ' soon' : ''}`}>{cd?.text}</span>
         </span>
-        <span className="mp-seg-sub">{idle.length ? `Idle: ${idle.join(', ')}` : 'Every slot plays'}</span>
-      </div>
-      {groups.length > 0 && (
-        <div className="mp-seg mp-order">
-          <span className="mp-seg-lab">Tip order</span>
-          <ol className="mp-groups">
-            {groups.map((g) => (
-              <li key={g.start} className={`mp-tg ${g.state}`}>
-                <span className="mp-tg-time num">
-                  {g.state === 'live' && <i className="mp-dot" aria-hidden="true" />}
-                  {g.state === 'final' ? <CheckCircle size={13} weight="fill" aria-hidden="true" /> : null}
-                  {splitTime(tipOff(g.start))[0]}
-                </span>
-                <span className="mp-faces">
-                  {g.rows.map((r) => (
-                    <span key={r.spot.player_id} className="mp-face" title={r.spot.name}>
-                      <PlayerHead
-                        player={{ id: r.spot.player_id, name: r.spot.name }}
-                        size={26}
-                        team={nbaAbbrev(r.spot.pro_team_id)}
-                      />
-                    </span>
-                  ))}
-                </span>
-                <span className="sr-only">{g.rows.map((r) => r.spot.name).join(', ')}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-    </div>
+      ) : c.live > 0 ? (
+        <span className="mp-night-tip">
+          <i className="mp-dot" aria-hidden="true" /> <b className="num">{c.live}</b> live now
+        </span>
+      ) : null}
+      <span>
+        <b className="num">{c.playing}</b> of <span className="num">{c.starters}</span> starting slots{' '}
+        {past ? 'played' : 'play tonight'}
+        {idle.length > 0 && <span className="muted"> · {past ? 'sat' : 'idle'}: {idle.join(', ')}</span>}
+      </span>
+    </p>
   )
 }
 

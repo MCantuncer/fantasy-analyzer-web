@@ -202,11 +202,6 @@
   min-height: 56px;
 }
 
-/* Before tip-off: on the page and ready, the season line waiting in its band. */
-.mp-row.mp-pre {
-  background: var(--mp-row);
-}
-
 .mp-row.mp-sub.mp-idle,
 .mp-row.mp-ir {
   color: var(--text-2);
@@ -468,98 +463,38 @@
   }
 }
 
-/* ---------- Before tip-off (round 4: life) ---------- */
+/* ---------- Before tip-off ---------- */
 
 .mp {
-  --mp-row: #221e1a;
-  --mp-band: #171411;
   --mp-sunk: #171512;
-  --mp-band-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 240 220 / 0.03);
 }
 
 :root[data-theme='light'] .mp {
-  --mp-row: #f7f2ea;
-  --mp-band: #ebe4d8;
   --mp-sunk: #f0e9de;
-  --mp-band-shadow: inset 0 1px 2px rgb(70 45 20 / 0.08);
 }
 
-/* The strip on top: the next tip-off, who plays, and the night in tip-off order. */
-.mp-strip {
-  display: grid;
-  grid-template-columns: minmax(190px, 220px) minmax(220px, 260px) minmax(0, 1fr);
-  gap: 10px;
-}
-
-.mp-seg {
+/* The night in one line: the next tip-off, then how many starting slots play and who sits. */
+.mp-night {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  min-height: 76px;
-  padding: 10px 16px;
-  border-radius: 14px;
-  background: var(--surface-2);
-  box-shadow: var(--mp-band-shadow);
-}
-
-.mp-seg.hero {
-  background: radial-gradient(ellipse 220px 120px at 0% 0%, var(--house), transparent 75%), var(--raised);
-  box-shadow: var(--lift), inset 0 1px 0 var(--rim);
-}
-
-.mp-seg-lab {
-  font-size: 12.5px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.mp-seg-val {
-  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
-  margin-top: 2px;
-  white-space: nowrap;
-}
-
-.mp-seg-val b {
-  font-size: 24px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-}
-
-.mp-seg-val b small,
-.mp-tip b small {
-  margin-left: 3px;
-  font-family: inherit;
-  font-size: 0.55em;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--text-2);
-}
-
-.mp-seg-val .mp-dot {
-  align-self: center;
-}
-
-.mp-of {
+  gap: 6px 20px;
+  margin: -4px 0 0;
   font-size: 14px;
   color: var(--text-2);
 }
 
-.mp-seg-sub {
-  margin-top: 1px;
-  overflow: hidden;
-  font-size: 12.5px;
-  color: var(--text-2);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.mp-night b {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.mp-night-tip .mp-dot {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .mp-cd {
-  font-size: 13px;
-  font-weight: 550;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -570,173 +505,53 @@
   font-weight: 650;
 }
 
-.mp-order {
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
+/* The game cell before tip-off is shaped like a live one: matchup on top, the time where the clock goes. */
+.mp-tipcell .mp-side.opp {
+  color: var(--text-2);
 }
 
-.mp-order .mp-seg-lab {
-  width: 44px;
-  white-space: normal;
-  line-height: 1.25;
-}
-
-.mp-groups {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 22px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mp-tg {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mp-tg-time {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 14px;
+.mp-tipcell .mp-side.own {
+  color: var(--text);
   font-weight: 650;
 }
 
-.mp-tg.final .mp-tg-time {
+.mp-tipcell .mp-where {
+  display: none;
+}
+
+.mp-tipcell .mp-status {
+  gap: 5px;
+}
+
+.mp-sep {
   color: var(--muted);
 }
 
-.mp-tg.live .mp-tg-time {
-  color: var(--gold-text);
-}
-
-.mp-faces {
-  display: inline-flex;
-}
-
-.mp-face + .mp-face {
-  margin-left: -7px;
-}
-
-.mp-face .head {
-  box-shadow: 0 0 0 2px var(--surface-2);
-}
-
-.mp-tg.final .mp-faces {
-  opacity: 0.6;
-}
-
-/* The game cell before tip-off: the time big, the time left under it, the matchup beside. */
-.mp-tipcell {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: 10px;
-}
-
-.mp-tip {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-
-.mp-tip b {
-  font-size: 18px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.mp-tip .mp-cd {
-  margin-top: 1px;
-  font-size: 12.5px;
-}
-
-.mp-match {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-  min-width: 0;
-  color: var(--text-2);
-  white-space: nowrap;
-}
-
-.mp-match .mp-side.own {
+.mp-tip-time {
   color: var(--text);
   font-weight: 600;
 }
 
-.mp-where {
-  display: none;
-}
-
-/* The season line, on a recessed band across the stat columns. */
-.mp-stats.mp-band {
-  display: grid;
-  grid-column: 5 / -1;
-  grid-template-columns: subgrid;
-  align-items: center;
-  min-height: 46px;
-  border-radius: 11px;
-  background: var(--mp-band);
-  box-shadow: var(--mp-band-shadow);
-  color: var(--text-2);
-}
-
-.mp-band .mp-stat dd {
-  font-size: 14px;
-  font-weight: 450;
-  color: var(--text-2);
-}
-
-.mp-band .mp-stat.pts dd {
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--text);
-}
-
-.mp-avg-split {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.15;
-}
-
-.mp-avg-pct {
-  font-size: 10.5px;
+/* What he usually brings, one quiet line where the stats will go. */
+.mp-avg-note {
+  font-size: 13.5px;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.mp-avg-cap {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
+.mp-avg-note b {
+  color: var(--text-2);
+  font-weight: 600;
 }
 
-.mp-swatch {
-  width: 16px;
-  height: 10px;
-  border-radius: 4px;
-  background: var(--mp-band);
-  box-shadow: var(--mp-band-shadow), inset 0 0 0 1px var(--border);
-}
-
-.mp-avg-totals {
-  background: linear-gradient(90deg, var(--house), transparent 60%), var(--surface-2);
-}
-
-/* No game that day: when he plays next, and his week as dots. */
+/* No game that day: one line, when he plays next and how many games are left. */
 .mp-quiet-cell {
   display: flex;
   grid-column: 4 / -1;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
   min-width: 0;
   font-size: 13.5px;
@@ -747,6 +562,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   white-space: nowrap;
 }
 
@@ -764,70 +580,23 @@
   display: none;
 }
 
-.mp-week {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.mp-wd {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 34px;
-  font-size: 11px;
-  line-height: 1;
-  color: var(--faint);
-}
-
-.mp-wd::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.mp-wd.g {
-  color: var(--text-2);
-}
-
-.mp-wd.g::after {
-  background: var(--text-2);
-  box-shadow: none;
-}
-
-.mp-wd.gone {
-  opacity: 0.5;
-}
-
-.mp-wd.t {
-  font-weight: 650;
-  color: var(--muted);
-}
-
-.mp-wd.t::after {
-  box-shadow: inset 0 0 0 1.5px var(--muted);
-}
-
 .mp-left {
-  min-width: 110px;
-  text-align: right;
   white-space: nowrap;
 }
 
-.mp-left b {
-  color: var(--text);
-}
-
-/* Narrow desktops and tablets: the columns give a little. */
-@media (max-width: 1100px) and (min-width: 641px) {
+/* Narrow desktops: MIN steps aside so the game keeps its room (score and logos never meet the
+   numbers), and the names keep theirs. Below 900px the two-line ledger takes over. */
+@media (max-width: 1100px) and (min-width: 901px) {
   .mp-cols,
   .mp-row,
   .mp-totals {
-    grid-template-columns: 20px 48px minmax(130px, 1.2fr) minmax(120px, 1fr) repeat(10, minmax(34px, 0.5fr));
+    grid-template-columns: 20px 44px minmax(140px, 1.2fr) minmax(160px, 1fr) repeat(9, minmax(34px, 0.5fr));
     column-gap: 6px;
+  }
+
+  .mp-cols > span:nth-child(4),
+  .mp-stat.min {
+    display: none;
   }
 
   .mp-row,
@@ -837,17 +606,5 @@
 
   .mp-cols {
     padding: 0 13px 4px;
-  }
-
-  .mp-strip {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .mp-order {
-    grid-column: 1 / -1;
-  }
-
-  .mp-week {
-    display: none;
   }
 }
