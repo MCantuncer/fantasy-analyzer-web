@@ -634,8 +634,7 @@ th .badge {
   box-shadow: var(--shadow);
 }
 
-.totd-loading,
-.totd-quiet {
+.totd-loading {
   gap: 8px;
   padding: 16px 20px;
 }
