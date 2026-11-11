@@ -506,3 +506,77 @@ button.tck-back {
       background-color 200ms ease-out;
   }
 }
+
+.tck-result-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A re-check on wide screens keeps the last answer, faded, until the new one lands. */
+.tck-result-body.stale {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tck-result-body {
+    transition: opacity 180ms ease-out;
+  }
+}
+
+.tck-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tck-pitch h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* The counter offer's place, recessed until the engine can fill it. */
+.tck-counter-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+
+.tck-counter-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tck-counter-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tck-counter-slot p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+
+.tck-counter-slip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 56px;
+  border-radius: var(--radius-tile);
+  border: 1px dashed var(--seam);
+}
+
+.tck-counter-slip span + span {
+  border-left: 1px dashed var(--seam);
+}
+
+.tck-counter-slot button {
+  align-self: stretch;
+}

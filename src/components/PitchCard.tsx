@@ -27,6 +27,8 @@ interface Props {
   partner: string
   /** The partner's league colour: the note's flap and seal. */
   colour?: string
+  /** A colour for the flap and edges only, when the crest keeps the league colour (Check a Trade's violet). */
+  flap?: string
   /** League size, for "8th/10". */
   teams?: number
   /** The sentence Copy pitch copies. */
@@ -40,9 +42,9 @@ interface Props {
  * The pitch as a note sealed in their colour: what the deal gives them, one tile per category, and
  * Copy pitch. A "Their side of the deal" turn then leads into a recessed tray holding the reasons.
  */
-export function PitchCard({ partner, colour, teams, pitch, needs, children }: Props) {
+export function PitchCard({ partner, colour, flap, teams, pitch, needs, children }: Props) {
   const list = needs ?? []
-  const style = { '--pp-team': colour ?? 'var(--muted)' } as CSSProperties
+  const style = { '--pp-team': flap ?? colour ?? 'var(--muted)' } as CSSProperties
   return (
     <div className="pp" style={style}>
       <section className="pp-note" aria-label={`Your pitch to ${partner}`}>
