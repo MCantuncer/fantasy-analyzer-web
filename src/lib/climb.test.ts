@@ -48,11 +48,11 @@ describe('climb', () => {
     expect(c.start.y - c.end.y).toBeCloseTo(plot / 5)
   })
 
-  it('groups the other pickups by where they end and counts them', () => {
-    expect(c.groups.map((g) => [g.pct, g.count])).toEqual([
-      [50, 2],
-      [49, 1],
-      [48, 3],
+  it('groups the other pickups by where they end, with the gain each group is labelled by', () => {
+    expect(c.groups.map((g) => [g.pct, g.count, g.gain])).toEqual([
+      [50, 2, 3],
+      [49, 1, 2],
+      [48, 3, 1],
     ])
     expect(c.strands).toHaveLength(6)
     for (const s of c.strands) expect(s.x).toBeGreaterThan(c.end.x)

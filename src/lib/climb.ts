@@ -22,6 +22,7 @@ export interface StrandGroup {
   pct: number // whole percent the strands end at
   y: number
   count: number
+  gain: number // whole points above today's odds (below, when negative): what the label prints
 }
 
 export interface Climb {
@@ -45,7 +46,7 @@ export const CLIMB = {
   startX: 0.2,
   endX: 0.6,
   strandFrom: 0.68,
-  strandTo: 0.88,
+  strandTo: 0.86, // leaves the right edge to the gain labels
   maxStrands: 24,
 }
 
@@ -90,11 +91,12 @@ export function climb({ before, after, others }: ClimbInput): Climb {
   const strands: Strand[] = []
   const groups: StrandGroup[] = []
   for (const [p, count] of byPct) {
-    groups.push({ pct: p, y: y(p / 100), count })
+    groups.push({ pct: p, y: y(p / 100), count, gain: p - round(before) })
     for (let k = 0; k < count; k++) strands.push({ y: y(p / 100), x: CLIMB.strandFrom + k * gap })
   }
 
-  // A count beside each group, skipping any too close to the one above to read.
+  // Its gain beside each group, skipping any too close to the one above to read. The dots
+  // already count the pickups; a bare count here read as a gain bigger than the pick's.
   groups.sort((a, b) => a.y - b.y)
   const labelled: StrandGroup[] = []
   for (const g of groups) if (!labelled.length || g.y - labelled[labelled.length - 1].y >= 12) labelled.push(g)

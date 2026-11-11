@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Plus, Trash } from '@phosphor-icons/react'
 import type { PlayerRef } from '../api/client'
 import { climb, sCurve } from '../lib/climb'
-import { pct, ptsDiff } from '../lib/format'
+import { pct, ptsDiff, signedInt } from '../lib/format'
 import { InjuryBadges } from './InjuryBadges'
 import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
@@ -46,8 +46,9 @@ function Who({
 /**
  * The free-agent move as a climb ("The field"): you leave the dropped player at today's odds and
  * rise to the added player's. Faint strands are the other straight add/drops the analysis scored,
- * each ending at its own odds, so the lit line shows how far it beats them. The scale is zoomed
- * and says so, with its ticks; 50% is labelled even odds, not the playoff line.
+ * each ending at its own odds and labelled with its own gain, so the lit line shows how far it
+ * beats them. The scale is zoomed and says so, with its ticks; 50% is labelled even odds, not
+ * the playoff line.
  */
 export function PickupClimb({
   add,
@@ -141,8 +142,8 @@ export function PickupClimb({
             </span>
           )}
           {c.groups.map((g) => (
-            <span key={g.pct} className="pclimb-count num" style={{ top: g.y }}>
-              ×{g.count}
+            <span key={g.pct} className="pclimb-gain num" style={{ top: g.y }}>
+              {signedInt(g.gain)} {Math.abs(g.gain) === 1 ? 'pt' : 'pts'}
             </span>
           ))}
           {scored > 0 && (
