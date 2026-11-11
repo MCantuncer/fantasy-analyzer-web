@@ -1,9 +1,10 @@
-/* My Players on phones (My Team tab): "Ledger". One label strip (FG FT 3PM REB AST STL BLK TO PTS)
-   under "Starting" labels every row and the starters' total. A playing row is two lines: mark, slot,
-   face, name and a small scorebug, then the numbers lined up under the strip (MIN is left to
-   desktop; FG/FT keep a small percentage underneath). Later, no-game, bench and IR rows are one
-   44px line. Long names show the last name alone so the pill and the score keep their room. */
-@media (max-width: 640px) {
+/* My Players on phones and small tablets, up to 900px (My Team tab): "Ledger". A playing row is two lines: mark, slot, face, name
+   and a small scorebug, then the numbers, each with its own small label above it (FG FT 3PM REB AST
+   STL BLK TO PTS) so a row reads on its own (MIN is left to desktop; FG/FT keep a small percentage
+   underneath). Before tip-off the scorebug is the opponent over the time and line 2 is one quiet
+   season line. No-game, bench and IR rows are one 44px line. Long names show the last name alone so
+   the pill and the score keep their room. */
+@media (max-width: 900px) {
   .mp-title {
     font-size: 20px;
   }
@@ -29,101 +30,9 @@
     min-height: 44px;
   }
 
-  /* The strip: next tip and who plays side by side, the tip order under them, in one panel. */
-  .mp .mp-strip {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 4px 10px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: var(--surface-2);
-    box-shadow: var(--mp-band-shadow);
-  }
-
-  .mp .mp-seg,
-  .mp .mp-seg.hero {
-    min-height: 0;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-  }
-
-  .mp .mp-seg-play {
-    align-items: flex-end;
-    text-align: right;
-  }
-
-  .mp .mp-seg-lab {
-    order: 2;
-    font-size: 11.5px;
-  }
-
-  .mp .mp-seg-val {
-    gap: 6px;
-    margin: 0;
-  }
-
-  .mp .mp-seg-val b {
-    font-size: 19px;
-  }
-
-  .mp .mp-seg-val .mp-cd,
-  .mp .mp-of {
-    font-size: 12px;
-  }
-
-  .mp .mp-seg-sub {
-    order: 3;
-    max-width: 100%;
-    font-size: 11.5px;
-  }
-
-  .mp .mp-seg.hero .mp-seg-sub {
-    display: none;
-  }
-
-  .mp .mp-order {
-    grid-column: 1 / -1;
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    border-radius: 0;
-  }
-
-  .mp .mp-order .mp-seg-lab {
-    display: none;
-  }
-
-  .mp .mp-groups {
-    justify-content: space-between;
-    gap: 6px 8px;
-    width: 100%;
-  }
-
-  .mp .mp-tg {
-    gap: 5px;
-  }
-
-  .mp .mp-tg-time {
-    font-size: 12.5px;
-  }
-
-  .mp .mp-face .head {
-    width: 18px !important;
-    height: 18px !important;
-  }
-
-  .mp .mp-face + .mp-face {
-    margin-left: -9px;
-  }
-
-  /* The time's colour already says live (gold) or over (muted); the marks make way. */
-  .mp .mp-tg-time .mp-dot,
-  .mp .mp-tg-time svg {
-    display: none;
-  }
-
-  .mp .mp-avg-cap {
-    font-size: 12px;
+  .mp .mp-night {
+    gap: 4px 12px;
+    font-size: 13px;
   }
 
   .mp-long {
@@ -173,50 +82,14 @@
     --lg-chip: 34px;
     --lg-gap: 7px;
     --lg-pad: 10px;
-    /* the nine stat columns, shared by the strip, every row and the totals */
+    /* the nine stat columns, shared by every row and the totals */
     --lg-cols: minmax(0, 1.55fr) minmax(0, 1.35fr) repeat(6, minmax(0, 1fr)) minmax(0, 1.3fr);
     padding: 16px 12px;
   }
 
-  /* --- table becomes a flex column so the strip can sit under the "Starting" heading --- */
-  .mp .mp-table {
-    display: flex;
-    flex-direction: column;
-  }
-  .mp .mp-table > h3.mp-group:first-of-type {
-    order: -2;
-    margin-top: 4px;
-  }
-  .mp .mp-table > .mp-cols {
-    order: -1;
-  }
-
-  /* --- the shared label strip --- */
+  /* Every row carries its own labels, so the column heads go. */
   .mp .mp-cols {
-    display: grid;
-    grid-template-columns: var(--lg-cols);
-    column-gap: 0;
-    align-items: center;
-    height: 26px;
-    margin: 0 0 6px;
-    padding: 0 calc(var(--lg-pad) + 1px) 0 calc(1px + var(--lg-pad) + var(--lg-mark) + var(--lg-gap));
-    border-radius: 9px;
-    background: var(--surface-2);
-    box-shadow: var(--recess);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--muted);
-  }
-  .mp .mp-cols > span:nth-child(-n + 4) {
     display: none;
-  }
-  .mp .mp-cols .mp-col-stat {
-    text-align: center;
-  }
-  .mp .mp-cols .mp-col-stat:last-child {
-    color: var(--text);
-    font-weight: 700;
   }
 
   /* --- rows --- */
@@ -379,12 +252,25 @@
     margin: 0;
     padding: 0;
   }
+  /* Each number wears its label, small, so "2 2 0" reads as 2 REB, 2 AST, 0 STL. */
+  .mp .mp-stat {
+    justify-content: flex-start;
+  }
   .mp .mp-stat dt {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    margin: 0 0 2px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 11px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .mp .mp-stat.pts dt {
+    color: var(--text-2);
   }
   .mp .mp-stat.min {
     display: none;
@@ -444,9 +330,6 @@
   .mp .mp-row.mp-starter.mp-idle {
     border: 1px solid color-mix(in srgb, var(--text-2) 38%, transparent);
   }
-  .mp .mp-row.mp-pre {
-    background: var(--mp-row);
-  }
 
   .mp .mp-row.mp-starter.mp-idle {
     background: var(--mp-sunk);
@@ -454,74 +337,38 @@
     min-height: 44px;
   }
 
-  /* Before tip-off, line 1 ends with the opponent and the time: "@ PHX  5:00 AM / in 2h 10m". */
-  .mp .mp-row .mp-tipcell {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .mp .mp-tipcell .mp-tip {
-    order: 2;
-    align-items: flex-end;
-  }
-
-  .mp .mp-tipcell .mp-tip b {
-    font-size: 15px;
-  }
-
-  .mp .mp-tipcell .mp-cd {
-    font-size: 11px;
-  }
-
-  .mp .mp-match .own,
-  .mp .mp-match .mp-vs {
+  /* Before tip-off the scorebug is the opponent over the time, like the score over the clock. */
+  .mp .mp-tipcell .mp-side.own,
+  .mp .mp-tipcell .mp-vs {
     display: none;
   }
-
-  .mp .mp-match .opp .mp-abbrev {
-    font-size: 11px;
-    color: var(--text-2);
-  }
-
-  .mp .mp-match .team-logo {
-    display: inline-block;
-  }
-
-  .mp .mp-where {
+  .mp .mp-tipcell .mp-where {
     display: inline;
-    font-size: 12px;
+    margin-right: 2px;
     color: var(--muted);
   }
-
-  /* The season line on its band, lined up under the label strip. FG/FT show their percentage. */
-  .mp .mp-row .mp-stats.mp-band,
-  .mp .mp-totals .mp-stats.mp-band {
-    min-height: 26px;
-    border-radius: 8px;
-  }
-
-  .mp .mp-band .mp-stat dd {
-    font-size: 12.5px;
-    line-height: 18px;
-    font-weight: 450;
+  .mp .mp-tipcell .mp-abbrev {
+    font-size: 10.5px;
     color: var(--text-2);
   }
-
-  .mp .mp-band .mp-stat.pts dd {
-    font-size: 13.5px;
-    font-weight: 650;
-    color: var(--text);
+  .mp .mp-tipcell .mp-status {
+    font-size: 11px;
+  }
+  .mp .mp-tipcell .mp-tip-time {
+    font-weight: 600;
   }
 
-  .mp .mp-avg-ma {
-    display: none;
+  /* line 2 before tip-off: one quiet season line, not a row of numbers */
+  .mp .mp-row > .mp-avg-note {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
   }
-
-  .mp .mp-avg-pct {
-    font-size: inherit;
-    color: inherit;
+  .mp .mp-avg-note b {
+    font-weight: 600;
+    color: var(--text-2);
   }
 
   /* No game: "Next Wed @ IND" on line 1, nothing more. */
@@ -533,7 +380,6 @@
   }
 
   .mp .mp-quiet-cell .mp-what,
-  .mp .mp-quiet-cell .mp-week,
   .mp .mp-quiet-cell .mp-left {
     display: none;
   }
@@ -606,16 +452,15 @@
   }
 }
 
-/* Small phones: "Wed @ IND" and the opponent as a logo only, so names keep room. */
+/* Small phones: "Wed @ IND" without "Next", so names keep room. */
 @media (max-width: 380px) {
-  .mp .mp-next-word,
-  .mp .mp-match .opp .mp-abbrev {
+  .mp .mp-next-word {
     display: none;
   }
 }
 
 /* IR on phones: the slot chip already says IR, so the row keeps the name and its OUT pill room. */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .mp-row.mp-ir .mp-note {
     display: none;
   }

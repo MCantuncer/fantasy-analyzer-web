@@ -153,33 +153,6 @@ export function espnTeamUrl(leagueId: number, teamId: number, season: number): s
   return `https://fantasy.espn.com/basketball/team?leagueId=${leagueId}&teamId=${teamId}&seasonId=${season}`
 }
 
-/**
- * Before tip-off: the season per-game lines of the starters whose game is still to come, added up
- * ("Tonight at their averages"). An average, not a prediction. Null once any starter has a line.
- */
-export function averageTotals(rows: PlayerRow[]): (Totals & { players: number }) | null {
-  if (rows.some((r) => r.spot.starting && r.line)) return null
-  const t = { players: 0, played: 0, on: 0, min: 0, fgm: 0, fga: 0, ftm: 0, fta: 0, tpm: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, pts: 0 }
-  for (const r of rows) {
-    const a = r.spot.season_avg
-    if (!r.spot.starting || r.state !== 'later' || !a) continue
-    t.players += 1
-    t.min += a.min
-    t.fgm += a.fgm
-    t.fga += a.fga
-    t.ftm += a.ftm
-    t.fta += a.fta
-    t.tpm += a.tpm
-    t.reb += a.reb
-    t.ast += a.ast
-    t.stl += a.stl
-    t.blk += a.blk
-    t.to += a.to
-    t.pts += a.pts
-  }
-  return t.players > 0 ? t : null
-}
-
 /** "in 2h 10m", "in 40m", "any minute": the time left to a tip-off. ``soon`` inside the last hour. */
 export function countdown(startIso: string, now: number): { text: string; soon: boolean } {
   const mins = Math.ceil((new Date(startIso).getTime() - now) / 60_000)
@@ -187,34 +160,6 @@ export function countdown(startIso: string, now: number): { text: string; soon: 
   const h = Math.floor(mins / 60)
   const m = mins % 60
   return { text: h > 0 ? `in ${h}h${m ? ` ${m}m` : ''}` : `in ${m}m`, soon: mins <= 60 }
-}
-
-export interface TipGroup {
-  start: string
-  rows: PlayerRow[]
-  /** The group's games: all on, all over, or still to come. */
-  state: 'live' | 'final' | 'later'
-}
-
-/** Your starters with a game, grouped by tip-off time, earliest first: the night in running order. */
-export function tipGroups(rows: PlayerRow[]): TipGroup[] {
-  const by = new Map<string, PlayerRow[]>()
-  for (const r of rows) {
-    if (!r.spot.starting || !r.game) continue
-    const k = r.game.start
-    by.set(k, [...(by.get(k) ?? []), r])
-  }
-  return [...by.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([start, rs]) => ({
-      start,
-      rows: rs,
-      state: rs.some((r) => r.state === 'live')
-        ? 'live'
-        : rs.every((r) => r.state === 'final' || r.state === 'dnp')
-          ? 'final'
-          : 'later',
-    }))
 }
 
 /** The weekday of an ESPN day ("Wed"), on the US date as the day picker shows it. */

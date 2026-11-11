@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Game, GameLine, LineupSpot } from '../api/client'
 import {
-  averageTotals,
   benchLeftOut,
   buildRows,
   countdown,
@@ -11,7 +10,6 @@ import {
   nextLabel,
   starterTotals,
   swapToMake,
-  tipGroups,
 } from './myPlayers'
 
 const spot = (id: number, slot: string, game_id: number | null, extra: Partial<LineupSpot> = {}): LineupSpot => ({
@@ -109,23 +107,6 @@ describe('My Players rows', () => {
     )
   })
 
-  const avg = { gp: 9, min: 30, fgm: 4, fga: 9, ftm: 2, fta: 3, tpm: 1.5, reb: 5, ast: 4, stl: 1, blk: 0.5, to: 2, pts: 11.5 }
-
-  it('adds up the season lines of starters still to play, until the first line comes in', () => {
-    const pre = buildRows(
-      [
-        spot(12, 'C', 3, { season_avg: avg }),
-        spot(13, 'PG', 3, { season_avg: { ...avg, pts: 20 } }),
-        spot(21, 'BE', 3, { season_avg: avg }),
-        spot(14, 'F', null, { season_avg: avg }),
-      ],
-      games,
-    )
-    const t = averageTotals(pre)
-    expect([t?.players, t?.pts, t?.fga]).toEqual([2, 31.5, 18])
-    expect(averageTotals(rows)).toBeNull() // a starter has a line: the real totals take over
-  })
-
   it('counts down to tip-off, gold inside the last hour', () => {
     const tip = '2026-11-11T01:00:00Z'
     const at = (iso: string) => countdown(tip, new Date(iso).getTime())
@@ -133,22 +114,6 @@ describe('My Players rows', () => {
     expect(at('2026-11-10T23:00:00Z')).toEqual({ text: 'in 2h', soon: false })
     expect(at('2026-11-11T00:20:00Z')).toEqual({ text: 'in 40m', soon: true })
     expect(at('2026-11-11T01:02:00Z').soon).toBe(true)
-  })
-
-  it('groups starters by tip-off for the running order', () => {
-    const at = (g: Game, start: string): Game => ({ ...g, start })
-    const night = [
-      at(game(1, 'live', [line(10, 27)]), '2026-11-11T00:30:00Z'),
-      at(game(2, 'final', [line(11, 16)]), '2026-11-11T00:00:00Z'),
-      at(game(3, 'scheduled'), '2026-11-11T03:00:00Z'),
-    ]
-    const spots = [spot(12, 'C', 3), spot(10, 'SF', 1), spot(11, 'SG', 2), spot(20, 'BE', 2), spot(13, 'UTIL', null)]
-    const g = tipGroups(buildRows(spots, night))
-    expect(g.map((x) => [x.state, x.rows.map((r) => r.spot.player_id)])).toEqual([
-      ['final', [11]],
-      ['live', [10]],
-      ['later', [12]],
-    ])
   })
 
   it('says where he plays next and how many games are left this week', () => {

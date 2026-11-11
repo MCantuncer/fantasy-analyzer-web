@@ -101,9 +101,12 @@ describe('MyPlayers', () => {
     expect(within(tatum).getByText('27')).toBeInTheDocument()
     const bey = screen.getByText('Saddiq Bey').closest('li') as HTMLElement
     expect(bey).toHaveTextContent(/No game tonight/)
-    expect(document.querySelector('.mp-seg-play')).toHaveTextContent('Playing tonight2 of 3 starting slotsIdle: Bey')
-    // Tip order: the live game's starters, by name for screen readers.
-    expect(document.querySelector('.mp-groups')).toHaveTextContent('Jayson Tatum')
+    expect(document.querySelector('.mp-night')).toHaveTextContent('2 of 3 starting slots play tonight · idle: Bey')
+    expect(document.querySelector('.mp-night')).toHaveTextContent(/Next tip/)
+    // Before tip-off the game cell reads like a live one: the matchup, then the time.
+    const mara = screen.getByText('Aday Mara').closest('li') as HTMLElement
+    expect(within(mara).getByText('POR')).toBeInTheDocument()
+    expect(mara.querySelector('.mp-tipcell .mp-status')).toHaveTextContent(/\d:00/)
     expect(screen.getByText('Starters so far')).toBeInTheDocument()
   })
 
