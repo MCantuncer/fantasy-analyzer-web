@@ -57,7 +57,8 @@
           "SG",
           "SF"
         ],
-        "injury_status": "ACTIVE"
+        "injury_status": "ACTIVE",
+        "badges": []
       },
       {
         "id": 2991230,
@@ -67,7 +68,8 @@
           "PG",
           "SG"
         ],
-        "injury_status": "ACTIVE"
+        "injury_status": "ACTIVE",
+        "badges": []
       }
     ],
     "value_they_get": 9.8,
@@ -217,5 +219,222 @@
     "3PM",
     "STL"
   ],
-  "partner_punts": []
+  "partner_punts": [],
+  "my_drop_options": [
+    {
+      "player": {
+        "id": 4278053,
+        "name": "Davion Mitchell",
+        "pro_team": "MIA",
+        "positions": [
+          "PG"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": true,
+      "playoff_pct_after": 0.526
+    },
+    {
+      "player": {
+        "id": 4437244,
+        "name": "Jalen Green",
+        "pro_team": "PHX",
+        "positions": [
+          "SG",
+          "SF"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": 0.502
+    },
+    {
+      "player": {
+        "id": 4576087,
+        "name": "Peyton Watson",
+        "pro_team": "CLE",
+        "positions": [
+          "SF",
+          "PF"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": [
+          {
+            "kind": "fresh_signing",
+            "category": null,
+            "reason": "Just picked up (today). Owners rarely flip a player they just got."
+          }
+        ]
+      },
+      "chosen": false,
+      "playoff_pct_after": 0.478
+    },
+    {
+      "player": {
+        "id": 4432573,
+        "name": "Paolo Banchero",
+        "pro_team": "ORL",
+        "positions": [
+          "SF",
+          "PF"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": 0.478
+    },
+    {
+      "player": {
+        "id": 4066354,
+        "name": "Payton Pritchard",
+        "pro_team": "BOS",
+        "positions": [
+          "PG",
+          "SG"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 4591725,
+        "name": "Ryan Rollins",
+        "pro_team": "MIL",
+        "positions": [
+          "PG",
+          "SG"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 4278049,
+        "name": "Daniel Gafford",
+        "pro_team": "DAL",
+        "positions": [
+          "C"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 3032977,
+        "name": "Giannis Antetokounmpo",
+        "pro_team": "MIA",
+        "positions": [
+          "PF",
+          "C"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": [
+          {
+            "kind": "keystone",
+            "category": "FG%",
+            "reason": "Carries KEA's FG%. They win it 73% of weeks, 60% without him."
+          }
+        ]
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 4684740,
+        "name": "Amen Thompson",
+        "pro_team": "HOU",
+        "positions": [
+          "SG",
+          "SF"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 4433255,
+        "name": "Chet Holmgren",
+        "pro_team": "OKC",
+        "positions": [
+          "PF",
+          "C"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": []
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    },
+    {
+      "player": {
+        "id": 4065648,
+        "name": "Jayson Tatum",
+        "pro_team": "BOS",
+        "positions": [
+          "SF",
+          "PF"
+        ],
+        "injury_status": "ACTIVE",
+        "badges": [
+          {
+            "kind": "jewel",
+            "category": null,
+            "reason": "#9 in the league by trade value. Trading him takes a spectacular offer."
+          }
+        ]
+      },
+      "chosen": false,
+      "playoff_pct_after": null
+    }
+  ],
+  "flags": [
+    {
+      "check": "build_conflict",
+      "title": "Build conflict",
+      "status": "confirmed",
+      "evidence": "It costs categories you compete in: FG% -18 pts (you win it 73% of weeks now, a strength); REB -11 pts (you win it 62% of weeks now)."
+    }
+  ],
+  "checks": [
+    {
+      "check": "build_conflict",
+      "title": "Build conflict",
+      "status": "confirmed",
+      "evidence": "It costs categories you compete in: FG% -18 pts (you win it 73% of weeks now, a strength); REB -11 pts (you win it 62% of weeks now)."
+    },
+    {
+      "check": "injury",
+      "title": "Injury and durability",
+      "status": "not_supported",
+      "evidence": "Everyone you get is healthy and has a normal games-played record."
+    },
+    {
+      "check": "small_sample",
+      "title": "Small sample",
+      "status": "not_supported",
+      "evidence": "Everyone you get has a prior season or 10+ games this season."
+    },
+    {
+      "check": "lateral_swap",
+      "title": "Lateral swap",
+      "status": "not_supported",
+      "evidence": "Model value in: Desmond Bane (+1.1) + Fred VanVleet (-0.1); out: Jarrett Allen (+0.8); net +4.2."
+    }
+  ]
 }
