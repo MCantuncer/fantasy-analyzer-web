@@ -402,14 +402,9 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
 }
 
 function quietNote(row: PlayerRow): ReactNode {
-  const { state, game } = row
-  if (state === 'later')
-    return (
-      <>
-        <span className="mp-long">No games yet this season · tips </span>
-        <span className="num">{game ? tipOff(game.start) : ''}</span>
-      </>
-    )
+  const { spot, state } = row
+  // No average to show: he hasn't played this season (null), or the server predates averages.
+  if (state === 'later') return spot.season_avg === null ? <span className="mp-long">No games played yet this season</span> : ''
   if (state === 'live') return 'Not in yet'
   if (state === 'dnp') return "Didn't play"
   return ''
