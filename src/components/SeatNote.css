@@ -1,0 +1,21 @@
+/* The line above a picked, not yet verified team's pages. Quiet: it stays up until they verify. */
+.seat-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0 4px;
+}
+
+.seat-note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.seat-note-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}

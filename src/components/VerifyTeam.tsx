@@ -10,6 +10,12 @@ interface Props {
   leagueName: string
   teams: OverviewTeam[]
   creds: Credentials | null
+  /** The team to open on (the one picked earlier, when they came to verify it). */
+  initialTeamId?: number | null
+  /** The team whose moves they already see without verifying. */
+  pickedTeamId?: number | null
+  /** See a team's moves now and verify later. Only offered for a team nobody has verified. */
+  onPick?: (teamId: number) => void
   onVerified: () => void
   onCancel: () => void
 }
@@ -20,11 +26,22 @@ function status(t: OverviewTeam): string {
 }
 
 /**
- * Makes this account a team's official manager without an ESPN login: set the team's
- * abbreviation on ESPN to a code we give you, we read it back, then you change it back.
+ * Pick your team. Its moves open at once while nobody has verified it; proving it on ESPN makes
+ * this account the team's official manager without an ESPN login: set the team's abbreviation
+ * to a code we give you, we read it back, then you change it back.
  */
-export function VerifyTeam({ leagueRef, leagueName, teams, creds, onVerified, onCancel }: Props) {
-  const [teamId, setTeamId] = useState<number | null>(null)
+export function VerifyTeam({
+  leagueRef,
+  leagueName,
+  teams,
+  creds,
+  initialTeamId = null,
+  pickedTeamId = null,
+  onPick,
+  onVerified,
+  onCancel,
+}: Props) {
+  const [teamId, setTeamId] = useState<number | null>(initialTeamId)
   const [challenge, setChallenge] = useState<TeamLinkChallenge | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -85,9 +102,29 @@ export function VerifyTeam({ leagueRef, leagueName, teams, creds, onVerified, on
         )}
       </div>
 
+      {chosen && onPick && !chosen.has_manager && chosen.id !== pickedTeamId && !challenge && (
+        <section className="card stack" aria-labelledby="pick-title">
+          <h2 id="pick-title">See {chosen.name}'s moves now</h2>
+          <p className="small muted">
+            Your best trades, FA targets and playoff odds open right away. You can prove the team is yours later.
+          </p>
+          <div className="row">
+            <button type="button" onClick={() => onPick(chosen.id)}>
+              See my moves
+            </button>
+          </div>
+        </section>
+      )}
+
       {chosen && (!challenge || expired || challenge.team_id !== chosen.id) && (
         <section className="card stack" aria-labelledby="code-title">
           <h2 id="code-title">Prove {chosen.name} is yours</h2>
+          {onPick && !chosen.has_manager && (
+            <p className="small muted">
+              Verifying makes you the team's official manager. It opens League Chat, trade feedback and saved trade
+              rules, and closes your moves to everyone else. Until then, anyone who adds this league can open them.
+            </p>
+          )}
           <p className="small muted">
             You'll set the team's abbreviation on ESPN to a 4-character code, and we read it back. Only the team's owner
             and the league manager can change it. No ESPN password or login.
@@ -100,7 +137,12 @@ export function VerifyTeam({ leagueRef, leagueName, teams, creds, onVerified, on
           )}
           {expired && <p className="small warn">That code expired. Get a fresh one.</p>}
           <div className="row">
-            <button type="button" disabled={start.isPending} onClick={() => start.mutate(chosen.id)}>
+            <button
+              type="button"
+              className={onPick && !chosen.has_manager && chosen.id !== pickedTeamId ? 'secondary' : undefined}
+              disabled={start.isPending}
+              onClick={() => start.mutate(chosen.id)}
+            >
               {start.isPending ? 'Getting a code…' : 'Get my code'}
             </button>
           </div>

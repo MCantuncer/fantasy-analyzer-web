@@ -256,8 +256,13 @@ export function fetchRecap(ref: LeagueRef, period: number | null, creds: Credent
   return post<WeekRecap>('/api/recap', { league_id: ref.leagueId, season: ref.season, period }, creds, RECAP_TIMEOUT_MS)
 }
 
-export function fetchMatchupProjection(ref: LeagueRef, creds: Credentials | null) {
-  return post<MatchupProjection | null>('/api/matchup-projection', { league_id: ref.leagueId, season: ref.season }, creds)
+/** ``teamId``: the team to project, for one picked before verifying (the server defaults to the verified team). */
+export function fetchMatchupProjection(ref: LeagueRef, creds: Credentials | null, teamId: number | null = null) {
+  return post<MatchupProjection | null>(
+    '/api/matchup-projection',
+    { league_id: ref.leagueId, season: ref.season, team_id: teamId },
+    creds,
+  )
 }
 
 export function fetchLeague(leagueId: number, season: number | null, creds: Credentials | null) {
