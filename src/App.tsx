@@ -37,6 +37,7 @@ import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
 import { tonightMatchup } from './lib/league'
 import { useTabInView } from './lib/useTabInView'
+import { pageName, usePageView } from './lib/pageView'
 
 interface Selection {
   leagueId: number
@@ -246,6 +247,16 @@ export default function App() {
   const showTabs =
     selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
   const tabsRef = useTabInView(showTabs ? activeTab : null)
+  usePageView(
+    pageName({
+      signedIn,
+      hasLeague: selection !== null,
+      leagueReady: !!overview.data,
+      verifying,
+      tab: activeTab,
+      filmOpen: film !== undefined,
+    }),
+  )
   const tradesPending = !!report?.pending?.length
   const firstRun = (waitingForReport || tradesPending) && analysis.isPending
   // Between the league answering and the analysis starting there is nothing new to show,

@@ -208,6 +208,11 @@ export function signOut() {
   return send<{ ok: boolean }>('/api/auth/logout', {})
 }
 
+/** Counts a page view for the usage numbers: the page name only, no ids. Never fails loudly. */
+export function countPageView(page: string) {
+  return send<{ ok: boolean }>('/api/usage', { page }).catch(() => undefined)
+}
+
 export function fetchMe() {
   return post<Me>('/api/me', {})
 }
