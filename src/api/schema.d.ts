@@ -21,6 +21,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Usage
+         * @description A page view from the website: counted per page, and the visitor once a day without
+         *     tracking them (no cookies or ids; see app/usage.py).
+         */
+        post: operations["usage_api_usage_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Client Error
+         * @description The website's crashes. No account needed: a crash can happen before sign-in.
+         */
+        post: operations["report_client_error_api_errors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Errors */
+        post: operations["admin_errors_api_admin_errors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Usage
+         * @description Admins only: daily visitors, page views and server events, and account totals.
+         */
+        post: operations["admin_usage_api_admin_usage_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/errors/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Error */
+        post: operations["resolve_error_api_admin_errors_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/injury-impact": {
         parameters: {
             query?: never;
@@ -484,6 +579,26 @@ export interface paths {
         put?: never;
         /** Target */
         post: operations["target_api_target_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/offer-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Offer Check
+         * @description Check any trade with another team, offered to you or one you plan to send: the verdict for both sides.
+         */
+        post: operations["offer_check_api_offer_check_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1165,6 +1280,46 @@ export interface components {
              */
             evidence: string;
         };
+        /**
+         * ClientError
+         * @description A crash or unhandled error in the website, sent so it shows up in the error reports.
+         */
+        ClientError: {
+            /**
+             * Kind
+             * @description crash: a screen failed to draw; error: an uncaught error; rejection: an unhandled promise
+             * @enum {string}
+             */
+            kind: "crash" | "error" | "rejection";
+            /**
+             * Name
+             * @description The error's type, e.g. TypeError
+             * @default Error
+             */
+            name: string;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /**
+             * Stack
+             * @default
+             */
+            stack: string;
+            /**
+             * Page
+             * @description Path and tab, e.g. /?tab=moves; no other query
+             * @default
+             */
+            page: string;
+            /**
+             * Build
+             * @description The website build that sent it
+             * @default
+             */
+            build: string;
+        };
         /** CrowdedDay */
         CrowdedDay: {
             /**
@@ -1251,6 +1406,47 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /** ErrorReport */
+        ErrorReport: {
+            /** Id */
+            id: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "api" | "web";
+            /** Title */
+            title: string;
+            /** Message */
+            message: string;
+            /** Stack */
+            stack: string;
+            /**
+             * Route
+             * @description The API request or website page it last happened on
+             */
+            route: string;
+            /** Build */
+            build: string;
+            /** User Agent */
+            user_agent: string;
+            /** Count */
+            count: number;
+            /** First Seen */
+            first_seen: string;
+            /** Last Seen */
+            last_seen: string;
+            /**
+             * Resolved
+             * @description Marked fixed and not seen since
+             */
+            resolved: boolean;
+        };
+        /** ErrorReports */
+        ErrorReports: {
+            /** Reports */
+            reports: components["schemas"]["ErrorReport"][];
         };
         /** FeedBid */
         FeedBid: {
@@ -1831,6 +2027,12 @@ export interface components {
             leagues: components["schemas"]["MyLeague"][];
             /** Notices */
             notices: components["schemas"]["Notice"][];
+            /**
+             * Admin
+             * @description Can read the site's error reports (ADMIN_EMAILS)
+             * @default false
+             */
+            admin: boolean;
         };
         /** MoveDay */
         MoveDay: {
@@ -2157,6 +2359,170 @@ export interface components {
             /** At */
             at: string;
         };
+        /** OfferCheck */
+        OfferCheck: {
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "received" | "sending";
+            /** Team Id */
+            team_id: number;
+            /** Team Name */
+            team_name: string;
+            /** Partner Team Id */
+            partner_team_id: number;
+            /** Partner Team Name */
+            partner_team_name: string;
+            /** Partner Record */
+            partner_record: string;
+            /**
+             * Call
+             * @description For you: take (odds up a point beyond noise), pass (down a point beyond noise), close otherwise
+             * @enum {string}
+             */
+            call: "take" | "close" | "pass";
+            /**
+             * Call Reason
+             * @description Why, in a sentence
+             */
+            call_reason: string;
+            /**
+             * Odds Noise
+             * @description Simulation noise on your odds change (two standard errors, 0-1)
+             */
+            odds_noise: number;
+            /**
+             * Helps
+             * @description Your categories whose weekly win chance rises 2+ points, biggest first
+             */
+            helps: string[];
+            /**
+             * Hurts
+             * @description Your categories whose weekly win chance drops 2+ points, biggest first
+             */
+            hurts: string[];
+            /**
+             * Partner Call
+             * @description Their playoff odds: up a point, flat, down
+             * @enum {string}
+             */
+            partner_call: "gain" | "even" | "lose";
+            /** Partner Reason */
+            partner_reason: string;
+            /**
+             * Partner Helps
+             * @description Their categories that rise, ignoring the ones they punt
+             */
+            partner_helps: string[];
+            /** Partner Hurts */
+            partner_hurts: string[];
+            /**
+             * Partner Punts
+             * @description Categories they win less than 30% of the time
+             */
+            partner_punts: string[];
+            /**
+             * Paper Win
+             * @description They get at least the trade value they send, owner premium included
+             */
+            paper_win: boolean;
+            /**
+             * My Drops
+             * @description Who you cut to fit the extra players you get
+             */
+            my_drops: components["schemas"]["PlayerRef"][];
+            /**
+             * My Drop Options
+             * @description Players you could cut instead, cheapest first (kept players left out)
+             */
+            my_drop_options?: components["schemas"]["PlayerRef"][];
+            /**
+             * My Adds
+             * @description Free agents you pick up for the spots the trade opens
+             */
+            my_adds: components["schemas"]["PlayerRef"][];
+            /**
+             * Their Drops
+             * @description Who they would likely cut
+             */
+            their_drops: components["schemas"]["PlayerRef"][];
+            /**
+             * Their Adds
+             * @description Free agents they pick up for the spots the trade opens
+             */
+            their_adds: components["schemas"]["PlayerRef"][];
+            /**
+             * Vs Pickup
+             * @description Your odds are measured against picking up your free agents without the trade
+             */
+            vs_pickup: boolean;
+            /**
+             * Flags
+             * @description Concerns the data confirms, e.g. a category you compete in drops
+             */
+            flags: components["schemas"]["CheckVerdict"][];
+            /** @description The full picture: both teams' odds, categories, playoff weeks, value, pitch */
+            idea: components["schemas"]["TradeIdea"];
+            /**
+             * Sims
+             * @description Simulated seasons behind the odds
+             */
+            sims: number;
+            /** Generated At */
+            generated_at: string;
+            /** Elapsed Ms */
+            elapsed_ms: number;
+        };
+        /** OfferCheckRequest */
+        OfferCheckRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Keep Player Ids
+             * @description Players never offered in trades or suggested as drops
+             */
+            keep_player_ids?: number[];
+            /**
+             * Not For Sale Player Ids
+             * @description Other teams' players their owners won't move: never targeted in trades
+             */
+            not_for_sale_player_ids?: number[];
+            /**
+             * Partner Team Id
+             * @description The other team in the trade
+             */
+            partner_team_id: number;
+            /**
+             * Give Player Ids
+             * @description Your players in the trade
+             */
+            give_player_ids: number[];
+            /**
+             * Get Player Ids
+             * @description Their players in the trade
+             */
+            get_player_ids: number[];
+            /**
+             * My Drop Player Ids
+             * @description Who you'd cut to fit the extra players you get; your least valuable droppable players if empty
+             */
+            my_drop_player_ids?: number[];
+            /**
+             * Direction
+             * @description received: they offered it to you. sending: you plan to propose it
+             * @default received
+             * @enum {string}
+             */
+            direction: "received" | "sending";
+        };
         /** OverviewMatchup */
         OverviewMatchup: {
             home: components["schemas"]["MatchupSide"];
@@ -2252,6 +2618,17 @@ export interface components {
             their_cats_gain: number;
             /** Helps */
             helps: string[];
+        };
+        /**
+         * PageView
+         * @description A page the website opened, for the usage numbers. Only the page name: no ids, no query.
+         */
+        PageView: {
+            /**
+             * Page
+             * @description A tab or screen, e.g. moves, scores, my-leagues
+             */
+            page: string;
         };
         /** PickupIdea */
         PickupIdea: {
@@ -3142,6 +3519,11 @@ export interface components {
              * @default false
              */
             mine: boolean;
+        };
+        /** ResolveErrorRequest */
+        ResolveErrorRequest: {
+            /** Id */
+            id: number;
         };
         /** ScoreDay */
         ScoreDay: {
@@ -4393,6 +4775,60 @@ export interface components {
             /** Owner Team Id */
             owner_team_id?: number | null;
         };
+        /** UsageDay */
+        UsageDay: {
+            /** Day */
+            day: string;
+            /**
+             * Visitors
+             * @description Distinct visitors that day (a daily hash; never matched across days)
+             */
+            visitors: number;
+            /**
+             * Signed In
+             * @description Of those, how many were signed in
+             */
+            signed_in: number;
+            /** New Accounts */
+            new_accounts: number;
+            /**
+             * Views
+             * @description Page views by page, e.g. moves, scores
+             */
+            views: {
+                [key: string]: number;
+            };
+            /**
+             * Events
+             * @description Things done on the server, e.g. signup, analysis
+             */
+            events: {
+                [key: string]: number;
+            };
+        };
+        /** UsageReport */
+        UsageReport: {
+            /** Accounts */
+            accounts: number;
+            /** Verified Teams */
+            verified_teams: number;
+            /** Followed Leagues */
+            followed_leagues: number;
+            /**
+             * Days
+             * @description Most recent first; days with nothing are left out
+             */
+            days: components["schemas"]["UsageDay"][];
+        };
+        /** UsageRequest */
+        UsageRequest: {
+            /**
+             * Days
+             * @description How many days back, today included
+             * @default 30
+             */
+            days: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -4592,6 +5028,217 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    usage_api_usage_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageView"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_client_error_api_errors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientError"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    admin_errors_api_admin_errors_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorReports"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_usage_api_admin_usage_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UsageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageReport"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_error_api_admin_errors_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveErrorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5809,6 +6456,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_check_api_offer_check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferCheck"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
