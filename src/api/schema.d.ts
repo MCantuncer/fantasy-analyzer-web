@@ -1211,6 +1211,11 @@ export interface components {
              */
             open_slots: string[];
             /**
+             * Week
+             * @description The Monday-to-Sunday week this day falls in
+             */
+            week?: components["schemas"]["LineupDay"][];
+            /**
              * Fetched At
              * @description When this lineup was read from ESPN, UTC ISO 8601
              */
@@ -1693,6 +1698,13 @@ export interface components {
              */
             round_values?: number[] | null;
         };
+        /** LineupDay */
+        LineupDay: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+        };
         /** LineupRequest */
         LineupRequest: {
             /** League Id */
@@ -1742,6 +1754,15 @@ export interface components {
              * @description Starting slots he can fill, so a bench player who plays can be moved up
              */
             eligible?: string[];
+            /** @description His per-game line this season; none before his first game */
+            season_avg?: components["schemas"]["SeasonAverage"] | null;
+            /** @description His NBA team's first game after this day */
+            next_game?: components["schemas"]["NextGame"] | null;
+            /**
+             * Week Games
+             * @description Days of this Monday-to-Sunday week (see DayLineup.week) his NBA team plays
+             */
+            week_games?: number[];
         };
         /** LinkedTeam */
         LinkedTeam: {
@@ -2092,6 +2113,21 @@ export interface components {
              * @description Set when sources disagree on how bad an injury is
              */
             conflict?: string | null;
+        };
+        /** NextGame */
+        NextGame: {
+            /** Day */
+            day: number;
+            /** Date */
+            date?: string | null;
+            /**
+             * Start
+             * @description Tip-off, UTC ISO 8601
+             */
+            start: string;
+            opponent: components["schemas"]["GameSide"];
+            /** Home */
+            home: boolean;
         };
         /** NoteRead */
         NoteRead: {
@@ -3175,6 +3211,41 @@ export interface components {
              * @default true
              */
             with_sits: boolean;
+        };
+        /**
+         * SeasonAverage
+         * @description A player's real per-game line this season (not a projection).
+         */
+        SeasonAverage: {
+            /**
+             * Gp
+             * @description Games played this season
+             */
+            gp: number;
+            /** Min */
+            min: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+            /** Tpm */
+            tpm: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** To */
+            to: number;
+            /** Pts */
+            pts: number;
         };
         /** SeasonRow */
         SeasonRow: {

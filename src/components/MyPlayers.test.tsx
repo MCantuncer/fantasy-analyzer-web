@@ -91,15 +91,19 @@ describe('MyPlayers', () => {
   it("follows ESPN's lineup order and shows each player's night", async () => {
     mockApi()
     renderIt()
-    const tatum = (await screen.findByText('Jayson Tatum')).closest('li') as HTMLElement
+    const tatum = (await screen.findAllByText('Jayson Tatum'))
+      .map((e) => e.closest('li.mp-row'))
+      .find(Boolean) as HTMLElement
     const rows = [...document.querySelectorAll('.mp-row')].map((r) => r.querySelector('.mp-slot')?.textContent)
     expect(rows).toEqual(['SF', 'C', 'UTIL', 'BE'])
     expect(tatum).toHaveClass('mp-live')
     expect(within(tatum).getByText('Q4 4:12')).toBeInTheDocument()
     expect(within(tatum).getByText('27')).toBeInTheDocument()
     const bey = screen.getByText('Saddiq Bey').closest('li') as HTMLElement
-    expect(bey).toHaveTextContent(/Slot idle.*counts for nothing tonight/)
-    expect(screen.getByText(/starting slots/)).toHaveTextContent('2 of 3 starting slots play tonight')
+    expect(bey).toHaveTextContent(/No game tonight/)
+    expect(document.querySelector('.mp-seg-play')).toHaveTextContent('Playing tonight2 of 3 starting slotsIdle: Bey')
+    // Tip order: the live game's starters, by name for screen readers.
+    expect(document.querySelector('.mp-groups')).toHaveTextContent('Jayson Tatum')
     expect(screen.getByText('Starters so far')).toBeInTheDocument()
   })
 
@@ -117,7 +121,7 @@ describe('MyPlayers', () => {
   it('says nothing when there is nothing to swap', async () => {
     mockApi({ ...LINEUP, spots: LINEUP.spots.filter((s) => s.slot !== 'BE') })
     renderIt()
-    await screen.findByText('Jayson Tatum')
+    await screen.findAllByText('Jayson Tatum')
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
 })
