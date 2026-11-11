@@ -1,0 +1,269 @@
+/* The free-agent climb on Best move ("The field"): today's odds at the dropped player, one lit
+   line rising to the added player's odds, faint strands for the other pickups checked today. */
+
+.pclimb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pclimb-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pclimb-axis {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: none;
+}
+
+.pclimb-zoom {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pclimb-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pclimb-end {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.pclimb-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pclimb-end .pclimb-meta {
+  align-items: flex-end;
+}
+
+.pclimb-start {
+  margin-top: 6px;
+}
+
+.pclimb-plot {
+  position: relative;
+}
+
+.pclimb-art {
+  position: absolute;
+  inset: 0;
+}
+
+.pclimb-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pclimb-svg path,
+.pclimb-svg line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.pclimb-grid {
+  stroke: var(--text);
+  stroke-opacity: 0.07;
+  stroke-width: 1;
+}
+
+.pclimb-even {
+  stroke: var(--text-2);
+  stroke-opacity: 0.7;
+  stroke-width: 1.5;
+}
+
+.pclimb-strand {
+  stroke: var(--text-2);
+  stroke-opacity: 0.22;
+  stroke-width: 1.4;
+}
+
+.pclimb-line {
+  stroke: var(--good);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: pclimb-draw 400ms 150ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+
+@keyframes pclimb-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pclimb-line {
+    animation: none;
+  }
+}
+
+.pclimb-tick {
+  position: absolute;
+  left: 0;
+  width: 24px;
+  transform: translateY(-50%);
+  font-size: 11.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.pclimb-tick.even {
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.pclimb-even-label {
+  position: absolute;
+  left: 30px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.pclimb-dot,
+.pclimb-sdot {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pclimb-sdot {
+  width: 4px;
+  height: 4px;
+  background: var(--text-2);
+  opacity: 0.45;
+}
+
+.pclimb-dot {
+  width: 11px;
+  height: 11px;
+}
+
+.pclimb-dot.now {
+  background: var(--surface);
+  border: 2.5px solid var(--faint);
+}
+
+.pclimb-dot.after {
+  background: var(--good);
+  border: 2.5px solid var(--surface);
+}
+
+.pclimb-count {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 10.5px;
+  line-height: 12px;
+  color: var(--muted);
+}
+
+.pclimb-cap {
+  position: absolute;
+  right: 0;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.pclimb-after,
+.pclimb-now {
+  position: absolute;
+  display: flex;
+  gap: 8px;
+}
+
+.pclimb-after {
+  align-items: flex-end;
+}
+
+.pclimb-after-figs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.pclimb-now {
+  align-items: center;
+}
+
+.pclimb-now .head {
+  opacity: 0.8;
+}
+
+.pclimb-now-figs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pclimb-cap-now {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.pclimb-pct {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.pclimb-pct.now {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.pclimb-pct small {
+  margin-left: 1px;
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.pclimb-delta {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pclimb-delta.good {
+  color: var(--good);
+}
+
+.pclimb-delta.bad {
+  color: var(--bad);
+}

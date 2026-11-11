@@ -16,13 +16,14 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import type { AnalysisReport, PickupIdea, PlayerRef } from '../api/client'
-import { bestMoveOf } from '../lib/bestMove'
+import { bestMoveOf, pickupKey } from '../lib/bestMove'
 import { pct, ptsDiff } from '../lib/format'
 import { teamColours } from '../lib/league'
 import { ifMade, keptDays, lastName, longDay, shortDay, spotGames, waitLabel } from '../lib/moveTiming'
 import { InjuryBadges } from './InjuryBadges'
 import { SpotDays } from './MoveTiming'
 import { Delta } from './OddsChange'
+import { PickupClimb } from './PickupClimb'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { TeamCrest } from './TeamCrest'
@@ -387,42 +388,32 @@ function BestPickup({
           <span className="bm-sub muted">No one has to agree</span>
         )}
       </header>
-      <div className="bm-lanes">
-        <Lane
-          label="Add"
-          icon={Plus}
-          players={[pickup.add]}
-          note={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned${pickup.stream ? ' · For this week' : ''}`}
-        />
-        <Lane
-          label="Drop"
-          icon={Trash}
-          players={[pickup.drop]}
-          note={
-            kept.length > 0 ? (
-              <span>
-                Plays{' '}
-                {kept.map((d, k) => (
-                  <span key={d.date}>
-                    {k > 0 && (k === kept.length - 1 ? ' and ' : ', ')}
-                    <b>{shortDay(d.date)}</b>
-                  </span>
-                ))}{' '}
-                for you first
-              </span>
-            ) : (
-              'From your roster'
-            )
-          }
-        />
-      </div>
-      {wait && <SpotDays timing={wait} add={pickup.add} drop={pickup.drop} />}
-      <OddsMeter
+      <PickupClimb
+        add={pickup.add}
+        drop={pickup.drop}
         before={pickup.playoff_pct_before}
         after={pickup.playoff_pct_after}
-        celebrate={`pickup-${pickup.add.id}-${pickup.drop.id}`}
+        others={report.pickups
+          .filter((p) => !p.open_spot_by_trade && pickupKey(p) !== pickupKey(pickup))
+          .map((p) => p.playoff_pct_after)}
         label={wait ? `Your playoff odds ${ifMade(wait)}` : 'Your playoff odds'}
+        addNote={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned${pickup.stream ? ' · For this week' : ''}`}
+        dropNote={
+          kept.length > 0 ? (
+            <span>
+              Plays{' '}
+              {kept.map((d, k) => (
+                <span key={d.date}>
+                  {k > 0 && (k === kept.length - 1 ? ' and ' : ', ')}
+                  <b>{shortDay(d.date)}</b>
+                </span>
+              ))}{' '}
+              for you first
+            </span>
+          ) : undefined
+        }
       />
+      {wait && <SpotDays timing={wait} add={pickup.add} drop={pickup.drop} />}
       {thisWeek ? (
         <TopChanges changes={t.week_changes} against={opponent} close={week?.close_categories} />
       ) : (
