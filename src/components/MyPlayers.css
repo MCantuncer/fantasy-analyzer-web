@@ -119,7 +119,7 @@
 .mp-row,
 .mp-totals {
   display: grid;
-  grid-template-columns: 24px 52px minmax(190px, 1.6fr) minmax(150px, 1fr) repeat(10, minmax(40px, 0.45fr));
+  grid-template-columns: 24px 52px minmax(170px, 1.3fr) minmax(200px, 1fr) repeat(10, minmax(38px, 0.42fr));
   align-items: center;
   column-gap: 8px;
 }
@@ -432,6 +432,31 @@
 /* FG/FT: made/attempted sits on the same line as REB, AST and the rest; the percentage hangs
    below it without lifting it. (Phones stack every cell from the top, so this is wide screens only.) */
 @media (min-width: 901px) {
+  /* One main line across the row: name, score and numbers share it. The game's second line (Final,
+     the clock, the tip-off) hangs under the score the way the percentage hangs under FG and FT. */
+  .mp-row > .mp-game {
+    position: relative;
+    padding-right: 14px;
+  }
+
+  .mp-row > .mp-game .mp-status {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+
+  .mp-row:has(> .mp-game) {
+    padding-top: 4px;
+    padding-bottom: 12px;
+  }
+
+  /* The name stops short of the game, however long it is. */
+  .mp-row > .mp-who {
+    padding-right: 10px;
+  }
+
   .mp-stat .shot-split {
     position: relative;
   }
@@ -444,6 +469,19 @@
     transform: translateX(-50%);
     white-space: nowrap;
   }
+}
+
+/* A barely-there rule before each stat column, the full height of the row's content: enough to
+   guide the eye down a column, never enough to draw a grid. */
+.mp {
+  --mp-rule: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.mp-row .mp-stat,
+.mp-totals .mp-stat {
+  align-self: stretch;
+  justify-content: center;
+  box-shadow: inset 1px 0 0 var(--mp-rule);
 }
 
 /* What counts so far: under the last starting slot, lit with the house light like your side of a card. */
@@ -619,12 +657,17 @@
   .mp-cols,
   .mp-row,
   .mp-totals {
-    grid-template-columns: 20px 44px minmax(140px, 1.2fr) minmax(160px, 1fr) repeat(9, minmax(34px, 0.5fr));
+    grid-template-columns: 20px 44px minmax(150px, 1.3fr) minmax(144px, 0.9fr) repeat(9, minmax(34px, 0.5fr));
     column-gap: 6px;
   }
 
   .mp-cols > span:nth-child(4),
   .mp-stat.min {
+    display: none;
+  }
+
+  /* The abbreviations carry the game here, so the names keep their room. */
+  .mp-row > .mp-game .team-logo {
     display: none;
   }
 
