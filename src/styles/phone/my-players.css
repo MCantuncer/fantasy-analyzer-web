@@ -236,6 +236,11 @@
   .mp .mp-clock {
     gap: 0;
   }
+  .mp .mp-final-tag {
+    padding: 0 5px;
+    font-size: 9px;
+    line-height: 14px;
+  }
   .mp .mp-clock .mp-dot {
     display: none;
   }

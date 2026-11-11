@@ -480,7 +480,7 @@ function GameCell({ game, pro, now }: { game: Game | null; pro: number; now: num
         ) : scheduled ? (
           <span className="num">{tipOff(game.start)}</span>
         ) : (
-          <span className="muted">Final</span>
+          <span className="mp-final-tag">Final</span>
         )}
       </span>
     </span>
