@@ -191,6 +191,8 @@ export function Report({
                       teams={report.league.teams}
                       myTeamId={report.team_id}
                       keepNames={report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)}
+                      keep={keep}
+                      onToggleKeep={onToggleKeep}
                     />
                   )}
                 </div>

@@ -29,4 +29,8 @@
   .tr-more {
     min-height: 32px;
   }
+
+  .tr-row .tr-keep {
+    min-height: 44px;
+  }
 }
