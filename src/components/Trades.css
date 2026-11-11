@@ -314,3 +314,25 @@
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+
+/* An offer that gives a player you have just kept is on its way out: it dims until moves are
+   updated, and a tag says why. The Kept switch stays at full strength so the choice can be undone. */
+.move.tr-stale .tr-accept,
+.move.tr-stale .tr-odds,
+.move.tr-stale .tr-exp,
+.move.tr-stale .tr-lane-label,
+.move.tr-stale .tr-player > :not(.tr-keep) {
+  opacity: 0.45;
+}
+
+.tr-kept-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+}
