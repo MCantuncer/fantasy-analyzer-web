@@ -381,6 +381,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A finished game: a small settled tag rather than one more line of grey text. No gold: that is for live. */
+.mp-final-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text-2);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .mp-note {
   color: var(--text-2);
   font-size: 14px;
