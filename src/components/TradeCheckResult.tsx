@@ -3,6 +3,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import type { CheckDeal } from '../lib/tradeCheck'
 import { TradeCheckHero } from './TradeCheckHero'
+import { TradeCheckTables } from './TradeCheckTables'
 
 const names = (ps: PlayerRef[]) => ps.map((p) => p.name).join(' and ')
 
@@ -110,6 +111,7 @@ export function TradeCheckResult({ query, deal, give, get, myName, partnerName, 
             <span>{rosterLine(shown, give.length, get.length)}</span>
           </p>
           <div className="tck-actions">{actions}</div>
+          <TradeCheckTables check={shown} myName={myName} partnerName={partnerName} partnerColour={partnerColour} />
           <p className="tck-stamp num">
             {shown.sims.toLocaleString('en-US')} seasons · checked {checkedAt(shown.generated_at)}
           </p>
