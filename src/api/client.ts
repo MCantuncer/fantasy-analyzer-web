@@ -486,6 +486,35 @@ export function react(ref: LeagueRef, target: string, reaction: string, on: bool
   )
 }
 
+export type OfferCheck = components['schemas']['OfferCheck']
+export type OfferCutOption = components['schemas']['OfferCutOption']
+export type CategoryDetail = components['schemas']['CategoryDetail']
+export type PlayoffWeek = components['schemas']['PlayoffWeek']
+
+/** Check any trade with one team: the engine's verdict for both sides (about a second). */
+export function fetchOfferCheck(
+  ref: { leagueId: number; season: number | null; teamId: number },
+  deal: { partner: number; give: number[]; get: number[]; mode: 'received' | 'sending'; cut: number | null },
+  keepPlayerIds: number[],
+  creds: Credentials | null,
+) {
+  return post<OfferCheck>(
+    '/api/offer-check',
+    {
+      league_id: ref.leagueId,
+      season: ref.season,
+      team_id: ref.teamId,
+      partner_team_id: deal.partner,
+      give_player_ids: deal.give,
+      get_player_ids: deal.get,
+      my_drop_player_ids: deal.cut != null ? [deal.cut] : [],
+      direction: deal.mode,
+      keep_player_ids: keepPlayerIds,
+    },
+    creds,
+  )
+}
+
 export type TargetReport = components['schemas']['TargetReport']
 export type TargetOffer = components['schemas']['TargetOffer']
 export type TeamRoster = components['schemas']['TeamRoster']

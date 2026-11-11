@@ -73,6 +73,16 @@
   --lift: 0 1px 0 rgb(255 240 220 / 0.05) inset, 0 14px 32px -14px rgb(0 0 0 / 0.75), 0 2px 6px -2px rgb(0 0 0 / 0.4);
   --recess: inset 0 0 0 1px rgb(255 240 220 / 0.035);
   --rim: rgb(255 240 220 / 0.06);
+  /* Check a Trade (Two-Way): the other team is one fixed violet, never its crest colour, so their side
+     can't be mistaken for your green/coral outcomes. */
+  --partner: #a48afb;
+  --partner-a: 15%; /* partner light in the far corner of the check's hero */
+  --partner-loss: 45%; /* a partner segment that is a loss; the after dot stays solid */
+  --ring: #968b7c; /* before: today's ring, faces leaving */
+  --slip: #27221d; /* the die-cut deal slip */
+  --seam: #3b332b; /* the centre seam and table spine */
+  --close: #3a332c; /* Close call tag fill */
+  --scrim: rgb(10 8 6 / 0.66);
   /* Front Office corners: a bit round, never pill-shaped. Cards 18, rows 16, tiles 14, buttons 12, tags 7. */
   --radius: 18px;
   --radius-row: 16px;
@@ -152,6 +162,13 @@
   --lift: 0 1px 2px rgb(70 45 20 / 0.06), 0 12px 28px -12px rgb(70 45 20 / 0.22);
   --recess: inset 0 0 0 1px rgb(70 45 20 / 0.07);
   --rim: rgb(255 255 255 / 0.9);
+  --partner: #6941c6;
+  --partner-a: 10%;
+  --ring: #6f6457;
+  --slip: #ffffff;
+  --seam: #d6ccbb;
+  --close: #e2dbce;
+  --scrim: rgb(26 23 20 / 0.45);
 
   color-scheme: light;
 }
