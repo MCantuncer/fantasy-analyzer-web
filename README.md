@@ -59,6 +59,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 📰 | **NBA News** | Injuries, trades and role changes checked against several sources, and who gains minutes when a player is out. |
 | 💬 | **League Chat** | The league's moves feed (claims, bids, adds, drops and trades) and chat, with reactions, replies and trade votes for verified managers. |
 | 🔐 | **Accounts** | Email or Google sign-in, followed leagues, and team verification through ESPN. |
+| 🩺 | **Site health** (admins) | A crash screen with Reload instead of a blank page, and for admins a private page with daily visitors, pages opened, new accounts and analyses (counted without cookies or ids) plus server and website errors grouped with a count, to mark fixed. |
 | 🌗 | **Light and dark themes** | Designed for data-heavy screens on desktop and phone. |
 
 ## Screenshots
