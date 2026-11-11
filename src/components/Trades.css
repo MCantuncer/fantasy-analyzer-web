@@ -252,6 +252,51 @@
   }
 }
 
+/* One line at the top of the list once players are kept: who these moves leave out, and where to
+   change it. The link is a full-height tap target on phones. */
+.trades-kept {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 16px;
+  margin: 0;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--divider);
+  color: var(--text-2);
+}
+
+.trades-kept-names {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.trades-kept-names svg {
+  flex: none;
+  align-self: center;
+}
+
+.trades-kept strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.trades-kept .link {
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .trades-kept {
+    padding: 8px 16px;
+  }
+
+  .trades-kept .link {
+    min-height: 44px;
+  }
+}
+
 /* "Keep him" beside each player you would give, once a trade is open. It sits above the row's
    tap layer, like the names. */
 .tr-row .tr-keep {

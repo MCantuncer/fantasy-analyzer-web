@@ -414,19 +414,6 @@ button.tck-back {
   min-width: 0;
 }
 
-.tck-roster-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  color: var(--text-2);
-  font-size: 0.875rem;
-}
-
-.tck-roster-line svg {
-  flex: none;
-}
-
 .tck-actions {
   display: flex;
   flex-direction: column;

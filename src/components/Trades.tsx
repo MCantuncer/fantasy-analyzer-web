@@ -360,7 +360,10 @@ interface TradesProps {
   categories?: string[]
   teams?: { id: number; name: string }[]
   myTeamId?: number
+  /** Players these moves already leave out. */
   keepNames?: string[]
+  /** Opens My Team, where the Keep list is changed. */
+  onEditKeep?: () => void
   /** The Keep list and its switch, for "Keep him" in an open trade. */
   keep?: number[]
   onToggleKeep?: (id: number) => void
@@ -373,6 +376,7 @@ export function Trades({
   teams = [],
   myTeamId,
   keepNames = [],
+  onEditKeep,
   keep,
   onToggleKeep,
 }: TradesProps) {
@@ -422,6 +426,21 @@ export function Trades({
           </div>
         )}
       </div>
+      {keepNames.length > 0 && (
+        <p className="trades-kept small">
+          <span className="trades-kept-names">
+            <LockSimple size={14} weight="fill" aria-hidden="true" />
+            <span>
+              <strong>Always kept:</strong> {keepNames.join(', ')}.
+            </span>
+          </span>
+          {onEditKeep && (
+            <button type="button" className="link" onClick={onEditKeep}>
+              Change in My Team
+            </button>
+          )}
+        </p>
+      )}
       {!nothing && (
         <>
           <RulesBar

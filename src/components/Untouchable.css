@@ -1,0 +1,169 @@
+/* "Anyone untouchable?" at the top of Moves (unt- prefix): the roster as faces, best first. */
+.unt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.unt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+}
+
+.unt-head p,
+.unt-foot p,
+.unt-working p {
+  margin: 0;
+}
+
+.unt-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+}
+
+.unt-title svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+/* The faces scroll sideways when the roster is wider than the card; no scrollbar, a soft right edge. */
+.unt-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.unt-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.unt-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(62px, 1fr);
+  gap: 6px;
+}
+
+.unt-card .unt-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 102px;
+  padding: 12px 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  scroll-snap-align: start;
+}
+
+.unt-card .unt-tile[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 650;
+}
+
+/* First name over last name; a name wider than its tile ends in an ellipsis rather than breaking
+   mid-word (the button's label carries the full name). */
+.unt-name {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.unt-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unt-mark {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: var(--accent-text);
+}
+
+.unt-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.unt-foot .link {
+  font-weight: 600;
+}
+
+/* While moves are re-worked the card shrinks to two lines. */
+.unt-working {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.unt-spin {
+  flex: none;
+  margin-top: 2px;
+  color: var(--gold);
+}
+
+.unt-line {
+  font-weight: 650;
+}
+
+/* Phones: two rows of faces that swipe together, so eight show before a swipe instead of four. */
+@media (max-width: 640px) {
+  .unt-card {
+    gap: 12px;
+  }
+
+  .unt-strip {
+    margin: 0 -16px;
+    padding: 0 16px;
+    scroll-padding-inline: 16px;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+
+  .unt-track {
+    grid-template-rows: repeat(2, auto);
+    grid-auto-columns: 68px;
+    width: max-content;
+    padding-right: 16px;
+  }
+
+  .unt-card .unt-tile {
+    gap: 6px;
+    width: 68px;
+    min-height: 90px;
+    padding: 9px 2px 7px;
+    font-size: 11.5px;
+  }
+
+  .unt-foot {
+    gap: 6px 12px;
+  }
+}
+
+/* While moves update, the sticky button stays solid: see-through, it was unreadable over the page. */
+.sticky-action button:disabled {
+  opacity: 1;
+  border-color: var(--border);
+  background: var(--raised);
+  color: var(--text-2);
+}

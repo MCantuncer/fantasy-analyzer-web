@@ -1,24 +1,11 @@
-import { ArrowCounterClockwise, ArrowSquareOut, UsersThree } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowSquareOut } from '@phosphor-icons/react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import type { CheckDeal } from '../lib/tradeCheck'
 import { TradeCheckHero } from './TradeCheckHero'
+import { TradeCheckFlags } from './TradeCheckFlags'
+import { TradeCheckMoves } from './TradeCheckMoves'
 import { TradeCheckTables } from './TradeCheckTables'
-
-const names = (ps: PlayerRef[]) => ps.map((p) => p.name).join(' and ')
-
-/** Who else moves to make the deal fit: your cut or pickup, and their likely cut. */
-function rosterLine(c: OfferCheck, give: number, get: number): string {
-  const parts: string[] = []
-  if (c.my_drops.length) parts.push(`You'd cut ${names(c.my_drops)}`)
-  if (c.my_adds.length) parts.push(`you'd add ${names(c.my_adds)} from free agents`)
-  if (c.their_drops.length) parts.push(`they'd likely cut ${names(c.their_drops)}`)
-  if (c.their_adds.length) parts.push(`they'd add ${names(c.their_adds)}`)
-  const shape = `${give} for ${get}`
-  if (!parts.length) return `Nobody cut · ${shape}`
-  const text = parts.join(' · ')
-  return `${text[0].toUpperCase()}${text.slice(1)} · ${shape}`
-}
 
 function checkedAt(iso: string): string {
   const d = new Date(iso)
@@ -34,10 +21,26 @@ interface Props {
   partnerName: string
   partnerColour?: string
   espn: { leagueId: number; season: number; myTeamId: number }
+  /** Your roster and keepers, for the cut sheet. */
+  roster: PlayerRef[]
+  keep: number[]
+  onCut: (id: number) => void
 }
 
 /** The check's answer: the hero, who else moves, and the next step for how the trade came about. */
-export function TradeCheckResult({ query, deal, give, get, myName, partnerName, partnerColour, espn }: Props) {
+export function TradeCheckResult({
+  query,
+  deal,
+  give,
+  get,
+  myName,
+  partnerName,
+  partnerColour,
+  espn,
+  roster,
+  keep,
+  onCut,
+}: Props) {
   // A desktop re-check keeps the last answer on screen until the new one lands.
   const check = query.data && !query.isPlaceholderData ? query.data : null
   const stale = query.isPlaceholderData ? query.data : null
@@ -106,12 +109,17 @@ export function TradeCheckResult({ query, deal, give, get, myName, partnerName, 
       />
       {shown && !loading && (
         <>
-          <p className="tck-roster-line">
-            <UsersThree size={18} aria-hidden="true" />
-            <span>{rosterLine(shown, give.length, get.length)}</span>
-          </p>
+          <TradeCheckMoves
+            check={shown}
+            give={give.length}
+            get={get.length}
+            roster={roster}
+            keep={keep}
+            onCut={onCut}
+          />
           <div className="tck-actions">{actions}</div>
           <TradeCheckTables check={shown} myName={myName} partnerName={partnerName} partnerColour={partnerColour} />
+          <TradeCheckFlags check={shown} />
           <p className="tck-stamp num">
             {shown.sims.toLocaleString('en-US')} seasons · checked {checkedAt(shown.generated_at)}
           </p>
