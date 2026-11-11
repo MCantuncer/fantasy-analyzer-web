@@ -1,0 +1,208 @@
+/* Check a Trade tables: categories, playoff weeks and finish, mirrored about the spine. Prefix tck-tb-. */
+.tck-tb {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.tck-tb-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.tck-tb-head h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.tck-tb-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 0.75rem;
+}
+
+.tck-tb-ring,
+.tck-tb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.tck-tb-ring {
+  border: 2px solid var(--ring);
+}
+
+.tck-tb-dot {
+  background: var(--text-2);
+  margin-left: 4px;
+}
+
+table.tck-tb-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tck-tb-table th,
+.tck-tb-table td {
+  padding: 8px 0;
+  border: none;
+  background: none;
+}
+
+.tck-tb-table tbody tr + tr > * {
+  border-top: 1px solid var(--divider);
+}
+
+.tck-tb-table thead th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  padding-bottom: 4px;
+}
+
+th.tck-tb-who.me {
+  text-align: right;
+  padding-right: 12px;
+}
+
+th.tck-tb-who.them {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.tck-tb-who .crest {
+  vertical-align: middle;
+}
+
+.tck-tb-name {
+  display: inline-block;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* The spine: the seam runs through the category codes. */
+.tck-tb-table .tck-tb-spine {
+  width: 64px;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--text);
+  position: relative;
+}
+
+.tck-tb-table thead .tck-tb-spine {
+  width: 64px;
+}
+
+.tck-tb-spine small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-2);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.tck-tb-spine small.tck-tb-punt {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.tck-tb-cell,
+.tck-tb-fig {
+  vertical-align: middle;
+}
+
+.tck-tb-cell.me,
+.tck-tb-fig.me {
+  padding-right: 12px;
+  text-align: right;
+}
+
+.tck-tb-cell.them,
+.tck-tb-fig.them {
+  padding-left: 12px;
+  text-align: left;
+}
+
+.tck-tb-cell.punt {
+  opacity: 0.6;
+}
+
+.tck-tb-nums {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tck-tb-before,
+.tck-tb-to {
+  color: var(--text-2);
+  font-size: 0.8125rem;
+}
+
+.tck-tb-nums b {
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.tck-tb-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.tck-tb-delta.big {
+  font-weight: 700;
+}
+
+.tck-tb-delta.up {
+  color: var(--good);
+}
+
+.tck-tb-delta.down {
+  color: var(--bad);
+}
+
+.tck-tb-delta.flat {
+  color: var(--text-2);
+}
+
+.tck-tb-delta.them {
+  color: var(--partner);
+}
+
+.tck-tb-cell .cd {
+  margin-top: 6px;
+  max-width: 220px;
+}
+
+.tck-tb-cell.me .cd {
+  margin-left: auto;
+}
+
+.tck-tb-finish th,
+.tck-tb-finish td {
+  padding-top: 12px;
+}
+
+.tck-tb-note {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.75rem;
+}

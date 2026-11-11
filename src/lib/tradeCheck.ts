@@ -155,3 +155,13 @@ export function surname(name: string): string {
   const last = parts[parts.length - 1]
   return /^(Jr\.?|Sr\.?|II|III|IV)$/.test(last) && parts.length > 2 ? `${parts[parts.length - 2]} ${last}` : last
 }
+
+/** "2027-03-01".."2027-03-07" -> "Mar 1–7" (or "Mar 29–Apr 4"). */
+export function weekSpan(start: string, end: string): string {
+  const a = new Date(`${start}T00:00:00Z`)
+  const b = new Date(`${end}T00:00:00Z`)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return ''
+  const month = (d: Date) => d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+  const right = month(a) === month(b) ? `${b.getUTCDate()}` : `${month(b)} ${b.getUTCDate()}`
+  return `${month(a)} ${a.getUTCDate()}–${right}`
+}
