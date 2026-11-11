@@ -472,17 +472,14 @@
 }
 
 /* ---------- Game Night: tonight in the date strip ----------
-   Today's chip carries a small gold dot in its corner, so the way back to tonight is easy to spot. */
-.day-strip .day-chip {
-  position: relative;
-}
-
+   Today's chip leads with a small gold dot, centred on the text like a live marker, so the way
+   back to tonight is easy to spot. It used to sit in the top-right corner, squeezed against the
+   rounded border. */
 .day-strip .day-chip .day-tonight {
-  position: absolute;
-  top: 5px;
-  right: 5px;
+  flex: none;
   width: 6px;
   height: 6px;
+  margin-right: -2px;
   border-radius: 50%;
   background: var(--gold);
   box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
