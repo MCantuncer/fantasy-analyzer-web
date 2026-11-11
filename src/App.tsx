@@ -323,7 +323,7 @@ export default function App() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <button className="brand" onClick={goHome} aria-label="Fantasy Analyzer, my leagues">
+          <button className="brand" onClick={goHome} aria-label="COURT, my leagues">
             <svg className="brand-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
               <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--gold)" />
               <g fill="var(--on-gold)" transform="translate(3.6 0) skewX(-13)">
@@ -332,7 +332,7 @@ export default function App() {
                 <path d="M8.5 7H19V3.8l7.2 5.5L19 14.8v-3.2H8.5z" />
               </g>
             </svg>
-            <span className="brand-name">Fantasy Analyzer</span>
+            <span className="brand-name" title="Categories, Odds, Upgrades, Rosters, Trades">COURT</span>
           </button>
           {selection && leagueName && (
             <LeagueSwitcher

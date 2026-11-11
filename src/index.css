@@ -521,6 +521,10 @@ th .badge {
   flex: none;
 }
 
+.brand-name {
+  letter-spacing: 0.06em;
+}
+
 .brand {
   flex: none;
   white-space: nowrap;
