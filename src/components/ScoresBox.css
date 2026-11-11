@@ -366,7 +366,7 @@ table.box .sc-owner-sizer {
 table.box .sc-owner-dot {
   position: absolute;
   top: -1px;
-  right: -7px;
+  right: -10px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
