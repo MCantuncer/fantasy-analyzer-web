@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Television } from '@phosphor-icons/react'
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, tipOff, usToday } from '../lib/scores'
+import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, usToday } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
@@ -16,6 +16,8 @@ import { BOX_CATS, nextSort, sortLines, splitStarters } from '../lib/boxSort'
 import { BenchBreak, StarterNote } from './StartersSplit'
 import type { BoxSort } from '../lib/boxSort'
 import { ScoresWeek } from './ScoresWeek'
+import { Burn, GameTime, emberAttrs, emberOf, useClockTick } from './GameTime'
+import { timeLeftLine } from '../lib/gameClock'
 import { PlayerLink } from './PlayerCard'
 import { ScoresLens } from './ScoresLens'
 import { ShotSplit } from './ShotSplit'
@@ -238,7 +240,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
 
       {selected &&
         (pending ? (
-          <BoxScoreFetching game={selected} failed={failed} onRetry={() => scores.refetch()} />
+          <BoxScoreFetching game={selected} date={data.date} failed={failed} onRetry={() => scores.refetch()} />
         ) : (
           <BoxScore
             game={selected}
@@ -255,7 +257,8 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
 
       <p className="small muted">
         Scores are added up from ESPN's fantasy stats
-        {data.live ? ' and refresh every minute' : ''}. ESPN's fantasy data has no quarter or game clock.
+        {data.live ? ' and refresh every minute' : ''}; the game clock comes from ESPN's scoreboard. In a box score,
+        Owner is the fantasy team in this league.
       </p>
     </div>
   )
@@ -518,12 +521,10 @@ function GameCard({
   onPick: () => void
 }) {
   const scheduled = game.status === 'scheduled'
-  const live = game.status === 'live'
   const mine = myPlayersIn(game, teamId, upcoming)
   const lead = leader(game)
   const top = best(game.lines)
   const rostered = game.lines.filter((l) => l.owner_team_id != null).length
-  const tipping = live && !game.away.score && !game.home.score
   const rivals =
     rivalId == null
       ? []
@@ -543,27 +544,16 @@ function GameCard({
         '--tb': teamLight(game.home.abbrev) ?? 'var(--accent)',
       } as CSSProperties)
     : undefined
-  const className = ['game-card', mine.length ? 'has-mine' : '', stake ? 'stake' : '', cold ? 'cold' : '']
+  const ember = emberOf(game)
+  const tick = useClockTick(game.clock)
+  const className = ['game-card', 'sc-ember', mine.length ? 'has-mine' : '', stake ? 'stake' : '', cold ? 'cold' : '']
     .filter(Boolean)
     .join(' ')
   const body = (
     <>
+      <Burn />
       <span className="game-status">
-        {live ? (
-          <span className="live-dot">
-            <i aria-hidden="true" />
-            Live
-            {game.clock ? (
-              <span className="num game-clock"> · {game.clock}</span>
-            ) : (
-              tipping && <span className="muted"> · Tip-off</span>
-            )}
-          </span>
-        ) : scheduled ? (
-          <span className="num tip">{tipOff(game.start)}</span>
-        ) : (
-          <span className="muted">Final</span>
-        )}
+        <GameTime game={game} ember={ember} />
         {faces.length > 0 ? (
           <span className="game-mine game-faces">
             {faces.map((p) => (
@@ -619,9 +609,14 @@ function GameCard({
     </>
   )
   // A game that hasn't started has no box score to open.
-  if (scheduled) return <div className={className}>{body}</div>
+  if (scheduled)
+    return (
+      <div className={className} {...emberAttrs(ember)}>
+        {body}
+      </div>
+    )
   return (
-    <button className={className} aria-pressed={selected} onClick={onPick} style={edge}>
+    <button className={className} aria-pressed={selected} onClick={onPick} {...emberAttrs(ember, edge, tick)}>
       {body}
     </button>
   )
@@ -689,15 +684,59 @@ function ScoresFilling({ failed, onRetry }: { failed: boolean; onRetry: () => vo
   )
 }
 
+/** The box score head as a one-line scoreboard: both scores on the left, the game time on the right
+ *  with how much is left to play, and the game's burn behind it. */
+function BoxHead({ game, date }: { game: Game; date: string | null | undefined }) {
+  const ember = emberOf(game)
+  const tick = useClockTick(game.clock)
+  const a = game.away.score ?? 0
+  const h = game.home.score ?? 0
+  const started = game.status !== 'scheduled'
+  const left = game.status === 'live' ? timeLeftLine(ember.clock) : ''
+  return (
+    <div className="card-head sc-bh sc-ember" {...emberAttrs(ember, undefined, tick)}>
+      <Burn />
+      <h2 id="box-title">
+        <span className={`sc-bh-side${started && a < h ? ' trail' : ''}`}>
+          <span className="sc-bh-abbr">{game.away.abbrev}</span>{' '}
+          <span className="num sc-bh-pts">{game.away.score ?? ''}</span>
+        </span>{' '}
+        <span className={`sc-bh-side${started && h < a ? ' trail' : ''}`}>
+          <span className="sc-bh-abbr">{game.home.abbrev}</span>{' '}
+          <span className="num sc-bh-pts">{game.home.score ?? ''}</span>
+        </span>
+      </h2>
+      <div className="sc-bh-time">
+        <GameTime game={game} ember={ember} />
+        <span className="sc-bh-sub">
+          {left && (
+            <>
+              {left}
+              <i aria-hidden="true" />
+            </>
+          )}
+          {dayLabel(date)}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 /** A box score opened before its numbers are in: the game's header and a spinner, swapped for the table when ready. */
-function BoxScoreFetching({ game, failed, onRetry }: { game: Game; failed: boolean; onRetry: () => void }) {
+function BoxScoreFetching({
+  game,
+  date,
+  failed,
+  onRetry,
+}: {
+  game: Game
+  date: string | null | undefined
+  failed: boolean
+  onRetry: () => void
+}) {
   return (
     <section className="card flush sc-box-fetching" aria-labelledby="box-title" aria-busy={!failed}>
-      <div className="card-head">
-        <h2 id="box-title">
-          {game.away.abbrev} · {game.home.abbrev}
-        </h2>
-      </div>
+      <BoxHead game={game} date={date} />
       <div className="sc-box-wait" role="status">
         {failed ? (
           <>
@@ -799,16 +838,7 @@ function BoxScore({
       aria-labelledby="box-title"
       style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}
     >
-      <div className="card-head">
-        <h2 id="box-title">
-          {game.away.abbrev} <span className="num">{game.away.score ?? ''}</span> · {game.home.abbrev}{' '}
-          <span className="num">{game.home.score ?? ''}</span>
-        </h2>
-        <span className="small muted">
-          {game.status === 'live' ? `Live${game.clock ? ` · ${game.clock}` : ''}` : 'Final'} · {dayLabel(date)}. Owner
-          is the fantasy team in this league.
-        </span>
-      </div>
+      <BoxHead game={game} date={date} />
       <div className="segmented sc-team-switch" role="group" aria-label="Team">
         {sides.map((s) => (
           <button
@@ -834,7 +864,7 @@ function BoxScore({
               <th scope="col" className="left">
                 PLAYER
               </th>
-              <th scope="col" className="left">
+              <th scope="col" className="left" title="The fantasy team in this league that owns him">
                 OWNER
               </th>
               <th scope="col">MIN</th>

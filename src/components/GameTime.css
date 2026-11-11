@@ -1,0 +1,451 @@
+/* Scores: live game time, "Ember Heat". Time played burns across each game card (and the box score
+   head) as a warm glow: espresso char where the game began, deep ember behind the front, a lit front
+   and a small light source on the top edge while the clock runs. --gt-p (0..1) is how far along the
+   game is; --gt-heat (0..1) is how hot it burns, set from closeness (src/lib/gameClock.ts heatOf): a
+   blowout smoulders, a late close game burns amber and white-hot. A break banks the fire, Final is
+   burnt out, a scheduled game is untouched. Gold stays on the Clutch tag only. */
+
+@property --gt-p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --gt-heat {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Base colours of the burn. Heat-dependent mixes are built on .sc-burn, where --gt-heat is known. */
+:root {
+  --burn-char: rgb(8 4 2 / 0.3); /* played time, long ago: espresso char, a step darker than the card */
+  --burn-coal: #b4461a; /* deep ember behind the front */
+  --burn-low: #d9461b; /* the front at low heat: deep orange-red */
+  --burn-high: #ffb547; /* the front at full heat: amber */
+  --burn-core-low: #ffa055; /* the light source, low heat */
+  --burn-core-high: #fff3d6; /* the light source, white-hot */
+  --burn-banked: #8e3417; /* a break: the coal goes dull */
+  --burn-out: rgb(8 4 2 / 0.26); /* Final: burnt out, settled */
+  --burn-coal-a: 13%;
+  --burn-coal-h: 5%; /* extra coal at full heat */
+  --burn-front-a: 13%;
+  --burn-front-h: -2%; /* a hot front is yellower, so a touch thinner: same lightness */
+  --burn-seam-a: 42%;
+  --burn-seam-h: 22%;
+  --burn-rim-a: 60%;
+  --burn-bloom-a: 10%;
+  --burn-bloom-h: 8%;
+}
+:root[data-theme='light'] {
+  --burn-char: rgb(214 128 52 / 0.055); /* toasted cream */
+  --burn-coal: #e07a30;
+  --burn-low: #e8742c;
+  --burn-high: #f5a531;
+  --burn-core-low: #e5781f;
+  --burn-core-high: #f2a20f;
+  --burn-banked: #b27552;
+  --burn-out: rgb(186 112 44 / 0.085);
+  --burn-coal-a: 13%;
+  --burn-coal-h: 7%;
+  --burn-front-a: 16%;
+  --burn-front-h: 10%;
+  --burn-seam-a: 80%;
+  --burn-seam-h: 15%;
+  --burn-rim-a: 55%;
+  --burn-bloom-a: 18%;
+  --burn-bloom-h: 14%;
+}
+
+/* ---------- The object ---------- */
+.sc-ember {
+  position: relative;
+  isolation: isolate;
+  transition:
+    --gt-p 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --gt-heat 1.6s ease;
+}
+.sc-ember > :not(.sc-burn, .sr-only) {
+  position: relative;
+  z-index: 1;
+}
+.sc-burn {
+  --x: calc(var(--gt-p) * 100%); /* the front */
+  --src: clamp(16px, var(--x), calc(100% - 16px)); /* the light source, clear of the rounded corners */
+  --reach: calc(84px + var(--gt-heat) * 116px); /* how far back the heat reaches (px only: radial sizes) */
+  --len: min(var(--x), var(--reach)); /* the same, never further back than tip-off */
+  --hot: color-mix(in oklab, var(--burn-high) calc(var(--gt-heat) * var(--gt-heat) * 100%), var(--burn-low)); /* heat² : stays red until late */
+  --core: color-mix(in oklab, var(--burn-core-high) calc(var(--gt-heat) * 100%), var(--burn-core-low));
+  --seam: var(--hot); /* the lit edge; on cream it is white-hot (below) */
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.game-card > .sc-burn {
+  border-radius: calc(var(--radius) - 1px);
+}
+/* The box score head is a long band: the heat reaches further back so it reads as a glow, not a beam. */
+.card-head > .sc-burn {
+  --reach: calc(150px + var(--gt-heat) * 230px);
+}
+/* Cream can't be lit brighter than itself, so on the light theme the glow is the colour (apricot to
+   amber) and the edge is white-hot: a light seam inside the warm wash is what reads as light. */
+:root[data-theme='light'] .sc-burn {
+  --seam: #fffaf1;
+}
+.sc-burn::before,
+.sc-burn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Clock running. Three layers, lit like a real coal bed:
+   1. char: espresso across old played time, fading out where the heat takes over;
+   2. the bed: deep ember pooled low, behind the front; the hotter the game, the higher it rises;
+   3. the front: the hot colour (orange-red early, amber when hot) feathering into the time to play.
+   A mask lets the light spill a little past the front (further when hotter), then stops.
+   The body is colour, not brightness: under text it stays inside the contrast budget. */
+.sc-ember[data-ember='run'] > .sc-burn {
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(var(--x) - 52px),
+      color-mix(in srgb, var(--hot) calc(var(--burn-front-a) + var(--gt-heat) * var(--burn-front-h)), transparent)
+        calc(var(--x) - 5px),
+      color-mix(in srgb, var(--hot) calc((var(--burn-front-a) + var(--gt-heat) * var(--burn-front-h)) * 0.6), transparent)
+        calc(var(--x) + 2px),
+      color-mix(in srgb, var(--hot) calc((var(--burn-front-a) + var(--gt-heat) * var(--burn-front-h)) * 0.22), transparent)
+        calc(var(--x) + 9px),
+      transparent calc(var(--x) + 20px + var(--gt-heat) * 18px)
+    ),
+    radial-gradient(
+      calc(var(--reach) * 0.95) calc(64% + var(--gt-heat) * 66%) at calc(var(--x) - var(--reach) * 0.22) 100%,
+      color-mix(in srgb, var(--burn-coal) calc(var(--burn-coal-a) + var(--gt-heat) * var(--burn-coal-h)), transparent),
+      color-mix(in srgb, var(--burn-coal) calc((var(--burn-coal-a) + var(--gt-heat) * var(--burn-coal-h)) * 0.45), transparent) 55%,
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      var(--burn-char) 0,
+      var(--burn-char) calc(var(--x) - var(--len) * 0.75),
+      transparent calc(var(--x) - var(--len) * 0.1)
+    );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 calc(max(var(--x), 24px) + 2px),
+    transparent calc(max(var(--x), 24px) + 26px + var(--gt-heat) * 22px)
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 calc(max(var(--x), 24px) + 2px),
+    transparent calc(max(var(--x), 24px) + 26px + var(--gt-heat) * 22px)
+  );
+}
+:root[data-theme='light'] .sc-ember[data-ember='run'] > .sc-burn {
+  /* Cream: one smooth ramp, toasted where the game began, apricot rising to amber at the front.
+     A bump of colour reads as a stripe on a light surface; a ramp that only ever warms reads as light. */
+  background:
+    radial-gradient(
+      calc(var(--reach) * 0.8) 90% at calc(var(--x) - var(--reach) * 0.1) 100%,
+      color-mix(in srgb, var(--burn-coal) calc(var(--gt-heat) * 10%), transparent),
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      var(--burn-char) 0,
+      color-mix(in srgb, var(--burn-coal) calc(var(--burn-coal-a) * 0.45), transparent) calc(var(--x) - var(--len)),
+      color-mix(in srgb, var(--burn-coal) calc(var(--burn-coal-a) + var(--gt-heat) * var(--burn-coal-h)), transparent)
+        calc(var(--x) - var(--len) * 0.3),
+      color-mix(in srgb, var(--hot) calc(var(--burn-front-a) + var(--gt-heat) * var(--burn-front-h)), transparent)
+        calc(var(--x) - 2px),
+      color-mix(in srgb, var(--hot) calc((var(--burn-front-a) + var(--gt-heat) * var(--burn-front-h)) * 0.4), transparent)
+        calc(var(--x) + 4px),
+      transparent calc(var(--x) + 16px + var(--gt-heat) * 18px)
+    );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 calc(max(var(--x), 24px) + 1px),
+    transparent calc(max(var(--x), 24px) + 12px + var(--gt-heat) * 16px)
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 calc(max(var(--x), 24px) + 1px),
+    transparent calc(max(var(--x), 24px) + 12px + var(--gt-heat) * 16px)
+  );
+}
+/* The lit edge: the front itself glows, brightest where it meets the top edge and fading down the
+   card; the top edge of played time catches the light (a 1.5px lip, brightening toward the front). */
+.sc-ember[data-ember='run'] > .sc-burn::before {
+  background:
+    linear-gradient(
+        to right,
+        transparent 0,
+        color-mix(in srgb, var(--hot) calc(var(--burn-rim-a) * 0.22), transparent) calc(var(--x) * 0.4),
+        color-mix(in srgb, var(--hot) var(--burn-rim-a), transparent) calc(var(--x) - 5px),
+        transparent calc(var(--x) + 8px)
+      )
+      0 0 / 100% 1.5px no-repeat,
+    linear-gradient(
+      to right,
+      transparent calc(var(--x) - 8px),
+      color-mix(in srgb, var(--seam) calc(var(--burn-seam-a) + var(--gt-heat) * var(--burn-seam-h)), transparent)
+        calc(var(--x) - 1px),
+      transparent calc(var(--x) + 6px)
+    );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, rgb(0 0 0 / 0.55) 10px, rgb(0 0 0 / 0.14) 30px, rgb(0 0 0 / 0.08) 100%);
+  mask-image: linear-gradient(to bottom, #000 0, rgb(0 0 0 / 0.55) 10px, rgb(0 0 0 / 0.14) 30px, rgb(0 0 0 / 0.08) 100%);
+}
+/* The light source on the top edge: a hot core, a corona, and a pool of light that falls back over
+   the played time. Hotter = whiter core, wider corona, a bigger and brighter pool. */
+.sc-ember[data-ember='run'] > .sc-burn::after {
+  background:
+    radial-gradient(ellipse 7px 4px at var(--src) 0, var(--core) 0, var(--core) 50%, transparent 100%),
+    radial-gradient(
+      ellipse calc(12px + var(--gt-heat) * 12px) calc(9px + var(--gt-heat) * 6px) at var(--src) 0,
+      color-mix(in srgb, var(--hot) calc(50% + var(--gt-heat) * 30%), transparent),
+      transparent
+    ),
+    radial-gradient(
+      calc(var(--reach) * 0.7 + 24px) calc(30px + var(--gt-heat) * 34px) at var(--src) 0,
+      color-mix(in srgb, var(--hot) calc(var(--burn-bloom-a) + var(--gt-heat) * var(--burn-bloom-h)), transparent),
+      color-mix(in srgb, var(--hot) calc((var(--burn-bloom-a) + var(--gt-heat) * var(--burn-bloom-h)) * 0.3), transparent) 60%,
+      transparent
+    );
+}
+
+/* Break: the clock has stopped and the fire is banked. The char stays, the front goes dull and short:
+   no light, no edge, no gold. */
+.sc-ember[data-ember='break'] > .sc-burn {
+  background:
+    linear-gradient(
+      to right,
+      transparent calc(var(--x) - 70px),
+      color-mix(in srgb, var(--burn-banked) 15%, transparent) calc(var(--x) - 6px),
+      color-mix(in srgb, var(--burn-banked) 6%, transparent) calc(var(--x) + 2px),
+      transparent calc(var(--x) + 10px)
+    ),
+    linear-gradient(to right, var(--burn-char) 0, var(--burn-char) calc(var(--x) - 40px), transparent var(--x));
+}
+/* Final: burnt out, settled. One even char across the whole card, no light. */
+.sc-ember[data-ember='final'] > .sc-burn {
+  background: var(--burn-out);
+}
+/* Scheduled / unknown: nothing burns. */
+.sc-ember[data-ember='pre'] > .sc-burn,
+.sc-ember[data-ember='unknown'] > .sc-burn {
+  display: none;
+}
+
+/* ---------- Game card status row ---------- */
+.game-grid .game-card.sc-ember {
+  grid-template-rows: 26px 32px 32px 1fr;
+}
+.game-grid .game-card .game-status {
+  align-items: center;
+  min-width: 0;
+}
+.gt {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  line-height: 1;
+}
+.gt-per {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.gt-clock {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.gt-clutch {
+  align-self: center;
+  margin-left: 2px;
+  padding: 3px 7px;
+  border-radius: var(--radius-tag);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--gold-text);
+  background: var(--gold-soft);
+}
+.gt-word {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+.gt-break {
+  align-items: center;
+  gap: 6px;
+}
+.gt-break .gt-word {
+  font-size: 17px;
+}
+.gt-ico {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--muted);
+}
+.gt-final .gt-word {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.gt-tip {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.gt-ap {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- Box score head ---------- */
+.card .card-head.sc-bh {
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding: 16px 20px;
+}
+.card .card-head.sc-bh h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  min-width: 0;
+}
+.sc-bh-side {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.sc-bh-abbr {
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text);
+}
+.sc-bh-pts {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sc-bh-side.trail .sc-bh-abbr,
+.sc-bh-side.trail .sc-bh-pts {
+  color: var(--muted);
+  font-weight: 500;
+}
+.sc-bh-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  margin-left: auto;
+  text-align: right;
+}
+.sc-bh-time .gt-per {
+  font-size: 16px;
+}
+.sc-bh-time .gt-clock {
+  font-size: 30px;
+}
+.sc-bh-time .gt-break .gt-word {
+  font-size: 22px;
+}
+.sc-bh-time .gt-final .gt-word {
+  font-size: 18px;
+  color: var(--text-2);
+}
+.sc-bh-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  /* ink-2, not muted: late in a game this line sits right in the front's light */
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.sc-bh-sub i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (max-width: 640px) {
+  .card .card-head.sc-bh {
+    padding: 14px 16px;
+  }
+  .card .card-head.sc-bh h2 {
+    gap: 14px;
+  }
+  .sc-bh-pts,
+  .sc-bh-time .gt-clock {
+    font-size: 26px;
+  }
+  .sc-bh-abbr {
+    font-size: 15px;
+  }
+}
+@media (max-width: 380px) {
+  .gt-clock {
+    font-size: 23px;
+  }
+  .sc-bh-pts,
+  .sc-bh-time .gt-clock {
+    font-size: 24px;
+  }
+  .card .card-head.sc-bh h2 {
+    gap: 12px;
+  }
+}
+
+/* ---------- Motion ----------
+   Once a minute the data refreshes: --gt-p slides the front to its new place (0.9s) and --gt-heat eases to
+   its new temperature (1.6s), so a game visibly warms as it gets late and close. The light source
+   catches once (data-tick, one refresh). Nothing loops; between refreshes the card is still. */
+.sc-ember[data-tick][data-ember='run'] > .sc-burn::after {
+  animation: gt-burn-catch 0.8s ease-out 1;
+}
+@keyframes gt-burn-catch {
+  35% {
+    filter: brightness(1.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-ember {
+    transition: none;
+  }
+  .sc-ember[data-tick][data-ember='run'] > .sc-burn::after {
+    animation: none;
+  }
+}
+
+/* Tags that sit on a burning card get an opaque ground, so the glow can't thin their contrast. */
+.sc-ember .badge-you,
+.sc-ember .gt-clutch {
+  background: color-mix(in srgb, var(--gold) 13%, var(--surface));
+}
+:root[data-theme='light'] .sc-ember .badge-you,
+:root[data-theme='light'] .sc-ember .gt-clutch {
+  background: var(--gold-soft);
+}
+
+/* A game outside your matchup keeps its "Not in your matchup" note, unless a Clutch tag needs the room
+   (the foot line already says "None of your players"). */
+.game-status .game-cold {
+  white-space: nowrap;
+}
+.game-status:has(.gt-clutch) .game-cold {
+  display: none;
+}
