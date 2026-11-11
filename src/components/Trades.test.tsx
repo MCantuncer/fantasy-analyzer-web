@@ -136,6 +136,23 @@ describe('TradeItem', () => {
     expect(kept).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('dims an offer that gives a player you just kept, and says why', () => {
+    const row = (keep: number[]) => (
+      <ul>
+        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} why="Why" keeper={{ keep, onToggleKeep: () => {} }} />
+      </ul>
+    )
+    const view = show(row([]))
+    expect(view.container.querySelector('.move')).not.toHaveClass('tr-stale')
+    expect(screen.queryByText(/is kept$/)).toBeNull()
+    // Keeping a player you would only receive changes nothing.
+    view.rerender(<QueryClientProvider client={new QueryClient()}>{row([2])}</QueryClientProvider>)
+    expect(view.container.querySelector('.move')).not.toHaveClass('tr-stale')
+    view.rerender(<QueryClientProvider client={new QueryClient()}>{row([1])}</QueryClientProvider>)
+    expect(view.container.querySelector('.move')).toHaveClass('tr-stale')
+    expect(screen.getByText('Davion Mitchell is kept')).toBeInTheDocument()
+  })
+
   it('leaves "Keep him" out of a closed row and of lists without a Keep list', () => {
     show(
       <ul>

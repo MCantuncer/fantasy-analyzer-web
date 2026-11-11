@@ -20,6 +20,7 @@ import { PlayerLink } from './PlayerCard'
 import { ReasonTiles } from './ReasonTiles'
 import { shortListNote } from '../lib/tradeList'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
+import { keptNames } from '../lib/untouchable'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -146,6 +147,9 @@ export function TradeItem({
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
+  // Moves never offer a kept player, so a listed trade that gives one was kept a moment ago: the
+  // offer is on its way out and dims until moves are updated.
+  const keptOut = keeper ? t.give.filter((p) => keeper.keep.includes(p.id)) : []
   const expected = expectedGain(t.acceptance, t.playoff_pct_before, t.playoff_pct_after)
   const scope = useContext(FeedbackContext)
   const tabs = scope !== null && feedbackSource !== undefined
@@ -207,7 +211,7 @@ export function TradeItem({
     </>
   )
   return (
-    <li id={id} className={open ? 'move open' : 'move'}>
+    <li id={id} className={['move', open && 'open', keptOut.length > 0 && 'tr-stale'].filter(Boolean).join(' ')}>
       {/* The row is a box, not a button, so the names inside can open player cards. The Details button
           stretches over the whole row (Trades.css), so a tap anywhere else still opens or closes it. */}
       <div className="tr-row">
@@ -217,6 +221,12 @@ export function TradeItem({
             <TeamCrest name={t.partner_team_name} colour={colour} size={20} />
             <span className="tr-partner">{t.partner_team_name}</span>
             {tag}
+            {keptOut.length > 0 && (
+              <span className="tr-kept-tag">
+                <LockSimple size={11} weight="fill" aria-hidden="true" />
+                {keptNames(keptOut.map((p) => p.name))} {keptOut.length > 1 ? 'are' : 'is'} kept
+              </span>
+            )}
           </span>
           <span className="tr-accept" title="Rough estimate from value balance and how much the deal helps them">
             <Handshake size={16} aria-hidden="true" />
