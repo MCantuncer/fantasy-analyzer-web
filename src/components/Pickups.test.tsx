@@ -99,3 +99,38 @@ describe('Pickups timing', () => {
     expect(container.querySelector('.fa-when')).toBeNull()
   })
 })
+
+describe('Pickups fold', () => {
+  const many = Array.from(
+    { length: 7 },
+    (_, i) => ({ ...pickup, add: ref(10 + i, `Free Agent ${i + 1}`) }) as PickupIdea,
+  )
+
+  it('opens on the best five and shows the rest on request', () => {
+    const { container } = render(<Pickups pickups={many} faab={50} />)
+    const view = within(container)
+    expect(container.querySelectorAll('.move')).toHaveLength(5)
+    expect(view.queryByText('Free Agent 6')).toBeNull()
+    fireEvent.click(view.getByRole('button', { name: 'Show all 7' }))
+    expect(container.querySelectorAll('.move')).toHaveLength(7)
+    expect(view.getByText('Free Agent 7')).toBeInTheDocument()
+    fireEvent.click(view.getByRole('button', { name: 'Show top 5' }))
+    expect(container.querySelectorAll('.move')).toHaveLength(5)
+  })
+
+  it('has no fold when five or fewer ideas fit as they are', () => {
+    const { container } = render(<Pickups pickups={many.slice(0, 5)} faab={50} />)
+    expect(container.querySelectorAll('.move')).toHaveLength(5)
+    expect(within(container).queryByRole('button', { name: /Show all/ })).toBeNull()
+  })
+
+  it('names a drop once when the rows in view share it, even if a folded row differs', () => {
+    const odd = { ...pickup, add: ref(30, 'Odd One'), drop: ref(31, 'Kris Dunn') } as PickupIdea
+    const { container } = render(<Pickups pickups={[...many.slice(0, 5), odd]} faab={50} />)
+    const view = within(container)
+    expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
+    fireEvent.click(view.getByRole('button', { name: 'Show all 6' }))
+    expect(view.queryByText(/Each one replaces/)).toBeNull()
+    expect(view.getByText('Kris Dunn')).toBeInTheDocument()
+  })
+})
