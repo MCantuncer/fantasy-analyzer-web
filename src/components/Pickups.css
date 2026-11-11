@@ -76,7 +76,9 @@
 
 .move-row.fa-row {
   grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'face text pts' 'why why pts';
+  /* The second line runs the full width of the row, under the odds gain too: in the narrow
+     desktop column the day strip and its words need all of it. */
+  grid-template-areas: 'face text pts' 'why why why';
   align-items: center;
   gap: 8px 12px;
   padding: 14px 20px;
@@ -192,13 +194,21 @@
   color: var(--text-2);
 }
 
-/* "T F S / S  Make this Sunday +2 games": the hand-off at row size, on one line of its own. */
+/* "T F S / S  Make this Sunday +2 games": the hand-off at row size, on one line of its own.
+   In a narrow column the words drop under the day strip together instead of running off the card. */
 .fa-when {
   display: inline-flex;
+  flex-wrap: wrap;
   flex-basis: 100%;
   align-items: center;
-  gap: 8px;
+  gap: 4px 6px;
+  min-width: 0;
   font-size: 12.5px;
+}
+
+.fa-when-text {
+  display: inline-flex;
+  gap: 6px;
   white-space: nowrap;
 }
 
@@ -219,6 +229,5 @@
 @media (min-width: 560px) {
   .fa-why .fa-when {
     flex-basis: auto;
-    margin-left: 6px;
   }
 }
