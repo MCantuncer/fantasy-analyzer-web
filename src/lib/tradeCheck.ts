@@ -144,3 +144,14 @@ export const ACCEPTANCE_WORD: Record<OfferCheck['idea']['acceptance_label'], str
 export function clearChecks(c: OfferCheck): string[] {
   return (c.checks ?? []).filter((v) => v.status !== 'confirmed').map((v) => v.title)
 }
+
+/** The URL parameter that holds the deal, so a check can be shared or reopened. */
+export const CHECK_PARAM = 'check'
+
+/** "Jaren Jackson Jr." -> "Jackson Jr.": the surname, keeping a suffix with it. */
+export function surname(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length < 2) return name
+  const last = parts[parts.length - 1]
+  return /^(Jr\.?|Sr\.?|II|III|IV)$/.test(last) && parts.length > 2 ? `${parts[parts.length - 2]} ${last}` : last
+}

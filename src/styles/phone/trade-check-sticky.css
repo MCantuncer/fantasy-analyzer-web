@@ -1,0 +1,100 @@
+/* Check a Trade on phones: once the verdict card scrolls off, a slim copy of both calls sticks under
+   the 65px top bar so the tables below still read against it. It is aria-hidden; the card's summary
+   already says it all. */
+@media (max-width: 640px) {
+  .tck-hero-sticky {
+    position: fixed;
+    top: 65px;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--topbar, var(--surface));
+    border-bottom: 1px solid var(--divider);
+    font-size: 0.8125rem;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tck-hero-sticky.on {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .tck-hero-sticky > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .tck-hero-sticky .tck-hero-tag {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.8125rem;
+  }
+
+  .tck-hero-sticky b.up {
+    color: var(--good);
+  }
+
+  .tck-hero-sticky b.down {
+    color: var(--bad);
+  }
+
+  .tck-hero-sticky b.them {
+    color: var(--partner);
+  }
+
+  /* Two rosters in two 158px columns at 360: tighter rows, the names still wrap rather than clip. */
+  .tck-benches button.tck-row {
+    padding: 6px 4px;
+    gap: 6px;
+  }
+}
+
+/* At phone width each tag gets half the card: their crest already heads the card, so the tag drops it
+   and "Worse for them" stays on one line. */
+@media (max-width: 440px) {
+  .tck-hero-tag.them .crest {
+    display: none;
+  }
+
+  .tck-hero-tag {
+    padding: 0 12px;
+  }
+}
+
+/* The tray docks above the bottom tab bar while you pick, so the picks and Check the Deal stay in
+   reach down both long rosters. */
+@media (max-width: 640px) {
+  .tck-tray {
+    position: sticky;
+    bottom: calc(62px + env(safe-area-inset-bottom, 0px) + 8px);
+    z-index: 5;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .tck-tray .tck-tray-names {
+    display: none;
+  }
+}
+
+/* Three slots a side plus the swap mark fit 360 only with slots the size of the faces in them (40px). */
+@media (max-width: 400px) {
+  .tck-tray .tck-slots {
+    gap: 4px;
+  }
+
+  .tck-tray .tck-slot {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+}

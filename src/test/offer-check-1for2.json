@@ -1,0 +1,81 @@
+{
+  "direction": "received",
+  "team_id": 3,
+  "team_name": "Kucukesat Aspavas",
+  "partner_team_id": 11,
+  "partner_team_name": "Jze's Scary Team",
+  "call": "take",
+  "call_reason": "Your playoff odds go up 10 points. Stronger in 3PM and AST, weaker in FG% and REB.",
+  "odds_noise": 0.006,
+  "partner_call": "lose",
+  "paper_win": false,
+  "my_drops": [
+    {
+      "id": 4278053,
+      "name": "Davion Mitchell",
+      "pro_team": "MIA",
+      "positions": [
+        "PG"
+      ],
+      "injury_status": "ACTIVE"
+    }
+  ],
+  "my_adds": [],
+  "their_drops": [],
+  "their_adds": [
+    {
+      "id": 4397002,
+      "name": "Ayo Dosunmu",
+      "pro_team": "MIN",
+      "positions": [
+        "PG",
+        "SG"
+      ],
+      "injury_status": "ACTIVE"
+    }
+  ],
+  "sims": 12000,
+  "generated_at": "2026-11-11T11:38:19+00:00",
+  "idea": {
+    "give": [
+      {
+        "id": 4066328,
+        "name": "Jarrett Allen",
+        "pro_team": "CLE",
+        "positions": [
+          "C"
+        ],
+        "injury_status": "DAY_TO_DAY"
+      }
+    ],
+    "get": [
+      {
+        "id": 4066320,
+        "name": "Desmond Bane",
+        "pro_team": "ORL",
+        "positions": [
+          "SG",
+          "SF"
+        ],
+        "injury_status": "ACTIVE"
+      },
+      {
+        "id": 2991230,
+        "name": "Fred VanVleet",
+        "pro_team": "HOU",
+        "positions": [
+          "PG",
+          "SG"
+        ],
+        "injury_status": "ACTIVE"
+      }
+    ],
+    "value_they_get": 9.8,
+    "value_they_give": 16.6,
+    "acceptance_label": "possible",
+    "playoff_pct_before": 0.429,
+    "playoff_pct_after": 0.526,
+    "partner_playoff_pct_before": 0.758,
+    "partner_playoff_pct_after": 0.69
+  }
+}

@@ -41,6 +41,7 @@ import { RoundValuesContext } from './lib/tradeValue'
 import { tonightMatchup } from './lib/league'
 import { useTabInView } from './lib/useTabInView'
 import { pageName, usePageView } from './lib/pageView'
+import { CHECK_PARAM } from './lib/tradeCheck'
 
 interface Selection {
   leagueId: number
@@ -100,6 +101,9 @@ function writeUrl(
   if (selection && verifying) q.set('view', 'verify')
   else if (selection && tab) q.set('tab', tab)
   if (selection && !verifying && film !== undefined) q.set('film', film === null ? 'last' : String(film))
+  // Trade Park's check keeps its own deal in the URL (see TradeCheck); carry it while that tab is open.
+  const check = new URLSearchParams(window.location.search).get(CHECK_PARAM)
+  if (selection && !verifying && tab === 'park' && check) q.set(CHECK_PARAM, check)
   const search = q.toString()
   window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname)
 }
