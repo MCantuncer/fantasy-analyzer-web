@@ -50,6 +50,17 @@ describe('Trades', () => {
     expect(view.queryByText(/The Bold tab has deals/)).toBeNull()
   })
 
+  it('names the kept players above the list, with the way to change them', () => {
+    const onEditKeep = vi.fn()
+    const { container } = show(
+      <Trades fair={[idea]} edge={[]} keepNames={['Kyshawn George', 'Jayson Tatum']} onEditKeep={onEditKeep} />,
+    )
+    const view = within(container)
+    expect(container.querySelector('.trades-kept')).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
+    fireEvent.click(view.getByRole('button', { name: 'Change in My Team' }))
+    expect(onEditKeep).toHaveBeenCalledOnce()
+  })
+
   it('opens on Fair when a trade helps both teams', () => {
     const { container } = show(<Trades fair={[idea]} edge={[idea]} />)
     const view = within(container)

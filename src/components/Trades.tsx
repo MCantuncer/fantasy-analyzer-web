@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
-import { CaretDown, Handshake } from '@phosphor-icons/react'
+import { CaretDown, Handshake, LockSimple } from '@phosphor-icons/react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
@@ -314,7 +314,10 @@ interface TradesProps {
   categories?: string[]
   teams?: { id: number; name: string }[]
   myTeamId?: number
+  /** Players these moves already leave out. */
   keepNames?: string[]
+  /** Opens My Team, where the Keep list is changed. */
+  onEditKeep?: () => void
 }
 
 export function Trades({
@@ -324,6 +327,7 @@ export function Trades({
   teams = [],
   myTeamId,
   keepNames = [],
+  onEditKeep,
 }: TradesProps) {
   const { rules } = useTradeRules()
   const fairSplit = useMemo(() => applyRules(rules, allFair), [rules, allFair])
@@ -370,6 +374,21 @@ export function Trades({
           </div>
         )}
       </div>
+      {keepNames.length > 0 && (
+        <p className="trades-kept small">
+          <span className="trades-kept-names">
+            <LockSimple size={14} weight="fill" aria-hidden="true" />
+            <span>
+              <strong>Always kept:</strong> {keepNames.join(', ')}.
+            </span>
+          </span>
+          {onEditKeep && (
+            <button type="button" className="link" onClick={onEditKeep}>
+              Change in My Team
+            </button>
+          )}
+        </p>
+      )}
       {!nothing && (
         <>
           <RulesBar
