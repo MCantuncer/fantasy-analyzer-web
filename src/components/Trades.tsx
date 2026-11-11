@@ -302,6 +302,12 @@ const MODES: Record<Mode, { label: string; hint: string; empty: string; why: str
   },
 }
 
+// With no Fair deal there is nothing to switch between, so the panel folds to one list or one line.
+const BOLD_ONLY =
+  "No deal lifts both teams' playoff odds today, so these are Bold ideas: they win on paper, you win on the court, and their odds dip 3 points at most"
+const NOTHING =
+  'No trade worth offering right now. Nothing raises your playoff odds that another team would take. Rosters change fast, so check back after the next games.'
+
 interface TradesProps {
   fair: TradeIdea[]
   edge: TradeIdea[]
@@ -333,6 +339,8 @@ export function Trades({
   const first = (mode === 'fair' ? allFair : allEdge)[0]
   const [open, setOpen] = useState<string | null>(first ? tradeKey(first) : null)
   const keepRow = useKeepRowInView(open)
+  const noFair = allFair.length === 0
+  const nothing = noFair && allEdge.length === 0
   const colours = useMemo(
     () =>
       teamColours(
@@ -352,29 +360,35 @@ export function Trades({
     <section className="card flush trades-panel" aria-labelledby="trades-title">
       <div className="card-head">
         <h2 id="trades-title">Trades to offer</h2>
-        <div className="segmented" role="group" aria-label="Trade style">
-          {(Object.keys(MODES) as Mode[]).map((m) => (
-            <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)} title={MODES[m].hint}>
-              {MODES[m].label} · {(m === 'fair' ? fair : edge).length}
-            </button>
-          ))}
-        </div>
+        {!noFair && (
+          <div className="segmented" role="group" aria-label="Trade style">
+            {(Object.keys(MODES) as Mode[]).map((m) => (
+              <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)} title={MODES[m].hint}>
+                {MODES[m].label} · {(m === 'fair' ? fair : edge).length}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <RulesBar
-        skipped={skipped.length}
-        showSkipped={showSkipped}
-        onShowSkipped={() => setShowSkipped(!showSkipped)}
-        categories={categories}
-        teams={teams}
-        myTeamId={myTeamId}
-        keepNames={keepNames}
-      />
-      <p className="small muted trades-hint">
-        {MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by your gain and the chance they
-        say yes.
-      </p>
+      {!nothing && (
+        <>
+          <RulesBar
+            skipped={skipped.length}
+            showSkipped={showSkipped}
+            onShowSkipped={() => setShowSkipped(!showSkipped)}
+            categories={categories}
+            teams={teams}
+            myTeamId={myTeamId}
+            keepNames={keepNames}
+          />
+          <p className="small muted trades-hint">
+            {noFair ? BOLD_ONLY : MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by your
+            gain and the chance they say yes.
+          </p>
+        </>
+      )}
       {trades.length === 0 && !(showSkipped && skipped.length) ? (
-        <p className="empty">{MODES[mode].empty}</p>
+        <p className="empty">{nothing ? NOTHING : MODES[mode].empty}</p>
       ) : (
         <>
           <ol className="move-list" onClickCapture={keepRow}>
