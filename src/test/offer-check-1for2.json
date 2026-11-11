@@ -76,6 +76,146 @@
     "playoff_pct_before": 0.429,
     "playoff_pct_after": 0.526,
     "partner_playoff_pct_before": 0.758,
-    "partner_playoff_pct_after": 0.69
-  }
+    "partner_playoff_pct_after": 0.69,
+    "category_detail": [
+      {
+        "category": "FT%",
+        "mine_before": 0.7428,
+        "mine_after": 0.7596,
+        "my_win_before": 0.135,
+        "my_win_after": 0.211,
+        "theirs_before": 0.8058,
+        "theirs_after": 0.7941,
+        "their_win_before": 0.53,
+        "their_win_after": 0.443
+      },
+      {
+        "category": "REB",
+        "mine_before": 249.592,
+        "mine_after": 236.0453,
+        "my_win_before": 0.623,
+        "my_win_after": 0.513,
+        "theirs_before": 262.3466,
+        "theirs_after": 276.9801,
+        "their_win_before": 0.718,
+        "their_win_after": 0.808
+      },
+      {
+        "category": "PTS",
+        "mine_before": 669.4633,
+        "mine_after": 694.358,
+        "my_win_before": 0.399,
+        "my_win_after": 0.471,
+        "theirs_before": 689.0776,
+        "theirs_after": 677.6421,
+        "their_win_before": 0.459,
+        "their_win_after": 0.42
+      },
+      {
+        "category": "BLK",
+        "mine_before": 31.2287,
+        "mine_after": 30.2115,
+        "my_win_before": 0.632,
+        "my_win_after": 0.597,
+        "theirs_before": 33.8374,
+        "theirs_after": 34.551,
+        "their_win_before": 0.721,
+        "their_win_after": 0.745
+      },
+      {
+        "category": "3PM",
+        "mine_before": 53.2337,
+        "mine_after": 64.3151,
+        "my_win_before": 0.167,
+        "my_win_after": 0.424,
+        "theirs_before": 74.3823,
+        "theirs_after": 64.5468,
+        "their_win_before": 0.673,
+        "their_win_after": 0.43
+      },
+      {
+        "category": "STL",
+        "mine_before": 35.5199,
+        "mine_after": 37.9805,
+        "my_win_before": 0.295,
+        "my_win_after": 0.394,
+        "theirs_before": 40.7299,
+        "theirs_after": 38.1879,
+        "their_win_before": 0.507,
+        "their_win_after": 0.403
+      },
+      {
+        "category": "TO",
+        "mine_before": 79.8761,
+        "mine_after": 81.7216,
+        "my_win_before": 0.527,
+        "my_win_after": 0.483,
+        "theirs_before": 80.4884,
+        "theirs_after": 77.9011,
+        "their_win_before": 0.513,
+        "their_win_after": 0.57
+      },
+      {
+        "category": "AST",
+        "mine_before": 153.0222,
+        "mine_after": 162.4848,
+        "my_win_before": 0.431,
+        "my_win_after": 0.551,
+        "theirs_before": 151.5852,
+        "theirs_after": 135.8452,
+        "their_win_before": 0.414,
+        "their_win_after": 0.239
+      },
+      {
+        "category": "FG%",
+        "mine_before": 0.5071,
+        "mine_after": 0.4892,
+        "my_win_before": 0.733,
+        "my_win_after": 0.55,
+        "theirs_before": 0.4745,
+        "theirs_after": 0.4925,
+        "their_win_before": 0.387,
+        "their_win_after": 0.586
+      }
+    ],
+    "playoff_weeks": [
+      {
+        "period": 19,
+        "starts_on": "2027-03-01",
+        "ends_on": "2027-03-07",
+        "my_cats_before": 3.46,
+        "my_cats_after": 3.86,
+        "their_cats_before": 5.42,
+        "their_cats_after": 5.03
+      },
+      {
+        "period": 20,
+        "starts_on": "2027-03-08",
+        "ends_on": "2027-03-14",
+        "my_cats_before": 4.31,
+        "my_cats_after": 4.18,
+        "their_cats_before": 3.92,
+        "their_cats_after": 4.24
+      },
+      {
+        "period": 21,
+        "starts_on": "2027-03-15",
+        "ends_on": "2027-03-21",
+        "my_cats_before": 3.42,
+        "my_cats_after": 3.79,
+        "their_cats_before": 5.24,
+        "their_cats_after": 4.74
+      }
+    ],
+    "finish_before": 6.67,
+    "finish_after": 6.02,
+    "partner_finish_before": 4.38,
+    "partner_finish_after": 4.92
+  },
+  "my_punts": [
+    "FT%",
+    "3PM",
+    "STL"
+  ],
+  "partner_punts": []
 }
