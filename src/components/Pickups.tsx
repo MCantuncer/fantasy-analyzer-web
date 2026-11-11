@@ -138,10 +138,14 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
                       {p.timing?.wait && (
                         <span className="fa-when">
                           <SpotStrip timing={p.timing} />
-                          <span className="fa-when-day">{p.timing.next_week ? 'Next week' : waitLabel(p.timing)}</span>
-                          <span className="fa-when-gain">
-                            <span className="num">+{spotGames(p.timing).best - spotGames(p.timing).now}</span>{' '}
-                            {spotGames(p.timing).best - spotGames(p.timing).now === 1 ? 'game' : 'games'}
+                          <span className="fa-when-text">
+                            <span className="fa-when-day">
+                              {p.timing.next_week ? 'Next week' : waitLabel(p.timing)}
+                            </span>
+                            <span className="fa-when-gain">
+                              <span className="num">+{spotGames(p.timing).best - spotGames(p.timing).now}</span>{' '}
+                              {spotGames(p.timing).best - spotGames(p.timing).now === 1 ? 'game' : 'games'}
+                            </span>
                           </span>
                           <span className="sr-only">{waitSaid(p)}</span>
                         </span>
