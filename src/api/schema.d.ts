@@ -1997,6 +1997,21 @@ export interface components {
             /** Their Crowded */
             their_crowded: components["schemas"]["CrowdedDay"][];
         };
+        /** MatchupProjectionRequest */
+        MatchupProjectionRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Team Id
+             * @description The team to project. Default: the team this account verified
+             */
+            team_id?: number | null;
+        };
         /** MatchupSide */
         MatchupSide: {
             /** Team Id */
@@ -2029,7 +2044,7 @@ export interface components {
             notices: components["schemas"]["Notice"][];
             /**
              * Admin
-             * @description Can read the site's error reports (ADMIN_EMAILS)
+             * @description An admin account (users.user_type = 'admin'): can read error reports and usage
              * @default false
              */
             admin: boolean;
@@ -2363,6 +2378,7 @@ export interface components {
         OfferCheck: {
             /**
              * Direction
+             * @description received: idea.acceptance and idea.pitch are still filled but don't apply, since they offered it
              * @enum {string}
              */
             direction: "received" | "sending";
@@ -2423,6 +2439,11 @@ export interface components {
              */
             partner_punts: string[];
             /**
+             * My Punts
+             * @description Categories you win less than 30% of the time
+             */
+            my_punts?: string[];
+            /**
              * Paper Win
              * @description They get at least the trade value they send, owner premium included
              */
@@ -2436,7 +2457,7 @@ export interface components {
              * My Drop Options
              * @description Players you could cut instead, cheapest first (kept players left out)
              */
-            my_drop_options?: components["schemas"]["PlayerRef"][];
+            my_drop_options?: components["schemas"]["OfferCutOption"][];
             /**
              * My Adds
              * @description Free agents you pick up for the spots the trade opens
@@ -2462,6 +2483,11 @@ export interface components {
              * @description Concerns the data confirms, e.g. a category you compete in drops
              */
             flags: components["schemas"]["CheckVerdict"][];
+            /**
+             * Checks
+             * @description Every data check that ran, confirmed or clear, so a page can name the clear ones
+             */
+            checks?: components["schemas"]["CheckVerdict"][];
             /** @description The full picture: both teams' odds, categories, playoff weeks, value, pitch */
             idea: components["schemas"]["TradeIdea"];
             /**
@@ -2522,6 +2548,21 @@ export interface components {
              * @enum {string}
              */
             direction: "received" | "sending";
+        };
+        /** OfferCutOption */
+        OfferCutOption: {
+            /** @description tier says whether he is droppable or has trade value */
+            player: components["schemas"]["PlayerRef"];
+            /**
+             * Chosen
+             * @description The cut this check used
+             */
+            chosen: boolean;
+            /**
+             * Playoff Pct After
+             * @description Your playoff odds after the trade with this cut; given for the cheapest few of a one-player cut
+             */
+            playoff_pct_after?: number | null;
         };
         /** OverviewMatchup */
         OverviewMatchup: {
@@ -6317,7 +6358,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LeagueRequest"];
+                "application/json": components["schemas"]["MatchupProjectionRequest"];
             };
         };
         responses: {

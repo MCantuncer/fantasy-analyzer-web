@@ -1,0 +1,98 @@
+/* Before ring, after dot (Check a Trade). The axis grows away from the seam: right-to-left for you. */
+.cd {
+  position: relative;
+  display: block;
+  height: 14px;
+  min-width: 48px;
+}
+.cd-track,
+.cd-seg {
+  position: absolute;
+  top: 6px;
+  height: 2px;
+  border-radius: 2px;
+}
+.cd-track {
+  inset-inline: 0;
+  background: var(--track);
+}
+.cd-seg {
+  height: 4px;
+  top: 5px;
+  background: var(--cd-c);
+}
+.cd-ring,
+.cd-dot {
+  position: absolute;
+  top: 1px;
+  width: 12px;
+  height: 12px;
+  margin-inline-start: -6px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.cd-ring {
+  border: 2px solid var(--ring);
+  background: var(--surface);
+}
+.cd-dot {
+  background: var(--cd-dot, var(--cd-c));
+}
+
+/* You: 0 at the seam on the right, so positions run from the right edge. */
+.cd-me .cd-seg {
+  right: var(--cd-from);
+  left: calc(100% - var(--cd-to));
+}
+.cd-me .cd-ring {
+  right: var(--cd-before);
+  margin-inline: 0 -6px;
+}
+.cd-me .cd-dot {
+  right: var(--cd-after);
+  margin-inline: 0 -6px;
+}
+/* Them: 0 at the seam on the left. */
+.cd-them .cd-seg {
+  left: var(--cd-from);
+  right: calc(100% - var(--cd-to));
+}
+.cd-them .cd-ring {
+  left: var(--cd-before);
+}
+.cd-them .cd-dot {
+  left: var(--cd-after);
+}
+
+.cd-up {
+  --cd-c: var(--good);
+}
+.cd-down {
+  --cd-c: var(--bad);
+}
+.cd-flat {
+  --cd-c: var(--text-2);
+}
+.cd-them {
+  --cd-c: var(--partner);
+}
+.cd-them-down {
+  --cd-c: color-mix(in srgb, var(--partner) var(--partner-loss), transparent);
+  --cd-dot: var(--partner);
+}
+/* The dot sits on top of the ring; the ring shows when the two part. */
+.cd-ring {
+  z-index: 1;
+}
+.cd-dot {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cd-dot,
+  .cd-seg {
+    transition:
+      left 350ms ease-out,
+      right 350ms ease-out;
+  }
+}
