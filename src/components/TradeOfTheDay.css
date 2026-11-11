@@ -203,3 +203,12 @@
   margin-top: 4px;
   font-size: 12px;
 }
+
+/* A day with no pick: one line, no card. */
+.totd-none {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 0 4px;
+}
