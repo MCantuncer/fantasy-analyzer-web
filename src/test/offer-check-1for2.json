@@ -212,7 +212,24 @@
     "finish_before": 6.67,
     "finish_after": 6.02,
     "partner_finish_before": 4.38,
-    "partner_finish_after": 4.92
+    "partner_finish_after": 4.92,
+    "pitch": "Helps their FG% (9th in the league) and REB (1st in the league), +1.9 a game.",
+    "pitch_needs": [
+      {
+        "category": "FG%",
+        "league_rank": 9,
+        "per_game": null
+      },
+      {
+        "category": "REB",
+        "league_rank": 1,
+        "per_game": 1.9
+      }
+    ],
+    "facts": [],
+    "reasons": [],
+    "my_cats_gain": 0.252,
+    "their_cats_gain": -0.279
   },
   "my_punts": [
     "FT%",

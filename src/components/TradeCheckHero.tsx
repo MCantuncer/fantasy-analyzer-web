@@ -122,7 +122,8 @@ export function TradeCheckHero({
       : null
   const tail = check ? reasonTail(check.call_reason) : ''
   const crest = <TeamCrest name={partnerName} colour={partnerColour} size={22} />
-  const summary = check
+  const settled = check && !loading
+  const summary = settled
     ? you
       ? checkSummary({ ...check, partner_team_name: partnerName })
       : checkSummary({ ...check, partner_team_name: partnerName }).replace(
@@ -159,7 +160,7 @@ export function TradeCheckHero({
         {loading && <span className="tck-hero-line" aria-hidden="true" />}
       </div>
 
-      {check && call && CallIcon ? (
+      {settled && call && CallIcon ? (
         <div className="tck-hero-tags" aria-hidden="true">
           <span className={`tck-hero-tag ${call.tone}`}>
             <CallIcon size={16} weight="bold" /> {call.label}
@@ -189,7 +190,7 @@ export function TradeCheckHero({
         </p>
       )}
 
-      {check?.direction === 'sending' && (
+      {settled && check.direction === 'sending' && (
         <p className="tck-hero-yes" aria-hidden="true">
           Chance they say yes · <b>{capital(ACCEPTANCE_WORD[check.idea.acceptance_label])}</b>
         </p>
@@ -207,10 +208,10 @@ export function TradeCheckHero({
           </div>
         </div>
       )}
-      {tail && <p className="tck-hero-reason">{tail}</p>}
+      {settled && tail && <p className="tck-hero-reason">{tail}</p>}
       {actions && <div className="tck-hero-actions">{actions}</div>}
 
-      {check && call && CallIcon && (
+      {settled && call && CallIcon && (
         <div className={`tck-hero-sticky${offscreen ? ' on' : ''}`} aria-hidden="true">
           <span className={`tck-hero-tag ${call.tone}`}>
             <CallIcon size={13} weight="bold" /> {call.label}
