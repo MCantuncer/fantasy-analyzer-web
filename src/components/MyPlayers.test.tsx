@@ -110,6 +110,41 @@ describe('MyPlayers', () => {
     expect(screen.getByText('Starters so far')).toBeInTheDocument()
   })
 
+  it('lights a live player only while he is on the floor; the clock stays', async () => {
+    const sitting: ScoreDay = {
+      ...LIVE,
+      games: LIVE.games.map((g) => (g.id === 1 ? { ...g, lines: g.lines.map((l) => ({ ...l, on_court: false })) } : g)),
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const path = new URL(String(input), 'http://x').pathname
+      return new Response(JSON.stringify(path === '/api/scores/lineup' ? LINEUP : sitting))
+    })
+    renderIt()
+    const tatum = (await screen.findAllByText('Jayson Tatum'))
+      .map((e) => e.closest('li.mp-row'))
+      .find(Boolean) as HTMLElement
+    expect(tatum).toHaveClass('mp-live', 'mp-sitting')
+    expect(within(tatum).getByText('Live, on the bench')).toBeInTheDocument()
+    expect(within(tatum).getByText('Q4 4:12')).toBeInTheDocument()
+  })
+
+  it('keeps a player on the floor lit', async () => {
+    const onFloor: ScoreDay = {
+      ...LIVE,
+      games: LIVE.games.map((g) => (g.id === 1 ? { ...g, lines: g.lines.map((l) => ({ ...l, on_court: true })) } : g)),
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const path = new URL(String(input), 'http://x').pathname
+      return new Response(JSON.stringify(path === '/api/scores/lineup' ? LINEUP : onFloor))
+    })
+    renderIt()
+    const tatum = (await screen.findAllByText('Jayson Tatum'))
+      .map((e) => e.closest('li.mp-row'))
+      .find(Boolean) as HTMLElement
+    expect(tatum).toHaveClass('mp-live')
+    expect(tatum).not.toHaveClass('mp-sitting')
+  })
+
   it('asks for a swap when a bench player plays and fits an idle slot', async () => {
     mockApi()
     renderIt()

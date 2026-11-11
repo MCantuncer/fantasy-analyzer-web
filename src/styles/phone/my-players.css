@@ -304,6 +304,16 @@
     border-color: var(--rim);
     box-shadow: var(--lift);
   }
+  /* live but on his NBA bench right now: no gold light, a hollow dot; the clock stays gold */
+  .mp .mp-row.mp-live.mp-sitting {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: none;
+  }
+  .mp .mp-mark.live.sitting .mp-dot {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--muted);
+  }
   /* final: flat, settled */
   .mp .mp-row.mp-final,
   .mp .mp-row.mp-dnp {
