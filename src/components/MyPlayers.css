@@ -417,6 +417,23 @@
   font-weight: 700;
 }
 
+/* FG/FT: made/attempted sits on the same line as REB, AST and the rest; the percentage hangs
+   below it without lifting it. (Phones stack every cell from the top, so this is wide screens only.) */
+@media (min-width: 901px) {
+  .mp-stat .shot-split {
+    position: relative;
+  }
+
+  .mp-stat .shot-split-pct {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-top: 1px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}
+
 /* What counts so far: under the last starting slot, lit with the house light like your side of a card. */
 .mp-totals {
   margin-top: 8px;
