@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { AnalysisReport, LeagueOverview as Overview } from '../api/client'
 import { BestMove } from './BestMove'
 import { Builds } from './Builds'
@@ -27,6 +27,8 @@ import { BestMovePending, TradesPending, type TradesStatus } from './TradesPendi
 import { NewsSince, type NewsSinceProps } from './NewsSince'
 import type { NewsRowKind } from '../lib/newsSince'
 import type { Credentials } from '../lib/credentials'
+import { Untouchable, UntouchableWorking } from './Untouchable'
+import { useUntouchableAsked } from '../lib/untouchable'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
@@ -112,6 +114,20 @@ export function Report({
     [verified, leagueId, season, teamId, creds],
   )
 
+  // "Anyone untouchable?" is asked once, while nobody is kept. A manager whose moves already leave
+  // keepers out has answered; so has one who asks for an update with new keepers.
+  const [asked, markAsked] = useUntouchableAsked(leagueId, season, teamId)
+  const keptNow = report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)
+  const reworking = rerunning && keepChanged && keep.length > 0
+  const asking = !asked && !tradesPending && !reworking && (keep.length === 0 || keepChanged)
+  useEffect(() => {
+    if (!asked && keep.length > 0 && !keepChanged) markAsked()
+  }, [asked, keep.length, keepChanged, markAsked])
+  const rerun = () => {
+    if (keepChanged) markAsked()
+    onRerun()
+  }
+
   // From the news card to the part of Moves it names: phones show one list at a time, so open it first.
   const goTo = (kind: NewsRowKind) => {
     if (kind === 'trades') setShow('trades')
@@ -138,6 +154,16 @@ export function Report({
       <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'moves' && (
           <>
+            {reworking && <UntouchableWorking names={keptNow} />}
+            {asking && (
+              <Untouchable
+                roster={report.roster}
+                keep={keep}
+                onToggleKeep={onToggleKeep}
+                onEveryone={markAsked}
+                onMyTeam={() => onTab('team')}
+              />
+            )}
             {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} onGo={goTo} />}
             <TradeOfTheDay
               leagueId={report.league.id}
@@ -190,7 +216,8 @@ export function Report({
                       categories={report.league.categories}
                       teams={report.league.teams}
                       myTeamId={report.team_id}
-                      keepNames={report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)}
+                      keepNames={keepChanged ? [] : keptNow}
+                      onEditKeep={() => onTab('team')}
                     />
                   )}
                 </div>
@@ -312,7 +339,7 @@ export function Report({
 
         {keepChanged && (
           <div className="sticky-action">
-            <button onClick={onRerun} disabled={rerunning}>
+            <button onClick={rerun} disabled={rerunning}>
               {rerunning ? 'Updating…' : 'Update moves with these keepers'}
             </button>
           </div>

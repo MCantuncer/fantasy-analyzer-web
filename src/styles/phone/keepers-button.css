@@ -1,0 +1,8 @@
+/* "Update moves with these keepers" on phones: the sticky button sat behind the fixed bottom bar.
+   It now floats just above it. */
+@media (max-width: 640px) {
+  .sticky-action {
+    bottom: calc(62px + env(safe-area-inset-bottom, 0px) + 8px);
+    z-index: 5;
+  }
+}
