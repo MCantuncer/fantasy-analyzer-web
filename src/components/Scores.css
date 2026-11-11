@@ -1,11 +1,3 @@
-/* Scores page: the quarter and clock beside the Live badge, e.g. "LIVE · Q4 2:31". */
-.live-dot .game-clock {
-  color: var(--text);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 /* The score column sizes to the score itself, so a bold three-digit score ("108") never clips.
    min-width is in the score's own font, so two- and three-digit scores still line up. */
 .game-card .team-row {

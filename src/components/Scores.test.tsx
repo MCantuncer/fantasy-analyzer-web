@@ -213,7 +213,25 @@ describe('Scores', () => {
       ),
     )
     renderScores()
-    expect((await screen.findAllByText(/Q4 2:31/)).length).toBeGreaterThan(0)
+    // The clock is the card's hero number; screen readers hear it as a sentence.
+    expect((await screen.findAllByText('2:31')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Live, 2:31 left in the 4th quarter/).length).toBeGreaterThan(0)
+    const card = document.querySelector('.game-card[data-ember="run"]') as HTMLElement
+    expect(card).not.toBeNull()
+    expect(Number(card.style.getPropertyValue('--gt-p'))).toBeGreaterThan(0.9)
+    expect(screen.queryByText(/no quarter or game clock/)).toBeNull()
+  })
+
+  it('shows a break as a paused word with no clock', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ ...DAY, live: true, games: [{ ...DAY.games[0], status: 'live', clock: 'Half' }] })),
+      ),
+    )
+    renderScores()
+    expect((await screen.findAllByText('Half')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Live, halftime/).length).toBeGreaterThan(0)
+    expect(document.querySelector('.game-card[data-ember="break"]')).not.toBeNull()
   })
 
   it("doesn't offer a box score for a game that hasn't started", async () => {
