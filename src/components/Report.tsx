@@ -218,6 +218,8 @@ export function Report({
                       myTeamId={report.team_id}
                       keepNames={keepChanged ? [] : keptNow}
                       onEditKeep={() => onTab('team')}
+                      keep={keep}
+                      onToggleKeep={onToggleKeep}
                     />
                   )}
                 </div>

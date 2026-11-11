@@ -296,3 +296,21 @@
     min-height: 44px;
   }
 }
+
+/* "Keep him" beside each player you would give, once a trade is open. It sits above the row's
+   tap layer, like the names. */
+.tr-row .tr-keep {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  gap: 6px;
+  min-height: 36px;
+  margin-left: auto;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.tr-row .tr-keep[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}

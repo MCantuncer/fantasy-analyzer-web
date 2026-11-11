@@ -115,4 +115,34 @@ describe('TradeItem', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
+
+  it('offers "Keep him" beside the players you give once the trade is open', () => {
+    const onToggleKeep = vi.fn()
+    const row = (keep: number[]) => (
+      <ul>
+        <TradeItem trade={idea} id="t1" open onToggle={() => {}} why="Why" keeper={{ keep, onToggleKeep }} />
+      </ul>
+    )
+    const view = show(row([]))
+    // Only your side: nobody keeps a player they would receive.
+    expect(screen.queryByRole('button', { name: 'Keep Jaylen Brown out of trades' })).toBeNull()
+    const keepHim = screen.getByRole('button', { name: 'Keep Davion Mitchell out of trades' })
+    expect(keepHim).toHaveTextContent('Keep him')
+    fireEvent.click(keepHim)
+    expect(onToggleKeep).toHaveBeenCalledWith(1)
+    view.rerender(<QueryClientProvider client={new QueryClient()}>{row([1])}</QueryClientProvider>)
+    const kept = screen.getByRole('button', { name: 'Davion Mitchell is kept out of trades' })
+    expect(kept).toHaveTextContent('Kept')
+    expect(kept).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('leaves "Keep him" out of a closed row and of lists without a Keep list', () => {
+    show(
+      <ul>
+        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} why="Why" keeper={{ keep: [], onToggleKeep: () => {} }} />
+        <TradeItem trade={idea} id="t2" open onToggle={() => {}} why="Why" />
+      </ul>,
+    )
+    expect(screen.queryByText('Keep him')).toBeNull()
+  })
 })

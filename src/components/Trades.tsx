@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
-import { CaretDown, Handshake, LockSimple } from '@phosphor-icons/react'
+import { CaretDown, Handshake, LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
@@ -38,6 +38,11 @@ function WarningMark() {
   )
 }
 
+interface Keeper {
+  keep: number[]
+  onToggleKeep: (id: number) => void
+}
+
 /** One side of a trade row: a label, then a small team-lit face, name, injury pill and "MIL · PF" per player.
  *  Names are plain text while the row is closed, so a tap anywhere opens the details; once it is open
  *  each name opens the player's card. */
@@ -46,11 +51,14 @@ function RowLane({
   players,
   extra,
   linked,
+  keeper = null,
 }: {
   label: string
   players: TradeIdea['give']
   extra?: string
   linked: boolean
+  /** Set on the side you give once the trade is open: a "Keep him" switch beside each player. */
+  keeper?: Keeper | null
 }) {
   return (
     <span className="tr-lane">
@@ -71,10 +79,33 @@ function RowLane({
             </span>
             <span className="tr-meta">{[p.pro_team, p.positions.join('/')].filter(Boolean).join(' · ')}</span>
           </span>
+          {keeper && (
+            <KeepSwitch name={p.name} kept={keeper.keep.includes(p.id)} onToggle={() => keeper.onToggleKeep(p.id)} />
+          )}
         </span>
       ))}
       {extra && <span className="tr-extra num">{extra}</span>}
     </span>
+  )
+}
+
+/** The same switch as Keep in My Team, asked at the moment you see a player you would never give. */
+function KeepSwitch({ name, kept, onToggle }: { name: string; kept: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      className="tr-keep secondary"
+      aria-pressed={kept}
+      aria-label={kept ? `${name} is kept out of trades` : `Keep ${name} out of trades`}
+      onClick={onToggle}
+    >
+      {kept ? (
+        <LockSimple size={14} weight="fill" aria-hidden="true" />
+      ) : (
+        <LockSimpleOpen size={14} aria-hidden="true" />
+      )}
+      {kept ? 'Kept' : 'Keep him'}
+    </button>
   )
 }
 
@@ -94,6 +125,8 @@ interface ItemProps {
   colour?: string
   /** League size, for the pitch's "8th/10". */
   teamCount?: number
+  /** The Keep list and its switch: offers "Keep him" beside the players you give once the row is open. */
+  keeper?: Keeper | null
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
@@ -109,6 +142,7 @@ export function TradeItem({
   feedbackSource,
   colour,
   teamCount,
+  keeper = null,
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
@@ -199,6 +233,7 @@ export function TradeItem({
             players={t.give}
             extra={faab > 0 ? `+ $${faab} FAAB` : undefined}
             linked={open}
+            keeper={open ? keeper : null}
           />
           <RowLane label="You get" players={t.get} linked={open} />
           <span className="tr-odds">
@@ -329,6 +364,9 @@ interface TradesProps {
   keepNames?: string[]
   /** Opens My Team, where the Keep list is changed. */
   onEditKeep?: () => void
+  /** The Keep list and its switch, for "Keep him" in an open trade. */
+  keep?: number[]
+  onToggleKeep?: (id: number) => void
 }
 
 export function Trades({
@@ -339,6 +377,8 @@ export function Trades({
   myTeamId,
   keepNames = [],
   onEditKeep,
+  keep,
+  onToggleKeep,
 }: TradesProps) {
   const { rules } = useTradeRules()
   const fairSplit = useMemo(() => applyRules(rules, allFair), [rules, allFair])
@@ -355,6 +395,7 @@ export function Trades({
   const [open, setOpen] = useState<string | null>(first ? tradeKey(first) : null)
   const keepRow = useKeepRowInView(open)
   const noFair = allFair.length === 0
+  const keeper = useMemo(() => (keep && onToggleKeep ? { keep, onToggleKeep } : null), [keep, onToggleKeep])
   const nothing = noFair && allEdge.length === 0
   const colours = useMemo(
     () =>
@@ -433,6 +474,7 @@ export function Trades({
                   open={isOpen}
                   onToggle={() => setOpen(isOpen ? null : key)}
                   why={MODES[mode].why}
+                  keeper={keeper}
                   feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                   colour={colours.get(t.partner_team_id)}
                   teamCount={teams.length || undefined}
@@ -451,6 +493,7 @@ export function Trades({
                     open={isOpen}
                     onToggle={() => setOpen(isOpen ? null : key)}
                     why={MODES[mode].why}
+                    keeper={keeper}
                     tag={<span className="skipped-pill">Skipped: {rule.label}</span>}
                     feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                     colour={colours.get(t.partner_team_id)}
