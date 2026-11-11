@@ -471,17 +471,17 @@
   }
 }
 
-/* A barely-there rule before each stat column, the full height of the row's content: enough to
-   guide the eye down a column, never enough to draw a grid. */
+/* A barely-there tick before each stat column, half the row's height and centred on the numbers:
+   enough to guide the eye down a column, never enough to draw a grid. */
 .mp {
-  --mp-rule: color-mix(in srgb, var(--text) 5%, transparent);
+  --mp-rule: color-mix(in srgb, var(--text) 4%, transparent);
 }
 
 .mp-row .mp-stat,
 .mp-totals .mp-stat {
   align-self: stretch;
   justify-content: center;
-  box-shadow: inset 1px 0 0 var(--mp-rule);
+  background: linear-gradient(var(--mp-rule), var(--mp-rule)) left center / 1px 50% no-repeat;
 }
 
 /* What counts so far: under the last starting slot, lit with the house light like your side of a card. */
