@@ -341,13 +341,25 @@ table.box .sc-owner {
   color: var(--text);
 }
 
-table.box .sc-owner-dot {
+/* Your (and your rival's) team abbreviation sits on the same left edge and weight as everyone else's;
+   the dot rides at its top right like a superscript, so it marks the name without pushing it over. */
+:root .table-wrap.box-scroll table.box tbody tr:is(.mine, .rival) > td.sc-owner,
+table.box tr:is(.mine, .rival) > td.sc-owner {
+  font-weight: 500;
+}
+
+table.box .sc-owner-name {
+  position: relative;
   display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 6px;
+}
+
+table.box .sc-owner-dot {
+  position: absolute;
+  top: -1px;
+  right: -7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  vertical-align: 0.08em;
   background: var(--gold);
 }
 

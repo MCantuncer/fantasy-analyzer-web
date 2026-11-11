@@ -921,8 +921,10 @@ function BoxRow({
         </span>
       </th>
       <td className="left sc-owner">
-        {(mine || rival) && <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />}
-        {owner}
+        <span className="sc-owner-name">
+          {owner}
+          {(mine || rival) && <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />}
+        </span>
         {mine && <span className="sr-only"> (you)</span>}
         {rival && <span className="sr-only"> (your opponent)</span>}
       </td>
