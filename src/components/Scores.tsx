@@ -921,10 +921,21 @@ function BoxRow({
         </span>
       </th>
       <td className="left sc-owner">
-        <span className="sc-owner-name">
-          {owner}
-          {(mine || rival) && <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />}
-        </span>
+        {mine || rival ? (
+          // Every league abbreviation is stacked invisibly under the name, so the box is as wide as the widest
+          // one and the dot at its top right lands in the same spot on every marked row.
+          <span className="sc-owner-name">
+            <span className="sc-owner-text">{owner}</span>
+            {[...new Set(abbrev.values())].map((a) => (
+              <span key={a} className="sc-owner-sizer" aria-hidden="true">
+                {a}
+              </span>
+            ))}
+            <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />
+          </span>
+        ) : (
+          owner
+        )}
         {mine && <span className="sr-only"> (you)</span>}
         {rival && <span className="sr-only"> (your opponent)</span>}
       </td>
