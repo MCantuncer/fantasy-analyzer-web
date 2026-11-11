@@ -86,6 +86,9 @@ export type PlayerGame = components['schemas']['PlayerGame']
 export type PlayerMove = components['schemas']['PlayerMove']
 export type PlayerNews = components['schemas']['PlayerNews']
 export type GameStats = components['schemas']['GameStats']
+export type ErrorReport = components['schemas']['ErrorReport']
+export type UsageReport = components['schemas']['UsageReport']
+export type UsageDay = components['schemas']['UsageDay']
 
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
@@ -206,6 +209,21 @@ export function signInWithGoogle(credential: string) {
 
 export function signOut() {
   return send<{ ok: boolean }>('/api/auth/logout', {})
+}
+
+/** Admins only: the site's error reports, most recent first. */
+export function fetchErrorReports() {
+  return post<{ reports: ErrorReport[] }>('/api/admin/errors', {})
+}
+
+/** Admins only: marks a report fixed; it opens again if it happens again. */
+export function resolveErrorReport(id: number) {
+  return send<{ ok: boolean }>('/api/admin/errors/resolve', { id })
+}
+
+/** Admins only: daily visitors, page views and account totals. */
+export function fetchUsage(days: number) {
+  return post<UsageReport>('/api/admin/usage', { days })
 }
 
 /** Counts a page view for the usage numbers: the page name only, no ids. Never fails loudly. */

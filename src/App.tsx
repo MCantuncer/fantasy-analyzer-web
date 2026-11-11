@@ -20,6 +20,7 @@ import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
 import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
+import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
@@ -65,7 +66,13 @@ const NO_NEWS: NewsSnapshot = { before: null, changes: [] }
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
 
-function readUrl(): { selection: Selection | null; tab: string; verifying: boolean; film: number | null | undefined } {
+function readUrl(): {
+  selection: Selection | null
+  tab: string
+  verifying: boolean
+  film: number | null | undefined
+  health: boolean
+} {
   const q = new URLSearchParams(window.location.search)
   const league = Number(q.get('league'))
   const season = Number(q.get('season'))
@@ -74,12 +81,20 @@ function readUrl(): { selection: Selection | null; tab: string; verifying: boole
     tab: ALL_TABS.find((t) => t.id === q.get('tab'))?.id ?? '',
     verifying: q.get('view') === 'verify',
     film: q.get('film') === 'last' ? null : Number(q.get('film')) > 0 ? Number(q.get('film')) : undefined,
+    health: league <= 0 && q.get('view') === 'health',
   }
 }
 
 // Only IDs go in the URL, never cookies or tokens.
-function writeUrl(selection: Selection | null, tab: string, verifying: boolean, film: number | null | undefined) {
+function writeUrl(
+  selection: Selection | null,
+  tab: string,
+  verifying: boolean,
+  film: number | null | undefined,
+  health: boolean,
+) {
   const q = new URLSearchParams()
+  if (!selection && health) q.set('view', 'health')
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')
@@ -135,8 +150,13 @@ export default function App() {
   const [focusAdd, setFocusAdd] = useState(0)
   // The team the verify page opens on: the one already picked, when "Verify" was pressed for it.
   const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
+  // Site health (admins only) stands in for My leagues while it is open.
+  const [health, setHealth] = useState(initial.health)
 
-  useEffect(() => writeUrl(selection, tab, verifying, film), [selection, tab, verifying, film])
+  useEffect(
+    () => writeUrl(selection, tab, verifying, film, health),
+    [selection, tab, verifying, film, health],
+  )
   // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
   const isPrivate = useRef(creds !== null)
   isPrivate.current = creds !== null
@@ -268,14 +288,16 @@ export default function App() {
     selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
   const tabsRef = useTabInView(showTabs ? activeTab : null)
   usePageView(
-    pageName({
-      signedIn,
-      hasLeague: selection !== null,
-      leagueReady: !!overview.data,
-      verifying,
-      tab: activeTab,
-      filmOpen: film !== undefined,
-    }),
+    health
+      ? null
+      : pageName({
+          signedIn,
+          hasLeague: selection !== null,
+          leagueReady: !!overview.data,
+          verifying,
+          tab: activeTab,
+          filmOpen: film !== undefined,
+        }),
   )
   const tradesPending = !!report?.pending?.length
   const firstRun = (waitingForReport || tradesPending) && analysis.isPending
@@ -336,6 +358,7 @@ export default function App() {
   }
 
   function openLeague(l: MyLeague) {
+    setHealth(false)
     setSelection({ leagueId: l.league_id, season: l.season })
     setTab('')
     setVerifying(false)
@@ -346,6 +369,7 @@ export default function App() {
   }
 
   function goHome() {
+    setHealth(false)
     setSelection(null)
     setFocusAdd(0)
     setVerifying(false)
@@ -470,6 +494,19 @@ export default function App() {
                 <div className="account-pop card stack">
                   <span className="small muted">Signed in as</span>
                   <strong className="account-email">{me.data.email ?? 'Google account'}</strong>
+                  {me.data.admin && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={(e) => {
+                        e.currentTarget.closest('details')?.removeAttribute('open')
+                        goHome()
+                        setHealth(true)
+                      }}
+                    >
+                      Site health
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="secondary"
@@ -496,7 +533,9 @@ export default function App() {
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
-        {signedIn && me.data && !selection && (
+        {signedIn && me.data && !selection && health && me.data.admin && <SiteHealth onBack={goHome} />}
+
+        {signedIn && me.data && !selection && !(health && me.data.admin) && (
           <MyLeagues
             me={me.data}
             creds={creds}
