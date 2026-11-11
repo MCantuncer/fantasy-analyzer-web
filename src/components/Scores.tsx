@@ -778,6 +778,8 @@ function BoxScore({
   const teamLines = game.lines.filter((l) => l.pro_team_id === side.pro_team_id)
   const split = splitStarters(teamLines, sort)
   // Sorted, the five lose their block, so each keeps his face lit by the team's colour.
+  // Your and your rival's abbreviations size the dot box, so both dots line up hugging the wider name.
+  const marked = [teamId, rivalId].flatMap((id) => (id != null && abbrev.has(id) ? [abbrev.get(id)!] : []))
   const row = (l: GameLine) => (
     <BoxRow
       key={l.player_id}
@@ -785,6 +787,7 @@ function BoxScore({
       mine={l.owner_team_id === teamId}
       rival={rivalId != null && l.owner_team_id === rivalId}
       abbrev={abbrev}
+      marked={marked}
       starter={!split && l.starter}
       team={side.abbrev}
     />
@@ -896,6 +899,7 @@ function BoxRow({
   mine,
   rival = false,
   abbrev,
+  marked,
   starter = false,
   team,
 }: {
@@ -904,6 +908,8 @@ function BoxRow({
   /** One of this week's opponent's players. */
   rival?: boolean
   abbrev: Map<number, string>
+  /** Your and your rival's abbreviations: they size the dot box so the dots line up. */
+  marked: string[]
   /** Marks a starter while a sort has merged the list. */
   starter?: boolean
   team: string
@@ -921,8 +927,21 @@ function BoxRow({
         </span>
       </th>
       <td className="left sc-owner">
-        {(mine || rival) && <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />}
-        {owner}
+        {mine || rival ? (
+          // Your and your rival's abbreviations are stacked invisibly under the name, so the box is as wide as
+          // the wider of the two and the dot at its top right lands in the same spot on every marked row.
+          <span className="sc-owner-name">
+            <span className="sc-owner-text">{owner}</span>
+            {[...new Set(marked)].map((a) => (
+              <span key={a} className="sc-owner-sizer" aria-hidden="true">
+                {a}
+              </span>
+            ))}
+            <span className={`sc-owner-dot ${mine ? 'you' : 'rival'}`} aria-hidden="true" />
+          </span>
+        ) : (
+          owner
+        )}
         {mine && <span className="sr-only"> (you)</span>}
         {rival && <span className="sr-only"> (your opponent)</span>}
       </td>
