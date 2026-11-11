@@ -1,6 +1,6 @@
 <div align="center">
 
-# Fantasy Analyzer · Web
+# COURT · Web
 
 **Win your ESPN fantasy basketball league with trades the other owner will actually accept.**
 
@@ -35,7 +35,7 @@
 
 ## Overview
 
-The web client for Fantasy Analyzer, built for ESPN **9-category head-to-head** leagues. Enter a league ID (or paste your ESPN team page URL), verify your team, and every move is ranked by how much it changes your playoff odds: trades the other owner should accept, free agents paired with the right drop, and where your categories stand.
+The web client for COURT (**C**ategories, **O**dds, **U**pgrades, **R**osters, **T**rades), built for ESPN **9-category head-to-head** leagues. Enter a league ID (or paste your ESPN team page URL), verify your team, and every move is ranked by how much it changes your playoff odds: trades the other owner should accept, free agents paired with the right drop, and where your categories stand.
 
 All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantuncer/fantasy-analyzer-api). This app presents it.
 
