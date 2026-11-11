@@ -1,4 +1,4 @@
-import { Scales } from '@phosphor-icons/react'
+import { MaybeHandshake } from './MaybeHandshake'
 import { useState, type CSSProperties } from 'react'
 import type { OverviewTeam, SeasonRow } from '../api/client'
 import { pct } from '../lib/format'
@@ -103,7 +103,7 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected, o
                           title="Check a Trade With Them"
                           onClick={() => onCheckTrade(t.id)}
                         >
-                          <Scales size={18} />
+                          <MaybeHandshake size={20} />
                         </button>
                       )}
                     </td>

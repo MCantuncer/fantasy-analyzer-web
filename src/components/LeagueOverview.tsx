@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import { CalendarDots, Scales, Target } from '@phosphor-icons/react'
+import { CalendarDots, Target } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { isFresh, seenWeek } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
+import { MaybeHandshake } from './MaybeHandshake'
 import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
@@ -236,7 +237,7 @@ export function LeagueOverview({
                 className="secondary lo-check"
                 onClick={() => onCheckTrade(sides(mine)[1].team_id)}
               >
-                <Scales size={18} aria-hidden="true" /> Check a Trade With Them
+                <MaybeHandshake size={20} /> Check a Trade With Them
               </button>
             )}
           </div>
