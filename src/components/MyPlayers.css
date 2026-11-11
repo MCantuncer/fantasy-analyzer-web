@@ -190,6 +190,18 @@
   border-color: transparent;
 }
 
+/* Live but on his NBA bench right now: not lit. A plain card, the dot hollow; the clock stays gold. */
+.mp-row.mp-live.mp-sitting {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.mp-mark.live.sitting .mp-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted);
+}
+
 .mp-row.mp-later,
 .mp-row.mp-sub {
   background: transparent;

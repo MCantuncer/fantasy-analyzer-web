@@ -1493,6 +1493,11 @@ export interface components {
              * @default false
              */
             starter: boolean;
+            /**
+             * On Court
+             * @description On the floor right now; set only while the game is live and ESPN says
+             */
+            on_court?: boolean | null;
         };
         /** GameSide */
         GameSide: {

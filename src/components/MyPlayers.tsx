@@ -296,9 +296,10 @@ const STATE_WORD: Record<RowState, string> = {
   idle: 'No game',
 }
 
-function Mark({ state }: { state: RowState }) {
+/** The gutter signal. A live player sitting on his NBA bench keeps a hollow dot: in the game, not lit. */
+function Mark({ state, sitting = false }: { state: RowState; sitting?: boolean }) {
   return (
-    <span className={`mp-mark ${state}`}>
+    <span className={`mp-mark ${state}${sitting ? ' sitting' : ''}`} title={sitting ? 'On the bench right now' : undefined}>
       {state === 'live' ? (
         <i className="mp-dot" aria-hidden="true" />
       ) : state === 'final' || state === 'dnp' ? (
@@ -308,7 +309,7 @@ function Mark({ state }: { state: RowState }) {
       ) : (
         <Minus size={18} aria-hidden="true" />
       )}
-      <span className="sr-only">{STATE_WORD[state]}</span>
+      <span className="sr-only">{sitting ? 'Live, on the bench' : STATE_WORD[state]}</span>
     </span>
   )
 }
@@ -325,6 +326,8 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
   const { past } = ctx
   const { spot, game, line, state } = row
   const quiet = state === 'idle' || isIR(spot)
+  // In a game but on his NBA bench right now: the row stays calm, the game clock keeps its gold.
+  const sitting = state === 'live' && line?.on_court === false
   const avg = state === 'later' && !past ? spot.season_avg : null
   const abbrev = nbaAbbrev(spot.pro_team_id)
   const counted = spot.starting
@@ -337,13 +340,14 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
     isIR(spot) ? 'mp-ir' : '',
     quiet ? 'mp-quiet' : '',
     avg ? 'mp-pre' : '',
+    sitting ? 'mp-sitting' : '',
     swap ? 'mp-swap' : '',
   ]
     .filter(Boolean)
     .join(' ')
   return (
     <li className={cls}>
-      <Mark state={isIR(spot) ? 'idle' : state} />
+      <Mark state={isIR(spot) ? 'idle' : state} sitting={sitting} />
       <span className={`mp-slot${counted ? '' : ' sub'}`}>{spot.slot}</span>
       <span className="mp-who">
         <PlayerLink player={player} decorative>
