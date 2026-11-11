@@ -58,10 +58,28 @@ describe('climb', () => {
     for (const s of c.strands) expect(s.x).toBeGreaterThan(c.end.x)
   })
 
+  it('draws only the three closest levels, however far the pick climbs', () => {
+    const far = climb({ before: 0.44, after: 0.5, others: [0.49, 0.48, 0.48, 0.47, 0.46, 0.45, 0.44, 0.43] })
+    expect(far.groups.map((g) => [g.gain, g.count])).toEqual([
+      [5, 1],
+      [4, 2],
+      [3, 1],
+    ])
+    expect(far.strands).toHaveLength(4)
+  })
+
+  it('never draws a pickup that would lower your odds', () => {
+    const small = climb({ before: 0.48, after: 0.5, others: [0.49, 0.48, 0.48, 0.47, 0.46] })
+    expect(small.groups.map((g) => [g.gain, g.count])).toEqual([
+      [1, 1],
+      [0, 2],
+    ])
+  })
+
   it('keeps strands outside the window on its edge and caps how many it draws', () => {
-    const many = climb({ before: 0.47, after: 0.51, others: Array.from({ length: 40 }, () => 0.2) })
+    const many = climb({ before: 0.47, after: 0.51, others: Array.from({ length: 40 }, () => 0.9) })
     expect(many.strands).toHaveLength(CLIMB.maxStrands)
-    expect(many.strands[0].y).toBeCloseTo(many.ticks[0].y)
+    expect(many.strands[0].y).toBeCloseTo(many.ticks[many.ticks.length - 1].y)
   })
 
   it('has no even-odds line when 50% is outside the window', () => {

@@ -148,9 +148,9 @@ export function PickupClimb({
           ))}
           {scored > 0 && (
             <span className="pclimb-cap" style={{ top: c.ticks[0].y + 6 }}>
-              Faint: the {scored} other
+              {c.strands.length < scored ? `Faint: the closest of the ${scored}` : `Faint: the ${scored} other`}
               <br />
-              pickups checked today
+              {c.strands.length < scored ? 'other pickups checked today' : 'pickups checked today'}
             </span>
           )}
 

@@ -1,7 +1,7 @@
 /**
  * Geometry for the free-agent climb on Best move ("The field"): one lit line from today's odds
- * to the odds after the pickup, and a faint strand for every other straight add/drop the
- * analysis scored, ending at its own odds. Pure, so it can be tested without a browser.
+ * to the odds after the pickup, and a faint strand for each of the closest other straight
+ * add/drops the analysis scored, ending at its own odds. Pure, so it can be tested without a browser.
  *
  * The scale is zoomed (a window of 20 points when the moves fit, wider when they don't) and
  * always shows its ticks, so a +4 never pretends to be bigger than it is.
@@ -48,6 +48,7 @@ export const CLIMB = {
   strandFrom: 0.68,
   strandTo: 0.86, // leaves the right edge to the gain labels
   maxStrands: 24,
+  maxLevels: 3, // grey lines: only the closest levels below the pick, however far it climbs
 }
 
 const round = (x: number) => Math.round(x * 100)
@@ -83,9 +84,18 @@ export function climb({ before, after, others }: ClimbInput): Climb {
   for (let p = lo; p <= hi; p += step) ticks.push({ pct: p, y: y(p / 100) })
 
   // Strands that end at the same whole percent fan out side by side, highest first.
-  const shown = [...others].sort((a, b) => b - a).slice(0, CLIMB.maxStrands)
+  // Only the closest few levels are drawn: a +6 pick with a strand at every point below it
+  // was a ladder of grey lines, and the far ones say nothing the near ones don't. A pickup
+  // that would lower your odds is no rival, so it is never drawn.
+  const shown = others
+    .filter((o) => round(o) >= round(before))
+    .sort((a, b) => b - a)
+    .slice(0, CLIMB.maxStrands)
   const byPct = new Map<number, number>()
-  for (const o of shown) byPct.set(round(o), (byPct.get(round(o)) ?? 0) + 1)
+  for (const o of shown) {
+    if (!byPct.has(round(o)) && byPct.size === CLIMB.maxLevels) break
+    byPct.set(round(o), (byPct.get(round(o)) ?? 0) + 1)
+  }
   const widest = Math.max(1, ...byPct.values())
   const gap = widest > 1 ? (CLIMB.strandTo - CLIMB.strandFrom) / (widest - 1) : 0
   const strands: Strand[] = []
