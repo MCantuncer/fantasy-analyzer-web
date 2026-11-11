@@ -33,10 +33,10 @@
     white-space: nowrap;
   }
 
-  .tck-hero-sticky .tck-hero-tag {
-    min-height: 28px;
-    padding: 0 10px;
-    font-size: 0.8125rem;
+  .tck-hero-sticky .tck-hero-call.small {
+    gap: 4px;
+    font-size: 0.875rem;
+    letter-spacing: 0;
   }
 
   .tck-hero-sticky b.up {
@@ -55,18 +55,6 @@
   .tck-benches button.tck-row {
     padding: 6px 4px;
     gap: 6px;
-  }
-}
-
-/* At phone width each tag gets half the card: their crest already heads the card, so the tag drops it
-   and "Worse for them" stays on one line. */
-@media (max-width: 440px) {
-  .tck-hero-tag.them .crest {
-    display: none;
-  }
-
-  .tck-hero-tag {
-    padding: 0 12px;
   }
 }
 

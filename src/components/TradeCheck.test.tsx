@@ -11,7 +11,7 @@ const give = check.idea.give as PlayerRef[]
 const get = check.idea.get as PlayerRef[]
 
 describe('TradeCheckHero', () => {
-  it('reads both teams first, then shows both tags and both odds', () => {
+  it('gives the call for you first, then both teams on one grid', () => {
     const { container } = render(
       <TradeCheckHero check={check} give={give} get={get} myName="Kucukesat Aspavas" partnerName="Horns" />,
     )
@@ -19,13 +19,12 @@ describe('TradeCheckHero', () => {
     expect(view.getByRole('status').textContent).toBe(
       'Take it. Your playoff odds 43 to 53 percent, up 10. Horns 76 to 69, down 7, worse for them, loses on paper, $10 for $17.',
     )
-    expect(container.querySelector('.tck-hero-tag.good')?.textContent).toContain('Take it')
-    expect(container.querySelector('.tck-hero-tag.them')?.textContent).toContain('Worse for them')
-    expect(view.getByText(/Loses on paper/).textContent).toBe('Loses on paper · $10 for $17')
-    expect([...container.querySelectorAll('.tck-hero-delta')].map((d) => d.textContent?.trim())).toEqual([
-      '+10 pts',
-      '−7 pts',
-    ])
+    expect(container.querySelector('.tck-hero-call.good')?.textContent).toBe('Take it')
+    expect(view.getByText("Engine's call for you")).toBeInTheDocument()
+    expect(container.querySelector('.tck-hero-row.them .tck-hero-sub')?.textContent).toBe(
+      'Worse for them · $10 for $17 on paper',
+    )
+    expect([...container.querySelectorAll('.tck-hero-delta')].map((d) => d.textContent?.trim())).toEqual(['+10', '−7'])
     expect(view.getByText('You send')).toBeInTheDocument()
     expect(view.getByText('Bane')).toBeInTheDocument()
   })
@@ -53,7 +52,8 @@ describe('TradeCheckHero', () => {
     const retry = vi.fn()
     const { container, rerender } = render(<TradeCheckHero give={give} get={get} myName="A" partnerName="B" loading />)
     expect(container.querySelector('.tck-hero')).toHaveAttribute('aria-busy', 'true')
-    expect(container.querySelector('.tck-hero-tags')).toBeNull()
+    expect(container.querySelector('.tck-hero-call.wait')?.textContent).toBe('Checking 12,000 seasons')
+    expect(container.querySelector('.tck-hero-delta')).toBeNull()
     expect(container.querySelector('.tck-hero-line')).not.toBeNull()
     rerender(<TradeCheckHero give={give} get={get} myName="A" partnerName="B" error="Nope." onRetry={retry} />)
     fireEvent.click(within(container).getByRole('button', { name: 'Try Again' }))
