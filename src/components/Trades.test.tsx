@@ -46,7 +46,7 @@ describe('Trades', () => {
     const view = within(container)
     expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
     expect(view.getByText(/No trade worth offering right now/)).toBeInTheDocument()
-    expect(view.queryByText(/Ranked by your gain/)).toBeNull()
+    expect(view.queryByText(/Ranked by expected gain/)).toBeNull()
     expect(view.queryByText(/The Bold tab has deals/)).toBeNull()
   })
 
@@ -55,6 +55,14 @@ describe('Trades', () => {
     const view = within(container)
     expect(view.getByRole('button', { name: 'Fair · 1' })).toHaveAttribute('aria-pressed', 'true')
     expect(view.getByRole('button', { name: 'Bold · 1' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('prints the number the list is ranked by on each row', () => {
+    const { container } = show(<Trades fair={[idea]} edge={[]} />)
+    const view = within(container)
+    expect(view.getByText(/Ranked by expected gain: your gain times the chance they say yes/)).toBeInTheDocument()
+    // 33% of +4 points.
+    expect(container.querySelector('.tr-exp')).toHaveTextContent('Expected gain+1.3, plus 1.3 playoff odds points')
   })
 })
 

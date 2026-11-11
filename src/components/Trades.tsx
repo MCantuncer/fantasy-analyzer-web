@@ -19,6 +19,7 @@ import './Trades.css'
 import { PlayerLink } from './PlayerCard'
 import { ReasonTiles } from './ReasonTiles'
 import { shortListNote } from '../lib/tradeList'
+import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 
 export const ACCEPTANCE = {
   likely: { label: 'Likely', tone: 'good' },
@@ -111,6 +112,7 @@ export function TradeItem({
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
+  const expected = expectedGain(t.acceptance, t.playoff_pct_before, t.playoff_pct_after)
   const scope = useContext(FeedbackContext)
   const tabs = scope !== null && feedbackSource !== undefined
   const [panel, setPanel] = useState<'overview' | 'feedback'>('overview')
@@ -212,20 +214,29 @@ export function TradeItem({
             )}
           </span>
         </span>
-        <button
-          type="button"
-          className="tr-more"
-          aria-expanded={open}
-          aria-controls={`${id}-detail`}
-          onClick={onToggle}
-        >
-          {open ? 'Hide details' : 'Details'}{' '}
-          <span className="sr-only">
-            of the trade with {t.partner_team_name}: you give {t.give.map((p) => p.name).join(', ')}, you get{' '}
-            {t.get.map((p) => p.name).join(', ')}
+        <span className="tr-foot">
+          <button
+            type="button"
+            className="tr-more"
+            aria-expanded={open}
+            aria-controls={`${id}-detail`}
+            onClick={onToggle}
+          >
+            {open ? 'Hide details' : 'Details'}{' '}
+            <span className="sr-only">
+              of the trade with {t.partner_team_name}: you give {t.give.map((p) => p.name).join(', ')}, you get{' '}
+              {t.get.map((p) => p.name).join(', ')}
+            </span>
+            <CaretDown size={14} weight="bold" aria-hidden="true" />
+          </button>
+          <span className="tr-exp">
+            <span className="tr-exp-l">Expected gain</span>
+            <span className="tr-exp-n num" aria-hidden="true">
+              {expectedGainText(expected)}
+            </span>
+            <span className="sr-only">, {expectedGainSpoken(expected)}</span>
           </span>
-          <CaretDown size={14} weight="bold" aria-hidden="true" />
-        </button>
+        </span>
       </div>
       {open && !tabs && (
         <div className="move-detail" id={`${id}-detail`}>
@@ -382,8 +393,8 @@ export function Trades({
             keepNames={keepNames}
           />
           <p className="small muted trades-hint">
-            {noFair ? BOLD_ONLY : MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by your
-            gain and the chance they say yes.
+            {noFair ? BOLD_ONLY : MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by
+            expected gain: your gain times the chance they say yes.
           </p>
         </>
       )}

@@ -29,4 +29,11 @@
   .tr-more {
     min-height: 32px;
   }
+
+  .tr-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
 }
