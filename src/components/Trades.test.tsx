@@ -33,16 +33,28 @@ const show = (ui: ReactElement) => render(<QueryClientProvider client={new Query
 describe('Trades', () => {
   afterEach(cleanup)
 
-  it('opens on Bold when no trade helps both teams', () => {
+  it('folds to the Bold list, with no switch, when no trade helps both teams', () => {
     const { container } = show(<Trades fair={[]} edge={[idea]} />)
     const view = within(container)
-    expect(view.getByRole('button', { name: 'Bold · 1' })).toHaveAttribute('aria-pressed', 'true')
-    expect(view.getByText(/They win on paper/)).toBeInTheDocument()
+    expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
+    expect(view.getByText(/these are Bold ideas: they win on paper/)).toBeInTheDocument()
+    expect(container.querySelectorAll('.move-list > li')).toHaveLength(1)
+  })
+
+  it('folds to one line when there is no trade of either style', () => {
+    const { container } = show(<Trades fair={[]} edge={[]} />)
+    const view = within(container)
+    expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
+    expect(view.getByText(/No trade worth offering right now/)).toBeInTheDocument()
+    expect(view.queryByText(/Ranked by your gain/)).toBeNull()
+    expect(view.queryByText(/The Bold tab has deals/)).toBeNull()
   })
 
   it('opens on Fair when a trade helps both teams', () => {
     const { container } = show(<Trades fair={[idea]} edge={[idea]} />)
-    expect(within(container).getByRole('button', { name: 'Fair · 1' })).toHaveAttribute('aria-pressed', 'true')
+    const view = within(container)
+    expect(view.getByRole('button', { name: 'Fair · 1' })).toHaveAttribute('aria-pressed', 'true')
+    expect(view.getByRole('button', { name: 'Bold · 1' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
 

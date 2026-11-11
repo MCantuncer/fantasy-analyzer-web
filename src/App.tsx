@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ApiError,
   fetchAnalysis,
@@ -20,6 +20,7 @@ import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
 import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
+import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
 import { Report, TABS } from './components/Report'
@@ -27,9 +28,11 @@ import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
 import { SectionNav } from './components/SectionNav'
 import { VerifyTeam } from './components/VerifyTeam'
+import { SeatNote } from './components/SeatNote'
 import { clearCredentials, loadCredentials, saveCredentials } from './lib/credentials'
 import type { Credentials } from './lib/credentials'
 import { clearSavedReports, loadSavedReport, saveReport } from './lib/savedReport'
+import { usePickedTeam } from './lib/pickedTeam'
 import { clearPages, prefetchPages, restorePages, savePages } from './lib/pageCache'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
@@ -63,7 +66,13 @@ const NO_NEWS: NewsSnapshot = { before: null, changes: [] }
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
 
-function readUrl(): { selection: Selection | null; tab: string; verifying: boolean; film: number | null | undefined } {
+function readUrl(): {
+  selection: Selection | null
+  tab: string
+  verifying: boolean
+  film: number | null | undefined
+  health: boolean
+} {
   const q = new URLSearchParams(window.location.search)
   const league = Number(q.get('league'))
   const season = Number(q.get('season'))
@@ -72,12 +81,20 @@ function readUrl(): { selection: Selection | null; tab: string; verifying: boole
     tab: ALL_TABS.find((t) => t.id === q.get('tab'))?.id ?? '',
     verifying: q.get('view') === 'verify',
     film: q.get('film') === 'last' ? null : Number(q.get('film')) > 0 ? Number(q.get('film')) : undefined,
+    health: league <= 0 && q.get('view') === 'health',
   }
 }
 
 // Only IDs go in the URL, never cookies or tokens.
-function writeUrl(selection: Selection | null, tab: string, verifying: boolean, film: number | null | undefined) {
+function writeUrl(
+  selection: Selection | null,
+  tab: string,
+  verifying: boolean,
+  film: number | null | undefined,
+  health: boolean,
+) {
   const q = new URLSearchParams()
+  if (!selection && health) q.set('view', 'health')
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')
@@ -131,8 +148,15 @@ export default function App() {
   const running = useRef<AbortController | null>(null)
   // Bumped by the top bar's "Add a league" so My leagues focuses its add box.
   const [focusAdd, setFocusAdd] = useState(0)
+  // The team the verify page opens on: the one already picked, when "Verify" was pressed for it.
+  const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
+  // Site health (admins only) stands in for My leagues while it is open.
+  const [health, setHealth] = useState(initial.health)
 
-  useEffect(() => writeUrl(selection, tab, verifying, film), [selection, tab, verifying, film])
+  useEffect(
+    () => writeUrl(selection, tab, verifying, film, health),
+    [selection, tab, verifying, film, health],
+  )
   // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
   const isPrivate = useRef(creds !== null)
   isPrivate.current = creds !== null
@@ -166,7 +190,21 @@ export default function App() {
     retryDelay: retryDroppedDelay,
     staleTime: 2 * 60_000,
   })
-  const myTeamId = overview.data?.my_team_id ?? null
+  // A manager sees their moves before the ESPN code check: the team they picked stands in for the
+  // verified one until then. It only counts while nobody has verified that team.
+  const verifiedTeamId = overview.data?.my_team_id ?? null
+  const [storedPick, setPick] = usePickedTeam(overview.data?.league_id, overview.data?.season)
+  const pickedTeamId =
+    verifiedTeamId === null && overview.data?.teams.some((t) => t.id === storedPick && !t.has_manager)
+      ? storedPick
+      : null
+  const myTeamId = verifiedTeamId ?? pickedTeamId
+  // What the pages see: the picked team marked as yours, so highlights and "your matchup" work.
+  const seatOverview = useMemo(() => {
+    const o = overview.data
+    if (!o || pickedTeamId === null) return o
+    return { ...o, my_team_id: pickedTeamId, teams: o.teams.map((t) => ({ ...t, mine: t.id === pickedTeamId })) }
+  }, [overview.data, pickedTeamId])
   const ref = overview.data ? { leagueId: overview.data.league_id, season: overview.data.season } : null
 
   // Once the league is in, fetch the first screen of the "While you wait" pages in the
@@ -178,7 +216,7 @@ export default function App() {
     prefetchPages(qc, { leagueId: refLeague, season: refSeason }, myTeamId, creds)
   }, [qc, refLeague, refSeason, myTeamId, creds])
 
-  // The analysis is only for the team this account verified.
+  // The analysis is for the team this account verified, or picked before verifying.
   const league = useQuery({
     queryKey: ['league', selection?.leagueId, season, creds?.swid ?? null],
     queryFn: () => fetchLeague(selection!.leagueId, season, creds),
@@ -237,10 +275,12 @@ export default function App() {
 
   const loadError = [overview.error, league.error].find((e) => e instanceof ApiError) as ApiError | undefined
   const needsCookies = loadError?.code === 'private_league'
-  const verified = myTeamId !== null
-  const tabs: readonly { id: string; label: string }[] = verified ? TABS : LEAGUE_TABS
+  // ``seated``: there is a team to analyse. ``verified``: the account proved it on ESPN (chat, feedback, rules).
+  const seated = myTeamId !== null
+  const verified = verifiedTeamId !== null
+  const tabs: readonly { id: string; label: string }[] = seated ? TABS : LEAGUE_TABS
   const activeTab = tabs.find((t) => t.id === tab)?.id ?? tabs[0].id
-  const waitingForReport = verified && !report
+  const waitingForReport = seated && !report
   // Until the first report is in, the analysis tabs have nothing to show: the loading card
   // stands alone, and browsing from it offers only the pages that work meanwhile.
   const browseTabs = waitingForReport ? tabs.filter((t) => !ANALYSIS_TABS.has(t.id)) : tabs
@@ -248,14 +288,16 @@ export default function App() {
     selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
   const tabsRef = useTabInView(showTabs ? activeTab : null)
   usePageView(
-    pageName({
-      signedIn,
-      hasLeague: selection !== null,
-      leagueReady: !!overview.data,
-      verifying,
-      tab: activeTab,
-      filmOpen: film !== undefined,
-    }),
+    health
+      ? null
+      : pageName({
+          signedIn,
+          hasLeague: selection !== null,
+          leagueReady: !!overview.data,
+          verifying,
+          tab: activeTab,
+          filmOpen: film !== undefined,
+        }),
   )
   const tradesPending = !!report?.pending?.length
   const firstRun = (waitingForReport || tradesPending) && analysis.isPending
@@ -277,6 +319,21 @@ export default function App() {
     if (wasFirstRun.current && !firstRun && report && !ANALYSIS_TABS.has(activeRef.current)) setReadyToast(true)
     wasFirstRun.current = firstRun
   }, [firstRun, report])
+
+  function openVerify(teamId: number | null = null) {
+    setVerifyTeam(teamId)
+    setVerifying(true)
+  }
+
+  // The picked team got its verified manager meanwhile: its moves are theirs alone now, so drop the pick.
+  const pickClosed =
+    pickedTeamId !== null && analysis.error instanceof ApiError && analysis.error.code === 'not_your_team'
+  useEffect(() => {
+    if (!pickClosed) return
+    setPick(null)
+    setReport(null)
+    qc.invalidateQueries({ queryKey: ['overview'] })
+  }, [pickClosed, setPick, qc])
 
   function signedInWith(result: AuthResult) {
     saveToken(result.token)
@@ -301,6 +358,7 @@ export default function App() {
   }
 
   function openLeague(l: MyLeague) {
+    setHealth(false)
     setSelection({ leagueId: l.league_id, season: l.season })
     setTab('')
     setVerifying(false)
@@ -311,6 +369,7 @@ export default function App() {
   }
 
   function goHome() {
+    setHealth(false)
     setSelection(null)
     setFocusAdd(0)
     setVerifying(false)
@@ -371,7 +430,7 @@ export default function App() {
                 Forget ESPN cookies
               </button>
             )}
-            {analysis.isPending && verified && (
+            {analysis.isPending && seated && (
               <AnalysisPill progress={shownProgress} onClick={() => setTab('moves')} />
             )}
             {report && myTeamId && activeTab !== 'chat' && !analysis.isPending && (
@@ -435,6 +494,19 @@ export default function App() {
                 <div className="account-pop card stack">
                   <span className="small muted">Signed in as</span>
                   <strong className="account-email">{me.data.email ?? 'Google account'}</strong>
+                  {me.data.admin && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={(e) => {
+                        e.currentTarget.closest('details')?.removeAttribute('open')
+                        goHome()
+                        setHealth(true)
+                      }}
+                    >
+                      Site health
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="secondary"
@@ -461,7 +533,9 @@ export default function App() {
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
-        {signedIn && me.data && !selection && (
+        {signedIn && me.data && !selection && health && me.data.admin && <SiteHealth onBack={goHome} />}
+
+        {signedIn && me.data && !selection && !(health && me.data.admin) && (
           <MyLeagues
             me={me.data}
             creds={creds}
@@ -540,7 +614,15 @@ export default function App() {
             leagueName={overview.data.name}
             teams={overview.data.teams}
             creds={creds}
+            initialTeamId={verifyTeam}
+            pickedTeamId={pickedTeamId}
+            onPick={(teamId) => {
+              setPick(teamId)
+              setVerifying(false)
+              setTab('')
+            }}
             onVerified={() => {
+              setPick(null)
               setVerifying(false)
               setTab('')
               qc.invalidateQueries({ queryKey: ['me'] })
@@ -551,10 +633,10 @@ export default function App() {
           />
         )}
 
-        {overview.data && ref && !verifying && !verified && activeTab === 'overview' && (
+        {overview.data && ref && !verifying && !seated && activeTab === 'overview' && (
           <LeagueOverview
             overview={overview.data}
-            onVerify={() => setVerifying(true)}
+            onVerify={() => openVerify()}
             leagueRef={ref}
             creds={creds}
             film={film}
@@ -562,12 +644,12 @@ export default function App() {
           />
         )}
 
-        {overview.data && ref && !verifying && !verified && activeTab === 'feed' && (
+        {overview.data && ref && !verifying && !seated && activeTab === 'feed' && (
           <LeagueChat
             leagueId={ref.leagueId}
             season={ref.season}
             creds={creds}
-            onVerify={() => setVerifying(true)}
+            onVerify={() => openVerify()}
             onOpenFilm={(p) => {
               setFilm(p)
               setTab('overview')
@@ -575,11 +657,22 @@ export default function App() {
           />
         )}
 
-        {overview.data && ref && !verifying && !verified && activeTab === 'news' && (
+        {overview.data && ref && !verifying && !seated && activeTab === 'news' && (
           <News leagueId={ref.leagueId} season={ref.season} myTeamId={null} teams={overview.data.teams} creds={creds} />
         )}
 
-        {!verifying && overview.data && ref && waitingForReport && !ANALYSIS_TABS.has(activeTab) && (
+        {!verifying &&
+          pickedTeamId !== null &&
+          teamName &&
+          (ANALYSIS_TABS.has(activeTab) ? !!report : activeTab === 'league') && (
+            <SeatNote
+              teamName={teamName}
+              onVerify={() => openVerify(pickedTeamId)}
+              onChange={() => openVerify()}
+            />
+          )}
+
+        {!verifying && seatOverview && ref && waitingForReport && !ANALYSIS_TABS.has(activeTab) && (
           <div
             className="stack"
             style={{ gap: 24 }}
@@ -590,7 +683,7 @@ export default function App() {
             {activeTab === 'league' && (
               <>
                 <LeagueOverview
-                  overview={overview.data}
+                  overview={seatOverview}
                   onVerify={() => undefined}
                   leagueRef={ref ?? undefined}
                   creds={creds}
@@ -612,9 +705,9 @@ export default function App() {
                 leagueId={ref.leagueId}
                 season={ref.season}
                 teamId={myTeamId!}
-                teams={overview.data.teams}
+                teams={seatOverview.teams}
                 creds={creds}
-                matchup={tonightMatchup(overview.data, myTeamId)}
+                matchup={tonightMatchup(seatOverview, myTeamId)}
               />
             )}
             {activeTab === 'news' && (
@@ -622,7 +715,7 @@ export default function App() {
                 leagueId={ref.leagueId}
                 season={ref.season}
                 myTeamId={myTeamId}
-                teams={overview.data.teams}
+                teams={seatOverview.teams}
                 creds={creds}
               />
             )}
@@ -631,6 +724,7 @@ export default function App() {
                 leagueId={ref.leagueId}
                 season={ref.season}
                 creds={creds}
+                onVerify={verified ? undefined : () => openVerify(myTeamId)}
                 onOpenFilm={(p) => {
                   setFilm(p)
                   setTab('league')
@@ -642,7 +736,7 @@ export default function App() {
 
         {/* A quiet refresh that fails leaves the saved report up instead of covering it with an error. */}
         {!verifying &&
-          verified &&
+          seated &&
           analysis.error &&
           !analysis.variables?.quiet &&
           (!report ? ANALYSIS_TABS.has(activeTab) : true) && (
@@ -657,7 +751,7 @@ export default function App() {
           </div>
         )}
 
-        {!verifying && verified && report && (
+        {!verifying && seated && report && (
           <RoundValuesContext.Provider value={report.league.round_values}>
             <Report
               report={report}
@@ -668,7 +762,8 @@ export default function App() {
               onRerun={() => analysis.mutate({ teamId: myTeamId, keep })}
               rerunning={analysis.isPending}
               creds={creds}
-              overview={overview.data ?? null}
+              overview={seatOverview ?? null}
+              onVerify={verified ? undefined : () => openVerify(myTeamId)}
               onTab={(t) => setTab(t)}
               film={film}
               onFilm={setFilm}
@@ -688,7 +783,7 @@ export default function App() {
       <PlayerCardHost
         leagueRef={verifying ? null : ref}
         creds={creds}
-        teams={overview.data?.teams ?? []}
+        teams={seatOverview?.teams ?? []}
         myTeamId={myTeamId}
       />
       {readyToast && (

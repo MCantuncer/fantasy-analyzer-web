@@ -23,6 +23,8 @@ interface Side {
 interface Props {
   leagueRef: LeagueRef
   creds: Credentials | null
+  /** Whose matchup: needed for a team picked before verifying. */
+  teamId?: number | null
   me: Side
   them: Side
 }
@@ -143,10 +145,10 @@ export function ProjectionView({ data, me, them }: { data: Projection; me: Side;
 }
 
 /** Your matchup projected to Sunday. Shows nothing until it loads, or when there's no projection. */
-export default function MatchupProjection({ leagueRef, creds, me, them }: Props) {
+export default function MatchupProjection({ leagueRef, creds, teamId = null, me, them }: Props) {
   const q = useQuery({
-    queryKey: ['matchup-projection', leagueRef.leagueId, leagueRef.season, creds?.swid ?? null],
-    queryFn: () => fetchMatchupProjection(leagueRef, creds),
+    queryKey: ['matchup-projection', leagueRef.leagueId, leagueRef.season, teamId, creds?.swid ?? null],
+    queryFn: () => fetchMatchupProjection(leagueRef, creds, teamId),
     retry: retryDropped,
     retryDelay: retryDroppedDelay,
     staleTime: 10 * 60_000,

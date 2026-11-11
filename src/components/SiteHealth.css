@@ -1,0 +1,208 @@
+/* Site health (admins only). Page-own styles, prefixed health-. */
+.health {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.health-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.health-pad {
+  margin: 0;
+  padding: 16px 20px;
+}
+
+.health-loading {
+  color: var(--muted);
+}
+
+.health-note {
+  margin: 0;
+}
+
+.health-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.health-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.health-tile-value {
+  font-size: 28px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.health-pages {
+  list-style: none;
+  margin: 0;
+  padding: 8px 20px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.health-pages li {
+  display: grid;
+  grid-template-columns: minmax(96px, 180px) 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.health-page-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.health-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.health-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Short day labels never wrap (the phone table rules let long row names wrap). */
+.health-days th,
+.health-days td,
+.table-wrap .health-days th[scope='row'] {
+  white-space: nowrap;
+}
+
+.health-days abbr {
+  text-decoration: none;
+}
+
+.health-days tbody tr:last-child th,
+.health-days tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.health-filter {
+  min-width: 200px;
+}
+
+.health-errors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.health-error {
+  display: grid;
+  gap: 6px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.health-error:last-child {
+  border-bottom: 0;
+}
+
+.health-error.fixed {
+  opacity: 0.6;
+}
+
+.health-error-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.health-error-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.health-error-meta {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.health-error-more summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+.health-error-message {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.health-stack {
+  margin: 0;
+  padding: 12px;
+  max-height: 280px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  background: var(--raised);
+  border-radius: var(--radius-sm);
+  white-space: pre;
+}
+
+.health-fix {
+  justify-self: start;
+}
+
+@media (max-width: 480px) {
+  .health-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .health-tile:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  table.health-days th,
+  table.health-days td {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+
+  table.health-days th:first-child {
+    padding-left: 16px;
+  }
+
+  .health-pages li {
+    grid-template-columns: minmax(84px, 120px) 1fr auto;
+    gap: 8px;
+  }
+
+  .health-filter {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .health-pad,
+  .health-error {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

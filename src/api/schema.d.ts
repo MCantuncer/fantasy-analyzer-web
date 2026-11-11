@@ -1997,6 +1997,21 @@ export interface components {
             /** Their Crowded */
             their_crowded: components["schemas"]["CrowdedDay"][];
         };
+        /** MatchupProjectionRequest */
+        MatchupProjectionRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Team Id
+             * @description The team to project. Default: the team this account verified
+             */
+            team_id?: number | null;
+        };
         /** MatchupSide */
         MatchupSide: {
             /** Team Id */
@@ -2029,7 +2044,7 @@ export interface components {
             notices: components["schemas"]["Notice"][];
             /**
              * Admin
-             * @description Can read the site's error reports (ADMIN_EMAILS)
+             * @description An admin account (users.user_type = 'admin'): can read error reports and usage
              * @default false
              */
             admin: boolean;
@@ -6343,7 +6358,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LeagueRequest"];
+                "application/json": components["schemas"]["MatchupProjectionRequest"];
             };
         };
         responses: {

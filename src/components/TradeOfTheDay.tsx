@@ -357,11 +357,12 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
 
   if (pick.status === 'none' || !pick.sides || pick.sides.length < 2) {
     return (
-      <section className="card totd totd-quiet" aria-labelledby="totd-title">
+      // Nothing to show today: one quiet line, so the page opens on your own best move.
+      <section className="totd-none small" aria-labelledby="totd-title">
         <span className="eyebrow totd-eyebrow" id="totd-title">
           Trade of the day · {dayLabel(pick.date)}
         </span>
-        <p className="muted">No trade works for both sides today. Rosters change fast, so check back tomorrow.</p>
+        <span className="muted">No deal works for both sides today.</span>
       </section>
     )
   }
