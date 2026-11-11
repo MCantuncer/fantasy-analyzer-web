@@ -256,6 +256,10 @@
   .mp .mp-stat {
     justify-content: flex-start;
   }
+  /* the faint column rules start between FG and FT (MIN is left to desktop) */
+  .mp .mp-stat:nth-child(2) {
+    background: none;
+  }
   .mp .mp-stat dt {
     position: static;
     width: auto;
