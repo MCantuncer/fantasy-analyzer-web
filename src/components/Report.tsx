@@ -19,6 +19,8 @@ import { TradeFor } from './TradeFor'
 import { TradeOfTheDay } from './TradeOfTheDay'
 import { FeedbackContext } from './TradeFeedback'
 import { TradePark } from './TradePark'
+import { TradeCheck } from './TradeCheck'
+import { CHECK_PARAM } from '../lib/tradeCheck'
 import { Trades } from './Trades'
 import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
@@ -94,6 +96,10 @@ export function Report({
   // Trade Park: players picked, and the set last searched (kept across tab switches).
   const [picks, setPicks] = useState<number[]>([])
   const [searched, setSearched] = useState<number[]>([])
+  // Trade Park finds deals or checks one you bring; a shared check link opens on the check.
+  const [parkMode, setParkMode] = useState<'find' | 'check'>(() =>
+    new URLSearchParams(window.location.search).has(CHECK_PARAM) ? 'check' : 'find',
+  )
 
   // Trade feedback and saved rules belong to the verified manager: a team picked before the ESPN
   // check gets the same moves without them.
@@ -203,15 +209,29 @@ export function Report({
         )}
 
         {tab === 'park' && (
-          <TradePark
-            report={report}
-            keep={keep}
-            creds={creds}
-            picks={picks}
-            onPicks={setPicks}
-            searched={searched}
-            onSearch={setSearched}
-          />
+          <>
+            <div className="segmented tck-park-modes" role="group" aria-label="Trade Park">
+              <button type="button" aria-pressed={parkMode === 'find'} onClick={() => setParkMode('find')}>
+                Find Deals
+              </button>
+              <button type="button" aria-pressed={parkMode === 'check'} onClick={() => setParkMode('check')}>
+                Check a Trade
+              </button>
+            </div>
+            {parkMode === 'find' ? (
+              <TradePark
+                report={report}
+                keep={keep}
+                creds={creds}
+                picks={picks}
+                onPicks={setPicks}
+                searched={searched}
+                onSearch={setSearched}
+              />
+            ) : (
+              <TradeCheck report={report} keep={keep} creds={creds} />
+            )}
+          </>
         )}
 
         {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
