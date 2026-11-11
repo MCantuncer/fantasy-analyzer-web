@@ -1,186 +1,376 @@
-/* Check a Trade verdict (Two-Way): slip on the seam, two tags, mirrored odds. Prefix tck-hero-. */
+/* Check a Trade verdict, scoreline style: the call, you and them on one grid, the deal. Prefix tck-hero-. */
 .tck-hero {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
+  padding: 18px 16px 16px;
+  overflow: hidden;
+  container-type: inline-size;
   box-shadow: var(--lift);
   background:
-    radial-gradient(120% 90% at 0% 0%, var(--house), transparent 55%),
-    radial-gradient(
-      120% 90% at 100% 0%,
-      color-mix(in srgb, var(--partner) var(--partner-a), transparent),
-      transparent 55%
-    ),
+    radial-gradient(110% 70% at 0% 0%, var(--glow), transparent 62%),
     var(--surface);
 }
 
-.tck-hero-heads {
+/* Row 1: the engine's call for you, and in sending mode their chance of saying yes on the right. */
+.tck-hero-verdict {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
   gap: 12px;
-  font-weight: 600;
 }
 
-.tck-hero-team {
-  display: inline-flex;
+.tck-hero-eyebrow {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.tck-hero-call {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  font-weight: 720;
+  letter-spacing: -0.018em;
+  color: var(--text);
 }
 
-.tck-hero-team > span:not(.crest) {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.tck-hero-call svg {
+  flex: none;
+  width: 0.95em;
+  height: 0.95em;
+}
+
+.tck-hero-call.good {
+  color: var(--good);
+}
+
+.tck-hero-call.bad {
+  color: var(--bad);
+}
+
+.tck-hero-call.wait {
+  color: var(--muted);
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.tck-hero-yes {
+  margin: 0;
+  text-align: right;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
-.tck-hero-mine {
-  fill: var(--gold);
-  flex: none;
+.tck-hero-yes small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.71875rem;
+  font-weight: 600;
 }
 
-/* The die-cut slip: two pockets, a notch top and bottom where the seam passes through. */
-.tck-hero-slip {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px 14px;
-  border-radius: var(--radius-tile);
-  background: var(--slip);
-  box-shadow: var(--lift);
+.tck-hero-yes b {
+  font-size: 0.9375rem;
+  font-weight: 680;
 }
 
-.tck-hero-slip::before,
-.tck-hero-slip::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  width: 14px;
-  height: 14px;
-  margin-left: -7px;
-  border-radius: 50%;
-  background: var(--surface);
+.tck-hero-reason {
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 0.875rem;
+  text-wrap: pretty;
 }
 
-.tck-hero-slip::before {
-  top: -7px;
+.tck-hero-reason b {
+  color: var(--text);
+  font-weight: 640;
 }
 
-.tck-hero-slip::after {
-  bottom: -7px;
-}
-
-.tck-hero-pocket {
+.tck-hero-fail {
+  margin: 0;
+  min-height: 40px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 6px;
-  min-width: 0;
-}
-
-.tck-hero-pocket.in {
-  align-items: flex-end;
-}
-
-.tck-hero-cap {
-  font-size: 0.8125rem;
   color: var(--text-2);
 }
 
-.tck-hero-pocket ul {
-  list-style: none;
+/* Rows 2-3: you and them on one grid, so the afters and the changes line up. */
+.tck-hero-board {
+  margin-top: 16px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+  transition: opacity 150ms ease-out;
+}
+
+.tck-hero-board.stale {
+  opacity: 0.55;
+}
+
+.tck-hero-row {
+  --edge: var(--gold);
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'crest team nums'
+    'crest sub sub';
+  column-gap: 10px;
+  row-gap: 1px;
+  align-items: center;
+  padding: 12px 12px 12px 14px;
+}
+
+.tck-hero-row.them {
+  --edge: var(--partner);
+}
+
+.tck-hero-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--edge);
+}
+
+.tck-hero-row + .tck-hero-row::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 12px;
+  top: 0;
+  height: 1px;
+  background: var(--divider);
+}
+
+.tck-hero-row > .crest {
+  grid-area: crest;
+  align-self: start;
+  margin-top: 2px;
+}
+
+.tck-hero-team {
+  grid-area: team;
+  font-size: 0.9375rem;
+  font-weight: 640;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tck-hero-sub {
+  grid-area: sub;
+  color: var(--muted);
+  font-size: 0.78125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tck-hero-pc {
+  color: var(--partner);
+  font-weight: 650;
+}
+
+.tck-hero-nums {
+  grid-area: nums;
+  display: grid;
+  grid-template-columns: 22px 16px 46px 40px;
+  align-items: baseline;
+  justify-items: end;
+}
+
+.tck-hero-before {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.tck-hero-to {
+  justify-self: center;
+  color: var(--faint);
+  font-size: 0.75rem;
+}
+
+.tck-hero-after {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.tck-hero-after small {
+  margin-left: 1px;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.tck-hero-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.875rem;
+  font-weight: 720;
+}
+
+.tck-hero-delta.up {
+  color: var(--good);
+}
+
+.tck-hero-delta.down {
+  color: var(--bad);
+}
+
+.tck-hero-delta.them {
+  color: var(--partner);
+}
+
+.tck-hero-delta.flat {
+  color: var(--muted);
+}
+
+/* Before the first answer: soft bars where the numbers go. */
+.tck-hero-sk {
+  display: inline-block;
+  width: 30px;
+  height: 14px;
+  border-radius: 6px;
+  background: var(--track);
+  vertical-align: middle;
+}
+
+.tck-hero-nums .tck-hero-sk {
+  grid-column: span 2;
+  justify-self: end;
+}
+
+.tck-hero-sk.big {
+  width: 42px;
+  height: 20px;
+}
+
+.tck-hero-sk.wide {
+  width: 60%;
+  height: 12px;
+}
+
+/* Row 4: the deal, two rows of faces about the swap mark. */
+.tck-hero-deal {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  column-gap: 6px;
+  align-items: end;
+}
+
+.tck-hero-side {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tck-hero-cap {
+  color: var(--muted);
+  font-size: 0.71875rem;
+  font-weight: 650;
+}
+
+.tck-hero-side ul {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  list-style: none;
 }
 
-.tck-hero-pocket.in ul {
-  justify-content: flex-end;
-}
-
-.tck-hero-pocket li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+.tck-hero-side li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 66px;
   min-width: 0;
-  max-width: 76px;
+}
+
+.tck-hero-side ul.three li {
+  width: 44px;
 }
 
 .tck-hero-face {
   position: relative;
-  border-radius: 12px;
-}
-
-/* Players leaving sit behind a muted ring and fade; players arriving show full face. */
-.tck-hero-pocket.out .tck-hero-face {
-  box-shadow: 0 0 0 2px var(--ring);
-}
-
-.tck-hero-pocket.out .tck-hero-face > :first-child {
-  opacity: 0.6;
+  display: block;
 }
 
 .tck-hero-inj {
   position: absolute;
-  left: 50%;
-  bottom: -6px;
-  transform: translateX(-50%);
-  padding: 0 4px;
-  border-radius: 4px;
+  right: -7px;
+  top: -5px;
+  padding: 2px 4px;
+  border-radius: 5px;
   background: var(--warn-fill, var(--warn));
-  color: var(--bg);
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1.4;
+  color: #1c1305;
+  font-size: 0.6875rem;
+  font-weight: 760;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.tck-hero-inj.out {
+  background: var(--bad);
+  color: var(--surface);
 }
 
 .tck-hero-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-align: center;
-  overflow-wrap: anywhere;
+  max-width: 100%;
+  color: var(--text-2);
+  font-size: 0.78125rem;
+  font-weight: 620;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tck-hero-swap {
-  width: 32px;
-  height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--seam);
-  background: var(--slip);
-  color: var(--text-2);
-  z-index: 1;
+  height: 44px;
+  margin-bottom: 21px;
+  color: var(--faint);
 }
 
-/* The seam runs through the slip behind the swap mark. */
-.tck-hero-slip > .tck-hero-swap::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--seam);
-  z-index: -1;
+.tck-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 
-/* While it checks: a gold line along the slip's bottom edge. */
+.tck-hero-actions > * {
+  flex: 1 1 160px;
+}
+
+/* While it checks: a gold line sweeps along the top edge. */
 .tck-hero-line {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
   height: 2px;
-  border-radius: 2px;
   background: var(--gold);
   opacity: 0.85;
 }
@@ -191,11 +381,11 @@
     opacity: 0;
     animation:
       tck-hero-show 1ms linear 600ms forwards,
-      tck-hero-sweep 1.2s ease-in-out 600ms infinite;
+      tck-hero-sweep 1.4s linear 600ms infinite;
   }
 
-  .tck-hero-tags,
-  .tck-hero-board {
+  .tck-hero-verdict,
+  .tck-hero-reason {
     animation: tck-hero-land 180ms ease-out;
   }
 }
@@ -226,206 +416,90 @@
   }
 }
 
-/* Two tags either side of the seam: yours solid, theirs outlined in partner violet. */
-.tck-hero-tags {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
-  gap: 16px;
-  position: relative;
+/* The wide centre column: the same card, a step bigger. */
+@container (min-width: 520px) {
+  .tck-hero-call {
+    font-size: 1.875rem;
+  }
+
+  .tck-hero-call.wait {
+    font-size: 1.375rem;
+  }
+
+  .tck-hero-reason {
+    margin-top: 12px;
+    font-size: 0.9375rem;
+  }
+
+  .tck-hero-yes b {
+    font-size: 1rem;
+  }
+
+  .tck-hero-board {
+    margin-top: 20px;
+  }
+
+  .tck-hero-row {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    column-gap: 14px;
+    padding: 15px 18px 15px 20px;
+  }
+
+  .tck-hero-row + .tck-hero-row::after {
+    left: 20px;
+    right: 18px;
+  }
+
+  .tck-hero-team {
+    font-size: 1rem;
+  }
+
+  .tck-hero-sub {
+    font-size: 0.8125rem;
+  }
+
+  .tck-hero-nums {
+    grid-template-columns: 30px 22px 62px 52px;
+  }
+
+  .tck-hero-before {
+    font-size: 0.9375rem;
+  }
+
+  .tck-hero-after {
+    font-size: 1.875rem;
+  }
+
+  .tck-hero-after small {
+    font-size: 0.9375rem;
+  }
+
+  .tck-hero-delta {
+    font-size: 0.9375rem;
+  }
+
+  .tck-hero-deal {
+    margin-top: 22px;
+    grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
+  }
+
+  .tck-hero-side ul {
+    gap: 14px;
+  }
+
+  .tck-hero-side li {
+    width: 84px;
+  }
+
+  .tck-hero-side ul.three li {
+    width: 72px;
+  }
 }
 
-.tck-hero-tags::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--seam);
-}
-
-.tck-hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-self: start;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: var(--radius-tag);
-  font-weight: 700;
-  font-size: 1rem;
-  white-space: nowrap;
-}
-
-.tck-hero-tag.good {
-  background: var(--good);
-  color: var(--on-good);
-}
-
-.tck-hero-tag.close {
-  background: var(--close);
-  color: var(--text);
-}
-
-.tck-hero-tag.bad {
-  background: var(--bad);
-  color: var(--on-good);
-}
-
-.tck-hero-tag.them {
-  border: 2px solid var(--partner);
-  color: var(--text);
-  white-space: normal;
-}
-
-.tck-hero-theirs {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  text-align: right;
-}
-
-.tck-hero-paper,
-.tck-hero-yes {
-  margin: 0;
-  color: var(--text-2);
-  font-size: 0.8125rem;
-}
-
-.tck-hero-yes {
-  text-align: center;
-}
-
-.tck-hero-yes b {
-  color: var(--text);
-}
-
-.tck-hero-wait,
-.tck-hero-fail {
-  margin: 0;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: var(--text-2);
-}
-
-/* Playoff odds, mirrored: yours grow left from the seam, theirs grow right. */
-.tck-hero-oddsline {
-  margin: 0;
-  text-align: center;
-  color: var(--text-2);
-  font-size: 0.8125rem;
-}
-
-.tck-hero-oddsline b {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.tck-hero-oddsrow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 24px;
-  margin-top: 8px;
-  position: relative;
-}
-
-.tck-hero-oddsrow::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--seam);
-}
-
-.tck-hero-odds {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.tck-hero-odds.me {
-  align-items: flex-end;
-}
-
-.tck-hero-odds .cd {
-  align-self: stretch;
-  margin-top: 6px;
-}
-
-.tck-hero-pair {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.tck-hero-before,
-.tck-hero-to {
-  color: var(--text-2);
-  font-size: 0.875rem;
-}
-
-.tck-hero-after {
-  font-size: 2.25rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.tck-hero-after small {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.tck-hero-delta {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
-.tck-hero-delta.big {
-  font-weight: 700;
-}
-
-.tck-hero-delta.up {
-  color: var(--good);
-}
-
-.tck-hero-delta.down {
-  color: var(--bad);
-}
-
-.tck-hero-delta.flat {
-  color: var(--text-2);
-}
-
-.tck-hero-delta.them {
-  color: var(--partner);
-}
-
-.tck-hero-reason {
-  margin: 0;
-  text-align: center;
-  color: var(--text-2);
-  font-size: 0.9375rem;
-}
-
-.tck-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tck-hero-actions > * {
-  flex: 1 1 160px;
+@media (min-width: 641px) {
+  .tck-hero {
+    padding: 24px 24px 22px;
+  }
 }
 
 /* The slim verdict that follows you down the page. Phones only (see styles/phone/trade-check-sticky.css). */
