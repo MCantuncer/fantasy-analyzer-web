@@ -31,6 +31,9 @@ function contentSecurityPolicy(apiUrl: string | undefined): Plugin {
 // In development, /api is proxied to the backend on port 8000.
 export default defineConfig({
   plugins: [react(), contentSecurityPolicy(process.env.VITE_API_URL)],
+  define: {
+    __BUILD__: JSON.stringify((process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7)),
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:8000',
