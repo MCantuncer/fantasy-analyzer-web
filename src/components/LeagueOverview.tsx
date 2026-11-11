@@ -6,6 +6,7 @@ import { isFresh, seenWeek } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
 import { BoxScore, type BoxTeam } from './BoxScore'
+import { MaybeHandshake } from './MaybeHandshake'
 import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
@@ -23,6 +24,8 @@ interface Props {
    * finishing the analysis (which swaps this page for the report's) never closes it. */
   film?: number | null
   onFilm?: (period: number | null | undefined) => void
+  /** Opens Check a Trade with a team across from you (only where your analysis is loaded). */
+  onCheckTrade?: (teamId: number) => void
 }
 
 function shortDate(iso: string | null | undefined) {
@@ -71,7 +74,16 @@ function Tile({ icon, value, label, tone }: { icon: string; value: ReactNode; la
 }
 
 /** The League page: your matchup as a box score, the league's pulse, every matchup and the standings. */
-export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, creds, film, onFilm }: Props) {
+export function LeagueOverview({
+  overview: o,
+  onVerify,
+  projected,
+  leagueRef,
+  creds,
+  film,
+  onFilm,
+  onCheckTrade,
+}: Props) {
   const verified = o.my_team_id != null
   const colours = useMemo(
     () =>
@@ -219,6 +231,15 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
                   </span>
                 ) : null
               })()}
+            {mine && onCheckTrade && (
+              <button
+                type="button"
+                className="secondary lo-check"
+                onClick={() => onCheckTrade(sides(mine)[1].team_id)}
+              >
+                <MaybeHandshake size={20} /> Check a Trade With Them
+              </button>
+            )}
           </div>
           {(() => {
             const [a, b] = sides(featured)
@@ -382,6 +403,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
         myTeamId={o.my_team_id ?? null}
         playoffTeams={o.playoff_teams ?? null}
         projected={verified ? projected : null}
+        onCheckTrade={onCheckTrade}
       />
 
       {!verified && (

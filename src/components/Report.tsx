@@ -143,6 +143,16 @@ export function Report({
     })
   }
 
+  // From a team on the League tab to Check a Trade with that team across from you.
+  const checkWith = (teamId: number) => {
+    const q = new URLSearchParams(window.location.search)
+    q.set(CHECK_PARAM, `t${teamId}`)
+    window.history.replaceState(null, '', `?${q.toString()}`)
+    setParkMode('check')
+    onTab('park')
+    window.scrollTo({ top: 0 })
+  }
+
   const shopPlayer = (id: number) => {
     setPicks([id])
     setSearched([id])
@@ -295,6 +305,7 @@ export function Report({
                 creds={creds}
                 film={film}
                 onFilm={onFilm}
+                onCheckTrade={checkWith}
               />
             ) : (
               <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />

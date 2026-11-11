@@ -1,3 +1,4 @@
+import { MaybeHandshake } from './MaybeHandshake'
 import { useState, type CSSProperties } from 'react'
 import type { OverviewTeam, SeasonRow } from '../api/client'
 import { pct } from '../lib/format'
@@ -10,6 +11,8 @@ interface Props {
   playoffTeams: number | null
   /** The season simulation's rows; null hides the Projected tab, undefined shows it as pending. */
   projected?: SeasonRow[] | null
+  /** Opens Check a Trade with that team across from you; left out, rows have no trade button. */
+  onCheckTrade?: (teamId: number) => void
 }
 
 type View = 'current' | 'projected'
@@ -21,7 +24,7 @@ function winPct(t: OverviewTeam) {
 }
 
 /** Current standings in ESPN's order, with the season simulation one tab away. */
-export function Standings({ teams, colours, myTeamId, playoffTeams, projected }: Props) {
+export function Standings({ teams, colours, myTeamId, playoffTeams, projected, onCheckTrade }: Props) {
   const [view, setView] = useState<View>('current')
   const cut = playoffTeams ?? 0
   const current = [...teams].sort(
@@ -68,6 +71,11 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected }:
                   Win %
                 </th>
                 <th scope="col">Back</th>
+                {onCheckTrade && (
+                  <th scope="col" className="st-trade">
+                    <span className="sr-only">Trade</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -85,6 +93,21 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected }:
                   </td>
                   <td className="num hide-phone">{winPct(t)}</td>
                   <td className="num">{t.games_back ? t.games_back.toFixed(1).replace(/\.0$/, '') : '–'}</td>
+                  {onCheckTrade && (
+                    <td className="st-trade">
+                      {t.id !== myTeamId && (
+                        <button
+                          type="button"
+                          className="icon"
+                          aria-label={`Check a trade with ${t.name}`}
+                          title="Check a Trade With Them"
+                          onClick={() => onCheckTrade(t.id)}
+                        >
+                          <MaybeHandshake size={20} />
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

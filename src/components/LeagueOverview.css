@@ -149,3 +149,29 @@
   background: linear-gradient(to left, color-mix(in srgb, var(--bad) 45%, transparent), transparent);
   box-shadow: inset -2px 0 0 var(--bad);
 }
+
+/* Check a Trade With Them: your opponent's trade check, from your matchup card. */
+button.lo-check {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+/* The standings' last column: a trade check with that team (not yours). */
+.standings .st-trade {
+  width: 44px;
+  padding: 2px 0;
+  text-align: right;
+}
+
+.standings .st-trade button.icon {
+  width: 44px;
+  min-height: 44px;
+  border-color: transparent;
+  color: var(--text-2);
+}
+
+.standings .st-trade button.icon:hover {
+  color: var(--partner);
+  border-color: var(--border);
+}
