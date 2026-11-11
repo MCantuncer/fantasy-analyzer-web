@@ -29,8 +29,101 @@
     min-height: 44px;
   }
 
-  .mp-summary {
-    gap: 4px 12px;
+  /* The strip: next tip and who plays side by side, the tip order under them, in one panel. */
+  .mp .mp-strip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: var(--surface-2);
+    box-shadow: var(--mp-band-shadow);
+  }
+
+  .mp .mp-seg,
+  .mp .mp-seg.hero {
+    min-height: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .mp .mp-seg-play {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .mp .mp-seg-lab {
+    order: 2;
+    font-size: 11.5px;
+  }
+
+  .mp .mp-seg-val {
+    gap: 6px;
+    margin: 0;
+  }
+
+  .mp .mp-seg-val b {
+    font-size: 19px;
+  }
+
+  .mp .mp-seg-val .mp-cd,
+  .mp .mp-of {
+    font-size: 12px;
+  }
+
+  .mp .mp-seg-sub {
+    order: 3;
+    max-width: 100%;
+    font-size: 11.5px;
+  }
+
+  .mp .mp-seg.hero .mp-seg-sub {
+    display: none;
+  }
+
+  .mp .mp-order {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  .mp .mp-order .mp-seg-lab {
+    display: none;
+  }
+
+  .mp .mp-groups {
+    justify-content: space-between;
+    gap: 6px 8px;
+    width: 100%;
+  }
+
+  .mp .mp-tg {
+    gap: 5px;
+  }
+
+  .mp .mp-tg-time {
+    font-size: 12.5px;
+  }
+
+  .mp .mp-face .head {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .mp .mp-face + .mp-face {
+    margin-left: -9px;
+  }
+
+  /* The time's colour already says live (gold) or over (muted); the marks make way. */
+  .mp .mp-tg-time .mp-dot,
+  .mp .mp-tg-time svg {
+    display: none;
+  }
+
+  .mp .mp-avg-cap {
+    font-size: 12px;
   }
 
   .mp-long {
@@ -351,10 +444,103 @@
   .mp .mp-row.mp-starter.mp-idle {
     border: 1px solid color-mix(in srgb, var(--text-2) 38%, transparent);
   }
-  .mp .mp-row.mp-later .mp-game,
-  .mp .mp-row.mp-idle .mp-game,
-  .mp .mp-row.mp-ir .mp-game {
+  .mp .mp-row.mp-pre {
+    background: var(--mp-row);
+  }
+
+  .mp .mp-row.mp-starter.mp-idle {
+    background: var(--mp-sunk);
+    border-color: transparent;
+    min-height: 44px;
+  }
+
+  /* Before tip-off, line 1 ends with the opponent and the time: "@ PHX  5:00 AM / in 2h 10m". */
+  .mp .mp-row .mp-tipcell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mp .mp-tipcell .mp-tip {
+    order: 2;
+    align-items: flex-end;
+  }
+
+  .mp .mp-tipcell .mp-tip b {
+    font-size: 15px;
+  }
+
+  .mp .mp-tipcell .mp-cd {
+    font-size: 11px;
+  }
+
+  .mp .mp-match .own,
+  .mp .mp-match .mp-vs {
     display: none;
+  }
+
+  .mp .mp-match .opp .mp-abbrev {
+    font-size: 11px;
+    color: var(--text-2);
+  }
+
+  .mp .mp-match .team-logo {
+    display: inline-block;
+  }
+
+  .mp .mp-where {
+    display: inline;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* The season line on its band, lined up under the label strip. FG/FT show their percentage. */
+  .mp .mp-row .mp-stats.mp-band,
+  .mp .mp-totals .mp-stats.mp-band {
+    min-height: 26px;
+    border-radius: 8px;
+  }
+
+  .mp .mp-band .mp-stat dd {
+    font-size: 12.5px;
+    line-height: 18px;
+    font-weight: 450;
+    color: var(--text-2);
+  }
+
+  .mp .mp-band .mp-stat.pts dd {
+    font-size: 13.5px;
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  .mp .mp-avg-ma {
+    display: none;
+  }
+
+  .mp .mp-avg-pct {
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* No game: "Next Wed @ IND" on line 1, nothing more. */
+  .mp .mp-row > .mp-quiet-cell {
+    grid-column: 4;
+    grid-row: 1;
+    gap: 0;
+    font-size: 12px;
+  }
+
+  .mp .mp-quiet-cell .mp-what,
+  .mp .mp-quiet-cell .mp-week,
+  .mp .mp-quiet-cell .mp-left {
+    display: none;
+  }
+
+  .mp .mp-quiet-cell .mp-next {
+    display: inline;
+    white-space: nowrap;
   }
   .mp .mp-note {
     font-size: 12px;
@@ -371,12 +557,6 @@
 
   .mp .mp-note:empty {
     display: none;
-  }
-  /* a bench player with no game says so, quietly */
-  .mp .mp-row.mp-sub.mp-idle:not(.mp-ir) .mp-game {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
   }
 
   /* bench and IR recede */
@@ -423,6 +603,14 @@
   .mp .mp-group {
     margin: 14px 0 6px;
     font-size: 14px;
+  }
+}
+
+/* Small phones: "Wed @ IND" and the opponent as a logo only, so names keep room. */
+@media (max-width: 380px) {
+  .mp .mp-next-word,
+  .mp .mp-match .opp .mp-abbrev {
+    display: none;
   }
 }
 
