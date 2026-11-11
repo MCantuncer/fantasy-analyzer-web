@@ -171,9 +171,9 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
     <div className="overview stack">
       {!verified && (
         <div className="verify-banner">
-          <span>Manage a team here? Verify it to see your moves, trades and the league chat.</span>
+          <span>Manage a team here? Pick it to see your best moves, trades and playoff odds.</span>
           <button type="button" onClick={onVerify}>
-            Verify my team
+            Pick my team
           </button>
         </div>
       )}
@@ -278,6 +278,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
                 <MatchupProjection
                   leagueRef={leagueRef}
                   creds={creds ?? null}
+                  teamId={o.my_team_id ?? null}
                   me={{ name: nameOf(me.team_id), colour: colours.get(me.team_id) }}
                   them={{ name: nameOf(them.team_id), colour: colours.get(them.team_id) }}
                 />
@@ -386,13 +387,13 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
       {!verified && (
         <section className="card stack" aria-labelledby="locked-title">
           <span className="eyebrow" id="locked-title">
-            For verified managers
+            Once you pick your team
           </span>
           <ul className="locked">
             {[
               'Your best trades and FA targets',
               'Your playoff odds and category outlook',
-              'League Chat, reactions and votes',
+              'League Chat and saved trade rules, after you verify it on ESPN',
             ].map((t) => (
               <li key={t}>
                 <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -405,7 +406,7 @@ export function LeagueOverview({ overview: o, onVerify, projected, leagueRef, cr
           </ul>
           <div className="row">
             <button type="button" className="secondary" onClick={onVerify}>
-              Verify my team
+              Pick my team
             </button>
           </div>
         </section>

@@ -65,6 +65,8 @@ interface Props {
   /** What moved since this report was built, while (and after) it is updated. */
   news?: Omit<NewsSinceProps, 'onDismiss' | 'onGo'>
   onDismissNews?: () => void
+  /** Set while the team is picked but not verified: opens the ESPN check. Chat, feedback and rules wait for it. */
+  onVerify?: () => void
 }
 
 export function Report({
@@ -83,6 +85,7 @@ export function Report({
   tradesStatus = { progress: 0, running: true },
   news,
   onDismissNews = () => {},
+  onVerify,
 }: Props) {
   // A preview: free agents are in, trades are still being screened.
   const tradesPending = (report.pending ?? []).includes('trades')
@@ -92,11 +95,16 @@ export function Report({
   const [picks, setPicks] = useState<number[]>([])
   const [searched, setSearched] = useState<number[]>([])
 
-  // Only a verified manager gets an analysis, so every trade card here can take feedback.
+  // Trade feedback and saved rules belong to the verified manager: a team picked before the ESPN
+  // check gets the same moves without them.
   const leagueId = report.league.id
   const season = report.league.season
   const teamId = report.team_id
-  const feedbackScope = useMemo(() => ({ leagueId, season, teamId, creds }), [leagueId, season, teamId, creds])
+  const verified = !onVerify
+  const feedbackScope = useMemo(
+    () => (verified ? { leagueId, season, teamId, creds } : null),
+    [verified, leagueId, season, teamId, creds],
+  )
 
   // From the news card to the part of Moves it names: phones show one list at a time, so open it first.
   const goTo = (kind: NewsRowKind) => {
@@ -274,6 +282,7 @@ export function Report({
             leagueId={report.league.id}
             season={report.league.season}
             creds={creds}
+            onVerify={onVerify}
             onOpenFilm={(p) => {
               onFilm?.(p)
               onTab('league')
