@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowsLeftRight, Coins, UserPlus } from '@phosphor-icons/react'
+import { ArrowsLeftRight, CaretDown, CaretUp, Coins, UserPlus } from '@phosphor-icons/react'
 import type { AnalysisReport, PickupIdea } from '../api/client'
 import { ImpactBars } from './ImpactBars'
 import { Sign } from './OddsChange'
@@ -33,6 +33,9 @@ function topCats(changes: Record<string, number>) {
 
 const gain = (p: PickupIdea) => ptsDiff(p.playoff_pct_before, p.playoff_pct_after)
 
+/** Rows shown before the list folds: the best few are the decision, the long tail is for browsing. */
+const SHOW = 5
+
 /** "Make this Sunday: Niang plays Thursday and Saturday first, 3 games in the spot instead of 1." */
 function waitSaid(p: PickupIdea): string {
   const t = p.timing
@@ -45,14 +48,16 @@ function waitSaid(p: PickupIdea): string {
 export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
   const adds = week?.adds_allowed != null ? Math.max(week.adds_allowed - week.adds_used, 0) : null
   const [open, setOpen] = useState<number | null>(null)
+  const [all, setAll] = useState(false)
   const keepRow = useKeepRowInView(open)
-  // Most days every idea drops the same player from the same odds: say that once, not on every row.
-  const first = pickups[0]
+  const shown = all ? pickups : pickups.slice(0, SHOW)
+  // Most days every idea in view drops the same player from the same odds: say that once, not on every row.
+  const first = shown[0]
   const sharedDrop =
-    first && pickups.length > 1 && pickups.every((p) => !p.open_spot_by_trade && p.drop.id === first.drop.id)
+    first && shown.length > 1 && shown.every((p) => !p.open_spot_by_trade && p.drop.id === first.drop.id)
       ? first.drop
       : null
-  const sameStart = first && pickups.every((p) => p.playoff_pct_before === first.playoff_pct_before)
+  const sameStart = first && shown.every((p) => p.playoff_pct_before === first.playoff_pct_before)
 
   return (
     <section className="card flush pickups-panel" aria-labelledby="pickups-title">
@@ -95,7 +100,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
             </p>
           )}
           <ol className="move-list" onClickCapture={keepRow}>
-            {pickups.map((p, i) => {
+            {shown.map((p, i) => {
               const isOpen = open === p.add.id
               return (
                 <li key={p.add.id} id={`pickup-${i}`} className={isOpen ? 'move open' : 'move'}>
@@ -214,6 +219,21 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
               )
             })}
           </ol>
+          {pickups.length > SHOW && (
+            <button
+              type="button"
+              className="fa-more"
+              aria-expanded={all}
+              onClick={() => {
+                // A row opened below the fold closes with it.
+                if (all && open !== null && !pickups.slice(0, SHOW).some((p) => p.add.id === open)) setOpen(null)
+                setAll(!all)
+              }}
+            >
+              {all ? `Show top ${SHOW}` : `Show all ${pickups.length}`}
+              {all ? <CaretUp size={14} aria-hidden="true" /> : <CaretDown size={14} aria-hidden="true" />}
+            </button>
+          )}
         </>
       )}
     </section>
