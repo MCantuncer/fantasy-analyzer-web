@@ -172,12 +172,39 @@
   text-align: left;
 }
 
+/* The row's last line: Details on the left, and under the odds column the number the list is
+   ranked by. Plain ink and smaller than the odds above it: arithmetic, not a promise. */
+.tr-foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.tr-exp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tr-exp-l {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.tr-exp-n {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
 /* The Details button: a plain text toggle whose hit area stretches over the whole row, so a tap
    anywhere opens or closes the trade. Player names and the durability mark sit above that layer. */
 .tr-row .tr-more {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
+  justify-self: start;
   justify-content: flex-start;
   gap: 4px;
   min-height: 0;
