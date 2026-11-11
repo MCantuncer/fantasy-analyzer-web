@@ -410,6 +410,9 @@ export function TradeCheck({ report, keep, creds }: Props) {
         partnerName={partner.team_name}
         partnerColour={colours.get(partner.team_id)}
         espn={{ leagueId: report.league.id, season: report.league.season, myTeamId: report.team_id }}
+        roster={mine}
+        keep={keep}
+        onCut={(cut) => update({ ...deal, cut })}
       />
     ) : null
 
