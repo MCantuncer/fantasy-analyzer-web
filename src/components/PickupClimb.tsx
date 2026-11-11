@@ -143,7 +143,7 @@ export function PickupClimb({
           )}
           {c.groups.map((g) => (
             <span key={g.pct} className="pclimb-gain num" style={{ top: g.y }}>
-              {signedInt(g.gain)} {Math.abs(g.gain) === 1 ? 'pt' : 'pts'}
+              {signedInt(g.gain)}
             </span>
           ))}
           {scored > 0 && (
