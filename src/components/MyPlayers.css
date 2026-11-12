@@ -447,9 +447,12 @@
    below it without lifting it. (Phones stack every cell from the top, so this is wide screens only.) */
 @media (min-width: 901px) {
   /* One main line across the row: name, score and numbers share it. The game's second line (Final,
-     the clock, the tip-off) hangs under the score the way the percentage hangs under FG and FT. */
+     the clock, the tip-off) hangs under the score the way the percentage hangs under FG and FT,
+     centred under the score line. The cell hugs the score line so the centre is the score's. */
   .mp-row > .mp-game {
     position: relative;
+    justify-self: start;
+    max-width: 100%;
     padding-right: 14px;
   }
 
@@ -457,6 +460,8 @@
     position: absolute;
     top: 100%;
     left: 0;
+    right: 14px;
+    justify-content: center;
     margin-top: 1px;
     white-space: nowrap;
   }
