@@ -13,7 +13,8 @@ import {
   signOut,
 } from './api/client'
 import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague, ReportChange } from './api/client'
-import { CourtMark } from './components/CourtMark'
+import { CourtMark, type CourtMarkHandle } from './components/CourtMark'
+import { useCourtReveal } from './lib/useCourtReveal'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
@@ -414,6 +415,10 @@ export default function App() {
     stopAnalysis()
   }
 
+  const brandRef = useRef<HTMLButtonElement>(null)
+  const markRef = useRef<CourtMarkHandle>(null)
+  const reveal = useCourtReveal(markRef, brandRef)
+
   function goHome() {
     setHealth(false)
     setSelection(null)
@@ -439,8 +444,21 @@ export default function App() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <button className="brand" onClick={goHome} aria-label="COURT, My leagues" aria-describedby="court-words">
-            <CourtMark state="folded" />
+          <button
+            ref={brandRef}
+            className="brand"
+            onClick={() => {
+              goHome() // navigation never waits for the animation
+              reveal.playOnce()
+            }}
+            onPointerEnter={reveal.onPointerEnter}
+            onPointerLeave={reveal.onPointerLeave}
+            onFocus={reveal.onFocus}
+            onBlur={reveal.onBlur}
+            aria-label="COURT, My leagues"
+            aria-describedby="court-words"
+          >
+            <CourtMark ref={markRef} veil />
           </button>
           <span id="court-words" hidden>
             Categories, Odds, Upgrades, Rosters, Trades

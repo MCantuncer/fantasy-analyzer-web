@@ -523,6 +523,8 @@ th .badge {
 
 /* The COURT mark (src/components/CourtMark.tsx). 44px hit area; the mark itself is 28px tall. */
 .brand {
+  position: relative;
+  z-index: 1; /* the open row and its veil lie over the league switcher */
   display: flex;
   align-items: center;
   min-width: 44px;

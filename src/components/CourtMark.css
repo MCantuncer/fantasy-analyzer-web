@@ -1,51 +1,72 @@
-/* COURT mark in the top bar. Ink follows the theme (--text); no gold in the mark. */
+/* COURT mark (lib/courtSpan.ts builds the inside). Ink follows the theme; no gold in the mark. */
 .court-mark {
-  display: inline-flex;
-  align-items: center;
+  position: relative;
+  display: inline-block;
   color: var(--text);
   line-height: 0;
+  font-family: var(--font-ui);
+  vertical-align: middle;
 }
 
-.court-mark svg {
+.court-mark .span-box {
+  position: relative;
   display: block;
+}
+
+.court-mark .seg,
+.court-mark .L,
+.court-mark .w,
+.court-mark .glow,
+.court-mark .veil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.court-mark .seg {
+  background: currentColor;
+  transform-origin: 0 0;
+}
+
+.court-mark .L svg {
+  display: block;
+  fill: currentColor;
   overflow: visible;
 }
 
-/* Desktop bar: closed wordmark, 28px tall (0.875px per unit), 91.4px wide. */
-.court-closed {
-  width: 91.4px;
-  height: 28px;
+/* Open words: the capital in --text, the lowercase rest in --text-2. */
+.court-mark .w {
+  white-space: nowrap;
+  line-height: 1;
+  font-weight: 470;
+  color: var(--text-2);
 }
 
-/* Phone bar: folded mark, 21px (0.75px per unit). Icons use their own files in /public. */
-.court-folded {
-  width: 21px;
-  height: 21px;
+/* Categories keeps the drawn C as its capital: the typed C only holds its room. */
+.court-mark .w.keep b {
+  visibility: hidden;
 }
 
-/* The top bar shows the ball on every screen: 24.5px on desktop (0.875px per unit, the same scale as the opening). */
-.court-mark--folded .court-folded {
-  width: 24.5px;
-  height: 24.5px;
+.court-mark .w .tail {
+  display: inline-block; /* so the open can slide it */
 }
 
-@media (max-width: 640px) {
-  .court-mark--folded .court-folded {
-    width: 21px;
-    height: 21px;
-  }
+.court-mark .w b {
+  font-weight: 760;
+  color: var(--text);
 }
 
-.court-mark--auto .court-folded {
-  display: none;
+/* The warm house light behind each floor. */
+.court-mark .glow {
+  background:
+    radial-gradient(50% 100% at 50% 100%, var(--house), transparent 100%),
+    radial-gradient(50% 100% at 50% 100%, var(--house), transparent 100%),
+    radial-gradient(36% 64% at 50% 100%, var(--house), transparent 100%);
 }
 
-@media (max-width: 640px) {
-  .court-mark--auto .court-folded {
-    display: block;
-  }
-
-  .court-mark--auto .court-closed {
-    display: none;
-  }
+/* Covers the league switcher only while the row is open; clicks pass through. */
+.court-mark .veil {
+  z-index: -1; /* under the brand button's focus ring */
+  background: linear-gradient(90deg, var(--topbar) calc(100% - 40px), transparent);
 }
