@@ -42,7 +42,7 @@
   gap: 16px;
 }
 
-/* Typed caps on a floor: capital in --text, the rest in --text-2, with the warm house light behind. */
+/* Each word on its floor: the capital in --text, the lowercase rest in --text-2, with the warm house light behind. */
 .hero-word {
   position: relative;
   justify-self: start;
@@ -51,7 +51,7 @@
   font-size: calc(var(--cap) / 0.7);
   font-weight: 470;
   line-height: 1;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -64,7 +64,7 @@
 .hero-floor {
   position: absolute;
   left: -4px;
-  right: calc(0.03em - 4px); /* trailing tracking is not part of the word */
+  right: calc(0.01em - 4px); /* trailing tracking is not part of the word */
   bottom: 0;
   height: 5px;
   background: var(--text);

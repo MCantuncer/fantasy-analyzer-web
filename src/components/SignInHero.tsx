@@ -50,7 +50,7 @@ export function SignInHero() {
             <li key={r.word} style={{ '--i': i } as React.CSSProperties}>
               <span className="hero-word">
                 <b>{r.word[0]}</b>
-                {r.word.slice(1).toUpperCase()}
+                {r.word.slice(1)}
                 <span className="hero-floor" />
               </span>
               <span className="hero-desc">
