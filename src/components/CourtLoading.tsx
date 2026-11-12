@@ -12,8 +12,8 @@ import {
 import './CourtMark.css'
 
 /*
- * The loading screen's progress: COURT itself. While the server wakes, the closed wordmark breathes in a faint
- * ink. When the league arrives the rail breaks and the words drop onto their floors, still faint; each word
+ * The loading screen's progress: COURT itself. While the server wakes, the ball breathes in a faint
+ * ink. When the league arrives the ball expands and the words drop onto their floors, still faint; each word
  * turns solid when the part of the analysis it names is done. The running word pulses.
  */
 
@@ -38,7 +38,7 @@ export function CourtLoading({ waking, states }: { waking: boolean; states: Word
   useLayoutEffect(() => {
     const el = host.current
     if (!el) return
-    const s = buildSpan(el, { ...SIZES[sizeIx], state: latest.current.waking ? 'closed' : 'open', sizeAs: 'open' })
+    const s = buildSpan(el, { ...SIZES[sizeIx], state: latest.current.waking ? 'folded' : 'open', sizeAs: 'open' })
     span.current = s
     opened.current = !latest.current.waking
     if (opened.current) setWordStates(s, latest.current.states, false)
@@ -55,7 +55,7 @@ export function CourtLoading({ waking, states }: { waking: boolean; states: Word
     whenFontsReady(s).then(() => {
       if (!alive) return
       measureSpan(s)
-      setStatic(s, opened.current ? 'open' : 'closed')
+      setStatic(s, opened.current ? 'open' : 'folded')
       if (opened.current) setWordStates(s, latest.current.states, false)
       fit()
     })
@@ -71,7 +71,7 @@ export function CourtLoading({ waking, states }: { waking: boolean; states: Word
     const s = span.current
     if (!s || waking || opened.current) return
     opened.current = true
-    animateSpan(s, 'closed', 'open')
+    animateSpan(s, 'folded', 'open')
     setWordStates(s, latest.current.states, false)
   }, [waking])
 
