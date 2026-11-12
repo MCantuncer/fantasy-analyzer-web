@@ -8,10 +8,12 @@ import type { Theme } from '../lib/theme'
 interface Props {
   theme: Theme
   onSignedIn: (result: AuthResult) => void
+  /** Open on sign-in instead of sign-up (the top bar's Sign in). */
+  initialMode?: 'signup' | 'signin'
 }
 
-export function Auth({ theme, onSignedIn }: Props) {
-  const [mode, setMode] = useState<'signup' | 'signin'>('signup')
+export function Auth({ theme, onSignedIn, initialMode = 'signup' }: Props) {
+  const [mode, setMode] = useState<'signup' | 'signin'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const config = useQuery({ queryKey: ['auth-config'], queryFn: fetchAuthConfig, staleTime: Infinity, retry: false })

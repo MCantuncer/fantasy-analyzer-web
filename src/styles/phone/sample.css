@@ -1,0 +1,31 @@
+/* Phones: the sample league's top-bar crumb stacks on two lines and drops "Scouting", and "How the sample works" is "How?". */
+@media (max-width: 640px) {
+  .smp-switcher-verb,
+  .smp-how-long {
+    display: none;
+  }
+
+  .smp-how-short {
+    display: inline;
+  }
+
+  .smp-crumb {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .switcher.smp-switcher:has(.team-name) .league-name {
+    display: block;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .smp-lead {
+    font-size: 16px;
+  }
+
+  .smp-door {
+    width: 100%;
+  }
+}

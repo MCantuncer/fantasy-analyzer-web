@@ -1,0 +1,221 @@
+/* The sample league for visitors who haven't signed in: the intro sentence, the dated data line,
+   the door to your own league, and the Scout another team list. */
+
+.smp-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 68ch;
+}
+
+.smp-lead {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.smp-data {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.smp-data b {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.smp-how-toggle {
+  font-size: 14px;
+}
+
+.smp-how-short {
+  display: none;
+}
+
+.smp-how {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 68ch;
+}
+
+.smp-how p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.smp-how-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* The door: the card's main button, cream like the shipped primary, with the open crest. */
+.smp-door {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 6px 18px 6px 14px;
+  text-align: left;
+}
+
+.smp-door-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.smp-door-main {
+  font-weight: 700;
+}
+
+.smp-door-sub {
+  font-size: 12.5px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Scout another team: every team by projected finish, the playoff line under the last team in. */
+.smp-scout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smp-scout p {
+  margin: 0;
+}
+
+.smp-scout-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+}
+
+.smp-ladder {
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.smp-rung.smp-line {
+  position: relative;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+}
+
+.smp-rung.smp-line::after {
+  content: 'Playoff line';
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  border-top: 2px solid var(--text);
+  padding-top: 2px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-2);
+  text-align: right;
+}
+
+.smp-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.smp-team:hover {
+  background: var(--accent-soft);
+}
+
+.smp-team[aria-current='true'] {
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+
+.smp-rank {
+  width: 18px;
+  flex: none;
+  color: var(--muted);
+  text-align: right;
+}
+
+.smp-team-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.smp-team-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  color: var(--muted);
+}
+
+.smp-team[aria-current='true'] .smp-team-note {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.smp-move-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--good);
+}
+
+.smp-yours {
+  margin-top: 6px;
+  border: 1.5px dashed color-mix(in oklab, var(--text) 30%, transparent);
+}
+
+.smp-yours-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Top bar: "Sample league / Scouting Horns" (two lines on phones, see styles/phone/sample.css) */
+.smp-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.league-switcher .team-name.smp-switcher-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.smp-signin {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 14px;
+}
+
+.smp-back {
+  align-self: flex-start;
+}

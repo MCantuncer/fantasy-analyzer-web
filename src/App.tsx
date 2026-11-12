@@ -6,6 +6,7 @@ import {
   fetchLeague,
   fetchMe,
   fetchOverview,
+  fetchSample,
   retryDropped,
   retryDroppedDelay,
   signOut,
@@ -15,6 +16,8 @@ import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisPro
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
+import { SamplePage } from './components/Sample'
+import { SampleSwitcher } from './components/SampleSwitcher'
 import { CookieForm } from './components/CookieForm'
 import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
@@ -42,6 +45,7 @@ import { tonightMatchup } from './lib/league'
 import { useTabInView } from './lib/useTabInView'
 import { pageName, usePageView } from './lib/pageView'
 import { CHECK_PARAM } from './lib/tradeCheck'
+import { SCOUT_PARAM, scoutOf, scoutWanted } from './lib/sample'
 
 interface Selection {
   leagueId: number
@@ -93,9 +97,11 @@ function writeUrl(
   verifying: boolean,
   film: number | null | undefined,
   health: boolean,
+  scout: number | null = null,
 ) {
   const q = new URLSearchParams()
   if (!selection && health) q.set('view', 'health')
+  if (!selection && scout != null) q.set(SCOUT_PARAM, String(scout))
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')
@@ -156,10 +162,22 @@ export default function App() {
   const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
   // Site health (admins only) stands in for My leagues while it is open.
   const [health, setHealth] = useState(initial.health)
+  // Signed out: the sample league, scouting one team, until the visitor asks to sign up or sign in.
+  const [joining, setJoining] = useState<'signup' | 'signin' | null>(null)
+  const [scoutId, setScoutId] = useState<number | null>(() => scoutWanted())
+  const sample = useQuery({
+    queryKey: ['sample'],
+    queryFn: fetchSample,
+    enabled: !signedIn,
+    retry: false,
+    staleTime: 5 * 60_000,
+  })
+  const scouting = !signedIn && joining === null && sample.data ? sample.data : null
+  const scout = scouting ? scoutOf(scouting, scoutId) : null
 
   useEffect(
-    () => writeUrl(selection, tab, verifying, film, health),
-    [selection, tab, verifying, film, health],
+    () => writeUrl(selection, tab, verifying, film, health, scout?.id ?? null),
+    [selection, tab, verifying, film, health, scout?.id],
   )
   // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
   const isPrivate = useRef(creds !== null)
@@ -343,6 +361,7 @@ export default function App() {
     saveToken(result.token)
     qc.setQueryData(['me'], result.me)
     setSignedIn(true)
+    setJoining(null)
   }
 
   function endSession() {
@@ -408,6 +427,15 @@ export default function App() {
             </svg>
             <span className="brand-name" title="Categories, Odds, Upgrades, Rosters, Trades">COURT</span>
           </button>
+          {scouting && scout && (
+            <SampleSwitcher
+              index={scouting}
+              scout={scout}
+              onScout={setScoutId}
+              onJoin={() => setJoining('signup')}
+              onSignIn={() => setJoining('signin')}
+            />
+          )}
           {selection && leagueName && (
             <LeagueSwitcher
               leagues={me.data?.leagues ?? []}
@@ -423,6 +451,11 @@ export default function App() {
             />
           )}
           <div className="topbar-actions">
+            {!signedIn && joining === null && (
+              <button type="button" className="secondary smp-signin" onClick={() => setJoining('signin')}>
+                Sign in
+              </button>
+            )}
             {creds && (
               <button
                 className="link small hide-sm"
@@ -533,7 +566,20 @@ export default function App() {
       </header>
 
       <main className="main">
-        {!signedIn && <Auth theme={theme} onSignedIn={signedInWith} />}
+        {scouting && scout && (
+          <SamplePage index={scouting} scout={scout} onScout={setScoutId} onJoin={() => setJoining('signup')} />
+        )}
+        {!signedIn && !scouting && sample.isPending && joining === null && <LeaguesSkeleton />}
+        {!signedIn && !scouting && !(sample.isPending && joining === null) && (
+          <>
+            {joining && sample.data && (
+              <button type="button" className="link smp-back" onClick={() => setJoining(null)}>
+                ← Keep scouting
+              </button>
+            )}
+            <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
+          </>
+        )}
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
