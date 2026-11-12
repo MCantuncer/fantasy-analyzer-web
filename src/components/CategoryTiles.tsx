@@ -22,7 +22,14 @@ function place(cat: string) {
 
 /** One compact tile per category, in ESPN's fixed order: code, league rank, win share, outcome word.
  *  The outcome shows as a thin left edge and the word, never as a filled tile. */
-export function CategoryTiles({ categories }: { categories: CategoryOutlook[] }) {
+export function CategoryTiles({
+  categories,
+  scout,
+}: {
+  categories: CategoryOutlook[]
+  /** The team being scouted in the sample league, named in place of "you". */
+  scout?: string
+}) {
   const ordered = [...categories].sort((a, b) => place(a.category) - place(b.category))
   const count = (tag: keyof typeof TAG) => categories.filter((c) => c.tag === tag).length
   return (
@@ -30,7 +37,7 @@ export function CategoryTiles({ categories }: { categories: CategoryOutlook[] })
       <div className="ct-head">
         <h2 id="tiles-title">
           <Ranking size={20} aria-hidden="true" />
-          How often you win each category
+          How often {scout ?? 'you'} {scout ? 'wins' : 'win'} each category
         </h2>
         <span className="ct-note">
           {(Object.keys(TAG) as (keyof typeof TAG)[]).map((t, i) => (

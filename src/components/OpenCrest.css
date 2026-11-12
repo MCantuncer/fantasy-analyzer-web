@@ -1,0 +1,5 @@
+/* The open crest: the door to your own league (an empty shield, a small gold you). */
+.smp-open-crest {
+  flex: none;
+  color: currentColor;
+}

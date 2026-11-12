@@ -253,11 +253,12 @@ export function BestMove({
         <header className="bm-head">
           <h2 className="bm-title">
             <Target size={20} weight="duotone" aria-hidden="true" />
-            Best move: hold for now
+            {scout ? `Best move for ${scout}: hold for now` : 'Best move: hold for now'}
           </h2>
         </header>
         <p className="muted">
-          No single trade or pickup clearly raises {whose} playoff odds right now. Check back after the next games.
+          No single trade or pickup clearly raises {whose} playoff odds right now.{' '}
+          {scout ? 'Scout another team below.' : 'Check back after the next games.'}
         </p>
       </section>
     )
