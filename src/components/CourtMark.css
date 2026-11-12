@@ -104,7 +104,13 @@
   visibility: hidden;
 }
 
-.court-mark .w.running {
+.court-mark .L.keep.pending,
+.court-mark .L.keep.running {
+  color: var(--faint); /* the drawn C is the capital of Categories, so it follows the word */
+}
+
+.court-mark .w.running,
+.court-mark .L.keep.running {
   animation: court-breathe 1.4s ease-in-out infinite;
 }
 
@@ -120,7 +126,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .court-loading.breathing .court-mark,
-  .court-mark .w.running {
+  .court-mark .w.running,
+  .court-mark .L.keep.running {
     animation: none;
   }
 }

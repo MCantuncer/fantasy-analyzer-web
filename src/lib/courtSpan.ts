@@ -482,6 +482,7 @@ export function setWordStates(span: Span, states: WordState[], animate = true) {
       span.W[i].animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: T.W + 60, easing: EASE }),
       span.glows[i].animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.W + 120, easing: EASE }),
     )
+    if (i === KEEP) span.anims.push(span.L[i].animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: T.W + 60, easing: EASE }))
   })
 }
 
