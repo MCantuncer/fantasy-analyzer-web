@@ -30,7 +30,10 @@ describe('climbWindow', () => {
 })
 
 describe('climb', () => {
-  const c = climb({ before: 0.47, after: 0.51, others: [0.5, 0.5, 0.49, 0.48, 0.48, 0.48] })
+  const others = [0.5, 0.5, 0.49, 0.48, 0.48, 0.48, 0.47]
+  const c = climb({ before: 0.47, after: 0.51, others })
+  /** The same field under many picks: every way the random draw can come out. */
+  const draws = Array.from({ length: 200 }, (_, k) => climb({ before: 0.47, after: 0.51, others, seed: `pick-${k}` }))
 
   it('puts the new odds above today and the even-odds line between them', () => {
     expect(c.end.y).toBeLessThan(c.start.y)
@@ -48,20 +51,50 @@ describe('climb', () => {
     expect(c.start.y - c.end.y).toBeCloseTo(plot / 5)
   })
 
-  it('groups the other pickups by where they end and counts them', () => {
-    expect(c.groups.map((g) => [g.pct, g.count])).toEqual([
-      [50, 2],
-      [49, 1],
-      [48, 3],
+  it('draws real pickups only: each grey group is a level others end at, with its gain and count', () => {
+    const real = new Map([
+      [50, { count: 2, gain: 3 }],
+      [49, { count: 1, gain: 2 }],
+      [48, { count: 3, gain: 1 }],
     ])
-    expect(c.strands).toHaveLength(6)
-    for (const s of c.strands) expect(s.x).toBeGreaterThan(c.end.x)
+    for (const d of draws) {
+      for (const g of d.groups) expect({ count: g.count, gain: g.gain }).toEqual(real.get(g.pct))
+      expect(d.strands).toHaveLength(d.groups.reduce((n, g) => n + g.count, 0))
+      for (const s of d.strands) expect(s.x).toBeGreaterThan(d.end.x)
+    }
+  })
+
+  it('draws a random few of the levels below the pick: at least one, at most all of them', () => {
+    const sizes = new Set(draws.map((d) => d.groups.length))
+    expect([...sizes].sort()).toEqual([1, 2, 3])
+    // not always the closest ones: some draws skip the level right under the pick
+    expect(draws.some((d) => !d.groups.some((g) => g.gain === 3))).toBe(true)
+  })
+
+  it('draws the same lines for the same pick', () => {
+    const again = climb({ before: 0.47, after: 0.51, others, seed: 'pick-7' })
+    expect(again.groups).toEqual(draws[7].groups)
+  })
+
+  it('always draws a pickup that ties the pick', () => {
+    for (let k = 0; k < 50; k++) {
+      const tied = climb({ before: 0.47, after: 0.51, others: [0.51, 0.5, 0.49, 0.48], seed: `pick-${k}` })
+      expect(tied.groups.some((g) => g.gain === 4)).toBe(true)
+    }
+  })
+
+  it('never draws a pickup that would not raise your odds', () => {
+    const small = climb({ before: 0.48, after: 0.5, others: [0.49, 0.48, 0.48, 0.47, 0.46] })
+    expect(small.groups.map((g) => [g.gain, g.count])).toEqual([[1, 1]])
+    const alone = climb({ before: 0.48, after: 0.49, others: [0.48, 0.48, 0.47] })
+    expect(alone.groups).toEqual([])
+    expect(alone.strands).toEqual([])
   })
 
   it('keeps strands outside the window on its edge and caps how many it draws', () => {
-    const many = climb({ before: 0.47, after: 0.51, others: Array.from({ length: 40 }, () => 0.2) })
+    const many = climb({ before: 0.47, after: 0.51, others: Array.from({ length: 40 }, () => 0.9) })
     expect(many.strands).toHaveLength(CLIMB.maxStrands)
-    expect(many.strands[0].y).toBeCloseTo(many.ticks[0].y)
+    expect(many.strands[0].y).toBeCloseTo(many.ticks[many.ticks.length - 1].y)
   })
 
   it('has no even-odds line when 50% is outside the window', () => {

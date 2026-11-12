@@ -1,7 +1,7 @@
 /**
  * Geometry for the free-agent climb on Best move ("The field"): one lit line from today's odds
- * to the odds after the pickup, and a faint strand for every other straight add/drop the
- * analysis scored, ending at its own odds. Pure, so it can be tested without a browser.
+ * to the odds after the pickup, and faint strands for a random few of the other straight
+ * add/drops the analysis scored, each ending at its own odds. Pure, so it can be tested without a browser.
  *
  * The scale is zoomed (a window of 20 points when the moves fit, wider when they don't) and
  * always shows its ticks, so a +4 never pretends to be bigger than it is.
@@ -11,6 +11,7 @@ export interface ClimbInput {
   before: number // playoff odds today, 0-1
   after: number // after the chosen pickup
   others: number[] // after-odds of the other straight pickups
+  seed?: string // names the pick, so the same pick always draws the same grey lines
 }
 
 export interface Strand {
@@ -22,6 +23,7 @@ export interface StrandGroup {
   pct: number // whole percent the strands end at
   y: number
   count: number
+  gain: number // whole points above today's odds (below, when negative): what the label prints
 }
 
 export interface Climb {
@@ -45,11 +47,28 @@ export const CLIMB = {
   startX: 0.2,
   endX: 0.6,
   strandFrom: 0.68,
-  strandTo: 0.88,
+  strandTo: 0.86, // leaves the right edge to the gain labels
   maxStrands: 24,
 }
 
 const round = (x: number) => Math.round(x * 100)
+
+/** A small seeded generator (a string hash into mulberry32): numbers in [0, 1), the same for the same seed. */
+function seeded(seed: string): () => number {
+  let h = 1779033703 ^ seed.length
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353)
+    h = (h << 13) | (h >>> 19)
+  }
+  let a = h >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
 
 /** The zoom window in whole percent: 20 points around the move, or wider in steps of 10. */
 export function climbWindow(before: number, after: number): [number, number] {
@@ -65,7 +84,7 @@ export function climbWindow(before: number, after: number): [number, number] {
   return [lo, lo + span]
 }
 
-export function climb({ before, after, others }: ClimbInput): Climb {
+export function climb({ before, after, others, seed = '' }: ClimbInput): Climb {
   const [lo, hi] = climbWindow(before, after)
   const { plot } = CLIMB
   // Room above and below the window only where the labels at the two ends need it.
@@ -81,20 +100,38 @@ export function climb({ before, after, others }: ClimbInput): Climb {
   const ticks: { pct: number; y: number }[] = []
   for (let p = lo; p <= hi; p += step) ticks.push({ pct: p, y: y(p / 100) })
 
-  // Strands that end at the same whole percent fan out side by side, highest first.
-  const shown = [...others].sort((a, b) => b - a).slice(0, CLIMB.maxStrands)
-  const byPct = new Map<number, number>()
-  for (const o of shown) byPct.set(round(o), (byPct.get(round(o)) ?? 0) + 1)
+  // Strands that end at the same whole percent fan out side by side, highest first. A pickup
+  // that would not raise your odds is no rival, so it is never drawn.
+  const rivals = others
+    .filter((o) => round(o) > round(before))
+    .sort((a, b) => b - a)
+    .slice(0, CLIMB.maxStrands)
+  const levels = new Map<number, number>()
+  for (const o of rivals) levels.set(round(o), (levels.get(round(o)) ?? 0) + 1)
+
+  // Of the levels below the pick, a random few are drawn (at least one, at most all of them):
+  // a strand at every point under a +6 pick was a ladder of grey lines. Every line drawn is
+  // still a real pickup, and a level that ties or beats the pick is always drawn.
+  const rand = seeded(seed)
+  const below = [...levels.keys()].filter((p) => p < round(after))
+  const take = below.length ? 1 + Math.floor(rand() * below.length) : 0
+  for (let i = below.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[below[i], below[j]] = [below[j], below[i]]
+  }
+  const hidden = new Set(below.slice(take))
+  const byPct = new Map([...levels].filter(([p]) => !hidden.has(p)))
   const widest = Math.max(1, ...byPct.values())
   const gap = widest > 1 ? (CLIMB.strandTo - CLIMB.strandFrom) / (widest - 1) : 0
   const strands: Strand[] = []
   const groups: StrandGroup[] = []
   for (const [p, count] of byPct) {
-    groups.push({ pct: p, y: y(p / 100), count })
+    groups.push({ pct: p, y: y(p / 100), count, gain: p - round(before) })
     for (let k = 0; k < count; k++) strands.push({ y: y(p / 100), x: CLIMB.strandFrom + k * gap })
   }
 
-  // A count beside each group, skipping any too close to the one above to read.
+  // Its gain beside each group, skipping any too close to the one above to read. The dots
+  // already count the pickups; a bare count here read as a gain bigger than the pick's.
   groups.sort((a, b) => a.y - b.y)
   const labelled: StrandGroup[] = []
   for (const g of groups) if (!labelled.length || g.y - labelled[labelled.length - 1].y >= 12) labelled.push(g)
