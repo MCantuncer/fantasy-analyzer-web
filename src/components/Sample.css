@@ -219,3 +219,23 @@
 .smp-back {
   align-self: flex-start;
 }
+
+/* Crest light: in the sample the Best Move card is lit from the scouted team's crest colour
+   (11% dark, 9% light: the strength of the house light it replaces). Gold stays yours. */
+.smp-best {
+  --scout-light: 11%;
+}
+
+:root[data-theme='light'] .smp-best {
+  --scout-light: 9%;
+}
+
+.smp-best .card.best {
+  background:
+    radial-gradient(
+      ellipse 520px 260px at 0% 0%,
+      color-mix(in srgb, var(--scout, var(--text-2)) var(--scout-light), transparent),
+      transparent 70%
+    ),
+    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%), var(--surface);
+}
