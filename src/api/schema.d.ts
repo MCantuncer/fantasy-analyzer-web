@@ -775,6 +775,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sample/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample Refresh
+         * @description Wakes the server and starts today's sample run if it is due (all teams, one after
+         *     another). Returns nothing about the sample.
+         */
+        get: operations["sample_refresh_api_sample_refresh_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample
+         * @description The sample league visitors see before signing in: its teams under masked names, and the
+         *     team to scout first. Public and cacheable; each team's report is at /api/sample/teams/{id}.
+         */
+        get: operations["sample_api_sample_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sample/teams/{team_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample Team
+         * @description One sample team's analysis, team names masked. ``day`` is the index's ``analysed_on``
+         *     (without it, the day /api/sample shows now).
+         */
+        get: operations["sample_team_api_sample_teams__team_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/news/check": {
         parameters: {
             query?: never;
@@ -3565,6 +3628,76 @@ export interface components {
         ResolveErrorRequest: {
             /** Id */
             id: number;
+        };
+        /** SampleIndex */
+        SampleIndex: {
+            /**
+             * Analysed On
+             * @description The day the sample was analysed (UTC date); its teams' reports are from it
+             */
+            analysed_on: string;
+            /**
+             * Fresh
+             * @description Analysed today or yesterday; false means today's run is late
+             */
+            fresh: boolean;
+            /**
+             * Phase
+             * @description offseason: last season's final sample, until the new season's first run
+             * @enum {string}
+             */
+            phase: "season" | "offseason";
+            /** Season */
+            season: number;
+            league: components["schemas"]["SampleLeague"];
+            /**
+             * Default Team Id
+             * @description The team a visitor scouts first: the clearest move of the day
+             */
+            default_team_id: number;
+            /** Teams */
+            teams: components["schemas"]["SampleTeam"][];
+        };
+        /** SampleLeague */
+        SampleLeague: {
+            /**
+             * Name
+             * @description Always "Sample league": the real name is masked
+             */
+            name: string;
+            /** Size */
+            size: number;
+            /**
+             * Scoring
+             * @description ESPN's scoring type, e.g. H2H_EACH_CATEGORY
+             */
+            scoring: string;
+            /** Categories */
+            categories: string[];
+            /** Playoff Teams */
+            playoff_teams: number;
+        };
+        /** SampleTeam */
+        SampleTeam: {
+            /** Id */
+            id: number;
+            /**
+             * Name
+             * @description Masked: a basketball play call (Horns, Hammer, ...), fixed for the season
+             */
+            name: string;
+            /** Abbrev */
+            abbrev: string;
+            /**
+             * Projected Rank
+             * @description Projected final place, 1 = first, from each team's own season outlook
+             */
+            projected_rank: number;
+            /**
+             * Has Move
+             * @description Its best move gains at least 1 playoff-odds point
+             */
+            has_move: boolean;
         };
         /** ScoreDay */
         ScoreDay: {
@@ -6899,6 +7032,99 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    sample_refresh_api_sample_refresh_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    sample_api_sample_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SampleIndex"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    sample_team_api_sample_teams__team_id__get: {
+        parameters: {
+            query?: {
+                day?: string | null;
+            };
+            header?: never;
+            path: {
+                team_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisReport"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

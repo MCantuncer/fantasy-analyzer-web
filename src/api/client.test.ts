@@ -1,5 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, createPost, fetchLeague, fetchMe, fetchScores, SCORES_TIMEOUT_MS, signIn, signUp } from './client'
+import {
+  ApiError,
+  createPost,
+  fetchLeague,
+  fetchMe,
+  fetchSample,
+  fetchSampleTeam,
+  fetchScores,
+  SCORES_TIMEOUT_MS,
+  signIn,
+  signUp,
+} from './client'
 import { clearToken, saveToken } from '../lib/session'
 
 describe('api client', () => {
@@ -101,5 +112,36 @@ describe('api client', () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 500 }))
     await expect(fetchLeague(1, null, null)).rejects.toMatchObject({ status: 500 })
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('reads the sample league as a plain GET, without the token', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}'))
+    saveToken('tok-123')
+    await fetchSample()
+    await fetchSampleTeam(3, '2026-11-12')
+    clearToken()
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/sample$/)
+    expect(String(fetchMock.mock.calls[1][0])).toMatch(/\/api\/sample\/teams\/3\?day=2026-11-12$/)
+    for (const call of fetchMock.mock.calls) expect(call[1]).toBeUndefined()
+  })
+
+  it('says sample_off when there is no sample league', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ detail: { code: 'sample_off', message: 'none' } }), { status: 404 }),
+    )
+    await expect(fetchSample()).rejects.toMatchObject({ status: 404, code: 'sample_off' })
+  })
+
+  it('asks for the sample again when Render drops it', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('', { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ default_team_id: 3 })))
+    const sample = fetchSample()
+    await vi.runAllTimersAsync()
+    await expect(sample).resolves.toMatchObject({ default_team_id: 3 })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
   })
 })
