@@ -18,6 +18,7 @@ import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisPro
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
+import { SignInHero } from './components/SignInHero'
 import { JoinSheet, type PendingLeague } from './components/JoinSheet'
 import { OpenCrest } from './components/OpenCrest'
 import { SamplePage } from './components/Sample'
@@ -608,7 +609,10 @@ export default function App() {
         )}
         {!signedIn && !scouting && sample.isPending && joining === null && <LeaguesSkeleton />}
         {!signedIn && !scouting && !(sample.isPending && joining === null) && (
-          <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
+          <div className="signin-page">
+            <SignInHero />
+            <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
+          </div>
         )}
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
