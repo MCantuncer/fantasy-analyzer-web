@@ -5,6 +5,8 @@ import { loadToken } from '../lib/session'
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
 export type AnalysisJob = components['schemas']['AnalysisJob']
+export type SampleIndex = components['schemas']['SampleIndex']
+export type SampleTeam = components['schemas']['SampleTeam']
 export type ReportChange = components['schemas']['ReportChange']
 export type TradeIdea = components['schemas']['TradeIdea']
 export type PickupIdea = components['schemas']['PickupIdea']
@@ -187,6 +189,44 @@ function post<T>(path: string, body: unknown, creds: Credentials | null = null, 
 /** A write (or a paid check): sent once, since a dropped request may still have reached the server. */
 function send<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
   return request<T>('POST', path, body, creds, timeoutMs, [])
+}
+
+/**
+ * A public read for visitors who haven't signed in: no token, no cookies, no JSON header, so the
+ * browser sends a plain GET (no CORS preflight) and may serve it from its cache.
+ */
+async function publicGet<T>(path: string): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      let res: Response
+      try {
+        res = await fetch(`${BASE}${path}`)
+      } catch {
+        throw new ApiError(0, 'network', 'Could not reach the analyzer server.')
+      }
+      if (!res.ok) {
+        const detail = (await res.json().catch(() => null))?.detail
+        if (detail && typeof detail === 'object' && 'code' in detail) {
+          throw new ApiError(res.status, detail.code, detail.message)
+        }
+        throw new ApiError(res.status, 'http_error', `Request failed (HTTP ${res.status}).`)
+      }
+      return (await res.json()) as T
+    } catch (e) {
+      if (!(e instanceof ApiError) || !isTransient(e) || attempt >= READ_RETRY_MS.length) throw e
+      await sleep(READ_RETRY_MS[attempt])
+    }
+  }
+}
+
+/** The sample league shown before sign-in: masked teams and the one to scout first. 404 `sample_off` when there is none. */
+export function fetchSample() {
+  return publicGet<SampleIndex>('/api/sample')
+}
+
+/** One sample team's analysis, team names masked. `day` is the index's `analysed_on`, so every team comes from one run. */
+export function fetchSampleTeam(teamId: number, day: string) {
+  return publicGet<AnalysisReport>(`/api/sample/teams/${teamId}?day=${encodeURIComponent(day)}`)
 }
 
 export function fetchAuthConfig() {
