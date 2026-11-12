@@ -2912,6 +2912,17 @@ export interface components {
              * @description Whether his team won; none while the game may still be going or when unknown
              */
             won?: boolean | null;
+            /**
+             * Played
+             * @description False when his team played and he sat out; stats are then all 0
+             * @default true
+             */
+            played: boolean;
+            /**
+             * Missed Reason
+             * @description Why he sat out, when ESPN says (his current injury, e.g. 'Ankle', or 'Suspended'); only on the games he has missed since he last played
+             */
+            missed_reason?: string | null;
             stats: components["schemas"]["GameStats"];
         };
         /** PlayerMove */
