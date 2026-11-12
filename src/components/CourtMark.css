@@ -61,3 +61,57 @@
   z-index: -1; /* under the brand button's focus ring */
   background: linear-gradient(90deg, var(--topbar) calc(100% - 40px), transparent);
 }
+
+/* Loading screen (CourtLoading): words still to come wait in --faint; the running one pulses. */
+.court-loading {
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 0 8px;
+}
+
+.court-loading .court-mark {
+  transform-origin: 0 0;
+}
+
+.court-loading.breathing .court-mark {
+  color: var(--faint);
+  animation: court-breathe 1.4s ease-in-out infinite;
+}
+
+.court-mark .w.pending,
+.court-mark .w.pending b,
+.court-mark .w.running,
+.court-mark .w.running b {
+  color: var(--faint);
+}
+
+.court-mark .seg.pending,
+.court-mark .seg.running {
+  background: var(--faint);
+}
+
+.court-mark .glow.pending,
+.court-mark .glow.running {
+  visibility: hidden;
+}
+
+.court-mark .w.running {
+  animation: court-breathe 1.4s ease-in-out infinite;
+}
+
+@keyframes court-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .court-loading.breathing .court-mark,
+  .court-mark .w.running {
+    animation: none;
+  }
+}

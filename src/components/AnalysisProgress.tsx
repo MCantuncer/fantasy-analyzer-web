@@ -1,22 +1,20 @@
-import { useEffect, useState } from 'react'
-import { percent } from '../lib/progress'
+import { useEffect, useMemo, useState } from 'react'
+import { percent, wordStates } from '../lib/progress'
+import { CourtLoading } from './CourtLoading'
 
-// ``short`` names the dot on the stepper; ``label`` is the line under the heading.
+// ``label`` is the line under the heading.
 const STEPS = [
-  { short: 'Server', label: 'Waking up the server', stages: [] as string[] },
+  { label: 'Waking up the server', stages: [] as string[] },
   {
-    short: 'League',
     label: 'Loading your league',
     stages: ['Starting', 'Loading your league', 'Reading rosters'],
   },
   // Free agents come first: the Moves page opens with them while trades are still screened.
   {
-    short: 'FAs',
     label: 'Screening free agents',
     stages: ['Screening free agents', 'Screening pickups', 'Simulating the season'],
   },
   {
-    short: 'Trades',
     label: 'Screening trades',
     stages: ['Screening trades', 'Screening edge trades', 'Screening vision trades'],
   },
@@ -25,16 +23,6 @@ const STEPS = [
 function stepIndex(stage: string) {
   const i = STEPS.findIndex((s) => s.stages.includes(stage))
   return i < 0 ? 1 : i
-}
-
-function StepDot({ state }: { state: 'done' | 'now' | 'todo' }) {
-  if (state === 'done')
-    return (
-      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-        <path d="M3 6.2l2 2 4-4.4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-      </svg>
-    )
-  return null
 }
 
 const stroke = { stroke: 'currentColor', strokeWidth: 1.6, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' } as const
@@ -110,6 +98,7 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
   const wakingFor = useSeconds(waking)
   const now = waking ? 0 : stepIndex(stage)
   const pct = percent(progress)
+  const states = useMemo(() => wordStates(waking, now, stage, progress), [waking, now, stage, progress])
   return (
     <section className={`card analysis-card stack${waking ? ' waking' : ''}`} aria-labelledby="analysis-title">
       <div className="analysis-head">
@@ -129,7 +118,7 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
         </p>
       )}
       <div
-        className="progress"
+        className="analysis-court"
         role="progressbar"
         aria-label="Analysis progress"
         aria-valuemin={0}
@@ -137,24 +126,8 @@ export function AnalysisCard({ progress, stage, onBrowse, waking = false, title 
         aria-valuenow={waking ? undefined : Math.floor(progress * 100)}
         aria-valuetext={waking ? 'Waking up the server' : undefined}
       >
-        <span style={waking ? undefined : { width: pct }} />
+        <CourtLoading waking={waking} states={states} />
       </div>
-      <ol className="stepper" aria-label="Steps">
-        {STEPS.map((s, i) => {
-          const state = i < now ? 'done' : i === now ? 'now' : 'todo'
-          return (
-            <li key={s.short} className={state} aria-current={state === 'now' ? 'step' : undefined}>
-              <span className="stepper-dot">
-                <StepDot state={state} />
-              </span>
-              <span className="stepper-label">{s.short}</span>
-              <span className="sr-only">
-                {state === 'done' ? ', done' : state === 'now' ? ', in progress' : ''}
-              </span>
-            </li>
-          )
-        })}
-      </ol>
       <nav className="wait-list" aria-labelledby="wait-title">
         <div className="wait-head">
           <span className="eyebrow" id="wait-title">
