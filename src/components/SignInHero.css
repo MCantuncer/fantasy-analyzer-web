@@ -1,0 +1,175 @@
+/* Sign-in page: hero on the left, the form on the right from 900px; stacked on phones. */
+.signin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+@media (min-width: 900px) {
+  .signin-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+    align-items: center;
+    gap: 64px;
+    max-width: 1000px;
+    width: 100%;
+    margin: 32px auto 0;
+  }
+
+  .signin-page .auth {
+    margin: 0;
+  }
+}
+
+.signin-hero {
+  --cap: 20px; /* cap height of the words */
+  min-width: 0;
+}
+
+.hero-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-rows li {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+/* Each word on its floor: the capital in --text, the lowercase rest in --text-2, with the warm house light behind. */
+.hero-word {
+  position: relative;
+  justify-self: start;
+  padding-bottom: 12px;
+  font-family: var(--font-ui);
+  font-size: calc(var(--cap) / 0.7);
+  font-weight: 470;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.hero-word b {
+  font-weight: 760;
+  color: var(--text);
+}
+
+.hero-floor {
+  position: absolute;
+  left: -4px;
+  right: calc(0.01em - 4px); /* trailing tracking is not part of the word */
+  bottom: 0;
+  height: 5px;
+  background: var(--text);
+}
+
+.hero-floor::before {
+  content: '';
+  position: absolute;
+  inset: auto -10px 0;
+  height: calc(var(--cap) * 2.6);
+  background: radial-gradient(50% 100% at 50% 100%, var(--house), transparent 100%);
+  pointer-events: none;
+}
+
+.hero-desc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.hero-desc svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+.hero-line {
+  margin: 24px 0 0;
+  max-width: 420px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* First visit on a device: the words drop into the column once and their floors spread out. */
+.signin-hero.drop .hero-word,
+.signin-hero.drop .hero-desc {
+  animation: hero-drop 420ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  animation-delay: calc(var(--i) * 60ms);
+}
+
+.signin-hero.drop .hero-floor {
+  transform-origin: 0 50%;
+  animation: hero-floor 360ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  animation-delay: calc(120ms + var(--i) * 60ms);
+}
+
+@keyframes hero-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes hero-floor {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signin-hero.drop .hero-word,
+  .signin-hero.drop .hero-desc,
+  .signin-hero.drop .hero-floor {
+    animation: none;
+  }
+}
+
+/* Phones: smaller words, descriptions at a fixed column so they line up. */
+@media (max-width: 640px) {
+  .signin-hero {
+    --cap: 14px;
+  }
+
+  .hero-rows {
+    gap: 10px;
+  }
+
+  .hero-rows li {
+    grid-template-columns: 136px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .hero-word {
+    padding-bottom: 9px;
+  }
+
+  .hero-floor {
+    height: 4px;
+  }
+
+  .hero-desc {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .hero-desc svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hero-line {
+    margin-top: 16px;
+    font-size: 14px;
+  }
+}
