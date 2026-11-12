@@ -177,16 +177,16 @@ export function buildSpan(el: HTMLElement, opts: SpanOptions): Span {
   const veil = o.veil ? mk('veil') : null
   const glows = G.map(() => mk('glow'))
   const segs = G.map(() => mk('seg'))
-  const L = G.map((g) => {
+  const L = G.map((g, i) => {
     const s = mk(
-      'L',
+      i === KEEP ? 'L keep' : 'L',
       `<svg width="${g.w * u}" height="${32 * u}" viewBox="0 0 ${g.w} 32" focusable="false">${g.svg.replace(/\{ID\}/g, 'court-g' + ++GID)}</svg>`,
     )
     s.style.transformOrigin = `0 ${30 * u}px`
     return s
   })
-  const W = G.map((g) => {
-    const s = mk('w')
+  const W = G.map((g, i) => {
+    const s = mk(i === KEEP ? 'w keep' : 'w')
     const b = document.createElement('b')
     b.textContent = g.k
     const tail = document.createElement('span')
@@ -302,6 +302,9 @@ function letterPose(span: Span, state: SpanState, i: number): string {
 }
 
 const hiddenInFolded = (state: SpanState, i: number) => state === 'folded' && i > 0 && i < 4
+// The drawn C stays as the capital of Categories (the typed C keeps its room but is hidden): the ball's own C,
+// turned and with its seams, never swaps for a plain C.
+const KEEP = 0
 
 function cancel(span: Span) {
   span.anims.forEach((a) => a.cancel())
@@ -323,7 +326,7 @@ export function setStatic(span: Span, state: SpanState) {
   })
   span.L.forEach((L, i) => {
     L.style.transform = letterPose(span, state, i)
-    L.style.opacity = hiddenInFolded(state, i) || open ? '0' : '1'
+    L.style.opacity = hiddenInFolded(state, i) || (open && i !== KEEP) ? '0' : '1'
   })
   const folded = state === 'folded'
   if (span.Tf && span.Tw) {
@@ -403,6 +406,7 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
             { offset: (T.FOLD_FADE_AT + T.FADE) / end, opacity: 1 },
           ]
         : [{ offset: 0, opacity: 1 }]
+      if (i === KEEP) return
       kf.push({ offset: land / end, opacity: 1, easing: EASE }, { offset: 1, opacity: 0 })
       add(L, kf, o(0, end))
     })
@@ -445,7 +449,7 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
     )
     span.L.forEach((L, i) => {
       add(L, [{ transform: letterPose(span, from, i) }, { transform: letterPose(span, to, i) }], o(20, 170, EASE_IN_OUT))
-      if (!hiddenInFolded(to, i)) add(L, [{ opacity: 0 }, { opacity: 1 }], o(0, 80))
+      if (!hiddenInFolded(to, i) && i !== KEEP) add(L, [{ opacity: 0 }, { opacity: 1 }], o(0, 80))
     })
     add(span.veil, [{ opacity: 1 }, { opacity: 0 }], o(60, 140, 'ease-in'))
     if (to === 'folded') crossfade('f', 60, 40)
