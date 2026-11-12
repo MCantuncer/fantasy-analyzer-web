@@ -1,0 +1,51 @@
+/* COURT mark in the top bar. Ink follows the theme (--text); no gold in the mark. */
+.court-mark {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  line-height: 0;
+}
+
+.court-mark svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Desktop bar: closed wordmark, 28px tall (0.875px per unit), 91.4px wide. */
+.court-closed {
+  width: 91.4px;
+  height: 28px;
+}
+
+/* Phone bar: folded mark, 21px (0.75px per unit). Icons use their own files in /public. */
+.court-folded {
+  width: 21px;
+  height: 21px;
+}
+
+/* The top bar shows the ball on every screen: 24.5px on desktop (0.875px per unit, the same scale as the opening). */
+.court-mark--folded .court-folded {
+  width: 24.5px;
+  height: 24.5px;
+}
+
+@media (max-width: 640px) {
+  .court-mark--folded .court-folded {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+.court-mark--auto .court-folded {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .court-mark--auto .court-folded {
+    display: block;
+  }
+
+  .court-mark--auto .court-closed {
+    display: none;
+  }
+}
