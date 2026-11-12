@@ -43,6 +43,11 @@
   color: var(--text-2);
 }
 
+/* Categories keeps the drawn C as its capital: the typed C only holds its room. */
+.court-mark .w.keep b {
+  visibility: hidden;
+}
+
 .court-mark .w .tail {
   display: inline-block; /* so the open can slide it */
 }
