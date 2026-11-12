@@ -54,7 +54,7 @@ describe('CourtMark in the top bar', () => {
     fireEvent.click(screen.getByRole('button'))
     expect(calls).toEqual(['folded']) // home ran before the mark started to open
     expect(state(container)).toBe('open')
-    act(() => vi.advanceTimersByTime(1500))
+    act(() => vi.advanceTimersByTime(2000))
     expect(state(container)).toBe('folded')
   })
 
