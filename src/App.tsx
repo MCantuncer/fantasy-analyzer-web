@@ -18,6 +18,7 @@ import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
 import { JoinSheet, type PendingLeague } from './components/JoinSheet'
+import { OpenCrest } from './components/OpenCrest'
 import { SamplePage } from './components/Sample'
 import { SampleSwitcher } from './components/SampleSwitcher'
 import { CookieForm } from './components/CookieForm'
@@ -471,6 +472,12 @@ export default function App() {
             />
           )}
           <div className="topbar-actions">
+            {scouting && joining === null && (
+              <button type="button" className="secondary smp-analyze" onClick={() => setJoining('signup')}>
+                <OpenCrest size={18} />
+                Analyze my league
+              </button>
+            )}
             {!signedIn && joining === null && (
               <button type="button" className="secondary smp-signin" onClick={() => setJoining('signin')}>
                 Sign in
