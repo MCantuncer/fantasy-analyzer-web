@@ -239,3 +239,17 @@
     ),
     radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%), var(--surface);
 }
+
+/* The phone dock (shown by styles/phone/sample.css); desktop has the top bar's door instead. */
+.smp-dock {
+  display: none;
+}
+
+.smp-analyze {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 14px;
+}

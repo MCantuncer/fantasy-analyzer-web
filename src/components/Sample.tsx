@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Binoculars, CaretRight, ListNumbers } from '@phosphor-icons/react'
+import { Binoculars, CaretRight, ListNumbers, Target } from '@phosphor-icons/react'
 import { fetchSampleTeam } from '../api/client'
 import type { SampleIndex, SampleTeam } from '../api/client'
 import { ordinal } from '../lib/format'
@@ -227,6 +227,37 @@ export function SamplePage({
         </div>
       </div>
       {shown && <CategoryTiles categories={shown.categories} scout={scout.name} />}
+      <Dock onJoin={onJoin} />
     </div>
+  )
+}
+
+/** Phones: a bottom bar with the sample's two places and, after a hairline, the door to your own league. */
+function Dock({ onJoin }: { onJoin: () => void }) {
+  const go = (id: string) => () => {
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    document.getElementById(id)?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+  }
+  return (
+    <nav className="smp-dock" aria-label="Sample league">
+      <button type="button" className="smp-dock-item" onClick={go('moves-best')}>
+        <Target size={22} aria-hidden="true" />
+        <span>Best move</span>
+      </button>
+      <button type="button" className="smp-dock-item" onClick={go('smp-scout-title')}>
+        <Binoculars size={22} aria-hidden="true" />
+        <span>Scout</span>
+      </button>
+      <span className="smp-dock-rule" aria-hidden="true" />
+      <button
+        type="button"
+        className="smp-dock-item smp-dock-mine"
+        aria-label="My league: get your own best move"
+        onClick={onJoin}
+      >
+        <OpenCrest size={22} />
+        <span>My league</span>
+      </button>
+    </nav>
   )
 }
