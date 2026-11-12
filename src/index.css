@@ -521,25 +521,17 @@ th .badge {
   padding-bottom: 10px;
 }
 
+/* The COURT mark (src/components/CourtMark.tsx). 44px hit area; the mark itself is 28px tall. */
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-block: -8px;
   background: none;
   border: none;
   padding: 0;
   color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.brand-mark {
-  flex: none;
-}
-
-.brand-name {
-  letter-spacing: 0.06em;
 }
 
 .brand {
@@ -1781,7 +1773,6 @@ tr.box-team th {
     gap: 16px;
   }
 
-  .brand-name,
   .hide-sm {
     display: none;
   }
