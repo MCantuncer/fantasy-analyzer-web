@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ApiError,
   fetchAnalysis,
   fetchLeague,
   fetchMe,
+  addLeague,
   fetchOverview,
   fetchSample,
   retryDropped,
@@ -16,6 +17,7 @@ import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisPro
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
+import { JoinSheet, type PendingLeague } from './components/JoinSheet'
 import { SamplePage } from './components/Sample'
 import { SampleSwitcher } from './components/SampleSwitcher'
 import { CookieForm } from './components/CookieForm'
@@ -41,7 +43,7 @@ import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
-import { tonightMatchup } from './lib/league'
+import { teamColours, tonightMatchup } from './lib/league'
 import { useTabInView } from './lib/useTabInView'
 import { pageName, usePageView } from './lib/pageView'
 import { CHECK_PARAM } from './lib/tradeCheck'
@@ -162,8 +164,10 @@ export default function App() {
   const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
   // Site health (admins only) stands in for My leagues while it is open.
   const [health, setHealth] = useState(initial.health)
-  // Signed out: the sample league, scouting one team, until the visitor asks to sign up or sign in.
+  // Signed out: the sample league, scouting one team. A door opens the join sheet over it.
   const [joining, setJoining] = useState<'signup' | 'signin' | null>(null)
+  // A league pasted in the join sheet that couldn't be added straight away (a private one): My leagues starts with it.
+  const [pendingInput, setPendingInput] = useState('')
   const [scoutId, setScoutId] = useState<number | null>(() => scoutWanted())
   const sample = useQuery({
     queryKey: ['sample'],
@@ -172,8 +176,9 @@ export default function App() {
     retry: false,
     staleTime: 5 * 60_000,
   })
-  const scouting = !signedIn && joining === null && sample.data ? sample.data : null
+  const scouting = !signedIn && sample.data ? sample.data : null
   const scout = scouting ? scoutOf(scouting, scoutId) : null
+  const closeJoin = useCallback(() => setJoining(null), [])
 
   useEffect(
     () => writeUrl(selection, tab, verifying, film, health, scout?.id ?? null),
@@ -362,6 +367,21 @@ export default function App() {
     qc.setQueryData(['me'], result.me)
     setSignedIn(true)
     setJoining(null)
+  }
+
+  // Signed up (or in) from the sample's join sheet: straight into the league they pasted, at the team check.
+  function joinWith(result: AuthResult, league: PendingLeague | null) {
+    signedInWith(result)
+    if (!league) return
+    addLeague(league.leagueId, league.season, null)
+      .then((next) => {
+        qc.setQueryData(['me'], next)
+        const added = next.leagues.find((l) => l.league_id === league.leagueId)
+        if (!added) return setPendingInput(league.input)
+        openLeague(added)
+        openVerify()
+      })
+      .catch(() => setPendingInput(league.input)) // a private league: My leagues asks for the cookies
   }
 
   function endSession() {
@@ -569,16 +589,23 @@ export default function App() {
         {scouting && scout && (
           <SamplePage index={scouting} scout={scout} onScout={setScoutId} onJoin={() => setJoining('signup')} />
         )}
+        {scouting && scout && joining && (
+          <JoinSheet
+            mode={joining}
+            scoutName={scout.name}
+            scoutColour={teamColours(
+              scouting.teams.map((t) => t.id),
+              null,
+            ).get(scout.id)}
+            scoutReport={qc.getQueryData<AnalysisReport>(['sample-team', scout.id, scouting.analysed_on])}
+            theme={theme}
+            onSignedIn={joinWith}
+            onClose={closeJoin}
+          />
+        )}
         {!signedIn && !scouting && sample.isPending && joining === null && <LeaguesSkeleton />}
         {!signedIn && !scouting && !(sample.isPending && joining === null) && (
-          <>
-            {joining && sample.data && (
-              <button type="button" className="link smp-back" onClick={() => setJoining(null)}>
-                ← Keep scouting
-              </button>
-            )}
-            <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
-          </>
+          <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
         )}
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
@@ -587,6 +614,7 @@ export default function App() {
 
         {signedIn && me.data && !selection && !(health && me.data.admin) && (
           <MyLeagues
+            key={pendingInput}
             me={me.data}
             creds={creds}
             onCreds={(c, remember) => {
@@ -595,6 +623,7 @@ export default function App() {
             }}
             onOpen={openLeague}
             focusAdd={focusAdd}
+            initialInput={pendingInput}
           />
         )}
 

@@ -29,3 +29,19 @@
     width: 100%;
   }
 }
+
+/* Phones: the join sheet rises from the bottom edge, full width. */
+@media (max-width: 640px) {
+  .join-backdrop {
+    align-items: flex-end;
+    padding: 24px 0 0;
+  }
+
+  .join-sheet {
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}

@@ -13,11 +13,13 @@ interface Props {
   onOpen: (league: MyLeague) => void
   /** Changes when the top bar asks to add a league: focus the add box. */
   focusAdd?: number
+  /** A league pasted before sign-up that still needs adding (a private one needs cookies first). */
+  initialInput?: string
 }
 
-export function MyLeagues({ me, creds, onCreds, onOpen, focusAdd = 0 }: Props) {
+export function MyLeagues({ me, creds, onCreds, onOpen, focusAdd = 0, initialInput = '' }: Props) {
   const qc = useQueryClient()
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(initialInput)
   const [tried, setTried] = useState(false)
   const parsed = parseLeagueInput(input)
   const inputRef = useRef<HTMLInputElement>(null)
