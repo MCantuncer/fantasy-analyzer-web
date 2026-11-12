@@ -50,7 +50,7 @@ const G: Glyph[] = [
       MASK('{ID}f', FOLDED_SEAMS) +
       MASK('{ID}w', WORD_SEAMS) +
       '<g class="cf" mask="url(#{ID}f)"><path d="M25.87 23.42A14 14 0 1 1 21.42 4.13L18.77 8.37A9 9 0 1 0 21.63 20.77Z"/></g>' +
-      '<g class="cw" mask="url(#{ID}w)"><path d="M23 26.72A14 14 0 1 1 24.72 7L20.89 10.21A9 9 0 1 0 19.79 22.89Z"/></g>',
+      '<g class="cw" mask="url(#{ID}w)"><path d="M23 26.72A14 14 0 1 1 14 2H18.12V8A9 9 0 1 0 19.79 22.89Z"/></g>',
   },
   {
     k: 'O',
