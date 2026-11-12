@@ -10,9 +10,11 @@ interface Props {
   onSignedIn: (result: AuthResult) => void
   /** Open on sign-in instead of sign-up (the top bar's Sign in). */
   initialMode?: 'signup' | 'signin'
+  /** The sign-up page's second line, when the next step is already known (a league pasted first). */
+  lead?: string
 }
 
-export function Auth({ theme, onSignedIn, initialMode = 'signup' }: Props) {
+export function Auth({ theme, onSignedIn, initialMode = 'signup', lead }: Props) {
   const [mode, setMode] = useState<'signup' | 'signin'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -33,7 +35,7 @@ export function Auth({ theme, onSignedIn, initialMode = 'signup' }: Props) {
         <h1 className="page-title">{signup ? 'Create your account' : 'Welcome back'}</h1>
         <p className="lead">
           {signup
-            ? 'Then add your ESPN leagues and verify the teams you manage.'
+            ? (lead ?? 'Then add your ESPN leagues and verify the teams you manage.')
             : 'Sign in to see your leagues and teams.'}
         </p>
       </div>
