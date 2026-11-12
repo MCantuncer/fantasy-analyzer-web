@@ -1,4 +1,4 @@
-import { ChartLineUp, User } from '@phosphor-icons/react'
+import { Binoculars, ChartLineUp, User } from '@phosphor-icons/react'
 import type { AnalysisReport } from '../api/client'
 import { ordinal, pct } from '../lib/format'
 import './Outlook.css'
@@ -16,7 +16,14 @@ function gapLine(mine: number, line: number, inside: boolean) {
 }
 
 /** Season outlook: big playoff odds, the projected standings as a ladder with the playoff line, two records. */
-export function Outlook({ report }: { report: AnalysisReport }) {
+export function Outlook({
+  report,
+  scout,
+}: {
+  report: AnalysisReport
+  /** The team being scouted in the sample league: its rung carries binoculars and its name, not "You". */
+  scout?: string
+}) {
   const rank = report.season.findIndex((r) => r.team_id === report.team_id)
   const me = report.season[rank]
   if (!me) return null
@@ -53,18 +60,28 @@ export function Outlook({ report }: { report: AnalysisReport }) {
           {report.season.map((r, i) => (
             <li
               key={r.team_id}
-              className={`ol-rung num${i < spots ? ' in' : ''}${i === rank ? ' me' : ''}`}
+              className={`ol-rung num${i < spots ? ' in' : ''}${i === rank ? (scout ? ' scout' : ' me') : ''}`}
               title={`${ordinal(i + 1)}: ${r.team_name}, ${pct(r.playoff_pct)} playoff odds`}
             >
-              {i === rank ? <User size={14} weight="bold" aria-label="You" /> : i + 1}
+              {i !== rank ? (
+                i + 1
+              ) : scout ? (
+                <Binoculars size={14} weight="bold" aria-label={scout} />
+              ) : (
+                <User size={14} weight="bold" aria-label="You" />
+              )}
             </li>
           ))}
         </ol>
         <div className="ol-key">
           <span>Playoffs · top {spots}</span>
           <span>
-            <User size={12} weight="bold" aria-hidden="true" />
-            You, projected {ordinal(rank + 1)}
+            {scout ? (
+              <Binoculars size={12} weight="bold" aria-hidden="true" />
+            ) : (
+              <User size={12} weight="bold" aria-hidden="true" />
+            )}
+            {scout ?? 'You'}, projected {ordinal(rank + 1)}
           </span>
         </div>
       </div>

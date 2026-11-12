@@ -22,6 +22,11 @@ export function ordinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
+/** "Horns'" or "Hammer's": a team name as an owner, for labels that would say "Your" on your own team. */
+export function possessive(name: string): string {
+  return /s$/i.test(name) ? `${name}'` : `${name}'s`
+}
+
 /** Change in percentage points between two rounded percentages, so it matches what is shown. */
 export function ptsDiff(before: number, after: number): number {
   return Math.round(after * 100) - Math.round(before * 100)
