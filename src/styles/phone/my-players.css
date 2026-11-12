@@ -195,16 +195,17 @@
     font-size: 10.5px;
   }
 
-  /* game: a two-line scorebug on the right of line 1 */
+  /* game: a two-line scorebug on the right of line 1, the status (Final, clock, tip-off) centred under the score */
   .mp .mp-row .mp-game {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
+    justify-self: end;
     gap: 0;
     flex-wrap: nowrap;
     line-height: 13px;
-    text-align: right;
+    text-align: center;
   }
   .mp .mp-game .team-logo {
     display: none;
