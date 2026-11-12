@@ -3,8 +3,9 @@
  *
  * Built imperatively (DOM + Web Animations) so every move is a transform or an opacity change and React never
  * re-renders mid-animation. States: 'folded' (CT ball, phones), 'closed' (COURT wordmark, desktop) and 'open'
- * (five typed caps words, each standing on its own floor). Opening: the rail that joins C and T cracks into five
- * pieces, they fall to the floor line, and each one slides under its word and stretches to the word's width.
+ * (five words, capital then lowercase, each standing on its own floor). Opening: the rail that joins C and T
+ * cracks into five pieces, they fall to the floor line, and each one slides under its word and stretches to the
+ * word's width.
  *
  * Geometry is on a 32-unit cap box (ink y 2..30). u = px per unit.
  */
@@ -43,7 +44,7 @@ const WORD_SEAMS = [FOLDED_SEAMS[0], FOLDED_SEAMS[1], FOLDED_SEAMS[4]]
 const G: Glyph[] = [
   {
     k: 'C',
-    rest: 'ATEGORIES',
+    rest: 'ategories',
     w: 28,
     svg:
       MASK('{ID}f', FOLDED_SEAMS) +
@@ -53,30 +54,30 @@ const G: Glyph[] = [
   },
   {
     k: 'O',
-    rest: 'DDS',
+    rest: 'dds',
     w: 18,
     svg: '<rect x="2.75" y="13.75" width="12.5" height="13.5" rx="6.25" fill="none" stroke="currentColor" stroke-width="5.5"/>',
   },
   {
     k: 'U',
-    rest: 'PGRADES',
+    rest: 'pgrades',
     w: 18,
     svg: '<path d="M2.75 11V21A6.25 6.25 0 0 0 15.25 21V11" fill="none" stroke="currentColor" stroke-width="5.5"/>',
   },
   {
     k: 'R',
-    rest: 'OSTERS',
+    rest: 'osters',
     w: 17.4,
     svg: '<path d="M0 11H5.5V30H0Z"/><path d="M2.75 13.75H8.5A4.75 4.75 0 0 1 8.5 23.25H2.75" fill="none" stroke="currentColor" stroke-width="5.5"/><path d="M6.6 23H13L17.4 30H11Z"/>',
   },
   {
     k: 'T',
-    rest: 'RADES',
+    rest: 'rades',
     w: 28,
     svg:
       MASK('{ID}', FOLDED_SEAMS) +
       '<g class="tf" mask="url(#{ID})"><path d="M21 3.88A14 14 0 0 1 27.92 14.5L22.87 14.5A9 9 0 0 0 18.5 8.21Z"/><path d="M6.99 10H21.01A9 9 0 0 1 23.17 14.5H4.83A9 9 0 0 1 6.99 10Z"/><path d="M11.5 14.3H16.5V23.5H11.5Z"/></g>' +
-      '<g class="tw"><path d="M0 2H10A12 12 0 0 1 22 14H16A6 6 0 0 0 13 8.8V30H7V8H0Z"/></g>',
+      '<g class="tw"><path d="M0 2H20V8H13V30H7V8H0Z"/></g>',
   },
 ]
 
@@ -155,7 +156,7 @@ function baselineOf(el: HTMLElement, fs: number, weight: number): number {
 }
 
 export function buildSpan(el: HTMLElement, opts: SpanOptions): Span {
-  const o = { ...opts, fs: +(opts.capH / CAP).toFixed(2), weight: 470, track: 0.03 }
+  const o = { ...opts, fs: +(opts.capH / CAP).toFixed(2), weight: 470, track: 0.01 }
   const u = o.u
   el.innerHTML = ''
   el.setAttribute('aria-hidden', 'true')
@@ -203,7 +204,7 @@ export function buildSpan(el: HTMLElement, opts: SpanOptions): Span {
     Cf: L[0].querySelector('.cf'),
     Cw: L[0].querySelector('.cw'),
     G: { open: { x: [], y: [], gx: [], tx: [], segX: [], segW: [], s: [] }, segT: 3, segY: 0 },
-    size: { open: [0, 0], closed: [106.5 * u, 32 * u], folded: [28 * u, 32 * u] },
+    size: { open: [0, 0], closed: [104.5 * u, 32 * u], folded: [28 * u, 32 * u] },
     anims: [],
   }
   measureSpan(span)
