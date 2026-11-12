@@ -43,6 +43,10 @@
   color: var(--text-2);
 }
 
+.court-mark .w .tail {
+  display: inline-block; /* so the open can slide it */
+}
+
 .court-mark .w b {
   font-weight: 760;
   color: var(--text);

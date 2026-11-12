@@ -88,7 +88,7 @@ const SEG = { x0: 14, len: 14.2 } // closed rail: x 14..85, five pieces of 14.2
 const INK = [28, 19, 19, 19, 28] // ink height of each drawn capital, glyph units
 const CAP = 0.7 // Host Grotesk cap height / font size
 
-/** Timing in ms. Open is done at 520, close takes 200 with no stagger. */
+/** Timing in ms. Open is done at 850 (the last lowercase tail fading in), close takes 200 with no stagger. */
 export const T = {
   CRACK: 70,
   DROP_AT: 70,
@@ -102,13 +102,14 @@ export const T = {
   FADE: 160,
   W_LAND: 120,
   W: 130,
+  TAIL: 460, // the lowercase rest fades in slower than its capital, so it doesn't pop in
   VEIL: 120,
   CLOSE: 200,
   CLOSE_W: 80,
   INTENT: 140,
-  HOLD: 900,
+  HOLD: 700,
 }
-export const OPEN_TOTAL = T.SLIDE_AT + 4 * T.SLIDE_STEP + T.W_LAND + T.W // 520
+export const OPEN_TOTAL = T.SLIDE_AT + 4 * T.SLIDE_STEP + T.W_LAND + T.TAIL // 850
 
 const EASE = 'cubic-bezier(.22,.8,.24,1)'
 const EASE_IN_OUT = 'cubic-bezier(.4,0,.2,1)'
@@ -188,7 +189,10 @@ export function buildSpan(el: HTMLElement, opts: SpanOptions): Span {
     const s = mk('w')
     const b = document.createElement('b')
     b.textContent = g.k
-    s.append(b, g.rest)
+    const tail = document.createElement('span')
+    tail.className = 'tail'
+    tail.textContent = g.rest
+    s.append(b, tail)
     s.style.fontSize = o.fs + 'px'
     s.style.letterSpacing = o.track + 'em'
     return s
@@ -406,6 +410,14 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
           { opacity: 1, transform: w.style.transform },
         ],
         o(d, T.W, EASE),
+      )
+      add(
+        w.querySelector('.tail'),
+        [
+          { opacity: 0, transform: `translateX(${-0.25 * span.o.capH}px)` },
+          { opacity: 1, transform: 'none' },
+        ],
+        o(d, T.TAIL, 'cubic-bezier(.33,0,.2,1)'),
       )
       add(span.glows[i], [{ opacity: 0 }, { opacity: 1 }], o(d, T.W + 60, EASE))
     })
