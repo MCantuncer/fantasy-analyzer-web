@@ -109,6 +109,13 @@
   color: var(--on-gold);
 }
 
+/* The team being scouted in the sample league: an ink ring, never gold (gold is only ever you). */
+.ol-rung.scout {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 2px var(--text);
+}
+
 .ol-key {
   display: flex;
   justify-content: space-between;
@@ -154,7 +161,7 @@
 
 /* Game Night: the playoff spots sit in a soft green zone (tint plus a 2px green floor); your rung
    stays gold. */
-.ol-rung.in:not(.me) {
+.ol-rung.in:not(.me):not(.scout) {
   background: color-mix(in srgb, var(--good) 12%, var(--surface-2));
   box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--good) 70%, transparent);
 }

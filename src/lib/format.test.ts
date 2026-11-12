@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { names, ptsDiff, signedInt, tradeKey } from './format'
+import { names, possessive, ptsDiff, signedInt, tradeKey } from './format'
 
 describe('format', () => {
   it('diffs the rounded percentages so the delta matches what is shown', () => {
@@ -22,5 +22,10 @@ describe('tradeKey', () => {
   it('names the partner and both sides', () => {
     const t = { partner_team_id: 7, give: [{ id: 1 }, { id: 2 }], get: [{ id: 9 }] }
     expect(tradeKey(t)).toBe('7-1.2-9')
+  })
+
+  it('makes a team name an owner', () => {
+    expect(possessive('Horns')).toBe("Horns'")
+    expect(possessive('Hammer')).toBe("Hammer's")
   })
 })

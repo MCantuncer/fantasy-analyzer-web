@@ -17,7 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import type { AnalysisReport, PickupIdea, PlayerRef } from '../api/client'
 import { bestMoveOf, pickupKey } from '../lib/bestMove'
-import { pct, ptsDiff } from '../lib/format'
+import { pct, possessive, ptsDiff } from '../lib/format'
 import { teamColours } from '../lib/league'
 import { ifMade, keptDays, lastName, longDay, shortDay, spotGames, waitLabel } from '../lib/moveTiming'
 import { InjuryBadges } from './InjuryBadges'
@@ -227,8 +227,20 @@ export function OddsMeter({
   )
 }
 
-export function BestMove({ report }: { report: AnalysisReport }) {
+export function BestMove({
+  report,
+  scout,
+  actions,
+}: {
+  report: AnalysisReport
+  /** The team being scouted in the sample league: its name replaces "you" and "your" everywhere. */
+  scout?: string
+  /** Buttons in place of the ESPN ones (the sample's door to your own league). */
+  actions?: ReactNode
+}) {
   const best = bestMoveOf(report)
+  const owner = scout ? possessive(scout) : 'Your'
+  const whose = scout ? possessive(scout) : 'your'
   const league = report.league
   const colours = teamColours(
     report.season.map((r) => r.team_id),
@@ -245,14 +257,14 @@ export function BestMove({ report }: { report: AnalysisReport }) {
           </h2>
         </header>
         <p className="muted">
-          No single trade or pickup clearly raises your playoff odds right now. Check back after the next games.
+          No single trade or pickup clearly raises {whose} playoff odds right now. Check back after the next games.
         </p>
       </section>
     )
   }
 
   if (best.kind === 'pickup') {
-    return <BestPickup report={report} pickup={best.pickup} colours={colours} />
+    return <BestPickup report={report} pickup={best.pickup} colours={colours} scout={scout} actions={actions} />
   }
   const trade = best.trade
 
@@ -279,7 +291,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
       </header>
       <div className="bm-lanes">
         <Lane
-          label="You give"
+          label={scout ? 'Give' : 'You give'}
           icon={ArrowUpRight}
           players={trade.give}
           note={
@@ -291,7 +303,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
           }
         />
         <Lane
-          label="You get"
+          label={scout ? 'Get' : 'You get'}
           icon={ArrowDownLeft}
           players={trade.get}
           note={
@@ -306,6 +318,7 @@ export function BestMove({ report }: { report: AnalysisReport }) {
       <OddsMeter
         before={trade.playoff_pct_before}
         after={trade.playoff_pct_after}
+        label={`${owner} playoff odds`}
         celebrate={`trade-${trade.partner_team_id}-${[...trade.give, ...trade.get].map((p) => p.id).join('-')}`}
       />
       {theyBefore != null && theyAfter != null && (
@@ -322,21 +335,23 @@ export function BestMove({ report }: { report: AnalysisReport }) {
         </p>
       )}
       <TopChanges changes={trade.category_changes} />
-      <div className="bm-actions">
-        <a
-          className="button"
-          href={`https://fantasy.espn.com/basketball/team?leagueId=${league.id}&teamId=${trade.partner_team_id}&seasonId=${league.season}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
-          Open their team
-        </a>
-        <a className="button ghost" href="#trade-0">
-          See the pitch
-          <CaretRight size={14} weight="bold" aria-hidden="true" />
-        </a>
-      </div>
+      {actions ?? (
+        <div className="bm-actions">
+          <a
+            className="button"
+            href={`https://fantasy.espn.com/basketball/team?leagueId=${league.id}&teamId=${trade.partner_team_id}&seasonId=${league.season}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
+            Open their team
+          </a>
+          <a className="button ghost" href="#trade-0">
+            See the pitch
+            <CaretRight size={14} weight="bold" aria-hidden="true" />
+          </a>
+        </div>
+      )}
     </section>
   )
 }
@@ -346,11 +361,16 @@ function BestPickup({
   report,
   pickup,
   colours,
+  scout,
+  actions,
 }: {
   report: AnalysisReport
   pickup: PickupIdea
   colours: Map<number, string>
+  scout?: string
+  actions?: ReactNode
 }) {
+  const owner = scout ? possessive(scout) : 'Your'
   const t = pickup.timing
   const wait = t?.wait ? t : null
   const week = report.week
@@ -396,7 +416,8 @@ function BestPickup({
         others={report.pickups
           .filter((p) => !p.open_spot_by_trade && pickupKey(p) !== pickupKey(pickup))
           .map((p) => p.playoff_pct_after)}
-        label={wait ? `Your playoff odds ${ifMade(wait)}` : 'Your playoff odds'}
+        label={wait ? `${owner} playoff odds ${ifMade(wait)}` : `${owner} playoff odds`}
+        owner={owner}
         addNote={`${pickup.availability === 'WAIVERS' ? 'On waivers' : 'Free agent'} · ${Math.round(pickup.add.percent_owned)}% owned${pickup.stream ? ' · For this week' : ''}`}
         dropNote={
           kept.length > 0 ? (
@@ -408,7 +429,7 @@ function BestPickup({
                   <b>{shortDay(d.date)}</b>
                 </span>
               ))}{' '}
-              for you first
+              for {scout ?? 'you'} first
             </span>
           ) : undefined
         }
@@ -419,34 +440,36 @@ function BestPickup({
       ) : (
         <TopChanges changes={pickup.category_changes} />
       )}
-      <div className="bm-actions">
-        {wait ? (
-          <a
-            className="button bm-quiet"
-            href={espn}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Claim ${pickup.add.name} now anyway on ESPN. Loses ${lost} ${lastName(pickup.drop.name)} ${lost === 1 ? 'game' : 'games'}. Opens ESPN.`}
-          >
-            <span className="bm-quiet-main">
-              Claim now anyway
-              <ArrowSquareOut size={14} weight="bold" aria-hidden="true" />
-            </span>
-            <span className="bm-quiet-sub">
-              Loses <span className="num">{lost}</span> {lastName(pickup.drop.name)} {lost === 1 ? 'game' : 'games'}
-            </span>
+      {actions ?? (
+        <div className="bm-actions">
+          {wait ? (
+            <a
+              className="button bm-quiet"
+              href={espn}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Claim ${pickup.add.name} now anyway on ESPN. Loses ${lost} ${lastName(pickup.drop.name)} ${lost === 1 ? 'game' : 'games'}. Opens ESPN.`}
+            >
+              <span className="bm-quiet-main">
+                Claim now anyway
+                <ArrowSquareOut size={14} weight="bold" aria-hidden="true" />
+              </span>
+              <span className="bm-quiet-sub">
+                Loses <span className="num">{lost}</span> {lastName(pickup.drop.name)} {lost === 1 ? 'game' : 'games'}
+              </span>
+            </a>
+          ) : (
+            <a className="button" href={espn} target="_blank" rel="noreferrer">
+              <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
+              Make the claim on ESPN
+            </a>
+          )}
+          <a className="button ghost" href="#pickup-0">
+            All FA targets
+            <CaretRight size={14} weight="bold" aria-hidden="true" />
           </a>
-        ) : (
-          <a className="button" href={espn} target="_blank" rel="noreferrer">
-            <ArrowSquareOut size={18} weight="bold" aria-hidden="true" />
-            Make the claim on ESPN
-          </a>
-        )}
-        <a className="button ghost" href="#pickup-0">
-          All FA targets
-          <CaretRight size={14} weight="bold" aria-hidden="true" />
-        </a>
-      </div>
+        </div>
+      )}
       {(wait || joins || adds != null) && (
         <p className="bm-foot">
           {wait ? (
