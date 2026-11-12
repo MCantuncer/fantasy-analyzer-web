@@ -72,7 +72,7 @@ export function PickupClimb({
   /** Whose odds, for the screen-reader sentence ("Your", "Horns'"). */
   owner?: string
 }) {
-  const c = climb({ before, after, others })
+  const c = climb({ before, after, others, seed: `${add.id}/${drop.id}` })
   const diff = ptsDiff(before, after)
   const afterTop = c.end.y - 14 - AFTER_FACE
   const nowTop = c.start.y + 12
@@ -148,9 +148,17 @@ export function PickupClimb({
           ))}
           {scored > 0 && (
             <span className="pclimb-cap" style={{ top: c.ticks[0].y + 6 }}>
-              {c.strands.length < scored ? `Faint: the closest of the ${scored}` : `Faint: the ${scored} other`}
+              {c.strands.length === 0
+                ? `None of the ${scored} other pickups`
+                : c.strands.length < scored
+                  ? `Faint: some of the ${scored}`
+                  : `Faint: the ${scored} other`}
               <br />
-              {c.strands.length < scored ? 'other pickups checked today' : 'pickups checked today'}
+              {c.strands.length === 0
+                ? 'checked today raises your odds'
+                : c.strands.length < scored
+                  ? 'other pickups checked today'
+                  : 'pickups checked today'}
             </span>
           )}
 
