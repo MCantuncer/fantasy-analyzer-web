@@ -23,9 +23,17 @@
   height: 21px;
 }
 
+/* The top bar shows the ball on every screen: 24.5px on desktop (0.875px per unit, the same scale as the opening). */
 .court-mark--folded .court-folded {
-  width: 28px;
-  height: 28px;
+  width: 24.5px;
+  height: 24.5px;
+}
+
+@media (max-width: 640px) {
+  .court-mark--folded .court-folded {
+    width: 21px;
+    height: 21px;
+  }
 }
 
 .court-mark--auto .court-folded {

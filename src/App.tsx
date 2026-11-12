@@ -439,7 +439,7 @@ export default function App() {
       <header className="topbar">
         <div className="topbar-inner">
           <button className="brand" onClick={goHome} aria-label="COURT, My leagues" aria-describedby="court-words">
-            <CourtMark />
+            <CourtMark state="folded" />
           </button>
           <span id="court-words" hidden>
             Categories, Odds, Upgrades, Rosters, Trades

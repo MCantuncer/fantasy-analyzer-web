@@ -8,8 +8,9 @@ import './CourtMark.css'
  * inner 9). Its upper end runs into the T's right arm, which ends flat on the bar's underside. The T's bar is the
  * horizontal seam and its stem the vertical one. Five thin seams are cut out with a mask.
  *
- * Closed (desktop top bar): the wordmark C O U R T, with the rail that joins C and T running over O U R. The T is
- * a plain T with a straight right arm: the bend now lives only in the folded mark, where the C runs into it.
+ * Closed: the wordmark C O U R T, with the rail that joins C and T running over O U R. The T is a plain T with a
+ * straight right arm: the bend lives only in the folded mark, where the C runs into it. The top bar shows the
+ * folded ball on every screen; the closed wordmark stays available for other uses.
  */
 
 const C_FOLDED = 'M25.87 23.42A14 14 0 1 1 21.42 4.13L18.77 8.37A9 9 0 1 0 21.63 20.77Z'
