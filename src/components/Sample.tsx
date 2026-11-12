@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Binoculars, CaretRight, ListNumbers } from '@phosphor-icons/react'
 import { fetchSampleTeam } from '../api/client'
 import type { SampleIndex, SampleTeam } from '../api/client'
@@ -168,6 +168,11 @@ export function SamplePage({
     placeholderData: keepPreviousData,
   })
   const [announce, setAnnounce] = useState('')
+  // The card's corner light comes from the scouted team's crest, not your warm house light.
+  const scoutColour = teamColours(
+    index.teams.map((t) => t.id),
+    null,
+  ).get(scout.id)
   const picked = useRef(false)
   const shown = report.data && report.data.team_id === scout.id ? report.data : null
 
@@ -198,7 +203,7 @@ export function SamplePage({
         {announce}
       </p>
       <div className="split">
-        <div className="wide" id="moves-best">
+        <div className="wide smp-best" id="moves-best" style={{ '--scout': scoutColour } as CSSProperties}>
           {shown ? (
             <BestMove report={shown} scout={scout.name} actions={<Door onJoin={onJoin} />} />
           ) : report.isError ? (
