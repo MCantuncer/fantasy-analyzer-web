@@ -8,7 +8,8 @@ import './CourtMark.css'
  * inner 9). Its upper end runs into the T's right arm, which ends flat on the bar's underside. The T's bar is the
  * horizontal seam and its stem the vertical one. Five thin seams are cut out with a mask.
  *
- * Closed (desktop top bar): the wordmark C O U R T, with the rail that joins C and T running over O U R.
+ * Closed (desktop top bar): the wordmark C O U R T, with the rail that joins C and T running over O U R. The T is
+ * a plain T with a straight right arm: the bend now lives only in the folded mark, where the C runs into it.
  */
 
 const C_FOLDED = 'M25.87 23.42A14 14 0 1 1 21.42 4.13L18.77 8.37A9 9 0 1 0 21.63 20.77Z'
@@ -17,7 +18,7 @@ const T_BAR = 'M6.99 10H21.01A9 9 0 0 1 23.17 14.5H4.83A9 9 0 0 1 6.99 10Z'
 const T_STEM = 'M11.5 14.3H16.5V23.5H11.5Z'
 
 const C_WORD = 'M23 26.72A14 14 0 1 1 24.72 7L20.89 10.21A9 9 0 1 0 19.79 22.89Z'
-const T_WORD = 'M0 2H10A12 12 0 0 1 22 14H16A6 6 0 0 0 13 8.8V30H7V8H0Z'
+const T_WORD = 'M0 2H20V8H13V30H7V8H0Z'
 
 const SEAM_BAR_LEFT = 'M-1 12.25H6.5'
 const SEAM_SIDE_LEFT = 'M2.6 4.8A17 17 0 0 1 2.6 27.2'
@@ -56,7 +57,7 @@ export function CourtMark({ state = 'auto' }: { state?: CourtMarkState }) {
         </svg>
       )}
       {state !== 'folded' && (
-        <svg className="court-closed" viewBox="0 0 106.5 32" fill="currentColor" focusable="false">
+        <svg className="court-closed" viewBox="0 0 104.5 32" fill="currentColor" focusable="false">
           <defs>
             <SeamMask id={`${id}-w`} seams={WORD_SEAMS} />
           </defs>

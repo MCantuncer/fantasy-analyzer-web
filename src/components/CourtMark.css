@@ -11,9 +11,9 @@
   overflow: visible;
 }
 
-/* Desktop bar: closed wordmark, 28px tall (0.875px per unit), 93px wide. */
+/* Desktop bar: closed wordmark, 28px tall (0.875px per unit), 91.4px wide. */
 .court-closed {
-  width: 93.2px;
+  width: 91.4px;
   height: 28px;
 }
 
