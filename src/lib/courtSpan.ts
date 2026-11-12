@@ -325,10 +325,7 @@ export function setStatic(span: Span, state: SpanState) {
     span.Tf.style.opacity = folded ? '1' : '0'
     span.Tw.style.opacity = folded ? '0' : '1'
   }
-  if (span.Cf && span.Cw) {
-    span.Cf.style.opacity = folded ? '1' : '0'
-    span.Cw.style.opacity = folded ? '0' : '1'
-  }
+  setCLayer(span, state)
   span.W.forEach((w, i) => {
     w.style.transform = `translate(${span.G.open.tx[i]}px, ${span.G.open.y[i]}px)`
     w.style.opacity = open ? '1' : '0'
@@ -337,9 +334,21 @@ export function setStatic(span: Span, state: SpanState) {
   if (span.veil) span.veil.style.opacity = open ? '1' : '0'
 }
 
+/**
+ * The C keeps the shape it has at rest. Opened from the ball it stays the ball's C (turned, with its seams) until
+ * the typed C takes over; only the closed wordmark uses the upright word C.
+ */
+function setCLayer(span: Span, rest: SpanState) {
+  if (!span.Cf || !span.Cw) return
+  const word = rest === 'closed'
+  span.Cf.style.opacity = word ? '0' : '1'
+  span.Cw.style.opacity = word ? '1' : '0'
+}
+
 /** Animate from one state to another. With reduced motion it just jumps to the end state. */
 export function animateSpan(span: Span, from: SpanState, to: SpanState): Animation[] {
   setStatic(span, to)
+  setCLayer(span, to === 'open' ? from : to)
   if (reducedMotion() || typeof span.box.animate !== 'function') return []
   const A: Animation[] = []
   const o = (delay: number, duration: number, easing = 'linear'): KeyframeAnimationOptions => ({
@@ -357,9 +366,7 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
     const w = show === 'f' ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1 }]
     const ease = show === 'f' ? EASE_IN_OUT : EASE
     add(span.Tf, f, o(at, 140, ease))
-    add(span.Cf, f, o(at, 140, ease))
     add(span.Tw, w, o(wAt, 140, ease))
-    add(span.Cw, w, o(wAt, 140, ease))
   }
   if (to === 'open') {
     add(span.veil, [{ opacity: 0 }, { opacity: 1 }], o(0, T.VEIL, EASE))
