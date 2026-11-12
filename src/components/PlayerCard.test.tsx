@@ -35,6 +35,7 @@ function game(pts: number, extra: Partial<PlayerGame> = {}): PlayerGame {
     date: '2026-10-31T23:30:00Z',
     opponent: 'BOS',
     home: false,
+    played: true,
     stats: { minutes: 30, pts, reb: 5, ast: 3, stl: 1, blk: 0, tpm: 2, to: 2, fgm: 6, fga: 12, ftm: 2, fta: 2 },
     ...extra,
   }
@@ -327,6 +328,30 @@ describe('PlayerCard', () => {
     expect(deal).not.toHaveTextContent('You drop')
     fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('lists the games he sat out, with the reason when ESPN has one, and leaves them out of form and minutes', async () => {
+    const out = { ...game(0).stats, minutes: 0, reb: 0, ast: 0, stl: 0, tpm: 0, to: 0, fgm: 0, fga: 0, ftm: 0, fta: 0 }
+    const sat = (id: number, opp: string, reason: string | null) =>
+      game(id, { opponent: opp, played: false, missed_reason: reason, stats: out })
+    const games = [sat(101, 'PHX', 'Ankle'), sat(102, 'MIA', 'Ankle'), ...card.games, sat(103, 'NYK', null)]
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
+      String(url).endsWith('/extras')
+        ? new Response(JSON.stringify({ news: [], names: {} }), { status: 200 })
+        : new Response(JSON.stringify({ ...card, games, news: [] }), { status: 200 }),
+    )
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    await within(dialog).findByText('Form · last 3 games')
+
+    const missed = [...dialog.querySelectorAll('.pc-table tr.pc-missed')]
+    expect(missed.map((r) => r.querySelector('td')?.textContent)).toEqual(['OutAnkle', 'OutAnkle', 'Did not play'])
+    expect(missed[0].querySelector('td')).toHaveAttribute('colspan', '10')
+    expect(missed[0].querySelector('th')?.textContent).toContain('@PHX')
+    expect(dialog.querySelectorAll('.pc-table tbody tr').length).toBe(1 + games.length) // season avg + every game
+    const minutes = within(dialog).getByRole('img', { name: /Minutes by game/ })
+    expect(minutes.getAttribute('aria-label')).not.toMatch(/PHX|MIA|NYK/)
   })
 
   it('opens from a chip and shows an error with a retry', async () => {

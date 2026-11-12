@@ -439,7 +439,9 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
   const now = new Date()
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
-  const recent = card.games.slice(0, 5)
+  // Form and minutes read the games he played; the log also lists the ones he sat out.
+  const played = card.games.filter((g) => g.played !== false)
+  const recent = played.slice(0, 5)
   const last5 = recent.length >= 3 ? average(recent) : null
   const line = card.season_line
   const ids = useId()
@@ -500,13 +502,13 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
                 />
               </Section>
             )}
-            {card.games.length > 1 && (
+            {played.length > 1 && (
               <Section
                 id="pc-minutes-title"
                 title="Minutes"
                 aside={line ? `dashed line: season ${line.per_game.minutes.toFixed(1)} a game` : undefined}
               >
-                <MinutesChart games={card.games} average={line?.per_game.minutes ?? null} />
+                <MinutesChart games={played} average={line?.per_game.minutes ?? null} />
               </Section>
             )}
             <Section
@@ -514,7 +516,7 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
               title={lastSeason ? 'Game log · last season' : 'Game log'}
               aside={line ? `season ${line.games} G` : undefined}
             >
-              <GameTable card={card} />
+              <GameTable card={card} played={played} />
               <p className="pc-swipe small muted">Swipe for all categories</p>
             </Section>
           </>
@@ -792,9 +794,9 @@ function MinutesChart({ games, average: avg }: { games: PlayerGame[]; average: n
   )
 }
 
-function GameTable({ card }: { card: Card }) {
+function GameTable({ card, played }: { card: Card; played: PlayerGame[] }) {
   const line = card.season_line
-  const base = line?.per_game ?? average(card.games)
+  const base = line?.per_game ?? average(played)
   return (
     <div className="pc-table-wrap" tabIndex={0} role="region" aria-label="Game log">
       <table className="pc-table tnum">
@@ -832,9 +834,13 @@ function GameTable({ card }: { card: Card }) {
               })}
             </tr>
           )}
-          {card.games.map((g) => (
-            <GameRow key={g.game_id} game={g} base={base} />
-          ))}
+          {card.games.map((g) =>
+            g.played === false ? (
+              <MissedRow key={g.game_id} game={g} />
+            ) : (
+              <GameRow key={g.game_id} game={g} base={base} />
+            ),
+          )}
         </tbody>
       </table>
     </div>
@@ -863,6 +869,38 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
         const cat = catOf(k)
         return cat ? <CatCell key={k} cat={cat} stats={s} base={base} /> : <td key={k} />
       })}
+    </tr>
+  )
+}
+
+/**
+ * A game his team played without him: the date and opponent, then one quiet band across the
+ * stat columns. ESPN only knows why for the run of games since he last played (his current
+ * injury), so older ones just say he didn't play.
+ */
+function MissedRow({ game: g }: { game: PlayerGame }) {
+  const why = g.missed_reason
+  return (
+    <tr className="pc-missed">
+      <th scope="row" className="pc-first">
+        <span className="pc-game">
+          <span className="pc-result" aria-hidden="true" />
+          <span className="pc-date">{gameDate(g.date)}</span>
+          <Opponent game={g} size={22} />
+        </span>
+      </th>
+      <td colSpan={STAT_COLUMNS.length} className="pc-missed-band">
+        <span className="pc-missed-note">
+          {why ? (
+            <>
+              <span className="pc-missed-tag">Out</span>
+              <span className="pc-missed-why">{why}</span>
+            </>
+          ) : (
+            <span className="pc-missed-why">Did not play</span>
+          )}
+        </span>
+      </td>
     </tr>
   )
 }
