@@ -6,7 +6,7 @@ import { OPEN_TOTAL, T, reducedMotion } from './courtSpan'
  * When the COURT mark opens in the top bar:
  * - a mouse resting 140ms on the brand button opens it, leaving closes it at once;
  * - keyboard focus (:focus-visible) opens it, blur or Esc closes it;
- * - a click or tap plays it once (open, hold 900ms, close) after the caller has already navigated;
+ * - a click or tap plays it once (open, hold, close) after the caller has already navigated;
  * - any other pointerdown or a scroll closes it.
  */
 export function useCourtReveal(mark: RefObject<CourtMarkHandle | null>, button: RefObject<HTMLElement | null>) {

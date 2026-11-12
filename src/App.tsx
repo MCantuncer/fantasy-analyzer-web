@@ -436,6 +436,10 @@ export default function App() {
     storeKeep(selection.leagueId, myTeamId, next)
   }
 
+  // The sign-in page already spells COURT out in its hero, so the top-bar ball stays a ball there.
+  const heroShown = !signedIn && !scouting && !(sample.isPending && joining === null)
+  const brandReveal = heroShown ? undefined : reveal
+
   const keepChanged = [...keep].sort().join(',') !== [...appliedKeep].sort().join(',')
   const leagueName = overview.data?.name ?? mine?.name
   const teamName = overview.data?.teams.find((t) => t.id === myTeamId)?.name
@@ -449,12 +453,12 @@ export default function App() {
             className="brand"
             onClick={() => {
               goHome() // navigation never waits for the animation
-              reveal.playOnce()
+              brandReveal?.playOnce()
             }}
-            onPointerEnter={reveal.onPointerEnter}
-            onPointerLeave={reveal.onPointerLeave}
-            onFocus={reveal.onFocus}
-            onBlur={reveal.onBlur}
+            onPointerEnter={brandReveal?.onPointerEnter}
+            onPointerLeave={brandReveal?.onPointerLeave}
+            onFocus={brandReveal?.onFocus}
+            onBlur={brandReveal?.onBlur}
             aria-label="COURT, My leagues"
             aria-describedby="court-words"
           >
@@ -626,7 +630,7 @@ export default function App() {
           />
         )}
         {!signedIn && !scouting && sample.isPending && joining === null && <LeaguesSkeleton />}
-        {!signedIn && !scouting && !(sample.isPending && joining === null) && (
+        {heroShown && (
           <div className="signin-page">
             <SignInHero />
             <Auth key={joining ?? 'signup'} theme={theme} onSignedIn={signedInWith} initialMode={joining ?? 'signup'} />
