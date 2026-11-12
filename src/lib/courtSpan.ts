@@ -140,7 +140,11 @@ export interface Span {
   G: Layout
   size: Record<SpanState, [number, number]>
   anims: Animation[]
+  ws?: WordState[]
 }
+
+/** Loading screen: each word waits (faint), runs (pulses) or has landed. */
+export type WordState = 'pending' | 'running' | 'landed'
 
 export function reducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -220,7 +224,8 @@ export function buildSpan(el: HTMLElement, opts: SpanOptions): Span {
 export function measureSpan(span: Span) {
   const { o, W } = span
   const u = o.u
-  const tw = W.map((w) => w.getBoundingClientRect().width - o.track * o.fs) // trailing tracking is not part of the word
+  // offsetWidth: layout width, not affected by a scale on the host. Trailing tracking is not part of the word.
+  const tw = W.map((w) => w.offsetWidth - o.track * o.fs)
   const base = baselineOf(span.el, o.fs, o.weight)
   const scale = G.map((_, i) => o.capH / (INK[i] * u)) // capital drawn at exactly capH
   const open: Layout['open'] = { x: [], y: [], gx: [], tx: [], segX: [], segW: [], s: scale }
@@ -451,6 +456,34 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
   }
   span.anims = A
   return A
+}
+
+/**
+ * Mark each open word as pending, running or landed. A word that newly lands gets its floor grown in and its
+ * word faded up (unless motion is reduced). Order of landing is up to the caller.
+ */
+export function setWordStates(span: Span, states: WordState[], animate = true) {
+  const prev = span.ws
+  span.ws = states
+  states.forEach((st, i) => {
+    for (const n of [span.W[i], span.segs[i], span.glows[i], span.L[i]]) {
+      n.classList.toggle('pending', st === 'pending')
+      n.classList.toggle('running', st === 'running')
+    }
+    const landedNow = st === 'landed' && prev && prev[i] !== 'landed'
+    if (!landedNow || !animate || reducedMotion() || typeof span.box.animate !== 'function') return
+    const seg = span.segs[i]
+    const pose = seg.style.transform
+    span.anims.push(
+      seg.animate([{ transform: pose.replace(/scale\(([^,]+),/, 'scale(0,') }, { transform: pose }], {
+        duration: 260,
+        easing: EASE,
+      }),
+      span.W[i].animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: T.W + 60, easing: EASE }),
+      span.glows[i].animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.W + 120, easing: EASE }),
+    )
+    if (i === KEEP) span.anims.push(span.L[i].animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: T.W + 60, easing: EASE }))
+  })
 }
 
 /**
