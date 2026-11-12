@@ -35,7 +35,7 @@
   overflow: visible;
 }
 
-/* Open words: typed caps. Capital in --text, the rest in --text-2. */
+/* Open words: the capital in --text, the lowercase rest in --text-2. */
 .court-mark .w {
   white-space: nowrap;
   line-height: 1;

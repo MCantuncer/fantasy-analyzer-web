@@ -45,17 +45,17 @@ describe('CourtMark in the top bar', () => {
     expect(button).toHaveAccessibleDescription('Categories, Odds, Upgrades, Rosters, Trades')
     expect(container.querySelector('.court-mark')).toHaveAttribute('aria-hidden', 'true')
     expect(container.querySelectorAll('.court-mark .w')).toHaveLength(5)
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
   })
 
   it('navigates first, then plays the opening once and folds back', () => {
     const calls: string[] = []
     const { container } = render(<Brand onHome={() => calls.push(state(container) ?? '')} />)
     fireEvent.click(screen.getByRole('button'))
-    expect(calls).toEqual(['closed']) // home ran before the mark started to open
+    expect(calls).toEqual(['folded']) // home ran before the mark started to open
     expect(state(container)).toBe('open')
     act(() => vi.advanceTimersByTime(1500))
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
   })
 
   it('opens after a 140ms mouse rest and closes on leave', () => {
@@ -63,11 +63,11 @@ describe('CourtMark in the top bar', () => {
     const button = screen.getByRole('button')
     fireEvent.pointerEnter(button, { pointerType: 'mouse' })
     act(() => vi.advanceTimersByTime(100))
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
     act(() => vi.advanceTimersByTime(60))
     expect(state(container)).toBe('open')
     fireEvent.pointerLeave(button, { pointerType: 'mouse' })
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
   })
 
   it('a passing touch does not open it, and Esc closes it', () => {
@@ -75,10 +75,10 @@ describe('CourtMark in the top bar', () => {
     const button = screen.getByRole('button')
     fireEvent.pointerEnter(button, { pointerType: 'touch' })
     act(() => vi.advanceTimersByTime(300))
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
     fireEvent.click(button)
     expect(state(container)).toBe('open')
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(state(container)).toBe('closed')
+    expect(state(container)).toBe('folded')
   })
 })

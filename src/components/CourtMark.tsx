@@ -4,10 +4,10 @@ import { useMediaQuery } from '../lib/useMediaQuery'
 import './CourtMark.css'
 
 /*
- * The COURT mark. At rest it is the closed wordmark on wide screens and the folded CT ball on phones.
- * open() breaks the rail into five floors and shows Categories, Odds, Upgrades, Rosters, Trades on them;
- * close() folds it back. Drawing and motion live in lib/courtSpan.ts. Decorative: the button around it
- * carries the accessible name.
+ * The COURT mark. At rest it is the folded CT ball on every screen (rest="closed" shows the COURT wordmark, and
+ * "auto" picks the wordmark on wide screens). open() expands the ball: C and T pull apart, the bar breaks into
+ * five floors and Categories, Odds, Upgrades, Rosters, Trades stand on them; close() folds it back. Drawing and
+ * motion live in lib/courtSpan.ts. Decorative: the button around it carries the accessible name.
  */
 
 export interface CourtMarkHandle {
@@ -24,7 +24,7 @@ const SIZES = {
 }
 
 export function CourtMark({
-  rest = 'auto',
+  rest = 'folded',
   veil = false,
   ref,
 }: {
@@ -34,7 +34,7 @@ export function CourtMark({
 }) {
   const phone = useMediaQuery(PHONE_QUERY)
   const restState: SpanState = rest === 'auto' ? (phone ? 'folded' : 'closed') : rest
-  const size = restState === 'folded' ? SIZES.phone : SIZES.desktop
+  const size = phone ? SIZES.phone : SIZES.desktop
   const host = useRef<HTMLSpanElement>(null)
   const span = useRef<Span | null>(null)
   const isOpen = useRef(false)
