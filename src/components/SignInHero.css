@@ -22,8 +22,11 @@
 }
 
 .signin-hero {
-  --cap: 20px; /* cap height of the words */
+  --cap: 16px; /* cap height of the words */
   min-width: 0;
+  max-width: 100%;
+  justify-self: center; /* centred in its column on desktop */
+  align-self: center; /* centred above the form on phones */
 }
 
 .hero-rows {
@@ -37,7 +40,7 @@
 
 .hero-rows li {
   display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
+  grid-template-columns: 156px minmax(0, 1fr);
   align-items: center;
   gap: 16px;
 }
@@ -138,24 +141,25 @@
 /* Phones: smaller words, descriptions at a fixed column so they line up. */
 @media (max-width: 640px) {
   .signin-hero {
-    --cap: 14px;
+    --cap: 11px;
+    margin-top: 8px;
   }
 
   .hero-rows {
-    gap: 10px;
+    gap: 8px;
   }
 
   .hero-rows li {
-    grid-template-columns: 136px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
     gap: 10px;
   }
 
   .hero-word {
-    padding-bottom: 9px;
+    padding-bottom: 7px;
   }
 
   .hero-floor {
-    height: 4px;
+    height: 3px;
   }
 
   .hero-desc {
@@ -169,7 +173,7 @@
   }
 
   .hero-line {
-    margin-top: 16px;
-    font-size: 14px;
+    margin-top: 14px;
+    font-size: 13px;
   }
 }
