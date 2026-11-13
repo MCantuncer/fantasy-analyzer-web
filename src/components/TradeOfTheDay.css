@@ -66,10 +66,13 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Each tile centres its lines, so a wide tile (two a row on desktop) has no empty right half. */
 .tw-needs > li {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 2px;
   padding: 8px 10px;
   border: 1px solid var(--border);
@@ -78,11 +81,12 @@
   background: var(--surface);
 }
 
-/* The rank sits right after the category it ranks, centred on its height, not pushed to the far edge. */
+/* The rank sits right after the category it ranks, centred on its height. */
 .tw-top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 0 8px;
 }
 
@@ -228,7 +232,6 @@
 
   .tw-top {
     flex-direction: column;
-    align-items: flex-start;
   }
 
   .tw-needs .tw-per {
