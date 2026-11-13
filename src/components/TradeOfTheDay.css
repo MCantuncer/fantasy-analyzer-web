@@ -45,10 +45,16 @@
   margin-top: 4px;
 }
 
-/* What each side gains, as data: one tile per category, punt chips, standings. */
+/* What each side gains, as data: one tile per category, punt chips, standings.
+   136px is the narrowest tile where "FG%  now 10th of 12" and "+3.2 rebounds a game" each stay on one
+   line; phones keep two tiles a row (they shrink below that and stack, see the container rule below). */
+.totd-why {
+  container-type: inline-size;
+}
+
 .tw-needs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(136px, calc(50% - 4px)), 1fr));
   gap: 8px;
   margin: 6px 0 0;
   padding: 0;
@@ -56,6 +62,7 @@
 }
 
 .tw-needs > li {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -66,11 +73,12 @@
   background: var(--surface);
 }
 
+/* The rank sits right after the category it ranks, centred on its height. */
 .tw-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  gap: 0 8px;
 }
 
 .tw-cat {
@@ -78,10 +86,12 @@
   font-weight: 700;
 }
 
+/* The rank is one phrase: it moves as a whole, never leaving "10" on a line of its own. */
 .tw-rank {
   color: var(--muted);
   font-size: 11px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .tw-pts {
@@ -202,6 +212,44 @@
 .tw-needs .tw-per {
   margin-top: 4px;
   font-size: 12px;
+}
+
+/* Tiles narrower than the 136px above (two a row in under 280px, as on a 360px phone): the rank goes
+   under the category in every tile alike, and the lines get 4px of the side padding back. */
+@container (max-width: 279px) {
+  .tw-needs > li {
+    padding-inline: 8px;
+  }
+
+  .tw-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tw-needs .tw-per {
+    font-size: 11px;
+  }
+}
+
+/* Under 250px even that doesn't fit "−0.6 turnovers a game" (a tablet just past the phone layout, with
+   two sides side by side): one tile a row, wide enough for the first layout again. */
+@container (max-width: 249px) {
+  .tw-needs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tw-needs > li {
+    padding-inline: 10px;
+  }
+
+  .tw-top {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .tw-needs .tw-per {
+    font-size: 12px;
+  }
 }
 
 /* A day with no pick: one line, no card. */
