@@ -244,6 +244,15 @@ export function signIn(email: string, password: string) {
   return post<AuthResult>('/api/auth/login', { email, password })
 }
 
+// Both are sent once: a repeat would count against the hourly limit, and a reset link works only once.
+export function forgotPassword(email: string) {
+  return send<{ ok: boolean }>('/api/auth/forgot', { email })
+}
+
+export function resetPassword(token: string, password: string) {
+  return send<AuthResult>('/api/auth/reset', { token, password })
+}
+
 export function signInWithGoogle(credential: string) {
   return post<AuthResult>('/api/auth/google', { credential })
 }

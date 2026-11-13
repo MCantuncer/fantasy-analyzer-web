@@ -1,0 +1,23 @@
+/* Sign-in extras: the Forgot password link under the password field, and the reset steps. */
+.auth-aside {
+  display: flex;
+  justify-content: flex-end;
+  /* Sits close to the field it belongs to; the 44px tap area overlaps the form's gap. */
+  margin: -14px 0 -8px;
+}
+
+.auth-aside button.link {
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: 13px;
+}
+
+.auth-sent-to {
+  color: var(--text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.auth-resend {
+  margin: 0;
+}
