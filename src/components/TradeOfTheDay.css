@@ -61,18 +61,10 @@
   list-style: none;
 }
 
-/* Four tiles go two by two, never three and one left over. */
-.tw-needs:has(> li:nth-child(4)) {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-/* Each tile centres its lines, so a wide tile (two a row on desktop) has no empty right half. */
 .tw-needs > li {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
   gap: 2px;
   padding: 8px 10px;
   border: 1px solid var(--border);
@@ -86,7 +78,6 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: 0 8px;
 }
 
@@ -232,6 +223,7 @@
 
   .tw-top {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .tw-needs .tw-per {
@@ -242,8 +234,7 @@
 /* Under 250px even that doesn't fit "−0.6 turnovers a game" (a tablet just past the phone layout, with
    two sides side by side): one tile a row, wide enough for the first layout again. */
 @container (max-width: 249px) {
-  .tw-needs,
-  .tw-needs:has(> li:nth-child(4)) {
+  .tw-needs {
     grid-template-columns: minmax(0, 1fr);
   }
 
