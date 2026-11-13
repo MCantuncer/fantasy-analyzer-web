@@ -78,11 +78,11 @@
   background: var(--surface);
 }
 
-/* The rank sits right after the category it ranks, not pushed to the far edge of a wide tile. */
+/* The rank sits right after the category it ranks, centred on its height, not pushed to the far edge. */
 .tw-top {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 0 8px;
 }
 
@@ -250,7 +250,7 @@
 
   .tw-top {
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
   }
 
   .tw-needs .tw-per {
