@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ApiError,
   fetchAnalysis,
+  fetchKeepers,
   fetchLeague,
   fetchMe,
   addLeague,
@@ -10,6 +11,7 @@ import {
   fetchSample,
   retryDropped,
   retryDroppedDelay,
+  saveKeepers,
   signOut,
 } from './api/client'
 import type { AnalysisProgress, AnalysisReport, AuthResult, MyLeague, ReportChange } from './api/client'
@@ -42,6 +44,7 @@ import { clearCredentials, loadCredentials, saveCredentials } from './lib/creden
 import type { Credentials } from './lib/credentials'
 import { clearSavedReports, loadSavedReport, saveReport } from './lib/savedReport'
 import { usePickedTeam } from './lib/pickedTeam'
+import { loadKeep, settleKeepers, storeKeep } from './lib/keepers'
 import { clearPages, prefetchPages, restorePages, savePages } from './lib/pageCache'
 import { clearToken, loadToken, saveToken } from './lib/session'
 import { applyTheme, loadTheme } from './lib/theme'
@@ -118,28 +121,6 @@ function writeUrl(
   if (selection && !verifying && tab === 'park' && check) q.set(CHECK_PARAM, check)
   const search = q.toString()
   window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname)
-}
-
-function keepKey(leagueId: number, teamId: number) {
-  return `keep:${leagueId}:${teamId}`
-}
-
-function loadKeep(leagueId: number, teamId: number): number[] {
-  try {
-    const raw = localStorage.getItem(keepKey(leagueId, teamId))
-    const ids = raw ? JSON.parse(raw) : []
-    return Array.isArray(ids) ? ids.filter((x) => typeof x === 'number') : []
-  } catch {
-    return []
-  }
-}
-
-function storeKeep(leagueId: number, teamId: number, ids: number[]) {
-  try {
-    localStorage.setItem(keepKey(leagueId, teamId), JSON.stringify(ids))
-  } catch {
-    // storage unavailable; keepers last for this page view only
-  }
 }
 
 export default function App() {
@@ -304,6 +285,34 @@ export default function App() {
     mutate({ teamId: myTeamId, keep: stored, quiet: saved !== null })
   }, [selection, myTeamId, leagueReady, mutate])
 
+  // Keepers live with the account. The run above starts on this browser's copy; when the account's
+  // list differs (keepers chosen on another device), it replaces the copy and the analysis runs again.
+  const leagueId = selection?.leagueId ?? null
+  const keepersKey = useMemo(() => ['keepers', leagueId, season, myTeamId], [leagueId, season, myTeamId])
+  const accountKeepers = useQuery({
+    queryKey: keepersKey,
+    queryFn: () => fetchKeepers({ leagueId: leagueId!, season: season!, teamId: myTeamId! }),
+    enabled: signedIn && leagueId !== null && season !== null && myTeamId !== null && leagueReady,
+    retry: retryDropped,
+    retryDelay: retryDroppedDelay,
+    staleTime: Infinity,
+  })
+  const fromAccount = accountKeepers.data
+  useEffect(() => {
+    if (!fromAccount || leagueId === null || season === null || myTeamId === null) return
+    const settled = settleKeepers(loadKeep(leagueId, myTeamId), fromAccount)
+    if (settled.upload) {
+      // Chosen before keepers were saved to accounts: hand them over once. A failed save tries again next visit.
+      saveKeepers({ leagueId, season, teamId: myTeamId }, settled.keep)
+        .then((saved) => qc.setQueryData(keepersKey, saved))
+        .catch(() => {})
+    }
+    if (!settled.changed) return
+    storeKeep(leagueId, myTeamId, settled.keep)
+    setKeep(settled.keep)
+    mutate({ teamId: myTeamId, keep: settled.keep })
+  }, [fromAccount, leagueId, season, myTeamId, keepersKey, qc, mutate])
+
   const loadError = [overview.error, league.error].find((e) => e instanceof ApiError) as ApiError | undefined
   const needsCookies = loadError?.code === 'private_league'
   // ``seated``: there is a team to analyse. ``verified``: the account proved it on ESPN (chat, feedback, rules).
@@ -434,6 +443,10 @@ export default function App() {
     const next = keep.includes(id) ? keep.filter((k) => k !== id) : [...keep, id]
     setKeep(next)
     storeKeep(selection.leagueId, myTeamId, next)
+    if (season === null) return
+    // The account's copy follows; this browser already has the new list either way.
+    qc.setQueryData(keepersKey, { player_ids: next, saved: true })
+    saveKeepers({ leagueId: selection.leagueId, season, teamId: myTeamId }, next).catch(() => {})
   }
 
   // The sign-in page already spells COURT out in its hero, so the top-bar ball stays a ball there.
