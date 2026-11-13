@@ -22,6 +22,7 @@ import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { Auth } from './components/Auth'
 import { SignInHero } from './components/SignInHero'
+import { ResetPassword } from './components/ResetPassword'
 import { JoinSheet, type PendingLeague } from './components/JoinSheet'
 import { OpenCrest } from './components/OpenCrest'
 import { SamplePage } from './components/Sample'
@@ -47,6 +48,7 @@ import { usePickedTeam } from './lib/pickedTeam'
 import { loadKeep, settleKeepers, storeKeep } from './lib/keepers'
 import { clearPages, prefetchPages, restorePages, savePages } from './lib/pageCache'
 import { clearToken, loadToken, saveToken } from './lib/session'
+import { readResetToken } from './lib/resetLink'
 import { applyTheme, loadTheme } from './lib/theme'
 import type { Theme } from './lib/theme'
 import { RoundValuesContext } from './lib/tradeValue'
@@ -79,6 +81,9 @@ interface NewsSnapshot {
 const NO_NEWS: NewsSnapshot = { before: null, changes: [] }
 
 const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_TABS]
+
+// Read once, before the first render writes the URL (StrictMode runs state initialisers twice).
+const linkedReset = readResetToken()
 
 function readUrl(): {
   selection: Selection | null
@@ -127,6 +132,17 @@ export default function App() {
   const initial = readUrl()
   const qc = useQueryClient()
   const [signedIn, setSignedIn] = useState(() => loadToken() !== null)
+  // An emailed reset link opened this tab: its own page until the password is set or they leave.
+  const [resetToken, setResetToken] = useState<string | null>(linkedReset)
+  useEffect(() => {
+    // The link pasted into a tab that already has COURT open changes only the hash: no reload.
+    const onHash = () => {
+      const token = readResetToken()
+      if (token) setResetToken(token)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
   const [selection, setSelection] = useState<Selection | null>(initial.selection)
   const [tab, setTab] = useState<string>(initial.tab)
   const [verifying, setVerifying] = useState(initial.verifying)
@@ -457,6 +473,70 @@ export default function App() {
   const leagueName = overview.data?.name ?? mine?.name
   const teamName = overview.data?.teams.find((t) => t.id === myTeamId)?.name
 
+  const themeButton = (
+    <button
+      className="icon"
+      aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+    >
+      {theme === 'dark' ? (
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+          <path
+            d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M3.7 14.3l1.4-1.4M12.9 5.1l1.4-1.4"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path
+            d="M14.5 11.5A6.5 6.5 0 0 1 6.5 3.5a6.5 6.5 0 1 0 8 8z"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            fill="none"
+          />
+        </svg>
+      )}
+    </button>
+  )
+
+  if (resetToken) {
+    const leaveReset = () => {
+      setResetToken(null)
+      if (!signedIn) setJoining('signin')
+    }
+    return (
+      <>
+        <header className="topbar">
+          <div className="topbar-inner">
+            <button ref={brandRef} className="brand" onClick={leaveReset} aria-label="COURT, sign in">
+              <CourtMark ref={markRef} veil />
+            </button>
+            <div className="topbar-actions">{themeButton}</div>
+          </div>
+        </header>
+        <main className="main">
+          <div className="signin-page">
+            <SignInHero />
+            <ResetPassword
+              token={resetToken}
+              theme={theme}
+              onSignedIn={(result) => {
+                // Whoever was signed in on this device before is signed out by the reset.
+                qc.clear()
+                signedInWith(result)
+                setResetToken(null)
+              }}
+              onLeave={leaveReset}
+            />
+          </div>
+        </main>
+      </>
+    )
+  }
+
   return (
     <>
       <header className="topbar">
@@ -548,32 +628,7 @@ export default function App() {
                 </svg>
               </button>
             )}
-            <button
-              className="icon"
-              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            >
-              {theme === 'dark' ? (
-                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                  <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
-                  <path
-                    d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M3.7 14.3l1.4-1.4M12.9 5.1l1.4-1.4"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                  <path
-                    d="M14.5 11.5A6.5 6.5 0 0 1 6.5 3.5a6.5 6.5 0 1 0 8 8z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    fill="none"
-                  />
-                </svg>
-              )}
-            </button>
+            {themeButton}
             {signedIn && me.data && (
               <details className="account-menu">
                 <summary className="icon" aria-label="Account" title={me.data.email ?? 'Account'}>
