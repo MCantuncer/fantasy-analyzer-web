@@ -46,29 +46,21 @@
   color: var(--text);
 }
 
-/* Accept chance: top-right, the number leads and the word sits under it. */
+/* Accept chance: top-right, a word beside the handshake. */
 .bm-accept {
   grid-column: 2;
   grid-row: 1 / span 2;
-  display: grid;
-  grid-template-columns: auto auto;
+  display: inline-flex;
   align-items: center;
-  justify-items: end;
-  gap: 0 6px;
+  justify-self: end;
+  gap: 6px;
   color: var(--text-2);
 }
 
-.bm-accept-n {
-  font-size: 26px;
+.bm-accept-word {
+  font-size: 17px;
   font-weight: 700;
   line-height: 1;
-  color: var(--text);
-}
-
-.bm-accept-word {
-  grid-column: 1 / -1;
-  font-size: 12.5px;
-  font-weight: 600;
 }
 
 .bm-lanes {
@@ -326,8 +318,8 @@
     gap: 10px;
   }
 
-  .bm-accept-n {
-    font-size: 22px;
+  .bm-accept-word {
+    font-size: 15px;
   }
 
   .bm-partner {

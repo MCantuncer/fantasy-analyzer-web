@@ -189,12 +189,8 @@ function Offer({
           </span>
         </span>
         <span className="accept">
-          <span className={`tnum ${acc.tone}`}>
-            {pct(offer.acceptance)} · {acc.label}
-          </span>
-          <span className="meter" aria-hidden="true">
-            <span className={`fill-${acc.tone}`} style={{ width: pct(offer.acceptance) }} />
-          </span>
+          <span className="label-sm">They say yes</span>
+          <span className={acc.tone}>{acc.label}</span>
         </span>
         <OddsChange before={offer.playoff_pct_before} after={offer.playoff_pct_after} />
       </button>
