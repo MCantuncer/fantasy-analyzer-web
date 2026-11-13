@@ -5,7 +5,7 @@ const BOX_META = {
   FG: { key: 'fg', label: 'FG', name: 'field goals made' },
   FT: { key: 'ft', label: 'FT', name: 'free throws made' },
   PTS: { key: 'pts', label: 'PTS', name: 'points' },
-  '3PM': { key: 'tpm', label: '3PM', name: 'threes made' },
+  '3PM': { key: 'tpm', label: '3PM', name: '3s made' },
   REB: { key: 'reb', label: 'REB', name: 'rebounds' },
   AST: { key: 'ast', label: 'AST', name: 'assists' },
   STL: { key: 'stl', label: 'STL', name: 'steals' },

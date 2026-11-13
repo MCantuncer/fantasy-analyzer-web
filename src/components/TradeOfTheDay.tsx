@@ -164,7 +164,7 @@ const UNIT: Record<string, string> = {
   AST: 'assists',
   STL: 'steals',
   BLK: 'blocks',
-  '3PM': 'threes',
+  '3PM': '3s',
   TO: 'turnovers',
 }
 

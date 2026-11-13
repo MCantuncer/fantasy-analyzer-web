@@ -13,14 +13,14 @@ const UNIT: Record<string, string> = {
   AST: 'assists a game',
   STL: 'steals a game',
   BLK: 'blocks a game',
-  '3PM': 'threes a game',
+  '3PM': '3s a game',
   TO: 'turnovers a game',
 }
 const LONG: Record<string, string> = {
   'FG%': 'field goal %',
   'FT%': 'free throw %',
   TO: 'turnovers',
-  '3PM': 'threes',
+  '3PM': '3s',
 }
 
 interface Props {
