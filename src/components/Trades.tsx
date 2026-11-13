@@ -4,7 +4,7 @@ import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
 import type { FeedbackSource, TradeIdea } from '../api/client'
-import { pct, tradeKey } from '../lib/format'
+import { tradeKey } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
 import { OddsChange } from './OddsChange'
@@ -228,9 +228,8 @@ export function TradeItem({
               </span>
             )}
           </span>
-          <span className="tr-accept" title="Rough estimate from value balance and how much the deal helps them">
+          <span className="tr-accept" title="How offers like this one went in real leagues">
             <Handshake size={16} aria-hidden="true" />
-            <span className="tr-accept-n num">{pct(t.acceptance)}</span>
             <span className={`tr-accept-w ${acc.tone}`}>
               <span className="sr-only">chance they accept, </span>
               {acc.label}

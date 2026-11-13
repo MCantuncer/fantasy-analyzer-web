@@ -7,7 +7,7 @@ import { names, pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { OddsChange } from './OddsChange'
 import { injuryShort } from '../lib/injury'
 import { PlayerHead } from './PlayerHead'
-import { TradeItem } from './Trades'
+import { ACCEPTANCE, TradeItem } from './Trades'
 import { teamColours } from '../lib/league'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './TradePark.css'
@@ -181,8 +181,8 @@ function Results({ data, colours }: { data: ShopReport; colours: Map<number, str
             </p>
             <div className="row park-pills">
               <KindPill kind={best.kind} />
-              <span className={`tnum ${best.acceptance_label === 'likely' ? 'good' : 'warn'}`}>
-                {pct(best.acceptance)} chance they accept
+              <span className={ACCEPTANCE[best.acceptance_label].tone}>
+                Chance they say yes: {ACCEPTANCE[best.acceptance_label].label.toLowerCase()}
               </span>
             </div>
           </div>

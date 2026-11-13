@@ -72,28 +72,19 @@
   overflow-wrap: anywhere;
 }
 
+/* Accept chance: a word, not a percentage. Real leagues differ too much for the number to mean much. */
 .tr-accept {
   display: inline-flex;
   flex: none;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   color: var(--text-2);
 }
 
-.tr-accept svg {
-  align-self: center;
-}
-
-.tr-accept-n {
-  font-size: 22px;
+.tr-accept-w {
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
-  color: var(--text);
-}
-
-.tr-accept-w {
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .tr-deal {

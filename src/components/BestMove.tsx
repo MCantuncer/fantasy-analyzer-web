@@ -280,10 +280,12 @@ export function BestMove({
           <Target size={20} weight="duotone" aria-hidden="true" />
           Best move
         </h2>
-        <span className="bm-accept" title={`${pct(trade.acceptance)} chance they accept`}>
+        <span className="bm-accept" title="How offers like this one went in real leagues">
           <Handshake size={20} aria-hidden="true" />
-          <span className="bm-accept-n num">{pct(trade.acceptance)}</span>
-          <span className={`bm-accept-word ${acc.tone}`}>{acc.label}</span>
+          <span className={`bm-accept-word ${acc.tone}`}>
+            <span className="sr-only">chance they accept, </span>
+            {acc.label}
+          </span>
         </span>
         <span className="bm-partner">
           <TeamCrest name={trade.partner_team_name} colour={theirs} size={20} />
