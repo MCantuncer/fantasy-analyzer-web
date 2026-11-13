@@ -26,6 +26,7 @@ export type Reactions = components['schemas']['Reactions']
 export type RepliesPage = components['schemas']['RepliesPage']
 export type ReactionsOut = components['schemas']['ReactionsOut']
 export type Me = components['schemas']['Me']
+export type Keepers = components['schemas']['Keepers']
 export type MyLeague = components['schemas']['MyLeague']
 export type Notice = components['schemas']['Notice']
 export type AuthResult = components['schemas']['AuthResult']
@@ -761,6 +762,20 @@ export function deleteTradeRule(seat: FeedbackSeat, ruleId: number) {
     season: seat.season,
     team_id: seat.teamId,
     rule_id: ruleId,
+  })
+}
+
+/** The players this account keeps on its team. They follow the account to every device. */
+export function fetchKeepers(seat: FeedbackSeat) {
+  return post<Keepers>('/api/keepers', { league_id: seat.leagueId, season: seat.season, team_id: seat.teamId })
+}
+
+export function saveKeepers(seat: FeedbackSeat, playerIds: number[]) {
+  return send<Keepers>('/api/keepers/save', {
+    league_id: seat.leagueId,
+    season: seat.season,
+    team_id: seat.teamId,
+    player_ids: playerIds,
   })
 }
 

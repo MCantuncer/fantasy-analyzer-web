@@ -289,6 +289,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/keepers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keepers
+         * @description The players this account keeps on its team: never offered in trades or suggested as drops.
+         */
+        post: operations["keepers_api_keepers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/keepers/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Keepers
+         * @description Replaces the account's keepers on its team. They follow the account to every device.
+         */
+        post: operations["save_keepers_api_keepers_save_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/league": {
         parameters: {
             query?: never;
@@ -1860,6 +1900,48 @@ export interface components {
              * @description ESPN season year, e.g. 2027 for 2026-27
              */
             season?: number | null;
+        };
+        /**
+         * Keepers
+         * @description The players an account keeps on its team: never offered in trades or suggested as drops.
+         */
+        Keepers: {
+            /** Player Ids */
+            player_ids: number[];
+            /**
+             * Saved
+             * @description False until this account has saved keepers for the team, even an empty list
+             */
+            saved: boolean;
+        };
+        /** KeepersRequest */
+        KeepersRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+        };
+        /** KeepersSave */
+        KeepersSave: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /** Team Id */
+            team_id: number;
+            /**
+             * Player Ids
+             * @description Every player kept on this team; replaces the saved list
+             */
+            player_ids: number[];
         };
         /** LeagueOverview */
         LeagueOverview: {
@@ -5828,6 +5910,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    keepers_api_keepers_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeepersRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Keepers"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_keepers_api_keepers_save_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeepersSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Keepers"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
             /** @description Validation Error */
