@@ -4,8 +4,10 @@ import type { ReactNode } from 'react'
 import {
   ArrowSquareOut,
   ArrowsClockwise,
+  CaretDown,
   CaretLeft,
   CaretRight,
+  CaretUp,
   CheckCircle,
   Clock,
   Minus,
@@ -16,6 +18,8 @@ import type { Game, GameLine, LineupDay, SeasonAverage } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { nbaAbbrev } from '../lib/filmRoom'
 import { injuryShort } from '../lib/injury'
+import { gradeWords, minutesDelta, nightGrade, signed } from '../lib/nightGrade'
+import type { Category, NightGrade } from '../lib/nightGrade'
 import {
   benchLeftOut,
   buildRows,
@@ -135,6 +139,8 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const espn = espnTeamUrl(leagueId, teamId, season)
   const swapIds = swap ? new Set([swap.bench.spot.player_id, swap.idle?.spot.player_id]) : new Set<number | undefined>()
   const ctx: RowCtx = { past, now, day: lineup.data.day, week: lineup.data.week ?? [] }
+  // Rhythm: the cards that carry a line take turns between two tones, so one player never runs into the next.
+  const tones = toneOf(rows)
 
   return (
     <section className={`card mp${switching ? ' mp-switching' : ''}`} aria-labelledby="mp-title" aria-busy={switching}>
@@ -201,12 +207,14 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </h3>
         <ul className="mp-rows">
           {starters.map((r) => (
-            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
+            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} alt={tones.get(r.spot.player_id)} />
           ))}
           {open.map((slot, k) => (
             <li key={`open-${slot}-${k}`} className="mp-row mp-idle mp-empty">
-              <Mark state="idle" />
-              <span className="mp-slot">{slot}</span>
+              <span className="mp-spine">
+                <Mark state="idle" />
+                <span className="mp-slot">{slot}</span>
+              </span>
               <span className="mp-who muted">Empty</span>
               <span className="mp-game muted">Nobody in this slot</span>
               <span className="mp-note">
@@ -231,7 +239,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </h3>
         <ul className="mp-rows">
           {bench.map((r) => (
-            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
+            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} alt={tones.get(r.spot.player_id)} />
           ))}
         </ul>
         {leftOut && leftOut.line && (
@@ -246,7 +254,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
             <h3 className="mp-group">IR</h3>
             <ul className="mp-rows">
               {ir.map((r) => (
-                <Row key={r.spot.player_id} row={r} ctx={ctx} swap={false} />
+                <Row key={r.spot.player_id} row={r} ctx={ctx} swap={false} alt={tones.get(r.spot.player_id)} />
               ))}
             </ul>
           </>
@@ -322,7 +330,19 @@ interface RowCtx {
   week: LineupDay[]
 }
 
-function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean }) {
+/** Which of two tones each card with a line takes, counted inside its group (starters, bench, IR). */
+function toneOf(rows: PlayerRow[]): Map<number, boolean> {
+  const out = new Map<number, boolean>()
+  const seen = { s: 0, b: 0, i: 0 }
+  for (const r of rows) {
+    if (!r.line) continue
+    const g = r.spot.starting ? 's' : isIR(r.spot) ? 'i' : 'b'
+    out.set(r.spot.player_id, seen[g]++ % 2 === 1)
+  }
+  return out
+}
+
+function Row({ row, ctx, swap, alt }: { row: PlayerRow; ctx: RowCtx; swap: boolean; alt?: boolean }) {
   const { past } = ctx
   const { spot, game, line, state } = row
   const quiet = state === 'idle' || isIR(spot)
@@ -333,9 +353,14 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
   const counted = spot.starting
   const injured = spot.injury_status !== 'ACTIVE' && spot.injury_status !== 'NORMAL'
   const player = { id: spot.player_id, name: spot.name }
+  // The night grade: only at the final whistle. A live line is partial, so it gets no letter.
+  const grade = state === 'final' && !isIR(spot) ? nightGrade(line) : null
   const cls = [
     'mp-row',
     `mp-${state}`,
+    line ? 'mp-card' : '',
+    alt ? 'mp-alt' : '',
+    grade ? `mp-graded mp-g-${grade.tier}` : '',
     counted ? 'mp-starter' : 'mp-sub',
     isIR(spot) ? 'mp-ir' : '',
     quiet ? 'mp-quiet' : '',
@@ -347,16 +372,17 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
     .join(' ')
   return (
     <li className={cls}>
-      <Mark state={isIR(spot) ? 'idle' : state} sitting={sitting} />
-      <span className={`mp-slot${counted ? '' : ' sub'}`}>{spot.slot}</span>
+      <span className="mp-spine">
+        {grade ? <GradeMark grade={grade} /> : <Mark state={isIR(spot) ? 'idle' : state} sitting={sitting} />}
+        <span className={`mp-slot${counted ? '' : ' sub'}`}>{spot.slot}</span>
+      </span>
       <span className="mp-who">
         <PlayerLink player={player} decorative>
           <PlayerHead player={player} size={32} team={abbrev} />
         </PlayerLink>
-        <span className="mp-name">
+        <span className={`mp-name${phoneName(spot.name, injured) ? ' mp-has-short' : ''}`}>
           <PlayerLink
             player={player}
-            className={phoneName(spot.name, injured) ? 'mp-has-short' : undefined}
             after={injured ? <span className={`mp-inj${spot.injury_status === 'OUT' ? ' out' : ''}`}>{injuryShort(spot.injury_status)}</span> : undefined}
           >
             {phoneName(spot.name, injured) ? (
@@ -377,7 +403,7 @@ function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean })
         <>
           <GameCell game={game} pro={spot.pro_team_id} now={ctx.now} />
           {line ? (
-            <Stats line={line} />
+            <Stats line={line} grade={grade} avgMin={state === 'final' ? spot.season_avg?.min : null} />
           ) : avg ? (
             <AverageNote avg={avg} />
           ) : (
@@ -523,9 +549,45 @@ function TipCell({ game, pro, now }: { game: Game; pro: number; now: number }) {
   )
 }
 
-function Stats({ line }: { line: GameLine }) {
+/**
+ * The night grade, set like a letter on a report card in the row's spine, under the slot: the letter
+ * large, its plus or minus small and raised. The A range is green, D and F coral, B and C neutral.
+ * Final lines only; the spoken form says the letter and what moved it.
+ */
+function GradeMark({ grade }: { grade: NightGrade }) {
+  const words = gradeWords(grade)
+  return (
+    <span className={`mp-grade ${grade.tier}`} title={words}>
+      <span className="mp-grade-l" aria-hidden="true">
+        {grade.letter}
+        {grade.mod && <span className="mp-grade-m">{grade.mod}</span>}
+      </span>
+      <span className="sr-only">Final, {words}</span>
+    </span>
+  )
+}
+
+type Drive = 'up' | 'down'
+
+function Stats({ line, grade, avgMin }: { line: GameLine; grade: NightGrade | null; avgMin?: number | null }) {
+  const drive = new Map<string, Drive>((grade?.drivers ?? []).map((d) => [d.cat, d.z > 0 ? 'up' : 'down']))
+  const delta = minutesDelta(line.minutes, avgMin)
   const cells: [string, ReactNode][] = [
-    ['MIN', line.minutes],
+    [
+      'MIN',
+      delta === null ? (
+        line.minutes
+      ) : (
+        <span className="mp-min">
+          {line.minutes}
+          <span className="mp-min-d" title="Minutes against his season average">
+            <span className="sr-only">, </span>
+            {signed(delta)}
+            <span className="sr-only"> against his average</span>
+          </span>
+        </span>
+      ),
+    ],
     ['FG', <ShotSplit made={line.fgm} attempts={line.fga} label="FG" />],
     ['FT', <ShotSplit made={line.ftm} attempts={line.fta} label="FT" />],
     ['3PM', line.tpm],
@@ -536,18 +598,51 @@ function Stats({ line }: { line: GameLine }) {
     ['TO', line.to],
     ['PTS', line.pts],
   ]
-  return <StatCells cells={cells} />
+  return <StatCells cells={cells} drive={drive} />
 }
 
-function StatCells({ cells }: { cells: [string, ReactNode][] }) {
+const CATEGORY_OF: Record<string, Category | undefined> = {
+  FG: 'FG',
+  FT: 'FT',
+  '3PM': '3PM',
+  REB: 'REB',
+  AST: 'AST',
+  STL: 'STL',
+  BLK: 'BLK',
+  TO: 'TO',
+  PTS: 'PTS',
+}
+
+function StatCells({ cells, drive }: { cells: [string, ReactNode][]; drive?: Map<string, Drive> }) {
   return (
     <dl className="mp-stats">
-      {cells.map(([k, v]) => (
-        <div key={k} className={`mp-stat${k === 'PTS' ? ' pts' : ''}${k === 'MIN' ? ' min' : ''}`}>
-          <dt>{k === 'TO' ? 'TO↓' : k}</dt>
-          <dd className="num">{v}</dd>
-        </div>
-      ))}
+      {cells.map(([k, v]) => {
+        const cat = CATEGORY_OF[k]
+        const d = cat ? drive?.get(cat) : undefined
+        const cls = ['mp-stat', k === 'PTS' && 'pts', k === 'MIN' && 'min', d && `drv ${d}`, v === 0 && 'zero']
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <div key={k} className={cls}>
+            <dt>
+              {k === 'TO' ? 'TO↓' : k}
+              {d && <span className="sr-only">{d === 'up' ? ', helped most' : ', hurt most'}</span>}
+            </dt>
+            <dd className="num">
+              {d ? (
+                <span className="mp-drv">
+                  {v}
+                  <span className="mp-drv-c" aria-hidden="true">
+                    {d === 'up' ? <CaretUp weight="fill" /> : <CaretDown weight="fill" />}
+                  </span>
+                </span>
+              ) : (
+                v
+              )}
+            </dd>
+          </div>
+        )
+      })}
     </dl>
   )
 }
@@ -606,6 +701,7 @@ function useNow(): number {
 function TotalsRow({ totals: t, past }: { totals: Totals; past: boolean }) {
   return (
     <div className="mp-totals">
+      <span className="mp-spine" aria-hidden="true" />
       <span className="mp-totals-label">
         <b>{past ? "Starters' total" : 'Starters so far'}</b>
         <span className="small muted">

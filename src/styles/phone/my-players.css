@@ -1,9 +1,10 @@
-/* My Players on phones and small tablets, up to 900px (My Team tab): "Ledger". A playing row is two lines: mark, slot, face, name
-   and a small scorebug, then the numbers, each with its own small label above it (FG FT 3PM REB AST
-   STL BLK TO PTS) so a row reads on its own (MIN is left to desktop; FG/FT keep a small percentage
-   underneath). Before tip-off the scorebug is the opponent over the time and line 2 is one quiet
-   season line. No-game, bench and IR rows are one 44px line. Long names show the last name alone so
-   the pill and the score keep their room. */
+/* My Players on phones and small tablets, up to 900px (My Team tab): "Two-Tone Grade". A playing
+   row is a card in one of two tones (they take turns down the list), with a 40px spine tile on the
+   left that carries the slot and, at the final whistle, the night's letter. Beside it: face, name
+   and a small scorebug, then the stat line, each number with its small label above it, MIN first
+   (MIN FG FT 3PM REB AST STL BLK TO PTS). The FG/FT % and the minutes-vs-average hang under their
+   numbers in the card's bottom padding. Before tip-off line 2 is one quiet season line. No-game,
+   bench and IR rows are one 44px outlined line with the slot alone in the spine. */
 @media (max-width: 900px) {
   .mp-title {
     font-size: 20px;
@@ -59,11 +60,6 @@
     display: inline;
   }
 
-  .mp .mp-name .pc-link.mp-has-short {
-    font-size: 13px;
-    letter-spacing: -0.01em;
-    padding-inline-end: 0;
-  }
 
   .mp .mp-name .mp-has-short .mp-inj {
     margin-left: 3px;
@@ -78,12 +74,10 @@
   }
 
   .mp {
-    --lg-mark: 8px;
-    --lg-chip: 34px;
-    --lg-gap: 7px;
-    --lg-pad: 10px;
-    /* the nine stat columns, shared by every row and the totals */
-    --lg-cols: minmax(0, 1.55fr) minmax(0, 1.35fr) repeat(6, minmax(0, 1fr)) minmax(0, 1.3fr);
+    --lg-spine: 40px;
+    --lg-gap: 10px;
+    /* the ten stat columns (MIN first), shared by every row and the totals */
+    --lg-cols: minmax(0, 1fr) minmax(0, 1.65fr) minmax(0, 1.4fr) repeat(6, minmax(0, 0.92fr)) minmax(0, 1.4fr);
     padding: 16px 12px;
   }
 
@@ -92,89 +86,145 @@
     display: none;
   }
 
-  /* --- rows --- */
+  /* --- rows: spine | face + name | scorebug, the stat line under the name --- */
   .mp .mp-rows {
     gap: 6px;
   }
 
   .mp .mp-row,
   .mp .mp-totals {
-    grid-template-columns: var(--lg-mark) var(--lg-chip) minmax(0, 1fr) auto;
+    grid-template-columns: var(--lg-spine) minmax(0, 1fr) auto;
     grid-template-rows: auto;
     column-gap: var(--lg-gap);
-    row-gap: 8px;
+    row-gap: 4px;
     min-height: 44px;
-    padding: 6px var(--lg-pad);
-    border-radius: 14px;
+    padding: 5px 10px 5px 5px;
+    border-radius: var(--radius-row);
   }
 
-  .mp .mp-row > .mp-mark {
+  /* The spine: one 40px column down the whole list. On a played row it is a tile the height of the
+     card, the slot on top and the letter (final) or the live dot under it; on a quiet row it is
+     just the slot. */
+  .mp .mp-row > .mp-spine,
+  .mp .mp-totals > .mp-spine {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     grid-column: 1;
     grid-row: 1;
     align-self: center;
   }
-  .mp .mp-row > .mp-slot {
-    grid-column: 2;
-    grid-row: 1;
+  .mp .mp-row.mp-card > .mp-spine {
+    grid-row: 1 / span 2;
+    align-self: stretch;
+    justify-content: flex-end;
+    gap: 0;
+    padding: 6px 0 5px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--text) 6%, transparent);
   }
+  .mp .mp-row.mp-g-top > .mp-spine {
+    background: color-mix(in srgb, var(--good) 15%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 30%, transparent);
+  }
+  .mp .mp-row.mp-g-low > .mp-spine {
+    background: color-mix(in srgb, var(--bad) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 30%, transparent);
+  }
+  /* the letter fills the tile under the slot; the tile carries the tint */
+  .mp .mp-spine .mp-grade {
+    flex: 1;
+    width: auto;
+    height: auto;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .mp .mp-spine .mp-grade-l {
+    font-size: 26px;
+  }
+  .mp .mp-spine .mp-grade-m {
+    margin: 0 -6px 0 1px;
+    font-size: 13px;
+  }
+  /* The gutter mark: the rows say "Final", the clock or "Sun vs HOU" in words, so phones keep only
+     the live dot (screen readers still hear the state). */
+  .mp .mp-spine .mp-mark {
+    display: none;
+  }
+  .mp .mp-row.mp-live .mp-spine .mp-mark {
+    display: inline-flex;
+    flex: 1;
+  }
+  .mp .mp-mark.live .mp-dot {
+    width: 9px;
+    height: 9px;
+    box-shadow: 0 0 0 3px var(--gold-soft);
+  }
+  .mp .mp-mark.live.sitting .mp-dot {
+    box-shadow: inset 0 0 0 1.5px var(--muted);
+  }
+
   .mp .mp-row > .mp-who {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 1;
   }
   .mp .mp-row > .mp-game,
   .mp .mp-row > .mp-note {
-    grid-column: 4;
+    grid-column: 3;
     grid-row: 1;
   }
 
-  /* mark: a small, centred signal in the gutter */
-  .mp .mp-mark svg {
-    width: 13px;
-    height: 13px;
-  }
-  .mp .mp-mark.live .mp-dot {
-    width: 8px;
-    height: 8px;
-    box-shadow: 0 0 0 3px var(--gold-soft);
-  }
-
-  /* slot chip: the lineup spine */
+  /* slot: small caps label; a chip on quiet rows, the head of the tile on played ones */
   .mp .mp-row .mp-slot {
     min-width: 0;
-    width: var(--lg-chip);
+    width: var(--lg-spine);
     height: 22px;
     padding: 0;
-    border-radius: 6px;
+    border-radius: 7px;
     font-size: 10.5px;
     font-weight: 700;
     letter-spacing: 0.05em;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+    color: var(--text-2);
+  }
+  .mp .mp-row.mp-card .mp-slot {
+    height: 14px;
+    border: 0;
+    line-height: 14px;
   }
   .mp .mp-row .mp-slot.sub {
-    background: transparent;
     color: var(--muted);
   }
 
-  /* who: small face + name */
+  /* who: round face + name */
   .mp .mp-who {
     gap: 8px;
   }
   .mp .mp-who .head {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 8px;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50%;
   }
   .mp .mp-name {
     flex-direction: row;
     align-items: center;
     gap: 6px;
   }
+  .mp .mp-name,
   .mp .mp-name .pc-link {
-    font-size: 13.5px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -0.012em;
+    white-space: nowrap;
+  }
+  .mp .mp-name {
+    overflow: hidden;
+  }
+  .mp .mp-name .pc-link {
     padding-inline-end: 2px;
   }
   .mp .mp-name .pc-link-split {
@@ -228,9 +278,8 @@
   .mp .mp-score {
     font-size: 11.5px;
   }
-  /* The clock reads smaller than the score, with air between them. */
   .mp .mp-status {
-    margin-top: 3px;
+    margin-top: 2px;
     font-size: 10px;
     line-height: 12px;
   }
@@ -240,13 +289,14 @@
   .mp .mp-final-tag {
     padding: 0 5px;
     font-size: 9px;
-    line-height: 14px;
+    line-height: 13px;
   }
+  /* the spine already carries the live dot */
   .mp .mp-clock .mp-dot {
     display: none;
   }
 
-  /* line 2: the stat line, aligned to the strip */
+  /* line 2: the stat line under the name, on the same ten columns in every row */
   .mp .mp-row .mp-stats,
   .mp .mp-totals .mp-stats {
     display: grid;
@@ -256,14 +306,14 @@
     column-gap: 0;
     row-gap: 0;
     margin: 0;
-    padding: 0;
+    padding: 0 0 9px;
   }
-  /* Each number wears its label, small, so "2 2 0" reads as 2 REB, 2 AST, 0 STL. */
-  .mp .mp-stat {
+  /* Each number wears its label, small and muted above it: no column rules. */
+  .mp .mp-stat,
+  .mp .mp-row .mp-stat,
+  .mp .mp-totals .mp-stat {
     justify-content: flex-start;
-  }
-  /* the faint column rules start between FG and FT (MIN is left to desktop) */
-  .mp .mp-stat:nth-child(2) {
+    align-self: start;
     background: none;
   }
   .mp .mp-stat dt {
@@ -272,88 +322,90 @@
     height: auto;
     overflow: visible;
     clip-path: none;
-    margin: 0 0 2px;
-    font-size: 9px;
+    margin: 0 0 1px;
+    font-size: 9.5px;
     font-weight: 600;
     line-height: 11px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     color: var(--muted);
   }
   .mp .mp-stat.pts dt {
     color: var(--text-2);
   }
-  .mp .mp-stat.min {
-    display: none;
-  }
   .mp .mp-stat dd {
-    font-size: 13.5px;
-    line-height: 18px;
-    font-weight: 500;
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 600;
     color: var(--text);
   }
-  .mp .mp-row .shot-split-ma {
-    font-weight: 500;
+  /* MIN: first, one step under the categories (it is context, not a category); it sits flush left
+     under the name, which gives FG its room */
+  .mp .mp-stat.min,
+  .mp .mp-row .mp-stat.min,
+  .mp .mp-totals .mp-stat.min {
+    align-items: flex-start;
   }
-  /* FG/FT percentages sit small under the made/att, as in the box score. */
-  .mp .mp-row .shot-split-pct {
+  .mp .mp-stat.min dd,
+  .mp .mp-totals .mp-stat.min dd {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .mp .mp-row .shot-split {
+    position: relative;
+  }
+  .mp .mp-row .shot-split-ma {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  /* FG/FT percentages hang small under the made/att, in the card's bottom padding. */
+  .mp .mp-row .shot-split-pct,
+  .mp .mp-totals .shot-split-pct {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -2px;
     font-size: 9.5px;
     line-height: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .mp .mp-min-d {
+    margin-top: -2px;
   }
   .mp .mp-stat.pts dd {
-    font-size: 16px;
-    font-weight: 750;
-    letter-spacing: -0.01em;
+    font-size: 20px;
+    font-weight: 760;
+    letter-spacing: -0.015em;
+  }
+  /* PTS: the rail down the right edge, flush with the scorebug */
+  .mp .mp-stat.pts,
+  .mp .mp-row .mp-stat.pts,
+  .mp .mp-totals .mp-stat.pts {
+    align-items: flex-end;
+  }
+  /* flush right: its caret sits under the last digit */
+  .mp .mp-stat.pts .mp-drv-c {
+    left: auto;
+    right: 2px;
+    transform: none;
+  }
+  .mp .mp-stat.drv dd {
+    font-weight: 760;
   }
 
   /* --- surfaces --- */
-  /* live: lifted, with a low gold light rising from the mark */
-  .mp .mp-row.mp-live {
-    background:
-      radial-gradient(90px 48px at 0% 32%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 80%),
-      var(--raised);
-    border-color: var(--rim);
-    box-shadow: var(--lift);
-  }
-  /* live but on his NBA bench right now: no gold light, a hollow dot; the clock stays gold */
+  /* live on the floor: the card keeps its tone and lifts; gold is the dot and the clock only */
   .mp .mp-row.mp-live.mp-sitting {
-    background: var(--surface);
-    border-color: var(--border);
     box-shadow: none;
-  }
-  .mp .mp-mark.live.sitting .mp-dot {
-    background: transparent;
-    box-shadow: inset 0 0 0 1.5px var(--muted);
-  }
-  /* final: flat, settled */
-  .mp .mp-row.mp-final,
-  .mp .mp-row.mp-dnp {
-    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
-    border-color: transparent;
-    box-shadow: none;
-  }
-  .mp .mp-row.mp-final .mp-slot {
-    background: transparent;
-  }
-  .mp .mp-row.mp-final .mp-stat dd {
-    color: var(--text-2);
-  }
-  .mp .mp-row.mp-final .mp-stat.pts dd {
-    color: var(--text);
   }
 
   /* quiet rows: single line, 44px, outline only */
-  .mp .mp-row.mp-later,
-  .mp .mp-row.mp-idle {
-    background: transparent;
-    border-color: var(--border);
+  .mp .mp-row:not(.mp-card) {
+    padding-block: 5px;
   }
   .mp .mp-row.mp-starter.mp-idle {
-    border: 1px solid color-mix(in srgb, var(--text-2) 38%, transparent);
-  }
-
-  .mp .mp-row.mp-starter.mp-idle {
-    background: var(--mp-sunk);
-    border-color: transparent;
     min-height: 44px;
   }
 
@@ -393,7 +445,7 @@
 
   /* No game: "Next Wed @ IND" on line 1, nothing more. */
   .mp .mp-row > .mp-quiet-cell {
-    grid-column: 4;
+    grid-column: 3;
     grid-row: 1;
     gap: 0;
     font-size: 12px;
@@ -426,9 +478,6 @@
   }
 
   /* bench and IR recede */
-  .mp .mp-row.mp-sub {
-    border-color: color-mix(in srgb, var(--border) 70%, transparent);
-  }
   .mp .mp-row.mp-sub .mp-name .pc-link {
     font-weight: 500;
     color: var(--text-2);
@@ -437,11 +486,7 @@
     opacity: 0.7;
     filter: saturate(0.5);
   }
-  .mp .mp-row.mp-sub .mp-mark {
-    opacity: 0.6;
-  }
   .mp .mp-row.mp-ir .mp-slot {
-    border-style: solid;
     color: var(--muted);
   }
 
@@ -449,7 +494,7 @@
   .mp .mp-totals {
     margin-top: 6px;
     row-gap: 4px;
-    padding: 9px var(--lg-pad) 9px;
+    padding: 8px 10px 5px 5px;
   }
   .mp .mp-totals .mp-totals-label {
     grid-column: 2 / -1;
@@ -457,13 +502,15 @@
     font-size: 13px;
   }
   .mp .mp-totals .mp-stat dd {
-    font-weight: 650;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .mp .mp-totals .shot-split-ma {
+    font-size: 12.5px;
   }
   .mp .mp-totals .mp-stat.pts dd {
+    font-size: 19px;
     font-weight: 800;
-  }
-  .mp .mp-totals .shot-split-pct {
-    font-size: 10px;
   }
 
   .mp .mp-group {
@@ -476,6 +523,43 @@
 @media (max-width: 380px) {
   .mp .mp-next-word {
     display: none;
+  }
+
+  /* made/att a step smaller so "15/20" and "6/11" keep at least 4px between them */
+  .mp .mp-row .shot-split-ma {
+    font-size: 12.5px;
+  }
+  .mp .mp-totals .shot-split-ma {
+    font-size: 12px;
+  }
+  .mp .mp-stat dd {
+    font-size: 14px;
+  }
+  .mp .mp-stat.min dd,
+  .mp .mp-totals .mp-stat.min dd {
+    font-size: 13px;
+  }
+  .mp .mp-totals .mp-stat dd {
+    font-size: 13.5px;
+  }
+  .mp {
+    padding-inline: 8px;
+  }
+  .mp .mp-name,
+  .mp .mp-name .pc-link {
+    font-size: 14px;
+  }
+  .mp .mp-row,
+  .mp .mp-totals {
+    column-gap: 8px;
+    padding-right: 8px;
+  }
+  .mp .mp-who {
+    gap: 6px;
+  }
+  .mp .mp-stat dt {
+    font-size: 9px;
+    letter-spacing: 0.01em;
   }
 }
 
