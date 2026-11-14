@@ -31,6 +31,26 @@ function topCats(changes: Record<string, number>) {
     .map(([c]) => c)
 }
 
+const SUFFIX = /^(Jr\.?|Sr\.?|II|III|IV|V)$/i
+
+/** The name with its injury or durability mark held to the last word, so a long name wraps
+ *  between words and the mark never sits on a line of its own. */
+function NameWithSignals({ player }: { player: PickupIdea['add'] }) {
+  const words = player.name.split(' ')
+  // "Williams III" and "Jaquez Jr." stay together: a suffix never starts a line.
+  const tail = words.length > 2 && SUFFIX.test(words[words.length - 1]) ? 2 : 1
+  const cut = player.name.length - words.slice(-tail).join(' ').length
+  return (
+    <>
+      {player.name.slice(0, cut)}
+      <span className="fa-name-end">
+        {player.name.slice(cut)}
+        <InjuryBadges players={[player]} />
+      </span>
+    </>
+  )
+}
+
 const gain = (p: PickupIdea) => ptsDiff(p.playoff_pct_before, p.playoff_pct_after)
 
 /** Rows shown before the list folds: the best few are the decision, the long tail is for browsing. */
@@ -115,8 +135,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
                     <span className="fa-text">
                       <span className="fa-name">
                         <span className="sr-only">Add </span>
-                        {p.add.name}
-                        <InjuryBadges players={[p.add]} />
+                        <NameWithSignals player={p.add} />
                       </span>
                       <span className="fa-meta">
                         {[p.add.pro_team, p.add.positions.join('/')].filter(Boolean).join(' · ')}
@@ -130,7 +149,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week }: Props) {
                         {Math.abs(gain(p))}
                       </span>
                       <span className="fa-pts-u">
-                        odds pts<span className="fa-to">, to {pct(p.playoff_pct_after)}</span>
+                        odds pts<span className="fa-to-comma">,</span> <span className="fa-to">to {pct(p.playoff_pct_after)}</span>
                       </span>
                     </span>
                     <span className="fa-why">

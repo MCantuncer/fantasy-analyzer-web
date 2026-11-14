@@ -113,7 +113,7 @@ describe('Pickups fold', () => {
     expect(view.queryByText('Free Agent 6')).toBeNull()
     fireEvent.click(view.getByRole('button', { name: 'Show all 7' }))
     expect(container.querySelectorAll('.move')).toHaveLength(7)
-    expect(view.getByText('Free Agent 7')).toBeInTheDocument()
+    expect(container.textContent).toContain('Free Agent 7')
     fireEvent.click(view.getByRole('button', { name: 'Show top 5' }))
     expect(container.querySelectorAll('.move')).toHaveLength(5)
   })
@@ -132,5 +132,25 @@ describe('Pickups fold', () => {
     fireEvent.click(view.getByRole('button', { name: 'Show all 6' }))
     expect(view.queryByText(/Each one replaces/)).toBeNull()
     expect(view.getByText('Kris Dunn')).toBeInTheDocument()
+  })
+})
+
+describe('Pickups name', () => {
+  const named = (name: string, extra: object = {}) =>
+    ({ ...pickup, add: { ...ref(40, name), ...extra } }) as PickupIdea
+
+  it('holds the durability mark and a suffix to the last name', () => {
+    const p = named('Robert Williams III', { injury_prone: true, games_share: 0.65 })
+    const { container } = render(<Pickups pickups={[p]} faab={50} />)
+    const end = container.querySelector('.fa-name-end')
+    expect(end?.textContent).toBe('Williams III65')
+    expect(end?.querySelector('.dur-chip')).not.toBeNull()
+    expect(container.querySelector('.fa-name')?.textContent).toBe('Add Robert Williams III65')
+  })
+
+  it('keeps the injury tag with the last word', () => {
+    const p = named('Nickeil Alexander-Walker', { injury_status: 'DAY_TO_DAY' })
+    const { container } = render(<Pickups pickups={[p]} faab={50} />)
+    expect(container.querySelector('.fa-name-end')?.textContent).toMatch(/^Alexander-Walker\u2060?DTD$/)
   })
 })
