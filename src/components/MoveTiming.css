@@ -173,18 +173,19 @@
   gap: 3px;
 }
 
+/* Lit cell: the spot has a game that day. A day with no game is the bare letter, so the strip
+   reads as games and gaps rather than two kinds of box. */
 .mt-strip i {
   display: grid;
   place-items: center;
   width: 17px;
   height: 19px;
   border-radius: 5px;
-  box-shadow: inset 0 0 0 1px var(--border);
   font-size: 10.5px;
   font-style: normal;
   font-weight: 650;
   line-height: 1;
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .mt-strip i.on {
@@ -207,9 +208,9 @@
 
 .mt-strip-seam {
   width: 2px;
-  height: 25px;
-  margin: 0 2px;
+  height: 19px;
+  margin: 0 3px;
   border-radius: 1px;
-  background: var(--text);
+  background: var(--text-2);
   transform: skewX(-9deg);
 }
