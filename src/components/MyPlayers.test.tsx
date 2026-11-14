@@ -145,6 +145,75 @@ describe('MyPlayers', () => {
     expect(tatum).not.toHaveClass('mp-sitting')
   })
 
+  it('grades a finished line with a letter, marks what moved it, and shows minutes against his average', async () => {
+    const final: ScoreDay = {
+      ...LIVE,
+      live: false,
+      games: LIVE.games.map((g) =>
+        g.id === 1
+          ? {
+              ...g,
+              status: 'final',
+              clock: null,
+              // 37 on 15/20, but 6/11 FT: the real Nov 13 Giannis line
+              lines: g.lines.map((l) => ({
+                ...l,
+                minutes: 41,
+                pts: 37,
+                reb: 9,
+                ast: 2,
+                stl: 0,
+                blk: 1,
+                tpm: 1,
+                to: 4,
+                fgm: 15,
+                fga: 20,
+                ftm: 6,
+                fta: 11,
+              })),
+            }
+          : g,
+      ),
+    }
+    const lineup: DayLineup = {
+      ...LINEUP,
+      spots: LINEUP.spots.map((s) =>
+        s.player_id === 10
+          ? { ...s, season_avg: { gp: 10, min: 33.6, fgm: 9, fga: 19, ftm: 6, fta: 7, tpm: 3, reb: 8, ast: 5, stl: 1, blk: 0.6, to: 3, pts: 27 } }
+          : s,
+      ),
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const path = new URL(String(input), 'http://x').pathname
+      return new Response(JSON.stringify(path === '/api/scores/lineup' ? lineup : final))
+    })
+    renderIt()
+    const tatum = (await screen.findAllByText('Jayson Tatum'))
+      .map((e) => e.closest('li.mp-row'))
+      .find(Boolean) as HTMLElement
+    expect(tatum).toHaveClass('mp-final', 'mp-graded', 'mp-g-mid', 'mp-card')
+    expect(within(tatum).getByText('Final, B− night: FG and PTS helped most, FT hurt most')).toBeInTheDocument()
+    expect(tatum.querySelector('.mp-stat.drv.up')).toHaveTextContent('FG')
+    expect(tatum.querySelector('.mp-stat.drv.down')).toHaveTextContent('FT')
+    // 41 minutes against a 33.6 average: +7 under MIN, and MIN still reads first
+    const cells = [...tatum.querySelectorAll('.mp-stat dt')].map((d) => d.firstChild?.textContent)
+    expect(cells).toEqual(['MIN', 'FG', 'FT', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO↓', 'PTS'])
+    expect(tatum.querySelector('.mp-min-d')).toHaveTextContent('+7')
+  })
+
+  it('gives a live line no letter, no marks and no minutes delta', async () => {
+    mockApi()
+    renderIt()
+    const tatum = (await screen.findAllByText('Jayson Tatum'))
+      .map((e) => e.closest('li.mp-row'))
+      .find(Boolean) as HTMLElement
+    expect(tatum).toHaveClass('mp-live', 'mp-card')
+    expect(tatum).not.toHaveClass('mp-graded')
+    expect(tatum.querySelector('.mp-grade')).toBeNull()
+    expect(tatum.querySelector('.mp-stat.drv')).toBeNull()
+    expect(tatum.querySelector('.mp-min-d')).toBeNull()
+  })
+
   it('asks for a swap when a bench player plays and fits an idle slot', async () => {
     mockApi()
     renderIt()

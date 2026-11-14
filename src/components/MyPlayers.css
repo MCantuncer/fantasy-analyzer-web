@@ -119,7 +119,7 @@
 .mp-row,
 .mp-totals {
   display: grid;
-  grid-template-columns: 24px 52px minmax(170px, 1.3fr) minmax(200px, 1fr) repeat(10, minmax(38px, 0.42fr));
+  grid-template-columns: 36px 52px minmax(170px, 1.3fr) minmax(200px, 1fr) repeat(10, minmax(38px, 0.42fr));
   align-items: center;
   column-gap: 8px;
 }
@@ -676,7 +676,7 @@
   .mp-cols,
   .mp-row,
   .mp-totals {
-    grid-template-columns: 20px 44px minmax(150px, 1.3fr) minmax(144px, 0.9fr) repeat(9, minmax(34px, 0.5fr));
+    grid-template-columns: 36px 44px minmax(150px, 1.3fr) minmax(144px, 0.9fr) repeat(9, minmax(34px, 0.5fr));
     column-gap: 6px;
   }
 
@@ -698,4 +698,188 @@
   .mp-cols {
     padding: 0 13px 4px;
   }
+}
+
+/* ---------- Two-Tone Grade ----------
+   Structure: cards that carry a line take turns between two tones (lifted paper, then the deep
+   ground), counted per group in the TSX, so one player never runs into the next. Rows without a
+   line have no fill, only an outline: a tone always means "he played".
+   Meaning: each finished line gets one 9-cat letter (src/lib/nightGrade.ts, calibrated on this
+   league's rostered lines) in the row's spine. Only the A range (green) and D/F (coral) are tinted;
+   B and C stay neutral. The categories that moved the night by two spreads or more go heavy, in
+   the same ink, with a small caret. No row glow: the tile and the numbers carry it.
+   Live: no letter (a partial line can't be graded); gold is the dot and the clock only. */
+.mp {
+  --tone-a: #2b2621;
+  --tone-b: #141210;
+  --tone-rim: rgb(255 240 220 / 0.06);
+  --g-good: var(--good);
+  --g-bad: var(--bad);
+}
+
+:root[data-theme='light'] .mp {
+  --tone-a: #ffffff;
+  --tone-b: #ece5d9;
+  --tone-rim: rgb(60 40 20 / 0.08);
+  /* a step darker than the tokens so a green or coral number holds 5.5:1 on the darker tone */
+  --g-good: #0a5c37;
+  --g-bad: #962c1b;
+}
+
+.mp-spine {
+  display: contents;
+}
+
+.mp-row.mp-card {
+  background: var(--tone-a);
+  border-color: var(--tone-rim);
+}
+
+.mp-row.mp-card.mp-alt {
+  background: var(--tone-b);
+}
+
+/* Live on the floor: the card keeps its tone and lifts. No gold wash. */
+.mp-row.mp-card.mp-live:not(.mp-sitting) {
+  border-color: var(--rim);
+  box-shadow: var(--lift);
+}
+
+/* Rows with no line: no card, a quiet outline. */
+.mp-row.mp-starter.mp-idle,
+.mp-row.mp-later:not(.mp-card),
+.mp-row.mp-sub.mp-idle,
+.mp-row.mp-ir {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+}
+
+/* The letter. Neutral for B and C; green or coral, with a tinted tile, for the ends of the scale. */
+.mp-grade {
+  --g-ink: var(--text);
+  --g-fill: color-mix(in srgb, var(--text) 7%, transparent);
+  --g-edge: color-mix(in srgb, var(--text) 9%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--g-fill);
+  box-shadow: inset 0 0 0 1px var(--g-edge);
+  color: var(--g-ink);
+  font-family: var(--font-ui);
+  line-height: 1;
+}
+
+.mp-grade.top {
+  --g-ink: var(--g-good);
+  --g-fill: color-mix(in srgb, var(--good) 16%, transparent);
+  --g-edge: color-mix(in srgb, var(--good) 34%, transparent);
+}
+
+.mp-grade.low {
+  --g-ink: var(--g-bad);
+  --g-fill: color-mix(in srgb, var(--bad) 15%, transparent);
+  --g-edge: color-mix(in srgb, var(--bad) 34%, transparent);
+}
+
+.mp-grade-l {
+  display: inline-flex;
+  align-items: flex-start;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.mp-grade-m {
+  margin: -1px -5px 0 1px;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+/* What moved the night: the number heavy, in the grade's ink, and a small caret under it (up
+   helped, down hurt). PTS keeps its own ink (it is the rail the eye runs down) and takes the
+   caret only. */
+.mp-stat.drv dd {
+  font-weight: 760;
+}
+
+.mp-stat.drv.up dd {
+  color: var(--g-good);
+}
+
+.mp-stat.drv.down dd {
+  color: var(--g-bad);
+}
+
+.mp-stat.pts.drv dd {
+  color: var(--text);
+}
+
+.mp-drv {
+  position: relative;
+  display: inline-block;
+}
+
+/* The caret hangs under the number, in the same line as the % under FG/FT and the minutes delta:
+   centred under a count, at the left edge of a made/att (the % keeps the middle). */
+.mp-drv-c {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-top: -3px;
+  transform: translateX(-50%);
+  display: inline-flex;
+}
+
+.mp-stat .shot-split ~ .mp-drv-c,
+.mp-drv:has(.shot-split) .mp-drv-c {
+  left: -2px;
+  transform: none;
+}
+
+.mp-drv-c svg {
+  width: 8px;
+  height: 8px;
+}
+
+.mp-stat.up .mp-drv-c {
+  color: var(--g-good);
+}
+
+.mp-stat.down .mp-drv-c {
+  color: var(--g-bad);
+}
+
+/* A zero is structure, not news: it steps back. */
+.mp-row .mp-stat.zero dd {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* MIN against his season average, under the number like the % under FG (final only, |Δ| ≥ 5). */
+.mp-min {
+  position: relative;
+  display: inline-block;
+}
+
+.mp-min-d {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 1px;
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mp-stat.drv .shot-split-ma {
+  color: inherit;
+  font-weight: inherit;
 }
