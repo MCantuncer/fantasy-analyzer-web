@@ -139,8 +139,6 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const espn = espnTeamUrl(leagueId, teamId, season)
   const swapIds = swap ? new Set([swap.bench.spot.player_id, swap.idle?.spot.player_id]) : new Set<number | undefined>()
   const ctx: RowCtx = { past, now, day: lineup.data.day, week: lineup.data.week ?? [] }
-  // Rhythm: the cards that carry a line take turns between two tones, so one player never runs into the next.
-  const tones = toneOf(rows)
 
   return (
     <section className={`card mp${switching ? ' mp-switching' : ''}`} aria-labelledby="mp-title" aria-busy={switching}>
@@ -207,7 +205,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </h3>
         <ul className="mp-rows">
           {starters.map((r) => (
-            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} alt={tones.get(r.spot.player_id)} />
+            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
           ))}
           {open.map((slot, k) => (
             <li key={`open-${slot}-${k}`} className="mp-row mp-idle mp-empty">
@@ -239,7 +237,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </h3>
         <ul className="mp-rows">
           {bench.map((r) => (
-            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} alt={tones.get(r.spot.player_id)} />
+            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
           ))}
         </ul>
         {leftOut && leftOut.line && (
@@ -254,7 +252,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
             <h3 className="mp-group">IR</h3>
             <ul className="mp-rows">
               {ir.map((r) => (
-                <Row key={r.spot.player_id} row={r} ctx={ctx} swap={false} alt={tones.get(r.spot.player_id)} />
+                <Row key={r.spot.player_id} row={r} ctx={ctx} swap={false} />
               ))}
             </ul>
           </>
@@ -330,19 +328,7 @@ interface RowCtx {
   week: LineupDay[]
 }
 
-/** Which of two tones each card with a line takes, counted inside its group (starters, bench, IR). */
-function toneOf(rows: PlayerRow[]): Map<number, boolean> {
-  const out = new Map<number, boolean>()
-  const seen = { s: 0, b: 0, i: 0 }
-  for (const r of rows) {
-    if (!r.line) continue
-    const g = r.spot.starting ? 's' : isIR(r.spot) ? 'i' : 'b'
-    out.set(r.spot.player_id, seen[g]++ % 2 === 1)
-  }
-  return out
-}
-
-function Row({ row, ctx, swap, alt }: { row: PlayerRow; ctx: RowCtx; swap: boolean; alt?: boolean }) {
+function Row({ row, ctx, swap }: { row: PlayerRow; ctx: RowCtx; swap: boolean }) {
   const { past } = ctx
   const { spot, game, line, state } = row
   const quiet = state === 'idle' || isIR(spot)
@@ -359,7 +345,6 @@ function Row({ row, ctx, swap, alt }: { row: PlayerRow; ctx: RowCtx; swap: boole
     'mp-row',
     `mp-${state}`,
     line ? 'mp-card' : '',
-    alt ? 'mp-alt' : '',
     grade ? `mp-graded mp-g-${grade.tier}` : '',
     counted ? 'mp-starter' : 'mp-sub',
     isIR(spot) ? 'mp-ir' : '',
