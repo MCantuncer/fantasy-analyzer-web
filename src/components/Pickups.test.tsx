@@ -1,7 +1,16 @@
-import { fireEvent, render, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import type { PickupIdea } from '../api/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { fireEvent, render as rtlRender, within } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import type { PickupIdea, ScoreDay } from '../api/client'
+import { fetchScores } from '../api/client'
 import { Pickups } from './Pickups'
+
+vi.mock('../api/client', async (orig) => ({ ...(await orig<object>()), fetchScores: vi.fn() }))
+
+// Pickups reads today's games through react-query; without a source it never fetches.
+const render = (ui: ReactElement) =>
+  rtlRender(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>)
 
 const ref = (id: number, name: string) =>
   ({ id, name, positions: ['SF'], percent_owned: 40, injury_status: 'ACTIVE' }) as PickupIdea['add']
@@ -22,7 +31,7 @@ describe('Pickups waiver priority', () => {
     const view = within(container)
     expect(view.getByText('Waiver priority 2nd of 12')).toBeInTheDocument()
     fireEvent.click(view.getByRole('button', { expanded: false }))
-    expect(view.getByText(/A claim uses your waiver priority \(2nd\)/)).toBeInTheDocument()
+    expect(view.getByText(/It uses your waiver priority \(2nd\)/)).toBeInTheDocument()
   })
 
   it('shows FAAB instead when the league bids', () => {
@@ -48,7 +57,7 @@ describe('Pickups shared drop', () => {
     const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
     const view = within(container)
     expect(view.queryByText(/Each one replaces/)).toBeNull()
-    expect(view.getByText('Kris Dunn')).toBeInTheDocument()
+    expect(view.getByText('for Dunn')).toBeInTheDocument()
   })
 })
 
@@ -87,16 +96,17 @@ describe('Pickups timing', () => {
 
   it('says when waiting pays, with the games it keeps', () => {
     const { container } = render(<Pickups pickups={[waiting]} faab={50} week={week} />)
-    const when = container.querySelector('.fa-when')
-    expect(when?.textContent).toContain('Make this Sunday')
-    expect(when?.textContent).toContain('+2 games')
-    expect(when?.textContent).toContain('Niang plays Thursday and Saturday first, 3 games in the spot instead of 1')
+    expect(container.querySelector('.fa-move')?.textContent).toBe('Add Sunday+2 games with Niang')
+    expect(container.querySelector('.fa-row')?.textContent).toContain(
+      'Add on Sunday: Niang plays today and Saturday first, so this spot gets 3 games this week instead of 1. Add Lopez Sunday.',
+    )
+    expect(container.querySelector('.fa-row')?.textContent).not.toContain('..')
   })
 
   it('shows adds left this week in the header', () => {
     const { container } = render(<Pickups pickups={[pickup]} faab={50} week={week} />)
     expect(container.querySelector('.fa-adds')?.textContent).toBe('3 of 5 adds left')
-    expect(container.querySelector('.fa-when')).toBeNull()
+    expect(container.querySelector('.fa-move')?.textContent).toBe('Claim nowfor Wiggins')
   })
 })
 
@@ -131,13 +141,12 @@ describe('Pickups fold', () => {
     expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
     fireEvent.click(view.getByRole('button', { name: 'Show all 6' }))
     expect(view.queryByText(/Each one replaces/)).toBeNull()
-    expect(view.getByText('Kris Dunn')).toBeInTheDocument()
+    expect(view.getByText('for Dunn')).toBeInTheDocument()
   })
 })
 
 describe('Pickups name', () => {
-  const named = (name: string, extra: object = {}) =>
-    ({ ...pickup, add: { ...ref(40, name), ...extra } }) as PickupIdea
+  const named = (name: string, extra: object = {}) => ({ ...pickup, add: { ...ref(40, name), ...extra } }) as PickupIdea
 
   it('holds the durability mark and a suffix to the last name', () => {
     const p = named('Robert Williams III', { injury_prone: true, games_share: 0.65 })
@@ -152,5 +161,37 @@ describe('Pickups name', () => {
     const p = named('Nickeil Alexander-Walker', { injury_status: 'DAY_TO_DAY' })
     const { container } = render(<Pickups pickups={[p]} faab={50} />)
     expect(container.querySelector('.fa-name-end')?.textContent).toMatch(/^Alexander-Walker\u2060?DTD$/)
+  })
+})
+
+describe('Pickups today', () => {
+  const side = (abbrev: string) => ({ pro_team_id: 0, abbrev, name: abbrev, score: null })
+  const day = (n: number, date: string, games: object[]) =>
+    ({ day: n, date, games, days: [{ day: 26 }, { day: 27 }], week: [], live: false }) as unknown as ScoreDay
+
+  it('says whether he plays today, stepping past a finished night', async () => {
+    const lakers = { ...pickup, add: { ...ref(5, 'Ziaire Williams'), pro_team: 'LAL' } } as PickupIdea
+    vi.mocked(fetchScores).mockImplementation(async (_l, _s, d) =>
+      d === null
+        ? day(26, '2026-11-14', [
+            { id: 1, start: '2026-11-15T00:00:00Z', status: 'final', away: side('LAL'), home: side('BOS'), lines: [] },
+          ])
+        : day(27, '2026-11-15', [
+            {
+              id: 2,
+              start: '2026-11-16T00:30:00Z',
+              status: 'scheduled',
+              away: side('DEN'),
+              home: side('LAL'),
+              lines: [],
+            },
+          ]),
+    )
+    const { container, findByText } = render(
+      <Pickups pickups={[lakers]} faab={50} today={{ leagueId: 1, season: 2027, teamId: 3, creds: null }} />,
+    )
+    expect(await findByText('vs DEN', { exact: false })).toBeInTheDocument()
+    expect(container.querySelector('.fa-day')?.textContent).toMatch(/^Plays (tonight|today)vs DEN/)
+    expect(vi.mocked(fetchScores)).toHaveBeenCalledWith(1, 2027, 27, 3, null)
   })
 })

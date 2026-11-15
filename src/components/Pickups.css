@@ -76,10 +76,9 @@
 
 .move-row.fa-row {
   grid-template-columns: auto minmax(0, 1fr) auto;
-  /* The second line runs the full width of the row, under the odds gain too: in the narrow
-     desktop column the day strip and its words need all of it. */
-  grid-template-areas: 'face text pts' 'why why why';
-  align-items: center;
+  /* The slip runs the full width of the row, under the odds gain too. */
+  grid-template-areas: 'face text pts' 'slip slip slip';
+  align-items: start;
   gap: 8px 12px;
   padding: 14px 20px;
 }
@@ -145,39 +144,6 @@
   white-space: nowrap;
 }
 
-.fa-why {
-  grid-area: why;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  min-width: 0;
-}
-
-.fa-why:empty {
-  display: none;
-}
-
-.fa-tag {
-  padding: 3px 6px;
-  border-radius: 7px;
-  background: var(--surface-2);
-  font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.fa-for {
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: var(--text-2);
-}
-
-.fa-for svg {
-  margin-right: 4px;
-  vertical-align: -2px;
-}
-
 /* FAAB (or waiver priority) and adds left this week, stacked on the right of the header. */
 .fa-right {
   display: flex;
@@ -207,49 +173,10 @@
   color: var(--text-2);
 }
 
-/* "T F S / S  Make this Sunday +2 games": the hand-off at row size, on one line of its own.
-   In a narrow column the words drop under the day strip together instead of running off the card. */
-.fa-when {
-  display: inline-flex;
-  flex-wrap: wrap;
-  flex-basis: 100%;
-  align-items: center;
-  gap: 4px 6px;
-  min-width: 0;
-  font-size: 12.5px;
-}
-
-.fa-when-text {
-  display: inline-flex;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.fa-when-day {
-  font-weight: 650;
-  color: var(--text);
-}
-
-.fa-when-gain {
-  color: var(--muted);
-}
-
-.fa-when-gain .num {
-  font-weight: 650;
-  color: var(--text-2);
-}
-
-/* The panel measures its own width: in the narrow desktop column the day strip keeps a line of its
-   own (sharing one with the category tags crowded both), and the "to 43%" drops under "odds pts" so
-   the name gets the room. */
+/* The panel measures its own width: in the narrow desktop column the "to 43%" drops under
+   "odds pts" so the name gets the room, and the slip tightens. */
 .pickups-panel {
   container: fa-panel / inline-size;
-}
-
-@container fa-panel (min-width: 520px) {
-  .fa-why .fa-when {
-    flex-basis: auto;
-  }
 }
 
 @container fa-panel (max-width: 379px) {
@@ -273,4 +200,295 @@ button.fa-more {
   color: var(--accent-text);
   font-weight: 650;
   gap: 6px;
+}
+
+/* FA Targets "today slip" (fa- prefix, builds on Pickups.css). Every row ends in one recessed slip
+   that answers Can's two questions in words, always at the same place:
+   left, his game today (Plays tonight / Playing now / Played today / Out / No game today);
+   right, the move (Add now / Add Monday / Claim now) and its one reason.
+   Two die-cut bites and a cut line split the halves, so it reads as a ticket stub: a printed fact,
+   not a control. The whole row is the one button; nothing inside it is drawn like a button. */
+
+.pickups-panel {
+  /* The colour the bites cut through to: the row behind the slip. */
+  --fa-row: var(--surface);
+  /* Recessed: between the page and the card, from tokens, in both themes. */
+  --fa-slip: color-mix(in srgb, var(--bg) 55%, var(--surface-2));
+  --fa-cut: 6px;
+}
+
+.pickups-panel .move.open {
+  --fa-row: var(--raised);
+  --fa-slip: var(--surface-2);
+}
+
+:root[data-theme='light'] .pickups-panel .move.open {
+  --fa-slip: var(--surface);
+}
+
+/* ---------- Row ---------- */
+.fa-row .fa-pts-u {
+  line-height: 1.25;
+}
+
+.fa-row > .head {
+  align-self: start;
+}
+
+.fa-row .fa-text {
+  align-self: center;
+  gap: 2px;
+}
+
+/* Team · positions, then the categories it helps: one line that wraps as a whole. */
+.fa-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.fa-sub .fa-meta {
+  margin-right: 2px;
+  font-size: 12px;
+}
+
+.fa-sub .fa-tag {
+  padding: 1px 6px;
+  font-size: 10.5px;
+  line-height: 16px;
+  color: var(--text-2);
+}
+
+.fa-if {
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ---------- The slip ---------- */
+.fa-slip {
+  grid-area: slip;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--fa-slip);
+}
+
+/* The cut line, and the two bites where it meets the edges. */
+.fa-slip::before,
+.fa-slip::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - var(--fa-cut));
+  width: calc(var(--fa-cut) * 2);
+  height: calc(var(--fa-cut) * 2);
+  border-radius: 50%;
+  background: var(--fa-row);
+}
+
+.fa-slip::before {
+  top: calc(var(--fa-cut) * -1);
+}
+
+.fa-slip::after {
+  bottom: calc(var(--fa-cut) * -1);
+}
+
+.fa-day,
+.fa-move {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 4px 8px 4px 12px;
+}
+
+.fa-move {
+  padding-left: 12px;
+  /* A hairline in the row's colour: the stub's cut, not a border. */
+  background: linear-gradient(var(--fa-row), var(--fa-row)) left center / 1.5px calc(100% - 2 * var(--fa-cut) - 4px) no-repeat;
+}
+
+.fa-l1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 18px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.fa-l2 {
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fa-logo {
+  width: 16px;
+  height: 16px;
+  margin: 0 3px 0 1px;
+  object-fit: contain;
+  vertical-align: -4px;
+}
+
+.fa-opp {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.fa-detail {
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fa-l2 > .fa-detail:first-child {
+  margin-left: 0;
+}
+
+/* Today states. Gold is for live only; coral only for out; past and empty days go quiet. */
+.fa-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+
+.fa-day[data-tone='live'] .fa-detail {
+  font-weight: 650;
+  color: var(--gold-text);
+}
+
+.fa-day[data-tone='quiet'] .fa-l1 {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.fa-day[data-tone='quiet'] .fa-l2,
+.fa-day[data-tone='quiet'] .fa-opp {
+  color: var(--muted);
+}
+
+.fa-day[data-tone='quiet'] .fa-logo {
+  opacity: 0.75;
+}
+
+.fa-day[data-tone='bad'] .fa-l1 {
+  color: var(--bad);
+}
+
+.fa-day[data-tone='bad'] .fa-logo {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.fa-day[data-tone='loading'] .fa-l1,
+.fa-day[data-tone='loading'] .fa-l2 {
+  color: var(--faint);
+  font-weight: 500;
+}
+
+/* The move. A wait or a claim carries a plain glyph (never a chip), so later moves stand out
+   down the list; "Add now" is the bare verb. */
+.fa-glyph {
+  flex: none;
+  margin-right: -1px;
+  color: var(--text-2);
+}
+
+.fa-move[data-move='wait'] .fa-l2,
+.fa-move[data-move='claim'] .fa-l2 {
+  color: var(--text-2);
+}
+
+/* Today's games couldn't be read: the move alone fills the slip. */
+.fa-slip[data-solo] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.fa-slip[data-solo]::before,
+.fa-slip[data-solo]::after {
+  display: none;
+}
+
+.fa-slip[data-solo] .fa-move {
+  background: none;
+}
+
+/* ---------- Open row: the whole reason ---------- */
+.fa-story {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--fa-slip);
+}
+
+.fa-story-say {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.fa-story-say svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-2);
+}
+
+.fa-story .mt-d.mt-plays {
+  background: var(--fa-row);
+}
+
+.fa-swap {
+  vertical-align: -2px;
+  color: var(--text-2);
+}
+
+/* The narrow desktop column and 360px phones: a little more room for the words. */
+@container fa-panel (max-width: 340px) {
+  .fa-day,
+  .fa-move {
+    padding-right: 6px;
+    padding-left: 10px;
+  }
+
+  .fa-detail {
+    margin-left: 5px;
+  }
+}
+
+/* A very narrow column: the halves stack, the cut runs across. */
+@container fa-panel (max-width: 300px) {
+  .fa-slip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fa-slip::before,
+  .fa-slip::after {
+    display: none;
+  }
+
+  .fa-move {
+    background: linear-gradient(var(--fa-row), var(--fa-row)) center top / calc(100% - 24px) 1.5px no-repeat;
+  }
 }
