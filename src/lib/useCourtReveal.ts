@@ -5,7 +5,7 @@ import { OPEN_TOTAL, T, reducedMotion } from './courtSpan'
 /*
  * When the COURT mark opens in the top bar:
  * - a mouse resting 140ms on the brand button opens it; the open row counts as part of the button, and leaving
- *   it folds the row back after a short grace (T.LEAVE), so a slip of the mouse doesn't snap it shut;
+ *   it starts the (slow) fold back at once;
  * - keyboard focus (:focus-visible) opens it, blur or Esc closes it;
  * - a click or tap plays it once (open, hold, close) after the caller has already navigated;
  * - any other pointerdown or a scroll closes it.
@@ -14,7 +14,6 @@ export function useCourtReveal(mark: RefObject<CourtMarkHandle | null>, button: 
   const hover = useRef(false)
   const intent = useRef<ReturnType<typeof setTimeout>>(undefined)
   const hold = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const leave = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const focusVisible = () => {
     const b = button.current
@@ -28,13 +27,11 @@ export function useCourtReveal(mark: RefObject<CourtMarkHandle | null>, button: 
 
   const open = () => {
     clearTimeout(hold.current)
-    clearTimeout(leave.current)
     mark.current?.open()
   }
   const close = () => {
     clearTimeout(hold.current)
     clearTimeout(intent.current)
-    clearTimeout(leave.current)
     mark.current?.close()
   }
 
@@ -58,7 +55,6 @@ export function useCourtReveal(mark: RefObject<CourtMarkHandle | null>, button: 
       removeEventListener('scroll', onScroll)
       clearTimeout(hold.current)
       clearTimeout(intent.current)
-      clearTimeout(leave.current)
     }
     // close() only reads refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,20 +65,13 @@ export function useCourtReveal(mark: RefObject<CourtMarkHandle | null>, button: 
       if (e.pointerType !== 'mouse') return
       hover.current = true
       clearTimeout(intent.current)
-      clearTimeout(leave.current) // back within the grace: it stays open
-      if (mark.current?.isOpen()) return
       intent.current = setTimeout(open, T.INTENT)
     },
     onPointerLeave(e: PointerEvent) {
       if (e.pointerType !== 'mouse') return
       hover.current = false
       clearTimeout(intent.current)
-      if (focusVisible()) return
-      if (!mark.current?.isOpen()) return
-      clearTimeout(leave.current)
-      leave.current = setTimeout(() => {
-        if (!hover.current && !focusVisible()) close()
-      }, T.LEAVE)
+      if (!focusVisible()) close()
     },
     onFocus() {
       if (focusVisible()) open()

@@ -167,14 +167,13 @@ export const T = {
   CLOSE: 240, // the close's choreography; it plays CLOSE_PACE times slower
   CLOSE_W: 75,
   INTENT: 140,
-  LEAVE: 260, // the mouse may slip off the open row this long before it folds back
   HOLD: 700,
 }
 const LAND = T.FLIGHT.map((f) => T.LAUNCH + f)
 export const OPEN_TOTAL = Math.max(LAND[4] + 10 + T.TAIL, T.C_AT + T.C_DUR, T.T_SWAP + T.T_SWAP_DUR) // 810
-// Closing is unhurried, so leaving the logo doesn't feel like it snaps shut on you.
-const CLOSE_PACE = 1.6
-export const CLOSE_TOTAL = Math.round(T.CLOSE * CLOSE_PACE) // 384
+// The fold back starts the moment the mouse leaves but plays slowly, so it never feels like it snaps shut.
+const CLOSE_PACE = 3
+export const CLOSE_TOTAL = Math.round(T.CLOSE * CLOSE_PACE) // 720
 
 /** Close: when each floor has reeled into the C (Categories first), and how long its arc takes to click home. */
 const REEL = [128, 138, 148, 156, 164]
