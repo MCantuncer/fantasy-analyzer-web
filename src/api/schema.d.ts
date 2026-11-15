@@ -2634,6 +2634,50 @@ export interface components {
             /** Home */
             home: boolean;
         };
+        /**
+         * NextGameLine
+         * @description His line for his next game: the per-game line this week's odds count (projection, his last 7
+         *     and 15 days of minutes, minutes a teammate's absence gives him), with points, rebounds, blocks and
+         *     turnovers set to the level players reach (report.NEXT_GAME_LEVEL). Matchup context (his past games
+         *     against the opponent or its type of center, opponent strength, former team, streaks) was tested on
+         *     five seasons and moved a game's miss by under 0.1% beyond who he is (scripts/next_game_backtest.py).
+         */
+        NextGameLine: {
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Three Pm */
+            three_pm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+            /**
+             * Fg Pct
+             * @description FGM / FGA; none without attempts
+             */
+            fg_pct?: number | null;
+            /**
+             * Ft Pct
+             * @description FTM / FTA; none without attempts
+             */
+            ft_pct?: number | null;
+        };
         /** NoteRead */
         NoteRead: {
             /**
@@ -3338,6 +3382,8 @@ export interface components {
             out_report?: string | null;
             /** @description Set when his last 15 days run well above his usual */
             hot_run?: components["schemas"]["HotRun"] | null;
+            /** @description His line for his next game; none while he is out */
+            next_game?: components["schemas"]["NextGameLine"] | null;
         };
         /** PlayerSeasonLine */
         PlayerSeasonLine: {
