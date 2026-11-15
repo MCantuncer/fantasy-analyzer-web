@@ -6,9 +6,10 @@
 // - The site's column order (STAT_COLUMNS: MIN, then the nine categories as CATEGORY_ORDER).
 //   Minutes are context, not a category: never bold.
 // - Two lines (the player you add, the player you drop) are compared on the numbers as shown, so a
-//   1.3 against a 1.0 steal is a tie: one game can't tell them apart.
+//   1.3 against a 1.0 steal is a tie: one game can't tell them apart. The swing between them is
+//   signed for you, as the League box score signs margins (signedMargin: fewer turnovers is +).
 import type { components } from '../api/schema'
-import { isRatio, lowerIsBetter } from './league'
+import { isRatio, lowerIsBetter, signedMargin } from './league'
 import { ratioPct } from './shooting'
 import { CATEGORY_ORDER } from './statOrder'
 
@@ -60,4 +61,21 @@ export function lineCells(line: NextGameLine): LineCell[] {
 export function better(key: LineKey, add: number | null, drop: number | null): 'add' | 'drop' | null {
   if (key === 'MIN' || add == null || drop == null || add === drop) return null
   return (lowerIsBetter(key) ? add < drop : add > drop) ? 'add' : 'drop'
+}
+
+export interface SwingCell {
+  key: LineKey
+  /** "+6", "−3", "+.260", "±0", or "–" when one side has no number. Minutes: plain "+6", no tone. */
+  text: string
+  tone: 'good' | 'bad' | null
+}
+
+/** What the swap does to you in each column for one game, signed for you (fewer TO is +). */
+export function swingCells(add: LineCell[], drop: LineCell[]): SwingCell[] {
+  return add.map((a, i) => {
+    const d = drop[i].value
+    if (a.value == null || d == null) return { key: a.key, text: '–', tone: null }
+    const w = better(a.key, a.value, d)
+    return { key: a.key, text: signedMargin(a.key, a.value, d), tone: w === 'add' ? 'good' : w === 'drop' ? 'bad' : null }
+  })
 }

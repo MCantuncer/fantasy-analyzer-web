@@ -1,6 +1,7 @@
 /* Next game (ng- prefix): the opened FA row's swap, one game long. A small table in the open row's
    recessed well: column heads once (the site's order), the player you add, a divider, the player
-   you drop, then one small footnote. Ink only. Every colour is a light/dark token from index.css. */
+   you drop, the swing for you under another divider, then one small footnote. Ink for the lines;
+   green and coral only on the swing, the outcome. Every colour is a light/dark token from index.css. */
 
 .ng {
   display: flex;
@@ -140,8 +141,26 @@ button.ng-who:focus-visible {
   background: linear-gradient(var(--border), var(--border)) top / 100% 1px no-repeat;
 }
 
-.ng-player[data-side='add'] .ng-nums td {
-  padding-bottom: 10px;
+.ng-player .ng-nums td {
+  padding-bottom: 8px;
+}
+
+/* The swing: what the swap does to you in this game, signed for you (fewer TO is +), under a
+   hairline. Green a gain, coral a loss, grey even; the sign says it too. */
+.ng-swing .ng-nums td {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ng-swing .ng-nums td[data-tone='good'] {
+  color: var(--good);
+}
+
+.ng-swing .ng-nums td[data-tone='bad'] {
+  color: var(--bad);
 }
 
 /* The numbers: one size, tabular. Plain by default; the better one in a category is bold. */

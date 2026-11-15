@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PickupIdea } from '../api/client'
-import { better, lineCells } from '../lib/nextGame'
+import { better, lineCells, swingCells } from '../lib/nextGame'
 import { setPlayerCardHost } from '../lib/playerCard'
 import { NextGameSwap } from './NextGameSwap'
 
@@ -43,6 +43,15 @@ describe('next game line', () => {
     expect(better('MIN', 30, 24)).toBeNull()
   })
 
+  it('signs the swing for you, the way the League box score signs margins', () => {
+    const swing = swingCells(lineCells(jenkins), lineCells(mara))
+    expect(swing.map((s) => s.text)).toEqual(['+6', '−.200', '+.260', '+2', '−3', '+4', '+1', '−2', '±0', '+6'])
+    expect(swing.map((s) => s.tone ?? '-')).toEqual(['-', 'bad', 'good', 'good', 'bad', 'good', 'good', 'bad', '-', 'good'])
+    // One more turnover is a loss for you.
+    const more = swingCells(lineCells({ ...jenkins, to: 3 }), lineCells(mara))
+    expect(more.find((s) => s.key === 'TO')).toEqual({ key: 'TO', text: '−1', tone: 'bad' })
+  })
+
   it('puts his line over the drop line, bolds only the better number', () => {
     const { container } = render(<NextGameSwap add={ref(1, 'Daniss Jenkins', jenkins)} drop={ref(2, 'Aday Mara', mara)} />)
     const [add, drop, extra] = container.querySelectorAll('tbody')
@@ -50,7 +59,7 @@ describe('next game line', () => {
     expect(nums(drop)).toEqual(['24', '.620', '.591', '0', '7', '2', '0', '2', '2', '9'])
     expect(wins(add)).toEqual(['-', '-', 'B', 'B', '-', 'B', 'B', '-', '-', 'B'])
     expect(wins(drop)).toEqual(['-', 'B', '-', '-', 'B', '-', '-', 'B', '-', '-'])
-    expect(extra).toBeUndefined() // no swing row
+    expect(nums(extra)).toEqual(['+6', '−.200', '+.260', '+2', '−3', '+4', '+1', '−2', '±0', '+6'])
     expect(container.textContent).toContain('A usual night, not a promise')
     expect(container.textContent).not.toMatch(/\d\s*[-–]\s*\d/) // never a range
   })

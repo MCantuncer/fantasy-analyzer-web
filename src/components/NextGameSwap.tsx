@@ -1,11 +1,12 @@
 // "Next game": the opened FA row's swap, one game long. His line over the line of the player he
-// replaces, in the site's stat column order, a divider between them. One number per
+// replaces, in the site's stat column order, then what the swap does to you (green gain, red loss,
+// grey even) under a divider. One number per
 // stat, never a range. The better number in each category is bold; ties stay plain on both sides.
 // The players carry an icon only (+ you add, − you drop), with words for screen readers. It takes
 // the place of the "Players in this move" chips: each name still opens the player's card.
 import { Minus, Plus } from '@phosphor-icons/react'
 import type { PickupIdea } from '../api/client'
-import { better, lineCells, LINE_LABELS, type LineCell } from '../lib/nextGame'
+import { better, lineCells, LINE_LABELS, swingCells, type LineCell } from '../lib/nextGame'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead } from './PlayerHead'
 import './NextGameSwap.css'
@@ -101,6 +102,7 @@ export function NextGameSwap({ add, drop, byTrade = false, live = false }: Props
   if (!line) return null
   const mine = lineCells(line)
   const theirs = drop.next_game ? lineCells(drop.next_game) : null
+  const swing = theirs ? swingCells(mine, theirs) : null
   return (
     <section className="ng" aria-labelledby={`ng-${add.id}`}>
       <p className="ng-head detail-label" id={`ng-${add.id}`}>
@@ -125,6 +127,22 @@ export function NextGameSwap({ add, drop, byTrade = false, live = false }: Props
           </thead>
           <Rows player={add} side="add" byTrade={byTrade} cells={mine} other={theirs} />
           <Rows player={drop} side="drop" byTrade={byTrade} cells={theirs} other={mine} />
+          {swing && (
+            <tbody className="ng-swing">
+              <tr className="sr-only">
+                <th scope="rowgroup" colSpan={COLS}>
+                  Swing for you
+                </th>
+              </tr>
+              <tr className="ng-nums">
+                {swing.map((s) => (
+                  <td key={s.key} data-key={s.key} data-tone={s.tone ?? undefined} className="num">
+                    {s.text}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          )}
         </table>
         <p className="ng-foot">A usual night, not a promise</p>
       </div>
