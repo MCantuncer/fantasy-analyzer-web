@@ -1589,7 +1589,7 @@ a.pc-source:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  width: 24px;
   align-self: stretch;
   line-height: 1;
 }
@@ -1601,8 +1601,8 @@ a.pc-source:focus-visible {
   color: var(--muted);
 }
 .pc-cal-d {
-  margin-top: 3px;
-  font: 600 19px/1 var(--font-num);
+  margin-top: 2px;
+  font: 600 14px/1 var(--font-num);
   font-stretch: var(--num-stretch);
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
