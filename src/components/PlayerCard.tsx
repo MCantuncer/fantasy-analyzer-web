@@ -17,7 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
@@ -29,20 +29,28 @@ import {
   CATS,
   average,
   dealGroups,
+  decidedWhy,
+  finalScore,
   formTiles,
+  garbageTally,
+  garbageTime,
   gameDate,
   healthStatus,
+  minutesText,
   moveOthers,
   moveText,
   opponent,
   ownerText,
+  scoreWords,
   setPlayerCardHost,
+  shareLabel,
   shortDate,
   spotlight,
+  tallyText,
   usePlayerCard,
   withExtras,
 } from '../lib/playerCard'
-import type { FormTile } from '../lib/playerCard'
+import type { FormTile, GarbageNight, GarbageTally } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
@@ -511,14 +519,7 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
                 <MinutesChart games={played} average={line?.per_game.minutes ?? null} />
               </Section>
             )}
-            <Section
-              id="pc-games-title"
-              title={lastSeason ? 'Game log · last season' : 'Game log'}
-              aside={line ? `season ${line.games} G` : undefined}
-            >
-              <GameTable card={card} played={played} />
-              <p className="pc-swipe small muted">Swipe for all categories</p>
-            </Section>
+            <GameLog card={card} played={played} lastSeason={lastSeason} />
           </>
         )}
 
@@ -794,7 +795,79 @@ function MinutesChart({ games, average: avg }: { games: PlayerGame[]; average: n
   )
 }
 
-function GameTable({ card, played }: { card: Card; played: PlayerGame[] }) {
+/** Where the garbage-time rule is open: the key by the heading, under one game's band, or under the log. */
+type Explain = 'key' | 'foot' | number | null
+
+/**
+ * The game log section. Games that went to garbage time carry a sunken band under their row; the key
+ * by the heading, any band's label and the tally under the log all open the rule in plain words.
+ */
+function GameLog({ card, played, lastSeason }: { card: Card; played: PlayerGame[]; lastSeason: boolean }) {
+  const line = card.season_line
+  const [explain, setExplain] = useState<Explain>(null)
+  const toggle = (at: Explain) => setExplain((o) => (o === at ? null : at))
+  const tally = garbageTally(played)
+  const has = tally.games > 0
+  return (
+    <Section
+      id="pc-games-title"
+      title={lastSeason ? 'Game log · last season' : 'Game log'}
+      aside={
+        has || line ? (
+          <>
+            {has && (
+              <button
+                type="button"
+                className="pc-gt-key"
+                aria-expanded={explain === 'key'}
+                aria-controls="pc-gt-x-key"
+                title="What garbage time means"
+                onClick={() => toggle('key')}
+              >
+                <GarbageStamp />
+                <span className="pc-gt-key-word">Garbage time</span>
+                <span className="sr-only">: what it means</span>
+              </button>
+            )}
+            {line && <span>season {line.games} G</span>}
+          </>
+        ) : undefined
+      }
+    >
+      {has && explain === 'key' && <GarbageExplainer id="pc-gt-x-key" tally={tally} />}
+      <GameTable card={card} played={played} explain={explain} onExplain={toggle} />
+      <p className="pc-swipe small muted">Swipe for all categories</p>
+      {has && (
+        <div className="pc-gt-foot">
+          <button
+            type="button"
+            className="pc-gt-foot-btn"
+            aria-expanded={explain === 'foot'}
+            aria-controls="pc-gt-x-foot"
+            onClick={() => toggle('foot')}
+          >
+            <GarbageStamp />
+            <span className="pc-gt-foot-text">{tallyText(tally)}.</span>
+            <span className="pc-gt-what">What's this?</span>
+          </button>
+          {explain === 'foot' && <GarbageExplainer id="pc-gt-x-foot" />}
+        </div>
+      )}
+    </Section>
+  )
+}
+
+function GameTable({
+  card,
+  played,
+  explain,
+  onExplain,
+}: {
+  card: Card
+  played: PlayerGame[]
+  explain: Explain
+  onExplain: (at: Explain) => void
+}) {
   const line = card.season_line
   const base = line?.per_game ?? average(played)
   return (
@@ -834,28 +907,48 @@ function GameTable({ card, played }: { card: Card; played: PlayerGame[] }) {
               })}
             </tr>
           )}
-          {card.games.map((g) =>
-            g.played === false ? (
-              <MissedRow key={g.game_id} game={g} />
-            ) : (
-              <GameRow key={g.game_id} game={g} base={base} />
-            ),
-          )}
+          {card.games.map((g) => {
+            if (g.played === false) return <MissedRow key={g.game_id} game={g} />
+            const gt = garbageTime(g)
+            if (!gt) return <GameRow key={g.game_id} game={g} base={base} />
+            const open = explain === g.game_id
+            return (
+              <Fragment key={g.game_id}>
+                <GameRow game={g} base={base} decided />
+                <GarbageRow game={g} garbage={gt} open={open} onExplain={() => onExplain(g.game_id)} />
+                {open && (
+                  <tr className="pc-gt-explain-row">
+                    <td colSpan={STAT_COLUMNS.length + 1}>
+                      <GarbageExplainer id={`pc-gt-x-${g.game_id}`} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
 }
 
-function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }) {
+function GameRow({ game: g, base, decided }: { game: PlayerGame; base: GameStats | null; decided?: boolean }) {
   const s = g.stats
+  // With a final score the tinted score says who won; the W/L tile only stands in until it is known.
+  const scored = finalScore(g) != null
   return (
-    <tr>
+    <tr className={decided ? 'pc-decided' : undefined}>
       <th scope="row" className="pc-first">
-        <span className="pc-game">
-          <GameResult won={g.won} />
-          <span className="pc-date">{gameDate(g.date)}</span>
-          <Opponent game={g} size={22} />
+        <span className={scored ? 'pc-game pc-game-scored' : 'pc-game'}>
+          {!scored && <GameResult won={g.won} />}
+          {scored && <DateStack iso={g.date} />}
+          <span className="pc-game-text">
+            <span className="pc-game-top">
+              {!scored && <span className="pc-date">{gameDate(g.date)}</span>}
+              <Opponent game={g} size={22} />
+            </span>
+            <Scoreline game={g} />
+          </span>
         </span>
       </th>
       {STAT_COLUMNS.map((k) => {
@@ -873,6 +966,153 @@ function GameRow({ game: g, base }: { game: PlayerGame; base: GameStats | null }
   )
 }
 
+/** The date set upright, month over day, so the opponent and score get the width. */
+function DateStack({ iso }: { iso: string | null | undefined }) {
+  const [month, day] = gameDate(iso).split(' ')
+  if (!day) return <span className="pc-date">{month}</span>
+  return (
+    <span className="pc-cal">
+      <span className="pc-cal-m">{month}</span>
+      <span className="pc-cal-d">{day}</span>
+    </span>
+  )
+}
+
+/** The final score under the date: his team's score first and brighter, the opponent's quieter. */
+function Scoreline({ game: g }: { game: PlayerGame }) {
+  const sc = finalScore(g)
+  if (!sc) return null
+  return (
+    <span
+      className={`pc-score${g.won == null ? '' : g.won ? ' pc-score-w' : ' pc-score-l'}`}
+      title={`Final: ${sc.team}–${sc.opp}`}
+    >
+      <span aria-hidden="true">
+        <span className="pc-score-us">{sc.team}</span>
+        <span className="pc-score-dash">–</span>
+        <span className="pc-score-them">{sc.opp}</span>
+      </span>
+      <span className="sr-only">, {scoreWords(g)}</span>
+    </span>
+  )
+}
+
+/**
+ * The hourglass stamp: cut from the same tile as the W/L stamp, sand run out to the bottom. It sits in
+ * the result column under the W/L tile, so a decided game reads top to bottom: result, then decided.
+ */
+function GarbageStamp() {
+  return (
+    <svg className="pc-gt-stamp" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
+      <rect className="pc-gt-stamp-tile" x=".5" y=".5" width="15" height="15" rx="4" />
+      <path className="pc-gt-stamp-glass" d="M5 4.1h6M5 11.9h6M5.9 4.1C5.9 6.6 8 6.9 8 8s-2.1 1.4-2.1 3.9M10.1 4.1C10.1 6.6 8 6.9 8 8s2.1 1.4 2.1 3.9" />
+      <path className="pc-gt-stamp-sand" d="M8 9.2c-.5.5-1.6 1-1.75 2.1h3.5C9.6 10.2 8.5 9.7 8 9.2z" />
+    </svg>
+  )
+}
+
+/**
+ * The lower deck of a game that went to garbage time: a sunken band right under its row, the numbers
+ * in the same columns, so "12 over 12" reads as "all of it came after the game was decided". The
+ * label opens the rule; its tap area reaches up into the game row.
+ */
+function GarbageRow({
+  game: g,
+  garbage: gt,
+  open,
+  onExplain,
+}: {
+  game: PlayerGame
+  garbage: GarbageNight
+  open: boolean
+  onExplain: () => void
+}) {
+  const s = gt.stats
+  const why = decidedWhy(g)
+  const none = <span className="sr-only">none</span>
+  return (
+    <tr className="pc-gt">
+      <th scope="row" className="pc-first">
+        <button
+          type="button"
+          className="pc-gt-label"
+          aria-expanded={open}
+          aria-controls={`pc-gt-x-${g.game_id}`}
+          onClick={onExplain}
+          title={`${why ? `${why} ` : ''}Tap for the rule.`}
+        >
+          <GarbageStamp />
+          <span className="pc-gt-word" aria-hidden="true">
+            Garbage time
+          </span>
+          <span className="pc-gt-share" aria-hidden="true">
+            {shareLabel(gt.share)}
+          </span>
+          <span className="sr-only">
+            {`${gameDate(g.date)}, garbage time: ${minutesText(gt.minutes)} of ${minutesText(g.stats.minutes)} minutes`}
+          </span>
+        </button>
+      </th>
+      {STAT_COLUMNS.map((k) => {
+        if (k === 'MIN') return <td key={k}>{minutesText(gt.minutes)}</td>
+        if (k === 'FG' || k === 'FT') {
+          const [m, a] = k === 'FG' ? [s.fgm, s.fga] : [s.ftm, s.fta]
+          return <td key={k}>{a > 0 ? `${m}/${a}` : none}</td>
+        }
+        const cat = catOf(k)
+        const v = cat ? s[cat.key] : 0
+        return <td key={k}>{v > 0 ? v : none}</td>
+      })}
+    </tr>
+  )
+}
+
+const GT_STEPS = [
+  { lead: '25+', when: '12–9', unit: 'min left', words: 'with 12 to 9 minutes left' },
+  { lead: '20+', when: '9–6', unit: 'min left', words: 'with 9 to 6 minutes left' },
+  { lead: '10+', when: 'last 6', unit: 'min', words: 'in the last 6 minutes' },
+]
+
+/**
+ * The rule in plain words. The three leads step down as the clock runs out, set as a small staircase
+ * of numbers; then what it means for a fantasy manager, and, from the key, this stretch's tally.
+ */
+function GarbageExplainer({ id, tally }: { id: string; tally?: GarbageTally }) {
+  return (
+    <div id={id} className="pc-gt-explain" role="note">
+      <p className="pc-gt-explain-lead">Garbage time is the part of a game that was already decided.</p>
+      <div className="pc-gt-rule">
+        <p>In the 4th quarter, one team leads by</p>
+        <ol className="pc-gt-steps">
+          {GT_STEPS.map((st) => (
+            <li key={st.lead}>
+              <span className="pc-gt-step-lead">{st.lead}</span>
+              <span className="pc-gt-step-when" aria-hidden="true">
+                {st.when} <span className="pc-gt-nw">{st.unit}</span>
+              </span>
+              <span className="sr-only"> {st.words}</span>
+            </li>
+          ))}
+        </ol>
+        <p>and two or fewer starters are on the floor.</p>
+      </div>
+      <p className="pc-gt-explain-worth">
+        These stats still count in your league. They just say less about his next games: a point, assist or three is
+        worth about three quarters of a normal one, a steal next to nothing.
+      </p>
+      <p className="pc-gt-explain-fine">Nights with under 2 minutes and no stats in garbage time aren't marked.</p>
+      {tally && tally.games > 0 && (
+        <p className="pc-gt-explain-tally">
+          <GarbageStamp />
+          <span>
+            {tallyText(tally)}, in {tally.games} of them.
+          </span>
+        </p>
+      )}
+    </div>
+  )
+}
+
 /**
  * A game his team played without him: the date and opponent, then one quiet band across the
  * stat columns. ESPN only knows why for the run of games since he last played (his current
@@ -884,7 +1124,6 @@ function MissedRow({ game: g }: { game: PlayerGame }) {
     <tr className="pc-missed">
       <th scope="row" className="pc-first">
         <span className="pc-game">
-          <span className="pc-result" aria-hidden="true" />
           <span className="pc-date">{gameDate(g.date)}</span>
           <Opponent game={g} size={22} />
         </span>

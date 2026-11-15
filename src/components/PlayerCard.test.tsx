@@ -4,9 +4,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlayerCard, PlayerGame, PlayerMove } from '../api/client'
 import {
   average,
+  finalScore,
   dealGroups,
   dealPlayers,
+  decidedWhy,
   formTiles,
+  garbageTally,
+  garbageTime,
+  minutesText,
+  scoreWords,
+  shareLabel,
+  tallyText,
   moveOthers,
   spotlight,
   withExtras,
@@ -126,6 +134,13 @@ describe('player card text', () => {
     expect(withExtras(base, undefined)).toBe(base)
     const full = withExtras(base, { news: [], names: { '5': 'Kyle Kuzma' } })
     expect(full.moves[0].others?.[0].name).toBe('Kyle Kuzma')
+
+    const withGames = withExtras(
+      { ...base, games: [game(12, { game_id: 7 }), game(8, { game_id: 8 })] },
+      { news: [], names: {}, games: { '7': { score: { team: 137, opp: 97 }, garbage: null } } },
+    )
+    expect(finalScore(withGames.games[0])).toEqual({ team: 137, opp: 97 })
+    expect(finalScore(withGames.games[1])).toBeNull()
   })
 
   it('lists everyone a deal moves once', () => {
@@ -362,5 +377,96 @@ describe('PlayerCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Nobody' }))
     expect(await screen.findByText('No such NBA player.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+})
+
+/** A game with the final score and his garbage-time line the server sends (not typed yet). */
+function decided(pts: number, minutes: number, gt: Partial<PlayerGame['stats']>, extra: Partial<PlayerGame> = {}) {
+  const g = game(pts, { won: true, ...extra })
+  const zero = { minutes: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0, fgm: 0, fga: 0, ftm: 0, fta: 0 }
+  return {
+    ...g,
+    stats: { ...g.stats, minutes },
+    score: { team: 137, opp: 97 },
+    garbage: { ...zero, ...gt },
+  } as PlayerGame
+}
+
+describe('garbage time', () => {
+  it('marks a night only when garbage time had a stat, a shot or two-plus minutes', () => {
+    expect(garbageTime(game(10))).toBeNull() // no line from the server
+    expect(garbageTime(decided(3, 10, { minutes: 1 }))).toBeNull() // a minute of mop-up, nothing in it
+    expect(garbageTime(decided(4, 16, { minutes: 1.4 }))).toBeNull()
+    expect(garbageTime(decided(0, 3, { minutes: 3.3, ast: 2 }))).toEqual(
+      expect.objectContaining({ minutes: 3, share: 1 }), // never more than his line
+    )
+    expect(garbageTime(decided(0, 5, { minutes: 3 }))?.share).toBeCloseTo(0.6)
+    expect(garbageTime(decided(9, 16, { minutes: 0.5, fga: 1 }))).not.toBeNull()
+  })
+
+  it('says the share, the minutes, the score and why in plain words', () => {
+    expect(shareLabel(0.967)).toBe('all')
+    expect(shareLabel(0.93)).toBe('93%')
+    expect(shareLabel(0.2)).toBe('20%')
+    expect(minutesText(7.8)).toBe('7.8')
+    expect(minutesText(3)).toBe('3')
+    const g = decided(12, 9, { minutes: 8.7, pts: 12 })
+    expect(scoreWords(g)).toBe('Won 137 to 97')
+    expect(decidedWhy(g)).toBe('Won by 40, so the starters sat.')
+    expect(scoreWords({ ...g, won: false, score: { team: 114, opp: 137 } } as PlayerGame)).toBe('Lost 114 to 137')
+    expect(decidedWhy({ ...g, score: { team: 114, opp: 137 } } as PlayerGame)).toBe('Lost by 23, so the starters sat.')
+    expect(scoreWords(game(3))).toBeNull()
+  })
+
+  it('tallies the points that came after the game was decided', () => {
+    const games = [
+      decided(12, 9, { minutes: 8.7, pts: 12 }),
+      decided(9, 16, { minutes: 3.2, pts: 2 }),
+      decided(3, 10, { minutes: 1, pts: 0 }), // not marked, not counted
+      game(24),
+    ]
+    const t = garbageTally(games)
+    expect(t).toEqual({ games: 2, played: 4, pts: 14, allPts: 48 })
+    expect(tallyText(t)).toBe('14 of his 48 pts in these 4 games came after the game was decided')
+  })
+
+  it('puts a band under a decided game, with the rule one tap away', async () => {
+    const games = [
+      decided(12, 9, { minutes: 8.7, pts: 12, ast: 3, fgm: 4, fga: 4 }, { game_id: 11, date: '2025-11-08T00:30:00Z' }),
+      decided(3, 10, { minutes: 1 }, { game_id: 12 }),
+      game(19, { game_id: 13 }),
+    ]
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
+      String(url).endsWith('/extras')
+        ? new Response(JSON.stringify({ news: [], names: {} }), { status: 200 })
+        : new Response(JSON.stringify({ ...card, games, news: [] }), { status: 200 }),
+    )
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    await within(dialog).findByText('Form · last 3 games')
+
+    // The score reads as words; only the night with something in garbage time gets a band.
+    expect(within(dialog).getAllByText(', Won 137 to 97').length).toBe(2)
+    const bands = [...dialog.querySelectorAll('.pc-table tr.pc-gt')]
+    expect(bands.length).toBe(1)
+    const label = within(bands[0] as HTMLElement).getByRole('button', {
+      name: 'Nov 7, garbage time: 8.7 of 9 minutes',
+    })
+    expect(label).toHaveAttribute('title', 'Won by 40, so the starters sat. Tap for the rule.')
+    const cells = [...bands[0].querySelectorAll('td')].map((td) => td.textContent)
+    expect(cells).toEqual(['8.7', '4/4', 'none', 'none', 'none', '3', 'none', 'none', 'none', '12'])
+
+    // The band's label opens the rule right under it; the key by the heading opens it at the top.
+    fireEvent.click(label)
+    expect(label).toHaveAttribute('aria-expanded', 'true')
+    expect(within(dialog).getByRole('note')).toHaveTextContent('already decided')
+    const key = within(dialog).getByRole('button', { name: 'Garbage time: what it means' })
+    fireEvent.click(key)
+    expect(label).toHaveAttribute('aria-expanded', 'false')
+    expect(within(dialog).getByRole('note')).toHaveTextContent(
+      '12 of his 34 pts in these 3 games came after the game was decided, in 1 of them.',
+    )
+    expect(within(dialog).getByRole('button', { name: /What's this\?/ })).toBeInTheDocument()
   })
 })
