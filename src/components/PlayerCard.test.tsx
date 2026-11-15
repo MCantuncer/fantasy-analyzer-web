@@ -254,6 +254,43 @@ describe('PlayerCard hot run', () => {
   })
 })
 
+describe('PlayerCard next game', () => {
+  // Can, 2026-11-15: "How will I check the big players' calculated stats?" Every card shows the line.
+  const next_game = {
+    minutes: 33.4, pts: 31.7, reb: 7.0, ast: 7.4, stl: 1.5, blk: 0.4, three_pm: 3.6, to: 3.6,
+    fgm: 10.6, fga: 22.5, ftm: 6.9, fta: 8.6, fg_pct: 0.471, ft_pct: 0.802,
+  }
+  const serve = (extras: object) =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
+      String(url).endsWith('/extras')
+        ? new Response(JSON.stringify({ news: card.news, names: {}, ...extras }), { status: 200 })
+        : new Response(JSON.stringify({ ...card, news: [] }), { status: 200 }),
+    )
+
+  it('shows his next-game line first, one number per stat, once the extras land', async () => {
+    serve({ next_game })
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    const head = await within(dialog).findByText('Next game')
+    const form = within(dialog).getByText('Form · last 3 games')
+    expect(head.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const nums = [...dialog.querySelectorAll('.ng-single .ng-nums td')].map((td) => td.textContent)
+    expect(nums).toEqual(['33', '.471', '.802', '4', '7', '7', '2', '0', '4', '32'])
+    expect(dialog.querySelector('.ng-single [data-win]')).toBeNull()
+    expect(within(dialog).getByText('A usual night, not a promise')).toBeInTheDocument()
+  })
+
+  it('has no next-game section while he has no line', async () => {
+    serve({ next_game: null })
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    await within(dialog).findByRole('tab', { name: /News, \d+ stor/ }) // the extras have landed
+    expect(within(dialog).queryByText('Next game')).toBeNull()
+  })
+})
+
 describe('PlayerCard', () => {
   it('opens from a name with games, health, news and moves, and closes on Escape', async () => {
     let releaseNews = () => {}

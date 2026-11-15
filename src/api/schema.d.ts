@@ -3138,6 +3138,8 @@ export interface components {
             games?: {
                 [key: string]: components["schemas"]["GameNote"];
             };
+            /** @description His line for his next game, as FA Targets shows it; none while he is out or when this league doesn't list him */
+            next_game?: components["schemas"]["NextGameLine"] | null;
         };
         /** PlayerCardRequest */
         PlayerCardRequest: {

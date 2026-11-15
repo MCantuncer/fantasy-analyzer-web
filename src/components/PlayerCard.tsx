@@ -21,7 +21,7 @@ import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } fr
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
-import type { GameStats, LeagueRef, PlayerCard as Card, PlayerGame, PlayerNews } from '../api/client'
+import type { GameStats, LeagueRef, PlayerCard as Card, PlayerCardExtras, PlayerGame, PlayerNews } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { KIND_LABEL, ago, statusText } from '../lib/news'
 import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
@@ -54,6 +54,7 @@ import type { FormTile, GarbageNight, GarbageTally } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
+import { NextGameLine } from './NextGameLine'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
 import { ratioPct } from '../lib/shooting'
@@ -383,6 +384,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
               myTeamId={myTeamId}
               news={extras.isFetching && !extras.data ? 'loading' : extras.isError ? 'failed' : 'ready'}
               onRetryNews={() => void extras.refetch()}
+              nextGame={extras.data?.next_game ?? null}
               tab={tab}
               onTab={setTab}
             />
@@ -413,6 +415,8 @@ interface BodyProps {
   /** News arrives after the rest of the card. */
   news: 'loading' | 'ready' | 'failed'
   onRetryNews: () => void
+  /** His line for his next game, with the news; none while he is out. */
+  nextGame: PlayerCardExtras['next_game']
   tab: CardTab
   onTab: (tab: CardTab) => void
 }
@@ -444,7 +448,7 @@ function Section({
   )
 }
 
-function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab }: BodyProps) {
+function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, tab, onTab }: BodyProps) {
   const now = new Date()
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
@@ -491,6 +495,12 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
             <CaretRight className="pc-injury-go" size={16} weight="bold" aria-hidden="true" />
             <span className="sr-only"> · Open his news</span>
           </button>
+        )}
+
+        {nextGame && (
+          <Section id="pc-next-title" title="Next game">
+            <NextGameLine line={nextGame} />
+          </Section>
         )}
 
         {!card.games.length && !line ? (
