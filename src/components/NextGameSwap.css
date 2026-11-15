@@ -209,3 +209,38 @@ button.ng-who:focus-visible {
   }
 
 }
+
+/* The player card's one line (NextGameLine): no one to compare with, so every number in ink, a
+   touch larger, and the plain card surface under it. */
+.ng-single {
+  background: var(--surface-2);
+}
+
+.ng-single .ng-nums td {
+  padding-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ng-single .ng-foot {
+  margin-top: 8px;
+}
+
+/* The card is narrower than an FA row on phones: a little less side padding and slimmer
+   percentage columns, so the 3PM and REB heads keep a gap at 360px. */
+.ng-single {
+  padding-inline: 10px;
+}
+
+.ng-single .ng-table col {
+  width: 9.125%;
+}
+
+.ng-single .ng-table col.ng-col-pct {
+  width: 13.5%;
+}
+
+.ng-single .ng-table thead th {
+  letter-spacing: 0;
+}
