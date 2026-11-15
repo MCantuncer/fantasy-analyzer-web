@@ -1123,8 +1123,8 @@ function MissedRow({ game: g }: { game: PlayerGame }) {
   return (
     <tr className="pc-missed">
       <th scope="row" className="pc-first">
-        <span className="pc-game">
-          <span className="pc-date">{gameDate(g.date)}</span>
+        <span className="pc-game pc-game-scored">
+          <DateStack iso={g.date} />
           <Opponent game={g} size={22} />
         </span>
       </th>
