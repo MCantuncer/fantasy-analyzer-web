@@ -43,11 +43,6 @@
   color: var(--text-2);
 }
 
-/* Categories keeps the drawn C as its capital: the typed C only holds its room. */
-.court-mark .w.keep b {
-  visibility: hidden;
-}
-
 .court-mark .w .tail {
   display: inline-block; /* so the open can slide it */
 }
@@ -104,13 +99,7 @@
   visibility: hidden;
 }
 
-.court-mark .L.keep.pending,
-.court-mark .L.keep.running {
-  color: var(--faint); /* the drawn C is the capital of Categories, so it follows the word */
-}
-
-.court-mark .w.running,
-.court-mark .L.keep.running {
+.court-mark .w.running {
   animation: court-breathe 1.4s ease-in-out infinite;
 }
 
@@ -126,8 +115,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .court-loading.breathing .court-mark,
-  .court-mark .w.running,
-  .court-mark .L.keep.running {
+  .court-mark .w.running {
     animation: none;
   }
 }

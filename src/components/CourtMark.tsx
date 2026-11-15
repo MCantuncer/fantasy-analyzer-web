@@ -5,8 +5,9 @@ import './CourtMark.css'
 
 /*
  * The COURT mark. At rest it is the folded CT ball on every screen (rest="closed" shows the COURT wordmark, and
- * "auto" picks the wordmark on wide screens). open() expands the ball: C and T pull apart, the bar breaks into
- * five floors and Categories, Odds, Upgrades, Rosters, Trades stand on them; close() folds it back. Drawing and
+ * "auto" picks the wordmark on wide screens). open() expands the ball: the C's five big seam pieces fly out and
+ * land as the floors under Categories, Odds, Upgrades, Rosters, Trades, then a plain C fades in; close() reels
+ * the floors back into the ball. Drawing and
  * motion live in lib/courtSpan.ts. Decorative: the button around it carries the accessible name.
  */
 
