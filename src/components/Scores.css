@@ -338,8 +338,9 @@
 }
 
 /* ---------- Game Night: game cards ----------
-   A game you or your rival have players in lifts off the page and its club logos glow in their team
-   colour; faces carry a ring (gold yours, rival colour theirs). A started game with neither sits
+   A game you or your rival have players in lifts off the page; faces carry a ring (gold yours, rival
+   colour theirs). Logos sit plain: the club-colour halo behind them read as nightclub light (Can,
+   2026-11-15). A started game with neither sits
    back: flat, grey logos, "Not in your matchup". The winning score gets a small caret. */
 .game-grid .game-card.stake {
   border-color: transparent;
@@ -387,45 +388,6 @@
 
 .game-cold {
   font-size: 12px;
-}
-
-.team-logo-slot.halo {
-  position: relative;
-}
-
-.team-logo-slot.halo::before {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--tl) var(--halo-a), transparent) 0%,
-    color-mix(in srgb, var(--tl) calc(var(--halo-a) * 0.35), transparent) 38%,
-    transparent 66%
-  );
-  pointer-events: none;
-}
-
-.team-logo-slot.halo > * {
-  position: relative;
-}
-
-/* Dark theme: a dark logo (Jazz, Kings, Grizzlies, Hornets...) sank into its own glow, dark purple on
-   purple (Can, 2026-11-11). The club light now rings the logo instead of sitting under it, and a soft
-   warm rim traces the logo's own shape, so every mark stands off the espresso card. */
-:root:not([data-theme='light']) .team-logo-slot.halo::before {
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--tl) 8%, transparent) 0%,
-    color-mix(in srgb, var(--tl) calc(var(--halo-a) * 0.8), transparent) 32%,
-    color-mix(in srgb, var(--tl) calc(var(--halo-a) * 0.32), transparent) 48%,
-    transparent 66%
-  );
-}
-
-:root:not([data-theme='light']) .team-logo-slot.halo img {
-  filter: drop-shadow(0 0 0.6px rgb(255 244 230 / 0.75)) drop-shadow(0 0 3px rgb(255 244 230 / 0.22));
 }
 
 .game-faces {
