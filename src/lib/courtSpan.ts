@@ -164,14 +164,17 @@ export const T = {
   C_AT: 385, // the new plain C fades in left to right once "ategories" is mostly up
   C_DUR: 425,
   VEIL: 100,
-  CLOSE: 240,
+  CLOSE: 240, // the close's choreography; it plays CLOSE_PACE times slower
   CLOSE_W: 75,
   INTENT: 140,
+  LEAVE: 260, // the mouse may slip off the open row this long before it folds back
   HOLD: 700,
 }
 const LAND = T.FLIGHT.map((f) => T.LAUNCH + f)
 export const OPEN_TOTAL = Math.max(LAND[4] + 10 + T.TAIL, T.C_AT + T.C_DUR, T.T_SWAP + T.T_SWAP_DUR) // 810
-export const CLOSE_TOTAL = T.CLOSE
+// Closing is unhurried, so leaving the logo doesn't feel like it snaps shut on you.
+const CLOSE_PACE = 1.6
+export const CLOSE_TOTAL = Math.round(T.CLOSE * CLOSE_PACE) // 384
 
 /** Close: when each floor has reeled into the C (Categories first), and how long its arc takes to click home. */
 const REEL = [128, 138, 148, 156, 164]
@@ -972,6 +975,13 @@ export function animateSpan(span: Span, from: SpanState, to: SpanState): Animati
       add(span.L[0], [{ opacity: 0 }, { offset: 0.5, opacity: 0 }, { opacity: 1 }], o(0, C))
       add(span.veil, [{ opacity: 1 }, { opacity: 0 }], o(110, C - 110, 'ease-in'))
     }
+    // The choreography above is drawn on a 240ms clock; play all of it CLOSE_PACE times slower.
+    A.forEach((a) => {
+      const fx = a.effect
+      if (!fx) return
+      const t = fx.getTiming()
+      fx.updateTiming({ delay: (Number(t.delay) || 0) * CLOSE_PACE, duration: (Number(t.duration) || 0) * CLOSE_PACE })
+    })
   }
   span.anims = A
   return A

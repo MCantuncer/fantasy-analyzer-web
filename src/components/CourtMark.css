@@ -66,6 +66,14 @@
   background: linear-gradient(90deg, var(--topbar) calc(100% - 40px), transparent);
 }
 
+/* With a mouse, the open row is part of the logo: moving onto the words keeps them open, and a click there goes
+   home like the logo. On touch it stays see-through, so the switcher can be tapped as soon as the row folds. */
+@media (hover: hover) and (pointer: fine) {
+  .court-mark[data-state='open'] .veil {
+    pointer-events: auto;
+  }
+}
+
 /* Loading screen (CourtLoading): words still to come wait in --faint; the running one pulses. */
 .court-loading {
   min-width: 0;

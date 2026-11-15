@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { T } from '../lib/courtSpan'
 import { useCourtReveal } from '../lib/useCourtReveal'
 import { CourtMark, type CourtMarkHandle } from './CourtMark'
 
@@ -58,7 +59,7 @@ describe('CourtMark in the top bar', () => {
     expect(state(container)).toBe('folded')
   })
 
-  it('opens after a 140ms mouse rest and closes on leave', () => {
+  it('opens after a 140ms mouse rest and folds back a moment after the mouse leaves', () => {
     const { container } = render(<Brand onHome={() => {}} />)
     const button = screen.getByRole('button')
     fireEvent.pointerEnter(button, { pointerType: 'mouse' })
@@ -67,7 +68,24 @@ describe('CourtMark in the top bar', () => {
     act(() => vi.advanceTimersByTime(60))
     expect(state(container)).toBe('open')
     fireEvent.pointerLeave(button, { pointerType: 'mouse' })
+    expect(state(container)).toBe('open') // no snap shut
+    act(() => vi.advanceTimersByTime(T.LEAVE - 10))
+    expect(state(container)).toBe('open')
+    act(() => vi.advanceTimersByTime(10))
     expect(state(container)).toBe('folded')
+  })
+
+  it('stays open when the mouse comes back within the grace', () => {
+    const { container } = render(<Brand onHome={() => {}} />)
+    const button = screen.getByRole('button')
+    fireEvent.pointerEnter(button, { pointerType: 'mouse' })
+    act(() => vi.advanceTimersByTime(T.INTENT))
+    expect(state(container)).toBe('open')
+    fireEvent.pointerLeave(button, { pointerType: 'mouse' })
+    act(() => vi.advanceTimersByTime(T.LEAVE / 2))
+    fireEvent.pointerEnter(button, { pointerType: 'mouse' })
+    act(() => vi.advanceTimersByTime(T.LEAVE * 2))
+    expect(state(container)).toBe('open')
   })
 
   it('a passing touch does not open it, and Esc closes it', () => {
