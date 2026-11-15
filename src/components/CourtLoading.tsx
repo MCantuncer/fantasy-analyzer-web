@@ -13,7 +13,7 @@ import './CourtMark.css'
 
 /*
  * The loading screen's progress: COURT itself. While the server wakes, the ball breathes in a faint
- * ink. When the league arrives the ball expands and the words drop onto their floors, still faint; each word
+ * ink. When the league arrives the ball breaks and its pieces land as the floors, still faint; each word
  * turns solid when the part of the analysis it names is done. The running word pulses.
  */
 
@@ -66,7 +66,7 @@ export function CourtLoading({ waking, states }: { waking: boolean; states: Word
     }
   }, [sizeIx])
 
-  // The league arrived: break the rail and drop the words.
+  // The league arrived: the ball breaks and its pieces land as the floors under the words.
   useLayoutEffect(() => {
     const s = span.current
     if (!s || waking || opened.current) return
