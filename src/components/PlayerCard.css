@@ -770,6 +770,371 @@ table.pc-table {
   text-transform: uppercase;
 }
 
+/* ── Garbage time: "the lower deck" ──────────────────────────────────────────────────────────────
+   A game that went to garbage time gets a second, sunken line pressed in under its row: the numbers
+   that came after the game was decided, in the same columns. The game row is the lid; the band is
+   the tray under it, lit from above. Neutral espresso / cream, never an outcome colour: it is a
+   discount, not a verdict. Gold stays for you, live and focus. */
+.pc-sheet {
+  --pc-deck: color-mix(in srgb, var(--bg) 55%, var(--surface));
+  --pc-deck-shade: rgb(0 0 0 / 0.3);
+  --pc-stamp-tile: color-mix(in srgb, var(--muted) 10%, transparent);
+  --pc-stamp-edge: color-mix(in srgb, var(--muted) 42%, var(--surface));
+  --pc-stamp-ink: var(--muted);
+}
+
+:root[data-theme='light'] .pc-sheet {
+  --pc-deck: color-mix(in srgb, var(--raised) 62%, var(--surface));
+  --pc-deck-shade: rgb(70 45 20 / 0.13);
+  --pc-stamp-tile: color-mix(in srgb, var(--muted) 7%, transparent);
+  --pc-stamp-edge: color-mix(in srgb, var(--muted) 38%, var(--surface));
+}
+
+/* The night in the Game cell: date and opponent, then the final score on the same left edge. */
+.pc-table tbody .pc-game:has(.pc-game-text) {
+  align-items: flex-start;
+}
+
+.pc-game:has(.pc-game-text) > .pc-result {
+  margin-top: 2px;
+}
+
+.pc-game-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pc-game-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 19px;
+}
+
+/* His team's score first and brighter, the opponent's quieter: W/L is already in the tile. */
+.pc-score {
+  font: 400 12px/16px var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.pc-score-us {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.pc-score-dash {
+  padding: 0 1px;
+}
+
+/* The lid: a decided game hands its bottom edge to the band under it. */
+.pc-table tr.pc-decided > th,
+.pc-table tr.pc-decided > td {
+  border-bottom: 0;
+  padding-bottom: 6px;
+}
+
+/* The tray: about 28px, sunk under the game row, its shade falling from the lid above. */
+.pc-table tr.pc-gt > th,
+.pc-table tr.pc-gt > td {
+  padding-top: 5px;
+  padding-bottom: 6px;
+  background:
+    linear-gradient(to bottom, var(--pc-deck-shade), transparent 7px),
+    var(--pc-deck);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  vertical-align: middle;
+}
+
+.pc-gt-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 500 12px/16px var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 44px to the thumb without a taller band: the target reaches up over the score line above. */
+.pc-gt-label::after {
+  content: '';
+  position: absolute;
+  inset: -22px 0 -6px;
+}
+
+.pc-gt-label:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.pc-gt-label:hover .pc-gt-word,
+.pc-gt-label[aria-expanded='true'] .pc-gt-word {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* The share, the one number the eye should land on: "all" or "60%". */
+.pc-gt-share {
+  margin-left: 4px;
+  font: 700 12px/16px var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* The hourglass stamp, cut from the W/L tile: it sits in the result column, right under the tile. */
+.pc-gt-stamp {
+  flex: none;
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+
+.pc-gt-stamp-tile {
+  fill: var(--pc-stamp-tile);
+  stroke: var(--pc-stamp-edge);
+  stroke-width: 1;
+}
+
+.pc-gt-stamp-glass {
+  fill: none;
+  stroke: var(--pc-stamp-ink);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pc-gt-stamp-sand {
+  fill: var(--pc-stamp-ink);
+}
+
+/* The key by the heading: the stamp and its name, a legend you can open. */
+.pc-aside {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pc-gt-key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: center;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 500 12px/16px var(--font-ui);
+  cursor: pointer;
+}
+
+.pc-gt-key::after {
+  content: '';
+  position: absolute;
+  inset: -14px -6px;
+}
+
+.pc-gt-key-word {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--muted) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.pc-gt-key:hover,
+.pc-gt-key[aria-expanded='true'] {
+  color: var(--text);
+}
+
+.pc-gt-key:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* The rule, opened under a band: pinned to the visible part of the sideways scroller. */
+.pc-table tr.pc-gt-explain-row > td {
+  padding: 2px 0 12px;
+  background: var(--pc-deck);
+  text-align: left;
+  white-space: normal;
+}
+
+.pc-table tr.pc-gt-explain-row > td > .pc-gt-explain {
+  position: sticky;
+  left: 10px;
+  max-width: min(560px, calc(100vw - 56px));
+  margin: 0 10px;
+}
+
+.pc-gt-explain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 560px;
+  padding: 16px 18px 16px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font: 400 14px/1.45 var(--font-ui);
+  color: var(--text-2);
+  white-space: normal;
+}
+
+.pc-gt-explain p {
+  margin: 0;
+}
+
+.pc-gt-explain-lead {
+  max-width: 30ch;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.pc-gt-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The three leads as a staircase: the bar drops a step as the clock runs down. */
+.pc-gt-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pc-gt-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 10px 9px;
+  border-radius: 10px 10px 4px 4px;
+  background:
+    linear-gradient(to bottom, var(--pc-deck-shade), transparent 6px),
+    var(--pc-deck);
+}
+
+/* One floor, three treads: each step's top sits lower than the last. */
+.pc-gt-steps li:nth-child(1) {
+  padding-top: 26px;
+}
+
+.pc-gt-steps li:nth-child(2) {
+  padding-top: 18px;
+}
+
+.pc-gt-step-lead {
+  font: 650 22px/1.1 var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.pc-gt-step-when {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.pc-gt-nw {
+  white-space: nowrap;
+}
+
+.pc-gt-explain-fine {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pc-gt-explain-tally {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.pc-gt-explain-tally .pc-gt-stamp {
+  margin-top: 2px;
+}
+
+/* Under the log: the stretch's tally, the same sunken material as the bands. */
+.pc-gt-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pc-gt-foot-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  background:
+    linear-gradient(to bottom, var(--pc-deck-shade), transparent 6px),
+    var(--pc-deck);
+  color: var(--text-2);
+  font: 500 13px/1.35 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pc-gt-foot-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-gt-what {
+  flex: none;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.pc-gt-foot-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 /* Opponent logo with a small "@" or "vs" before it. */
 .pc-opp-logo {
   display: inline-flex;
@@ -1184,3 +1549,68 @@ a.pc-source:focus-visible {
   height: 132px;
   border-radius: var(--radius-row);
 }
+
+/* The score is the result: a softly rounded plate tinted by the outcome, his score first.
+   The numbers carry the result too (his score is the bigger one on a win), so it never rests on colour. */
+.pc-game-scored .pc-score {
+  --pc-w-edge: color-mix(in srgb, var(--good) 40%, var(--surface));
+  --pc-l-edge: color-mix(in srgb, var(--bad) 45%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+:root[data-theme='light'] .pc-game-scored .pc-score {
+  --pc-w-edge: color-mix(in srgb, var(--good) 45%, var(--surface));
+  --pc-l-edge: color-mix(in srgb, var(--bad) 45%, var(--surface));
+}
+.pc-game-scored .pc-score-w {
+  background: var(--good-soft);
+  box-shadow: inset 0 0 0 1px var(--pc-w-edge);
+}
+.pc-game-scored .pc-score-l {
+  background: var(--bad-soft);
+  box-shadow: inset 0 0 0 1px var(--pc-l-edge);
+}
+
+/* Date and opponent on top, the score plate centred under them. */
+.pc-game-scored .pc-game-text {
+  align-items: center;
+}
+
+/* The date stood upright: month small over the day, one fixed column so every row lines up. */
+.pc-cal {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  align-self: stretch;
+  line-height: 1;
+}
+.pc-cal-m {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pc-cal-d {
+  margin-top: 2px;
+  font: 600 12px/1 var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.pc-table tbody .pc-game-scored {
+  align-items: center;
+}
+.pc-game-scored .pc-game-top {
+  justify-content: center;
+}
+

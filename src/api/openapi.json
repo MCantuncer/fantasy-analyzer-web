@@ -3824,7 +3824,7 @@
     "/api/player-card/extras": {
       "post": {
         "summary": "Player Card Extras",
-        "description": "The part of a player card that may take longer: his news, and the names of who moved with him.",
+        "description": "The part of a player card that may take longer: his news, the names of who moved with him, and\neach finished game's final score and garbage-time line.",
         "operationId": "player_card_extras_api_player_card_extras_post",
         "parameters": [
           {
@@ -6046,6 +6046,55 @@
           "fta"
         ],
         "title": "GameLine"
+      },
+      "GameNote": {
+        "properties": {
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GameScore"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Final score, his team first"
+          },
+          "garbage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GameStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "His line in garbage time (4th quarter, lead of 25+ with 12-9 min left, 20+ with 9-6, 10+ under 6, two or fewer starters on the floor); all zeros when he had none; none when his line couldn't be rebuilt from the plays exactly"
+          }
+        },
+        "type": "object",
+        "title": "GameNote",
+        "description": "What ESPN's play-by-play adds to one finished game of his."
+      },
+      "GameScore": {
+        "properties": {
+          "team": {
+            "type": "integer",
+            "title": "Team",
+            "description": "His team's final score"
+          },
+          "opp": {
+            "type": "integer",
+            "title": "Opp",
+            "description": "The other team's final score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "team",
+          "opp"
+        ],
+        "title": "GameScore"
       },
       "GameSide": {
         "properties": {
@@ -8505,6 +8554,14 @@
             "type": "object",
             "title": "Names",
             "description": "Names of the other players in his moves, by player id"
+          },
+          "games": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/GameNote"
+            },
+            "type": "object",
+            "title": "Games",
+            "description": "Final score and garbage-time line of his finished games, by game id"
           }
         },
         "type": "object",

@@ -971,7 +971,8 @@ export interface paths {
         put?: never;
         /**
          * Player Card Extras
-         * @description The part of a player card that may take longer: his news, and the names of who moved with him.
+         * @description The part of a player card that may take longer: his news, the names of who moved with him, and
+         *     each finished game's final score and garbage-time line.
          */
         post: operations["player_card_extras_api_player_card_extras_post"];
         delete?: never;
@@ -1849,6 +1850,29 @@ export interface components {
              * @description On the floor right now; set only while the game is live and ESPN says
              */
             on_court?: boolean | null;
+        };
+        /**
+         * GameNote
+         * @description What ESPN's play-by-play adds to one finished game of his.
+         */
+        GameNote: {
+            /** @description Final score, his team first */
+            score?: components["schemas"]["GameScore"] | null;
+            /** @description His line in garbage time (4th quarter, lead of 25+ with 12-9 min left, 20+ with 9-6, 10+ under 6, two or fewer starters on the floor); all zeros when he had none; none when his line couldn't be rebuilt from the plays exactly */
+            garbage?: components["schemas"]["GameStats"] | null;
+        };
+        /** GameScore */
+        GameScore: {
+            /**
+             * Team
+             * @description His team's final score
+             */
+            team: number;
+            /**
+             * Opp
+             * @description The other team's final score
+             */
+            opp: number;
         };
         /** GameSide */
         GameSide: {
@@ -2998,6 +3022,13 @@ export interface components {
              */
             names: {
                 [key: string]: string;
+            };
+            /**
+             * Games
+             * @description Final score and garbage-time line of his finished games, by game id
+             */
+            games?: {
+                [key: string]: components["schemas"]["GameNote"];
             };
         };
         /** PlayerCardRequest */

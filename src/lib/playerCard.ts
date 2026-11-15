@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { GameStats, PlayerCard, PlayerCardExtras, PlayerGame, PlayerMove } from '../api/client'
+import type { GameNote, GameStats, PlayerCard, PlayerCardExtras, PlayerGame, PlayerMove } from '../api/client'
 
 /** Enough to open a player's card: the name shows while the rest loads. */
 export interface CardPlayer {
@@ -235,16 +235,117 @@ export function formTiles(
   return tiles
 }
 
-/** The card with the extras filled in once they arrive: his news, and the names of who moved with him. */
+/**
+ * The card with the extras filled in once they arrive: his news, the names of who moved with him,
+ * and each finished game's final score and garbage-time line.
+ */
 export function withExtras(card: PlayerCard, extras: PlayerCardExtras | undefined): PlayerCard {
   if (!extras) return card
   const names = extras.names
+  const notes = extras.games ?? {}
   return {
     ...card,
     news: extras.news,
+    games: card.games.map((g) => {
+      const note = notes[String(g.game_id)]
+      return note ? ({ ...g, ...note } as PlayerGame & GameNight) : g
+    }),
     moves: card.moves.map((m) => ({
       ...m,
       others: (m.others ?? []).map((o) => (o.name ? o : { ...o, name: names[String(o.player_id)] ?? '' })),
     })),
   }
+}
+
+/**
+ * A game's final score and his garbage-time line. They come with the card's extras (`withExtras`
+ * puts them on the game), so everything below reads them through `nightOf`.
+ */
+export type GameNight = GameNote
+
+const nightOf = (g: PlayerGame): GameNight => g as PlayerGame & GameNight
+
+/** His team's final score first, or null before the game is over or when the server has none. */
+export function finalScore(g: PlayerGame): { team: number; opp: number } | null {
+  return nightOf(g).score ?? null
+}
+
+/** The final score in words, for screen readers and hover: "Won 137 to 97". */
+export function scoreWords(g: PlayerGame): string | null {
+  const sc = finalScore(g)
+  if (!sc) return null
+  const verb = g.won == null ? 'Final' : g.won ? 'Won' : 'Lost'
+  return `${verb} ${sc.team} to ${sc.opp}`
+}
+
+export interface GarbageNight {
+  /** His stats in garbage time. */
+  stats: GameStats
+  /** His garbage-time minutes, never more than the minutes in his line. */
+  minutes: number
+  /** Share of his minutes, 0 to 1. */
+  share: number
+}
+
+const GT_COUNTS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fga', 'fta'] as const
+
+/**
+ * His garbage time in one game, when it's worth a line in the log: any stat or shot in it, or two
+ * minutes or more. A minute of mop-up with an empty line says nothing, so it stays off.
+ */
+export function garbageTime(g: PlayerGame): GarbageNight | null {
+  const gt = nightOf(g).garbage
+  if (!gt || gt.minutes <= 0) return null
+  if (!GT_COUNTS.some((k) => gt[k] > 0) && gt.minutes < 2) return null
+  const minutes = g.stats.minutes > 0 ? Math.min(gt.minutes, g.stats.minutes) : gt.minutes
+  const share = g.stats.minutes > 0 ? minutes / g.stats.minutes : 1
+  return { stats: gt, minutes, share }
+}
+
+/** "all" when (nearly) his whole night came after the game was decided, otherwise "60%". */
+export function shareLabel(share: number): string {
+  return share >= 0.95 ? 'all' : `${Math.round(share * 100)}%`
+}
+
+/** Minutes to one decimal, whole minutes without it: "7.8", "3". */
+export function minutesText(m: number): string {
+  return Math.abs(m - Math.round(m)) < 0.05 ? String(Math.round(m)) : m.toFixed(1)
+}
+
+/** Why a game got there, in one line: "Won by 40, so the starters sat." */
+export function decidedWhy(g: PlayerGame): string | null {
+  const sc = finalScore(g)
+  if (!sc || sc.team === sc.opp) return null
+  const m = sc.team - sc.opp
+  return `${m > 0 ? 'Won' : 'Lost'} by ${Math.abs(m)}, so the starters sat.`
+}
+
+export interface GarbageTally {
+  /** Games with a garbage-time line, of the games he played. */
+  games: number
+  played: number
+  pts: number
+  allPts: number
+}
+
+/** How much of this stretch came after the game was decided. */
+export function garbageTally(played: PlayerGame[]): GarbageTally {
+  let games = 0
+  let pts = 0
+  let allPts = 0
+  for (const g of played) {
+    allPts += g.stats.pts
+    const gt = garbageTime(g)
+    if (gt) {
+      games += 1
+      pts += gt.stats.pts
+    }
+  }
+  return { games, played: played.length, pts, allPts }
+}
+
+/** The tally as a sentence: "20 of his 47 pts in these 10 games came after the game was decided". */
+export function tallyText(t: GarbageTally): string {
+  const games = t.played === 1 ? 'this game' : `these ${t.played} games`
+  return `${t.pts} of his ${t.allPts} pts in ${games} came after the game was decided`
 }

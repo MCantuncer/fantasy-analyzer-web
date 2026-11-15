@@ -63,6 +63,19 @@
     padding: 10px 8px;
   }
 
+  /* Garbage-time band: the stamp steps out so the label fits the date line's width, and the Game
+     column keeps every pixel it had. The word starts at the W/L tile's edge, like "Season avg". */
+  .pc-gt-label > .pc-gt-stamp {
+    display: none;
+  }
+
+  /* The band keeps its own height (about 28px); the phone cell padding is for game rows. */
+  .pc-table tr.pc-gt > th,
+  .pc-table tr.pc-gt > td {
+    padding-top: 5px;
+    padding-bottom: 6px;
+  }
+
   /* Eleven columns don't fit: say the rest are a swipe away. */
   .pc-swipe {
     display: block;
