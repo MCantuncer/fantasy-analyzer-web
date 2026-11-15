@@ -1928,6 +1928,68 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * HotRun
+         * @description What a hot run over his last 15 days was made of, and how much of it tends to last (analysis/form.py).
+         */
+        HotRun: {
+            /**
+             * Verdict
+             * @description bigger_role: minutes are half the gap or more (that part tends to stick). straw_fire: minutes are a quarter or less, the rest is hot shooting and more shots per minute (fades). mixed: between
+             * @enum {string}
+             */
+            verdict: "straw_fire" | "bigger_role" | "mixed";
+            /**
+             * Games
+             * @description Games he played in the last 15 days
+             */
+            games: number;
+            /**
+             * Gap
+             * @description Standard 9-cat value per game above his usual level (0 = average starter)
+             */
+            gap: number;
+            /**
+             * Minutes Part
+             * @description Of the gap: his usual per-minute line at the run's minutes
+             */
+            minutes_part: number;
+            /**
+             * Production Part
+             * @description Of the gap: more shots, boards, assists and stocks per minute
+             */
+            production_part: number;
+            /**
+             * Shooting Part
+             * @description Of the gap: FG%, 3P% and FT% above his usual on the same attempts
+             */
+            shooting_part: number;
+            /**
+             * Likely Kept
+             * @description Share of the gap expected to last over his next 10 games
+             */
+            likely_kept: number;
+            /** Minutes Recent */
+            minutes_recent: number;
+            /** Minutes Usual */
+            minutes_usual: number;
+            /** Pts Recent */
+            pts_recent: number;
+            /** Pts Usual */
+            pts_usual: number;
+            /** Fg Recent */
+            fg_recent?: number | null;
+            /** Fg Usual */
+            fg_usual?: number | null;
+            /** Three Recent */
+            three_recent?: number | null;
+            /** Three Usual */
+            three_usual?: number | null;
+            /** Ft Recent */
+            ft_recent?: number | null;
+            /** Ft Usual */
+            ft_usual?: number | null;
+        };
         /** InjuryImpact */
         InjuryImpact: {
             /** Player Id */
@@ -3005,6 +3067,8 @@ export interface components {
              * @description Every move of him in this league this season, newest first
              */
             moves: components["schemas"]["PlayerMove"][];
+            /** @description Set when his last 15 days run well above his usual */
+            hot_run?: components["schemas"]["HotRun"] | null;
         };
         /**
          * PlayerCardExtras
@@ -3272,6 +3336,8 @@ export interface components {
              * @description Listed out: the news headline games_out rests on, when it reported a timeline
              */
             out_report?: string | null;
+            /** @description Set when his last 15 days run well above his usual */
+            hot_run?: components["schemas"]["HotRun"] | null;
         };
         /** PlayerSeasonLine */
         PlayerSeasonLine: {

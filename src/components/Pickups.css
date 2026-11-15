@@ -492,3 +492,27 @@ button.fa-more {
     background: linear-gradient(var(--fa-row), var(--fa-row)) center top / calc(100% - 24px) 1.5px no-repeat;
   }
 }
+
+/* ---------- Hot run (HotRun.css draws it) ---------- */
+/* The row's third line sits under team · positions; the row grows by 2px at most. */
+.fa-row .hr-line {
+  margin-top: 1px;
+}
+
+/* The mark hangs in the gutter beside the face, so the words line up with the name and the line
+   keeps the whole text column at 360px and in the narrow desktop column. */
+.fa-row .hr-line .hr-icon {
+  margin-left: -17px;
+}
+
+/* A hot row lends the text column 8px of the odds column's left edge: the line sits beside
+   "to 46%", which is narrower than "odds pts" above it. A quiet row is untouched. */
+.fa-row:has(.hr-line) .fa-pts {
+  margin-left: -8px;
+}
+
+/* The open row's story sits in the same recessed well as the wait story. */
+.pickups-panel .hr-wrap {
+  --hr-well: var(--fa-slip);
+  margin: 0 0 14px;
+}

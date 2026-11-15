@@ -223,6 +223,37 @@ function renderHost(
   )
 }
 
+describe('PlayerCard hot run', () => {
+  it('explains a hot run above Form, over the same games', async () => {
+    const hot_run = {
+      verdict: 'bigger_role',
+      games: 3,
+      gap: 3.5,
+      minutes_part: 2.4,
+      production_part: 0.5,
+      shooting_part: 0.6,
+      likely_kept: 0.41,
+      minutes_usual: 31,
+      minutes_recent: 37,
+      pts_usual: 11.8,
+      pts_recent: 15.4,
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) =>
+      String(url).endsWith('/extras')
+        ? new Response(JSON.stringify({ news: [], names: {} }), { status: 200 })
+        : new Response(JSON.stringify({ ...card, news: [], hot_run }), { status: 200 }),
+    )
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    const hot = await within(dialog).findByText('Hot run · last 3 games')
+    const form = within(dialog).getByText('Form · last 3 games')
+    expect(hot.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(dialog).getByText('About two fifths of it should last')).toBeInTheDocument()
+    expect(within(dialog).getByText('Our odds and trade numbers already count this.')).toBeInTheDocument()
+  })
+})
+
 describe('PlayerCard', () => {
   it('opens from a name with games, health, news and moves, and closes on Escape', async () => {
     let releaseNews = () => {}
