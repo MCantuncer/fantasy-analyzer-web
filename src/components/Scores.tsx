@@ -574,14 +574,12 @@ function GameCard({
         side={game.away}
         state={scheduled ? 'pre' : lead === 'away' ? 'lead' : lead === 'home' ? 'trail' : 'level'}
         filling={pending && !scheduled}
-        halo={stake}
         won={final && lead === 'away'}
       />
       <TeamRow
         side={game.home}
         state={scheduled ? 'pre' : lead === 'home' ? 'lead' : lead === 'away' ? 'trail' : 'level'}
         filling={pending && !scheduled}
-        halo={stake}
         won={final && lead === 'home'}
         home
       />
@@ -627,7 +625,6 @@ function TeamRow({
   state,
   home = false,
   filling = false,
-  halo = false,
   won = false,
 }: {
   side: Game['home']
@@ -635,15 +632,12 @@ function TeamRow({
   home?: boolean
   /** The score is on its way. */
   filling?: boolean
-  /** A game you have a stake in: the logo glows in its club's colour. */
-  halo?: boolean
   /** The final winner: a small caret after the score. */
   won?: boolean
 }) {
-  const tl = halo ? teamLight(side.abbrev) : undefined
   return (
     <span className={`team-row ${state}`}>
-      <span className={`team-logo-slot${tl ? ' halo' : ''}`} style={tl ? ({ '--tl': tl } as CSSProperties) : undefined}>
+      <span className="team-logo-slot">
         <TeamLogo abbrev={side.abbrev} size={28} />
       </span>
       <span className="team-name" title={home ? `${side.name} (home)` : side.name}>
