@@ -57,6 +57,7 @@ import { teamLogoUrl } from '../lib/league'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
 import { ratioPct } from '../lib/shooting'
+import { HotStory } from './HotRun'
 import './PlayerCard.css'
 
 interface HostProps {
@@ -449,7 +450,9 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
   const lastSeason = card.games.length > 0 && card.games[0].season < season
   // Form and minutes read the games he played; the log also lists the ones he sat out.
   const played = card.games.filter((g) => g.played !== false)
-  const recent = played.slice(0, 5)
+  // A hot run names its window; Form then reads the same games, so the two never disagree.
+  const run = card.hot_run ?? null
+  const recent = played.slice(0, run ? Math.min(Math.max(run.games, 3), 10) : 5)
   const last5 = recent.length >= 3 ? average(recent) : null
   const line = card.season_line
   const ids = useId()
@@ -494,6 +497,11 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, tab, onTab
           <p className="pc-empty">No games played yet this season.</p>
         ) : (
           <>
+            {run && (
+              <Section id="pc-hot-title" title={`Hot run · last ${run.games} games`} aside="against his usual">
+                <HotStory run={run} place="card" />
+              </Section>
+            )}
             {last5 && (
               <Section
                 id="pc-form-title"

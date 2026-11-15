@@ -29,6 +29,8 @@ import {
   type TodayGame,
 } from '../lib/todayGame'
 import { useTodayFeed, type TodaySource } from '../lib/useTodayFeed'
+import { rowSaid } from '../lib/hotRun'
+import { HotLine, HotStory } from './HotRun'
 import './Pickups.css'
 
 interface Props {
@@ -212,6 +214,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
               })
               const waiting = waits(p.timing, gameDate)
               const cats = topCats(p.category_changes)
+              const run = p.add.hot_run ?? null
               return (
                 <li key={p.add.id} id={`pickup-${i}`} className={isOpen ? 'move open' : 'move'}>
                   <button
@@ -238,6 +241,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                           </span>
                         ))}
                       </span>
+                      {run && <HotLine run={run} />}
                     </span>
                     <span className="fa-pts">
                       <span className="sr-only">Playoff odds {pct(p.playoff_pct_before)} to </span>
@@ -257,6 +261,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                       <MoveHalf m={move} />
                     </span>
                     <span className="sr-only">{day ? ticketSaid(day, move) : `${move.said}.`}</span>
+                    {run && <span className="sr-only"> {rowSaid(run)}</span>}
                   </button>
                   {isOpen && (
                     <div className="move-detail" id={`pickup-${i}-detail`}>
@@ -271,6 +276,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                             {p.timing.days.length > 1 && <SpotDays timing={p.timing} add={p.add} drop={p.drop} />}
                           </div>
                         )}
+                        {run && <HotStory run={run} place="row" />}
                         <PlayerChips players={[p.add, p.drop]} label="Players in this move" />
                         <ul className="pk-facts" aria-label={`About ${p.add.name}`}>
                           <li>{p.add.positions.join('/')}</li>

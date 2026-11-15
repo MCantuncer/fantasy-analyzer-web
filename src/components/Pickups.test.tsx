@@ -195,3 +195,43 @@ describe('Pickups today', () => {
     expect(vi.mocked(fetchScores)).toHaveBeenCalledWith(1, 2027, 27, 3, null)
   })
 })
+
+describe('Pickups hot run', () => {
+  const run = {
+    verdict: 'straw_fire',
+    games: 6,
+    gap: 8.5,
+    minutes_part: 0.5,
+    production_part: 4,
+    shooting_part: 4,
+    likely_kept: 0.22,
+    minutes_usual: 21.5,
+    minutes_recent: 24.2,
+    pts_usual: 9.1,
+    pts_recent: 15.6,
+    fg_usual: 0.39,
+    fg_recent: 0.54,
+  }
+  const hot = { ...pickup, add: { ...ref(5, 'Nolan Traore'), hot_run: run } } as PickupIdea
+
+  it('adds one quiet line to a hot row and one sentence for screen readers', () => {
+    const { container } = render(<Pickups pickups={[hot]} faab={50} />)
+    expect(container.querySelector('.hr-line')?.textContent).toBe('Straw fireshooting 39 → 54%')
+    expect(container.querySelector('.hr-line')).toHaveAttribute('aria-hidden', 'true')
+    expect(within(container).getByText(/Straw fire\. Shooting 54% against his usual 39%, minutes 22 to 24\./)).toBeInTheDocument()
+  })
+
+  it('leaves a row without a hot run exactly as it was', () => {
+    const { container } = render(<Pickups pickups={[pickup]} faab={50} />)
+    expect(container.querySelector('.hr-line')).toBeNull()
+  })
+
+  it('explains the run once the row opens, and says the odds already count it', () => {
+    const { container } = render(<Pickups pickups={[hot]} faab={50} />)
+    fireEvent.click(within(container).getByRole('button', { expanded: false }))
+    const story = container.querySelector('.hr-story')!
+    expect(story.textContent).toContain('About a fifth of it should last')
+    expect(story.textContent).toContain('His odds number already counts this.')
+    expect([...story.querySelectorAll('.hr-label')].map((e) => e.textContent)).toEqual(['Shooting', 'Per 10 minutes'])
+  })
+})

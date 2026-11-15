@@ -1,0 +1,262 @@
+/* Hot run (hr- prefix): the FA row's third line, and the story with its table on the open row
+   and the player card. Ink only: the verdict explains a run, it is not an outcome, so no green,
+   amber or gold anywhere here. Coral marks only a part that went down. */
+
+/* ---------- The row's line ---------- */
+.hr-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 16px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.hr-line b {
+  margin-right: 1px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hr-line .hr-icon {
+  flex: none;
+  color: var(--text-2);
+}
+
+/* A safety net only: at every width we ship (360px and the 321px desktop column) the longest
+   line fits with room to spare, so this never cuts. */
+.hr-reason {
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+
+/* ---------- The story: headline, sentence, table ---------- */
+.hr-wrap {
+  container: hr / inline-size;
+}
+
+.hr-story {
+  --hr-ink: var(--text);
+  /* The bar's outline: 3:1 or more against the well in both themes. */
+  --hr-edge: var(--faint);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 12px;
+  background: var(--hr-well, var(--surface-2));
+}
+
+.hr-words {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Mark, verdict and the window on one line; the kept line runs the full width under them. */
+.hr-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'mark word window' 'mark kept kept';
+  column-gap: 10px;
+  margin: 0;
+}
+
+.hr-head .hr-icon {
+  grid-area: mark;
+  margin-top: 1px;
+  color: var(--text);
+}
+
+.hr-head-text {
+  display: contents;
+}
+
+.hr-word {
+  grid-area: word;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 22px;
+  color: var(--text);
+}
+
+.hr-kept {
+  grid-area: kept;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.hr-window {
+  grid-area: window;
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.hr-say {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.hr-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hr-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Label and usual → recent on top; under them the bar, and what lasts right where it ends. Every
+   bar shares one scale: the track keeps room for its words, so a full-scale part still fits. */
+.hr-part {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label pair' 'track track';
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.hr-label {
+  grid-area: label;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hr-pair {
+  grid-area: pair;
+  justify-self: end;
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hr-from {
+  color: var(--muted);
+}
+
+.hr-pair b {
+  font-weight: 650;
+}
+
+.hr-track {
+  grid-area: track;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hr-note {
+  flex: none;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* The part's size on a fixed scale. Solid from the left: the share that tends to last. Outline: the
+   rest, which fades. */
+.hr-bar {
+  position: relative;
+  display: block;
+  flex: none;
+  width: max(8px, calc(var(--reach) * (100% - 7.5em)));
+  height: 10px;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px var(--hr-edge);
+}
+
+.hr-keep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--keep) * 100%);
+  background: var(--hr-ink);
+}
+
+/* The fading share, filled while the bar grows and emptied as it settles. Hidden at rest. */
+.hr-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--hr-ink);
+  opacity: 0;
+}
+
+.hr-part[data-down] {
+  --hr-ink: var(--bad);
+  --hr-edge: var(--bad);
+}
+
+.hr-part[data-down] .hr-note {
+  color: var(--bad);
+}
+
+.hr-foot {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Motion, once on open (the story mounts with the open row or the card): each bar grows in, part
+   filled, then the share that fades empties out, leaving the solid start. 400ms in all. */
+@media (prefers-reduced-motion: no-preference) {
+  .hr-bar {
+    transform-origin: left center;
+    animation: hr-grow 240ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+
+  .hr-bar::after {
+    animation: hr-fade 400ms ease-out both;
+  }
+}
+
+@keyframes hr-grow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes hr-fade {
+  0%,
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* A wide card: the words on the left, the table on the right. */
+@container hr (min-width: 600px) {
+  .hr-story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 28px;
+    padding: 16px 18px;
+  }
+}
