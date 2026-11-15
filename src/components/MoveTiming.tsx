@@ -33,7 +33,7 @@ export function SpotDays({ timing, add, drop }: { timing: MoveTiming; add: Playe
     >
       <p className="mt-spot-head" aria-hidden="true">
         <span className="mt-lead">
-          <span className="num">{games.best}</span> games in the spot
+          <span className="num">{games.best}</span> {games.best === 1 ? 'game' : 'games'} in the spot
         </span>{' '}
         · <span className="num">{games.now}</span> if made today
       </p>
@@ -59,24 +59,5 @@ export function SpotDays({ timing, add, drop }: { timing: MoveTiming; add: Playe
         {seam === cells.length && <li key="seam" className="mt-seam" />}
       </ol>
     </div>
-  )
-}
-
-/** The same hand-off at row size: one letter a day, lit where the spot has a game, and the seam. */
-export function SpotStrip({ timing }: { timing: MoveTiming }) {
-  const cells = spotDays(timing)
-  const seam = seamAt(timing)
-  return (
-    <span className="mt-strip" aria-hidden="true">
-      {cells.map((c, i) => (
-        <span key={c.day.date} className="mt-strip-cell">
-          {i === seam && <b className="mt-strip-seam" />}
-          <i className={`${c.who ? 'on' : ''}${i === seam - 1 ? ' cut-r' : i === seam ? ' cut-l' : ''}`}>
-            {longDay(c.day.date)[0]}
-          </i>
-        </span>
-      ))}
-      {seam === cells.length && <b className="mt-strip-seam" />}
-    </span>
   )
 }

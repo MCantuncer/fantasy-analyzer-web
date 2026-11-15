@@ -240,6 +240,7 @@ export function Report({
                     waiverPriority={report.waiver_priority}
                     teams={report.league.teams.length}
                     week={report.week}
+                    today={{ leagueId: report.league.id, season: report.league.season, teamId: report.team_id, creds }}
                   />
                 </div>
               </div>
