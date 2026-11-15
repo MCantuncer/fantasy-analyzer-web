@@ -31,6 +31,7 @@ import {
 import { useTodayFeed, type TodaySource } from '../lib/useTodayFeed'
 import { rowSaid } from '../lib/hotRun'
 import { HotLine, HotStory } from './HotRun'
+import { NextGameSwap } from './NextGameSwap'
 import './Pickups.css'
 
 interface Props {
@@ -276,8 +277,18 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                             {p.timing.days.length > 1 && <SpotDays timing={p.timing} add={p.add} drop={p.drop} />}
                           </div>
                         )}
+                        {/* His line next to the drop's takes the chips' place; their names still open the cards. */}
+                        {p.add.next_game ? (
+                          <NextGameSwap
+                            add={p.add}
+                            drop={p.drop}
+                            byTrade={p.open_spot_by_trade}
+                            live={addGame?.state === 'live'}
+                          />
+                        ) : (
+                          <PlayerChips players={[p.add, p.drop]} label="Players in this move" />
+                        )}
                         {run && <HotStory run={run} place="row" />}
-                        <PlayerChips players={[p.add, p.drop]} label="Players in this move" />
                         <ul className="pk-facts" aria-label={`About ${p.add.name}`}>
                           <li>{p.add.positions.join('/')}</li>
                           <li>

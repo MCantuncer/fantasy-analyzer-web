@@ -1,0 +1,211 @@
+/* Next game (ng- prefix): the opened FA row's swap, one game long. A small table in the open row's
+   recessed well: column heads once (the site's order), the player you add, a divider, the player
+   you drop, the swing for you under another divider, then one small footnote. Ink for the lines;
+   green and coral only on the swing, the outcome. Every colour is a light/dark token from index.css. */
+
+.ng {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+
+/* "Next game" (or "This game" while it's on). */
+.ng-head {
+  margin: 0;
+}
+
+/* The one honesty cue, small, under the table. */
+.ng-foot {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--muted);
+}
+
+.ng-well {
+  padding: 12px 14px 10px;
+  border-radius: 12px;
+  /* The open FA row's well; the plain second surface anywhere else. */
+  background: var(--fa-slip, var(--surface-2));
+}
+
+.ng-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+/* FG% and FT% print ".420" and swing "+.260": they get about twice the width of a count column. */
+.ng-table col {
+  width: 8.75%;
+}
+
+.ng-table col.ng-col-pct {
+  width: 15%;
+}
+
+.ng-table th,
+.ng-table td {
+  padding: 0;
+  border: 0;
+  text-align: center;
+}
+
+/* Column heads: the site's labels, small and quiet. */
+.ng-table thead th {
+  padding-bottom: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Each block: a name (or "Swing") line, then the numbers under the heads. */
+.ng-table th[scope='rowgroup'] {
+  padding-top: 8px;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.ng-who-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* + you add, − you drop: an ink glyph, like a line in a list of changes. Not a button. */
+.ng-mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  color: var(--text-2);
+}
+
+.ng-who {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0 4px 0 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+button.ng-who {
+  cursor: pointer;
+}
+
+/* A 44px hit area on the 28px line, without pushing the numbers away. */
+button.ng-who::after {
+  content: '';
+  position: absolute;
+  inset: -8px 0;
+}
+
+button.ng-who:hover .ng-name {
+  color: var(--accent-text);
+}
+
+button.ng-who:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ng-who .head {
+  flex: none;
+}
+
+.ng-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The divider between the player you add and the player you drop: a full-width hairline with air
+   on both sides. */
+.ng-player[data-side='drop'] th[scope='rowgroup'] {
+  padding-top: 10px;
+  background: linear-gradient(var(--border), var(--border)) top / 100% 1px no-repeat;
+}
+
+.ng-player .ng-nums td {
+  padding-bottom: 8px;
+}
+
+/* The swing: what the swap does to you in this game, signed for you (fewer TO is +), under a
+   hairline. Green a gain, coral a loss, grey even; the sign says it too. */
+.ng-swing .ng-nums td {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ng-swing .ng-nums td[data-tone='good'] {
+  color: var(--good);
+}
+
+.ng-swing .ng-nums td[data-tone='bad'] {
+  color: var(--bad);
+}
+
+/* The numbers: one size, tabular. Plain by default; the better one in a category is bold. */
+.ng-nums td {
+  padding-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.ng-nums td[data-win] {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ng-nums td.ng-out {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted);
+}
+
+/* The narrow desktop column: heads and numbers a step smaller so ten columns keep their air. */
+@container fa-panel (max-width: 340px) {
+  .ng-well {
+    padding-inline: 10px;
+  }
+
+  .ng-table col {
+    width: 8.875%;
+  }
+
+  .ng-table col.ng-col-pct {
+    width: 14.5%;
+  }
+
+  .ng-table thead th {
+    font-size: 10px;
+  }
+
+  .ng-nums td {
+    font-size: 12.5px;
+  }
+
+}
