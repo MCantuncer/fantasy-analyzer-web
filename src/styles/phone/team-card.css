@@ -1,0 +1,193 @@
+/* Phones: the team card is a full-height sheet with a grab bar; the hero folds into a 56px bar on
+   scroll, and a dock at the bottom holds the way back to the results and the roster filters, under
+   the thumb. A player card on top rises a little lower, so the team's bar peeks above it. */
+@media (max-width: 640px) {
+  .tc-layer {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .tc-sheet {
+    width: 100%;
+    height: calc(100dvh - 10px - env(safe-area-inset-top));
+    max-height: none;
+    border-width: 1px 0 0;
+    border-radius: 18px 18px 0 0;
+    animation-name: tc-sheet-up;
+  }
+
+  .tc-sheet.tc-under {
+    transform: scale(0.94);
+  }
+
+  .tc-hero {
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 10px;
+    padding: 26px 56px 16px 16px;
+  }
+
+  .tc-logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  .tc-logo .team-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .tc-name {
+    font-size: 24px;
+  }
+
+  .tc-record {
+    flex-basis: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding-left: 66px;
+  }
+
+  .tc-wl {
+    font-size: 30px;
+  }
+
+  .tc-section {
+    padding: 16px 12px 4px;
+  }
+
+  .tc-plates {
+    gap: 6px;
+  }
+
+  .tc-plate {
+    padding: 7px 2px 8px;
+  }
+
+  .tc-opp {
+    font-size: 10.5px;
+    gap: 3px;
+  }
+
+  .tc-opp .team-logo {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tc-day {
+    display: none;
+  }
+
+  .tc-plate-wait {
+    height: 76px;
+  }
+
+  .tc-comment {
+    font-size: 14px;
+  }
+
+  .tc-roster-head {
+    margin: 0 -12px 4px;
+    padding: 6px 12px;
+  }
+
+  .tc-roster-head .tc-segs,
+  .tc-cols {
+    display: none;
+  }
+
+  /* Rows: the owner moves under the name, so names never truncate at 360. */
+  .tc-sheet button.tc-row {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas: 'face name ros' 'face meta ros';
+    column-gap: 12px;
+    min-height: 56px;
+    padding: 7px 8px;
+  }
+
+  .tc-own,
+  .tc-go {
+    display: none;
+  }
+
+  .tc-meta-own {
+    display: flex;
+  }
+
+  .tc-meta .ps-own {
+    gap: 6px;
+    font-size: 12.5px;
+  }
+
+  .tc-meta .ps-own .crest {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .tc-roster {
+    padding-bottom: 12px;
+  }
+
+  .tc-dock {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--divider);
+    background: var(--surface);
+  }
+
+  .tc-sheet button.tc-back {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--raised);
+    color: var(--text);
+  }
+
+  .tc-dock .tc-segs {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tc-dock .tc-sheet button.tc-seg,
+  .tc-sheet .tc-dock button.tc-seg {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 6px;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  /* The player card on a team card: a little lower, so the team's bar shows above it. */
+  .pc-stacked {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+
+  .pc-stacked .pc-sheet {
+    max-height: calc(100dvh - 92px);
+  }
+}
+
+@keyframes tc-sheet-up {
+  from {
+    transform: translateY(48px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-sheet {
+    animation: none;
+  }
+}

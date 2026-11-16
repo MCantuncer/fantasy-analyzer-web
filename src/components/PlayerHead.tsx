@@ -75,8 +75,23 @@ export function HeadStack({
 }
 
 /** A small NBA team logo; hidden when ESPN has none for the abbreviation. */
-export function TeamLogo({ abbrev, size = 20 }: { abbrev: string | null | undefined; size?: number }) {
+export function TeamLogo({
+  abbrev,
+  size = 20,
+  fallback = false,
+}: {
+  abbrev: string | null | undefined
+  size?: number
+  /** Show the letters when ESPN has no logo (or it can't load), for a disc that would be empty. */
+  fallback?: boolean
+}) {
   const [failed, setFailed] = useState(false)
+  if (abbrev && failed && fallback)
+    return (
+      <span className="team-logo-ab" style={{ fontSize: Math.max(9, Math.round(size * 0.36)) }}>
+        {abbrev}
+      </span>
+    )
   if (!abbrev || failed) return null
   return (
     <img

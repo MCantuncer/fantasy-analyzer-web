@@ -252,6 +252,32 @@
   }
 }
 
+@media (max-width: 640px) {
+  /* Group labels read top-down; the list grows upwards on phones, so they step out. */
+  .ps-group {
+    display: none;
+  }
+
+  .ps-team .ps-stake {
+    grid-area: own;
+    justify-self: end;
+  }
+
+  /* The best team nearest the thumb: a big disc, its stake on its own line, the record if known. */
+  .ps-row.ps-team.ps-best .ps-tdisc {
+    width: 52px;
+    height: 52px;
+  }
+
+  .ps-row.ps-team.ps-best .ps-stake {
+    justify-self: start;
+  }
+
+  .ps-team .ps-trec:empty {
+    display: none;
+  }
+}
+
 @media (max-width: 379px) {
   .ps-seg .ps-long {
     display: none;

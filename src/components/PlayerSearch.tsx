@@ -1,5 +1,5 @@
 import { MagnifyingGlass, Plus, User, X } from '@phosphor-icons/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Fragment,
   useEffect,
@@ -12,13 +12,21 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { flushSync } from 'react-dom'
-import { fetchPlayerIndex, type IndexedPlayer, type LeagueRef, type OverviewTeam } from '../api/client'
+import {
+  fetchPlayerIndex,
+  type IndexedPlayer,
+  type LeagueRef,
+  type NbaTeamInfo,
+  type OverviewTeam,
+} from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { injuryShort } from '../lib/injury'
 import { teamColours } from '../lib/league'
 import { teamName } from '../lib/nbaTeams'
 import { usePlayerCard } from '../lib/playerCard'
+import { openTeamCard, teamQuery } from '../lib/teamCard'
+import { searchTeams, teamName as fullTeamName, type NbaTeam, type TeamHit } from '../lib/teamSearch'
 import {
   buildIndex,
   clearRecent,
@@ -153,7 +161,7 @@ function useVisualViewport(active: boolean, el: HTMLElement | null) {
   }, [active, el])
 }
 
-function InjuryTag({ status }: { status: string | null | undefined }) {
+export function InjuryTag({ status }: { status: string | null | undefined }) {
   if (!status) return null
   const tone = status === 'OUT' || status === 'INJURY_RESERVE' ? 'out' : status === 'SUSPENSION' ? 'susp' : 'dtd'
   return (
@@ -167,6 +175,64 @@ function titleWord(s: string) {
   return s.length <= 4 && s === s.toUpperCase() && s !== 'OUT' ? s : s.charAt(0) + s.slice(1).toLowerCase()
 }
 
+function TeamName({ hit }: { hit: TeamHit }) {
+  return (
+    <>
+      {pieces(fullTeamName(hit.team), hit.marks).map((p, i) =>
+        p.marked ? <u key={i}>{p.text}</u> : <Fragment key={i}>{p.text}</Fragment>,
+      )}
+    </>
+  )
+}
+
+/** What you have riding on a team: your players on it, and its free agents worth a look (5%+ on ESPN). */
+function stakeOf(team: NbaTeam, players: IndexedPlayer[] | undefined, myTeamId: number | null) {
+  if (!players) return null
+  const on = players.filter((p) => p.pro_team === team.abbrev).sort((a, b) => b.percent_owned - a.percent_owned)
+  return {
+    mine: on.filter((p) => myTeamId !== null && p.owner_team_id === myTeamId),
+    free: on.filter((p) => p.owner_team_id == null && p.percent_owned >= 5).length,
+  }
+}
+
+const lastName = (name: string) =>
+  name
+    .split(' ')
+    .filter((w) => !/^(jr|sr|ii|iii|iv)\.?$/i.test(w))
+    .pop() ?? name
+
+function Stake({ stake }: { stake: ReturnType<typeof stakeOf> }) {
+  if (!stake) return <span className="ps-own ps-stake" />
+  const { mine, free } = stake
+  if (!mine.length && !free) return <span className="ps-own ps-stake ps-stake-none">No stake</span>
+  return (
+    <span className="ps-own ps-stake">
+      {mine.length > 0 && (
+        <span className="ps-own-yours">
+          <User size={16} weight="fill" aria-hidden="true" />
+          {lastName(mine[0].name)}
+          {mine.length > 1 && ` +${mine.length - 1}`}
+        </span>
+      )}
+      {free > 0 && (
+        <span className="ps-own-fa">
+          <Plus size={14} weight="bold" aria-hidden="true" />
+          {free} free agent{free === 1 ? '' : 's'}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function stakeWords(stake: ReturnType<typeof stakeOf>) {
+  if (!stake) return ''
+  const parts = [
+    stake.mine.length ? `yours: ${stake.mine.map((p) => p.name).join(', ')}` : '',
+    stake.free ? `${stake.free} free agent${stake.free === 1 ? '' : 's'} worth a look` : '',
+  ].filter(Boolean)
+  return parts.length ? parts.join(', ') : 'none of their players are yours'
+}
+
 function Name({ hit }: { hit: Hit }) {
   return (
     <>
@@ -177,13 +243,13 @@ function Name({ hit }: { hit: Hit }) {
   )
 }
 
-interface Owners {
+export interface Owners {
   myTeamId: number | null
   names: Map<number, string>
   colours: Map<number, string>
 }
 
-function Owner({ p, owners }: { p: IndexedPlayer; owners: Owners }) {
+export function Owner({ p, owners }: { p: IndexedPlayer; owners: Owners }) {
   const kind = ownerKind(p, owners.myTeamId)
   if (kind === 'yours')
     return (
@@ -261,6 +327,7 @@ export function PlayerSearch({
 }) {
   const open = useSearchOpen()
   const card = usePlayerCard()
+  const client = useQueryClient()
   const ids = useId()
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<OwnerFilter>('all')
@@ -329,8 +396,14 @@ export function PlayerSearch({
         return p ? [{ player: p, rank: 0, marks: [] }] : []
       })
   const rows = typing ? filtered.slice(0, SHOWN) : recentHits
-  const one = typing && hits.length === 1
-  const activeRow = Math.min(active, Math.max(rows.length - 1, 0))
+  // Teams come first, under All only: "den", "nugg", "okc", "sixers".
+  const teamHits = useMemo(() => (filter === 'all' ? searchTeams(q) : []), [q, filter])
+  const items: ({ kind: 'team'; hit: TeamHit } | { kind: 'player'; hit: Hit })[] = [
+    ...teamHits.map((hit) => ({ kind: 'team' as const, hit })),
+    ...rows.map((hit) => ({ kind: 'player' as const, hit })),
+  ]
+  const one = typing && hits.length === 1 && teamHits.length === 0
+  const activeRow = Math.min(active, Math.max(items.length - 1, 0))
 
   useEffect(() => {
     setActive(0)
@@ -385,23 +458,38 @@ export function PlayerSearch({
 
   // Screen readers hear the count once typing settles, not on every key.
   const [said, setSaid] = useState('')
+  const teamCount = teamHits.length
   useEffect(() => {
     if (!open) return
     const t = window.setTimeout(() => {
       if (!typing) setSaid('')
-      else if (!searchable) setSaid('Loading players')
+      else if (!searchable && !teamCount) setSaid('Loading players')
+      else if (!hits.length && !teamCount) setSaid('No players found')
       else
         setSaid(
-          hits.length ? `${hits.length} ${hits.length === 1 ? 'player' : 'players'}, best first` : 'No players found',
+          [
+            teamCount ? `${teamCount} ${teamCount === 1 ? 'team' : 'teams'}` : '',
+            hits.length ? `${hits.length} ${hits.length === 1 ? 'player' : 'players'}` : '',
+          ]
+            .filter(Boolean)
+            .join(', ') + ', best first',
         )
     }, 400)
     return () => window.clearTimeout(t)
-  }, [open, typing, hits.length, searchable])
+  }, [open, typing, hits.length, teamCount, searchable])
 
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>(`[data-row="${activeRow}"]`)
     el?.scrollIntoView?.({ block: 'nearest' })
   }, [activeRow])
+
+  const openTeam = (team: NbaTeam) => {
+    // Focus comes back to the field when the team card closes: on phones without the keyboard.
+    if (phone) input?.blur()
+    else input?.focus({ preventScroll: true })
+    openTeamCard(team.abbrev)
+  }
+  const warmTeam = (team: NbaTeam) => void client.prefetchQuery(teamQuery(leagueRef, team.abbrev, creds))
 
   const pick = (p: IndexedPlayer) => {
     setRecent(pushRecent(leagueId, season, p.player_id))
@@ -413,14 +501,15 @@ export function PlayerSearch({
   const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()
-      if (!rows.length) return
+      if (!items.length) return
       setKeyed(true)
       const step = e.key === 'ArrowDown' ? 1 : -1
-      setActive((a) => (Math.min(a, rows.length - 1) + step + rows.length) % rows.length)
+      setActive((a) => (Math.min(a, items.length - 1) + step + items.length) % items.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      const row = rows[activeRow]
-      if (row) pick(row.player)
+      const item = items[activeRow]
+      if (item?.kind === 'team') openTeam(item.hit.team)
+      else if (item) pick(item.hit.player)
     }
   }
   // Esc clears the field first, then closes; a player card opened from here closes before either.
@@ -430,12 +519,18 @@ export function PlayerSearch({
   })
 
   const listId = `${ids}-list`
-  const countLabel = typing
-    ? searchable
-      ? `${hits.length} ${hits.length === 1 ? 'player' : 'players'}${hits.length > 1 ? ', best first' : ''}`
+  const teamWords = teamHits.length ? `${teamHits.length} ${teamHits.length === 1 ? 'team' : 'teams'}` : ''
+  const playerWords = searchable
+    ? hits.length || !teamHits.length
+      ? `${hits.length} ${hits.length === 1 ? 'player' : 'players'}`
+      : ''
+    : teamHits.length
+      ? ''
       : 'Loading players'
+  const countLabel = typing
+    ? [teamWords, playerWords].filter(Boolean).join(', ') + (items.length > 1 && searchable ? ', best first' : '')
     : 'Recently opened'
-  const noResults = typing && !!searchable && hits.length === 0
+  const noResults = typing && !!searchable && hits.length === 0 && teamHits.length === 0
   const cls = [
     'ps',
     open && 'ps-open',
@@ -463,10 +558,10 @@ export function PlayerSearch({
             type="search"
             role="combobox"
             aria-label="Find a player"
-            aria-expanded={open && rows.length > 0}
+            aria-expanded={open && items.length > 0}
             aria-controls={listId}
             aria-autocomplete="list"
-            aria-activedescendant={rows.length && (keyed || typing) ? `${ids}-row-${activeRow}` : undefined}
+            aria-activedescendant={items.length && (keyed || typing) ? `${ids}-row-${activeRow}` : undefined}
             aria-describedby={`${ids}-hint`}
             placeholder="Find a player"
             enterKeyHint="go"
@@ -569,7 +664,73 @@ export function PlayerSearch({
             </div>
           )}
           <ul className="ps-list" id={listId} role="listbox" aria-labelledby={`${ids}-count`} ref={listRef}>
-            {rows.map((h, i) => {
+            {teamHits.length > 0 && (
+              <li className="ps-group" role="presentation">
+                Teams
+              </li>
+            )}
+            {teamHits.map((h, i) => {
+              const t = h.team
+              const stake = stakeOf(t, index.data?.players, myTeamId)
+              const info = client.getQueryData<NbaTeamInfo>(teamQuery(leagueRef, t.abbrev, creds).queryKey)
+              const record = info ? `${info.wins}–${info.losses}` : null
+              const rowCls = [
+                'ps-row ps-team',
+                i === activeRow && (keyed || typing) && 'ps-active',
+                i === 0 && 'ps-best',
+              ]
+                .filter(Boolean)
+                .join(' ')
+              return (
+                <li
+                  key={t.abbrev}
+                  id={`${ids}-row-${i}`}
+                  data-row={i}
+                  role="option"
+                  aria-selected={i === activeRow && (keyed || typing)}
+                  aria-label={[
+                    fullTeamName(t),
+                    'NBA team',
+                    record ? `record ${info!.wins} and ${info!.losses}` : '',
+                    stakeWords(stake),
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                  className={rowCls}
+                  onClick={() => openTeam(t)}
+                  onMouseMove={() => i !== active && setActive(i)}
+                  onMouseEnter={() => warmTeam(t)}
+                  onPointerDown={() => warmTeam(t)}
+                >
+                  <span className="ps-tdisc" aria-hidden="true">
+                    <TeamLogo abbrev={t.abbrev} size={30} fallback />
+                  </span>
+                  <span className="ps-nm">
+                    <TeamName hit={h} />
+                  </span>
+                  <span className="ps-meta">
+                    {t.abbrev}
+                    <span className="ps-dot">·</span>
+                    NBA team
+                  </span>
+                  <Stake stake={stake} />
+                  <span className="ps-ros ps-trec">
+                    {record && <span className="ps-ros-v">{record}</span>}
+                    {record && <span className="ps-ros-lbl">record</span>}
+                  </span>
+                  <span className="ps-go" aria-hidden="true">
+                    Open team ↵
+                  </span>
+                </li>
+              )
+            })}
+            {teamHits.length > 0 && rows.length > 0 && (
+              <li className="ps-group" role="presentation">
+                Players
+              </li>
+            )}
+            {rows.map((h, n) => {
+              const i = n + teamHits.length
               const p = h.player
               const rowCls = [
                 'ps-row',

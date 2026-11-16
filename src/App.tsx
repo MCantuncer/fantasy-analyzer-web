@@ -35,6 +35,7 @@ import { MyLeagues } from './components/MyLeagues'
 import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
+import { TeamCardHost } from './components/TeamCard'
 import { PlayerSearch, PlayerSearchBarKey, PlayerSearchKey } from './components/PlayerSearch'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
@@ -967,6 +968,12 @@ export default function App() {
           </RoundValuesContext.Provider>
         )}
       </main>
+      <TeamCardHost
+        leagueRef={verifying ? null : ref}
+        creds={creds}
+        teams={seatOverview?.teams ?? []}
+        myTeamId={myTeamId}
+      />
       <PlayerCardHost
         leagueRef={verifying ? null : ref}
         creds={creds}
