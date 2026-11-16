@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import type { CategoryScore, Game, GameLine } from '../api/client'
+import { nbaAbbrev } from '../lib/filmRoom'
 import { buildRows, isBench, isIR, starterTotals } from '../lib/myPlayers'
 import type { PlayerRow, Totals } from '../lib/myPlayers'
 import { nightGrade } from '../lib/nightGrade'
@@ -12,6 +13,7 @@ import { chipFor, dayCategories, dayRecord, initialName, leftOnBench, shortNames
 import type { DayCategory, LeftOnBench } from '../lib/todayMatchup'
 import { Burn, emberAttrs, emberOf } from './GameTime'
 import { PlayerLink } from './PlayerCard'
+import { PlayerHead } from './PlayerHead'
 import { Bone } from './Skeleton'
 import { TeamCrest } from './TeamCrest'
 import './TodayMatchup.css'
@@ -502,6 +504,14 @@ function Row({
   const out = !l && OUT.has(r.spot.injury_status)
   const live = r.state === 'live' && !out
   const ember = r.game && live ? emberOf(r.game) : null
+  // Live: filled while he's on the floor, hollow while he sits. Done for the night: grey.
+  const mark: Mark | null = live
+    ? l?.on_court === false
+      ? 'sitting'
+      : 'oncourt'
+    : r.state === 'final' || r.state === 'dnp'
+      ? 'done'
+      : null
   const avg = r.spot.season_avg
   const card = !!l && l.minutes > 0
   const cls = [
@@ -517,6 +527,7 @@ function Row({
     .join(' ')
   const attrs = ember ? emberAttrs(ember) : {}
   const short = names.get(r.spot.name) ?? r.spot.name
+  const player = { id: r.spot.player_id, name: r.spot.name }
   return (
     <li>
       <div
@@ -528,32 +539,42 @@ function Row({
         {ember && <Burn />}
         <span className="tm-spine" aria-hidden={!grade}>
           {!quiet && <span className="tm-slot">{r.spot.slot}</span>}
-          {grade ? (
-            <Grade g={grade} />
-          ) : live ? (
-            <span className="tm-dot" />
-          ) : r.state === 'later' && !bench && !out ? (
-            <span className="tm-ring" />
-          ) : null}
+          {grade && <Grade g={grade} />}
         </span>
         <span className="tm-who">
-          <span className="tm-l1">
-            <PlayerLink player={{ id: r.spot.player_id, name: r.spot.name }} className="tm-nm">
-              <span className="tm-short">{short}</span>
-              <span className="tm-init">{initialName(r.spot.name)}</span>
-            </PlayerLink>
-          </span>
-          {!quiet ? (
-            <span className="tm-l2">
-              <span className="tm-st">
-                {left ? <span className="tm-tag tm-bench-tag">Left on bench</span> : st.node}
+          <PlayerLink player={player} decorative>
+            <PlayerHead player={player} size={26} team={nbaAbbrev(r.spot.pro_team_id)} />
+          </PlayerLink>
+          <span className="tm-txt">
+            <span className="tm-l1">
+              <PlayerLink player={player} className="tm-nm">
+                <span className="tm-short">{short}</span>
+                <span className="tm-init">{initialName(r.spot.name)}</span>
+              </PlayerLink>
+            </span>
+            {!quiet ? (
+              <span className="tm-l2">
+                <span className="tm-st">
+                  {left ? (
+                    <span className="tm-tag tm-bench-tag">Left on bench</span>
+                  ) : (
+                    <>
+                      {mark && (
+                        <span className={`tm-mk ${mark}`} title={MARK_WORD[mark]}>
+                          <span className="sr-only">{MARK_WORD[mark]}</span>
+                        </span>
+                      )}
+                      {st.node}
+                    </>
+                  )}
+                </span>
               </span>
-            </span>
-          ) : isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
-            <span className="tm-l2">
-              <span className="tm-tag tm-out">OUT</span>
-            </span>
-          ) : null}
+            ) : isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
+              <span className="tm-l2">
+                <span className="tm-tag tm-out">OUT</span>
+              </span>
+            ) : null}
+          </span>
         </span>
         {card ? (
           <StatCells line={l!} />
@@ -567,6 +588,13 @@ function Row({
       </div>
     </li>
   )
+}
+
+type Mark = 'oncourt' | 'sitting' | 'done'
+const MARK_WORD: Record<Mark, string> = {
+  oncourt: 'On the floor now',
+  sitting: 'On the bench now',
+  done: 'Game over',
 }
 
 function Grade({ g }: { g: NightGrade }) {
@@ -620,8 +648,11 @@ function EmptyRow({ slot }: { slot: string }) {
           <span className="tm-slot">{slot}</span>
         </span>
         <span className="tm-who">
-          <span className="tm-l1">
-            <span className="tm-nm tm-empty-name">Empty slot</span>
+          <span className="tm-head-hole" aria-hidden="true" />
+          <span className="tm-txt">
+            <span className="tm-l1">
+              <span className="tm-nm tm-empty-name">Empty slot</span>
+            </span>
           </span>
         </span>
         <span className="tm-note" />
