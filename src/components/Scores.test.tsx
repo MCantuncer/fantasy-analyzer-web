@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ScoreDay } from '../api/client'
 import { game, line } from '../test/fixtures'
+import { PlayerCardHost } from './PlayerCard'
 import { Scores, type TonightMatchup } from './Scores'
 
 const TEAMS = [
@@ -381,5 +382,27 @@ describe('Scores', () => {
     fireEvent.click(hou)
     fireEvent.click(hou)
     expect(hasBox()).toBe(false)
+  })
+
+  it('closes a player card opened from the box score first, and the box score on the next Esc', async () => {
+    const never = () => new Promise(() => {})
+    mockApi({ '/api/player-card': never, '/api/player-card/extras': never })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Scores leagueId={1} season={2027} teamId={3} teams={TEAMS} creds={null} matchup={null} />
+        <PlayerCardHost leagueRef={{ leagueId: 1, season: 2027 }} creds={null} teams={[]} myTeamId={3} />
+      </QueryClientProvider>,
+    )
+    fireEvent.click(await screen.findByRole('button', { name: /HOU/ }))
+    const box = document.getElementById('box')!
+    fireEvent.click(within(box).getByRole('button', { name: 'Alperen Sengun' }))
+    expect(await screen.findByRole('dialog', { name: 'Alperen Sengun' })).toBeInTheDocument()
+
+    fireEvent.keyDown(document.activeElement ?? document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.getElementById('box')).not.toBeNull()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(document.getElementById('box')).toBeNull()
   })
 })

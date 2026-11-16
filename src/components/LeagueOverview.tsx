@@ -16,6 +16,7 @@ import { TodayLoading, TodayMatchup, type TodaySide } from './TodayMatchup'
 import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
 import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
+import { useEscapeLayer } from '../lib/escapeStack'
 
 interface Props {
   overview: Overview
@@ -243,18 +244,8 @@ export function LeagueOverview({
     setClosing(false)
   }, [])
 
-  // Esc closes from anywhere on the page.
-  useEffect(() => {
-    if (openAt < 0) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !e.defaultPrevented) {
-        e.preventDefault()
-        close(true)
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [openAt, close])
+  // Esc closes from anywhere on the page, once whatever opened on top of it (a player card) is closed.
+  useEscapeLayer(openAt >= 0, () => close(true))
 
   /** Opens a matchup, or moves the box to it (sliding along its row, or folding here and opening there). */
   const go = (i: number, keyboard: boolean) => {

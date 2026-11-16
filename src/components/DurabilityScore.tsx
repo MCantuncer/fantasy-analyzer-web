@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { PlayerRef } from '../api/client'
+import { useEscapeLayer } from '../lib/escapeStack'
 import './DurabilityScore.css'
 
 // Share of his team's games a typical regular plays (the API's LEAGUE_SHARE, 0.728).
@@ -53,22 +54,18 @@ export function DurabilityScore({ player, prefix = '' }: { player: PlayerRef; pr
       const t = e.target as Node
       if (!pop.current?.contains(t) && !chip.current?.contains(t)) setOpen(false)
     }
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') close()
-    }
     const onMove = () => place()
     document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
     window.addEventListener('resize', onMove)
     window.addEventListener('scroll', onMove, true)
     pop.current?.focus()
     return () => {
       document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onMove)
       window.removeEventListener('scroll', onMove, true)
     }
-  }, [open, close, place])
+  }, [open, place])
+  useEscapeLayer(open, close)
 
   if (score == null) return null
 

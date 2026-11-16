@@ -26,6 +26,7 @@ import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
 import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
 import { useMediaQuery } from '../lib/useMediaQuery'
+import { useEscapeLayer } from '../lib/escapeStack'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 interface Props {
@@ -340,18 +341,8 @@ function GameBoard({
     setClosing(false)
   }, [])
 
-  // Esc closes from anywhere on the page.
-  useEffect(() => {
-    if (picked == null) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !e.defaultPrevented) {
-        e.preventDefault()
-        close(true)
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [picked, close])
+  // Esc closes from anywhere on the page, once whatever opened on top of it (a player card) is closed.
+  useEscapeLayer(picked != null, () => close(true))
 
   /** Opens a game, or moves the box to it. `via` an arrow keeps the box's header still instead of the card. */
   const go = (id: number, opts: { keyboard?: boolean; arrow?: 'prev' | 'next' } = {}) => {
