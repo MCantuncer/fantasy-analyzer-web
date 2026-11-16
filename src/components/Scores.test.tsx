@@ -108,7 +108,11 @@ describe('Scores', () => {
     expect(await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)).toBeInTheDocument()
     expect(screen.getByText('Your night')).toBeInTheDocument()
     expect(screen.getByText('Your 1 player')).toBeInTheDocument()
-    expect(screen.getByRole('button', { pressed: true, name: /HOU/ })).toBeInTheDocument()
+    // Nothing is open until you pick a game.
+    expect(screen.getAllByRole('table').some((t) => t.classList.contains('box'))).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: /HOU/ }))
+    expect(screen.getByRole('button', { expanded: true, name: /HOU/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Box score: Houston Rockets/ })).toBeInTheDocument()
 
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
     // Points right after minutes, then the shooting splits, like the player card game log.
@@ -130,6 +134,7 @@ describe('Scores', () => {
     mockApi()
     renderScores()
     await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
+    fireEvent.click(screen.getByRole('button', { name: /HOU/ }))
     const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
     const order = () => [...box.querySelectorAll('tbody th[scope="row"]')].map((th) => th.textContent?.split(' ')[0])
     expect(order()).toEqual(['Alperen', 'Amen', 'Tari'])
@@ -191,7 +196,9 @@ describe('Scores', () => {
     mockApi()
     renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
     await screen.findByRole('heading', { name: /Tonight in your matchup/ })
-    const open = screen.getByRole('button', { pressed: true, name: /HOU/ })
+    fireEvent.click(screen.getByRole('button', { name: /HOU/ }))
+    const open = screen.getByRole('button', { expanded: true, name: /HOU/ })
+    expect(open).toHaveClass('is-tab')
     expect(open.style.getPropertyValue('--ta')).not.toBe('')
     expect(open.style.getPropertyValue('--tb')).not.toBe('')
 
@@ -333,9 +340,11 @@ describe('Scores', () => {
     }
     mockApi({ '/api/scores/games': () => quick, '/api/scores': () => held })
     renderScores()
-    // The game cards are up before the scores.
+    // The game cards are up before the scores; one opened early waits for its numbers.
+    const hou = await screen.findByRole('button', { name: /HOU/ })
+    expect(hou).toHaveTextContent('Fetching the box score')
+    fireEvent.click(hou)
     expect(await screen.findByText('Fetching box score')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /HOU/ })).toHaveTextContent('Fetching the box score')
     expect(screen.getByText('Fetching the scores')).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: 'Mine, still counting' })).toBeInTheDocument()
     expect(screen.queryByText('Your night')).not.toBeInTheDocument()
@@ -344,5 +353,33 @@ describe('Scores', () => {
     expect(await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)).toBeInTheDocument()
     expect(screen.queryByText('Fetching box score')).not.toBeInTheDocument()
     expect(screen.getAllByRole('table').some((t) => t.classList.contains('box'))).toBe(true)
+  })
+  it('opens a box score in place and closes it with Close, Esc or the card itself', async () => {
+    mockApi()
+    renderScores()
+    await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
+    const hou = screen.getByRole('button', { name: /HOU/ })
+    const hasBox = () => !!document.getElementById('box')
+
+    fireEvent.click(hou)
+    // The box comes after its game (in the grid after the game's row; under the strip on phones and here,
+    // where there is no CSS grid), and the card is its tab.
+    const box = document.getElementById('box')!
+    expect(hou.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(hou).toHaveAttribute('aria-expanded', 'true')
+    expect(document.querySelector('.game-grid')).toHaveClass('has-open')
+    fireEvent.click(screen.getByRole('button', { name: 'Close box score' }))
+    expect(hasBox()).toBe(false)
+    expect(hou).toHaveAttribute('aria-expanded', 'false')
+    expect(hou).toHaveFocus()
+
+    fireEvent.click(hou)
+    expect(hasBox()).toBe(true)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(hasBox()).toBe(false)
+
+    fireEvent.click(hou)
+    fireEvent.click(hou)
+    expect(hasBox()).toBe(false)
   })
 })

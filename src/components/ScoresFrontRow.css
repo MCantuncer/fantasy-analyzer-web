@@ -1,0 +1,484 @@
+/* ---------- Front Row (Can, 2026-11-15/16) ----------
+   A game's box score opens in place, right after the game's row. The game you open comes forward:
+   it grows (--sc-tab-scale) and the other games blur and fade behind it. It becomes the tab of the box,
+   joined to it by its two-club edge (a small SVG, ScoresFrontRow.tsx). One height movement opens and
+   closes the box; nothing bounces, glows or slides in from afar. Classes are prefixed sc-. */
+
+.scores {
+  --sc-gap: 12px;
+  --sc-tab-scale: 1.08;
+  --sc-tab-rise: 0 -12px 30px -14px rgb(0 0 0 / 0.8);
+}
+:root[data-theme='light'] .scores {
+  --sc-tab-rise: 0 -12px 28px -14px rgb(70 45 20 / 0.35);
+}
+
+/* Native scroll anchoring is off only while a box moves (the page holds the card still itself). */
+html.sc-tweening {
+  overflow-anchor: none;
+}
+
+/* The grid: the row gap lives on the cards, so a box slot between two rows adds no gap until it opens. */
+.scores .game-grid {
+  position: relative;
+}
+@media (min-width: 641px) {
+  .scores .game-grid {
+    row-gap: 0;
+  }
+  .scores .game-grid > .game-card {
+    margin-bottom: var(--sc-gap);
+  }
+}
+
+.scores .game-grid > .game-card {
+  isolation: isolate;
+  transform-origin: var(--sc-tab-origin, 50% 100%);
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 160ms ease,
+    opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-bottom-left-radius 120ms ease 100ms,
+    border-bottom-right-radius 120ms ease 100ms;
+}
+
+/* The club edge (away light to home light), drawn as a ring so it can fade in. */
+.scores .game-grid > .game-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(100deg, var(--ta, var(--accent)), var(--tb, var(--accent)));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+/* The open game: bigger, in front, the same surface as the box, no bottom edge or bottom corners. */
+.scores .game-grid > .game-card.is-tab,
+.scores .game-grid > button.game-card.is-tab:hover {
+  z-index: 3;
+  background: var(--surface);
+  border-color: transparent;
+  box-shadow: var(--sc-tab-rise);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  transform: scale(var(--sc-tab-scale));
+}
+.scores .game-grid > .game-card.is-tab::after {
+  opacity: 1;
+  padding-bottom: 0;
+  /* the open bottom stays open (a scaled ring leaves a hairline there); the join carries the edge down */
+  clip-path: inset(0 0 2px 0);
+}
+.scores .game-grid > .game-card.is-tab:focus-visible {
+  outline-offset: -5px;
+}
+.scores .game-grid > .game-card.is-tab[data-ember='final'] > .sc-burn {
+  background: none;
+}
+
+/* Everyone else steps back: blurred and faded (Can, 2026-11-16). Hover or focus brings one back. */
+.scores .game-grid.has-open > .game-card:not(.is-tab) {
+  opacity: 0.7;
+  filter: blur(2.5px);
+}
+.scores .game-grid.has-open > .game-card:not(.is-tab):is(:hover, :focus-visible) {
+  opacity: 1;
+  filter: none;
+}
+
+/* The card's foot holds two lines in one place: the top performer, and (as the tab) the box head's
+   "12 min to play · Sun 15". They crossfade. */
+.scores .game-card .game-foot {
+  display: grid;
+}
+.game-foot > .sc-foot-a,
+.game-foot > .sc-foot-b {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+  transition:
+    opacity 180ms ease 110ms,
+    transform 180ms ease 110ms;
+}
+.game-foot > .sc-foot-b {
+  opacity: 0;
+  transform: translateY(4px);
+  font-size: 13px;
+  color: var(--text-2);
+  transition-delay: 0s;
+  transition-duration: 120ms;
+}
+.game-foot > .sc-foot-b i {
+  flex: none;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.is-tab .game-foot > .sc-foot-a {
+  opacity: 0;
+  transition-delay: 0s;
+  transition-duration: 120ms;
+}
+.is-tab .game-foot > .sc-foot-b {
+  opacity: 1;
+  transform: none;
+  transition-delay: 110ms;
+  transition-duration: 180ms;
+}
+
+/* ---------- The box slot: a full-width grid item right after the open game's row ---------- */
+.sc-slot {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  margin-bottom: var(--sc-gap);
+}
+.sc-panel {
+  --rl: var(--radius);
+  --rr: var(--radius);
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rl) var(--rr) var(--radius) var(--radius);
+  box-shadow: var(--lift);
+  transition: border-radius 200ms ease;
+}
+.sc-panel.moving {
+  overflow: clip;
+}
+.sc-panel-in {
+  min-width: 0;
+}
+.sc-join {
+  position: absolute;
+  left: 0;
+  top: calc(-1 * var(--sc-gap));
+  width: 100%;
+  height: calc(var(--sc-gap) + 40px);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 120ms ease;
+}
+.sc-join.let-go {
+  opacity: 0;
+}
+.sc-join-fill {
+  fill: var(--surface);
+}
+.sc-join-edge {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+/* ---------- Title line ---------- */
+.sc-bp-title {
+  position: sticky;
+  top: var(--sc-top, 111px);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  height: 69px;
+  padding: 0 12px 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--divider);
+  border-radius: calc(var(--rl) - 1px) calc(var(--rr) - 1px) 0 0;
+}
+.sc-bp-title.stuck {
+  border-radius: 0;
+  box-shadow:
+    inset 0 -1px 0 var(--divider),
+    0 10px 14px -12px rgb(0 0 0 / 0.55);
+}
+.sc-bp-title h2 {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  font-size: 17px;
+}
+.sc-bp-title h2:focus {
+  outline: none;
+}
+.sc-bp-title h2:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+.sc-bt-label,
+.sc-bt-score {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+  transition: opacity 150ms ease;
+}
+.sc-bt-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.sc-bt-dot {
+  color: var(--muted);
+  font-weight: 500;
+}
+.sc-bt-score {
+  opacity: 0;
+  align-items: center;
+  gap: 14px;
+}
+.sc-bt-side {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.sc-bt-abbr {
+  font-size: 14px;
+  font-weight: 650;
+}
+.sc-bt-pts {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sc-bt-side.trail :is(.sc-bt-abbr, .sc-bt-pts) {
+  color: var(--muted);
+  font-weight: 500;
+}
+.sc-bt-time {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.sc-bt-time .gt-clock {
+  font-size: 18px;
+}
+.sc-bp-title.show-score .sc-bt-label {
+  opacity: 0;
+}
+.sc-bp-title.show-score .sc-bt-score {
+  opacity: 1;
+}
+.sc-bt-line {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.sc-bt-line i {
+  flex: none;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sc-bt-line .gt-clock {
+  font-size: 15px;
+}
+
+.sc-tools {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sc-hop {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.sc-hop:hover:not(:disabled) {
+  background: var(--raised);
+  color: var(--text);
+}
+.sc-hop:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.sc-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  min-width: 44px;
+  margin-left: 4px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.sc-close:hover {
+  background: color-mix(in srgb, var(--raised) 70%, var(--track));
+}
+.sc-close kbd {
+  padding: 3px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font: 600 11px/1 var(--font-ui);
+}
+
+/* Team switch: in the title line on wide screens, its own row on phones. */
+.sc-box .sc-team-switch {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 100%;
+}
+.sc-box .sc-team-switch button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+.sc-box .sc-team-switch button[aria-pressed='true'] {
+  box-shadow:
+    inset 0 -2px 0 var(--tl),
+    0 1px 2px rgb(0 0 0 / 0.12);
+}
+.sc-box .sc-team-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The table's header sticks under the pinned title line when the table fits its card. */
+.sc-box .table-wrap.box-scroll.fits thead th {
+  top: calc(var(--sc-top, 111px) + 69px);
+}
+.sc-box .table-wrap.box-scroll:not(.fits) {
+  max-height: calc(100dvh - var(--sc-top, 111px) - 69px - 16px);
+}
+
+.sc-box-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 160px;
+  color: var(--text-2);
+}
+
+/* ---------- Phones: the swipe strip is the row of games; the box opens under it ---------- */
+@media (max-width: 640px) {
+  /* Room above the strip for the open card to grow into (the strip clips its overflow). */
+  .scores .game-grid {
+    margin-top: -12px;
+    padding-top: 16px;
+  }
+  /* The box sits a gap under the strip (the page stack would add 16px on top of the strip's 4px). */
+  .scores > .sc-slot {
+    margin-top: -8px;
+    margin-bottom: 0;
+  }
+  .sc-bp-title {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'h tools'
+      't t';
+    gap: 4px 8px;
+    height: auto;
+    padding: 10px 8px 10px 16px;
+  }
+  .sc-bp-title h2 {
+    grid-area: h;
+  }
+  .sc-bp-title .sc-bt-label {
+    display: none;
+  }
+  .sc-bp-title .sc-bt-score {
+    opacity: 1;
+    gap: 12px;
+  }
+  .sc-bp-title .sc-bt-score .sc-bt-time {
+    display: none;
+  }
+  .sc-bt-line {
+    grid-area: t;
+    display: flex;
+  }
+  .sc-tools {
+    grid-area: tools;
+    gap: 2px;
+  }
+  .sc-hop {
+    border-color: transparent;
+  }
+  .sc-close {
+    width: 44px;
+    margin-left: 2px;
+    padding: 0;
+    justify-content: center;
+  }
+  .sc-close :is(.sc-close-label, kbd) {
+    display: none;
+  }
+  .sc-switch-row {
+    display: block;
+    padding: 12px 16px 4px;
+  }
+  .sc-switch-row .sc-team-switch {
+    display: grid;
+    width: 100%;
+  }
+  .sc-box .table-wrap.box-scroll:not(.fits) {
+    margin-top: 8px;
+    max-height: calc(100dvh - var(--sc-top, 65px) - 88px - 62px - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scores .game-grid > .game-card,
+  .game-foot > .sc-foot-a,
+  .game-foot > .sc-foot-b,
+  .sc-panel,
+  .sc-join,
+  .sc-bt-label,
+  .sc-bt-score {
+    transition-duration: 0.12s !important;
+    transition-delay: 0s !important;
+  }
+}

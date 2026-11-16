@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bone, ScoresSkeleton } from './Skeleton'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { ArrowDown, ArrowUp, Television } from '@phosphor-icons/react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { ArrowDown, ArrowUp, CaretLeft, CaretRight, Television, X } from '@phosphor-icons/react'
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -22,6 +22,10 @@ import { PlayerLink } from './PlayerCard'
 import { ScoresLens } from './ScoresLens'
 import { ShotSplit } from './ShotSplit'
 import type { Lens } from './ScoresLens'
+import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
+import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
+import { useGridColumns } from '../lib/useGridColumns'
+import { useMediaQuery } from '../lib/useMediaQuery'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 interface Props {
@@ -42,7 +46,6 @@ export interface TonightMatchup {
 export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Props) {
   const [day, setDay] = useState<number | null>(null)
   const [lens, setLens] = useState<Lens>('all')
-  const [picked, setPicked] = useState<number | null>(null)
   const qc = useQueryClient()
   const key = [leagueId, season, day, teamId, creds?.swid ?? null] as const
   // The games come first, straight from the NBA calendar; scores, box scores and who sits fill in after.
@@ -129,10 +132,8 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     day: shownDay ?? base.day,
     week: base.week.map((d) => ({ ...d, sits: sitsByDay.get(d.day) ?? d.sits })),
   }
-  const pickDay = (d: number) => {
-    setDay(d)
-    setPicked(null)
-  }
+  // A new day starts with nothing open (the board is keyed by day).
+  const pickDay = (d: number) => setDay(d)
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const upcoming = new Map((data.week ?? []).flatMap((d) => d.games.map((f) => [f.id, f.my_players] as const)))
   const mineByGame = new Map(data.games.map((g) => [g.id, myPlayersIn(g, teamId, upcoming.get(g.id) ?? [])]))
@@ -156,10 +157,6 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     mineByGame.get(g.id)!.length === 0 &&
     !g.lines.some((l) => rivalId != null && l.owner_team_id === rivalId)
   const games = [...shown.filter((g) => !cold(g)), ...shown.filter(cold)]
-  const selected =
-    data.games.find((g) => g.id === picked) ??
-    data.games.find((g) => g.status !== 'scheduled' && g.lines.some((l) => l.owner_team_id === teamId)) ??
-    data.games.find((g) => g.status !== 'scheduled')
 
   return (
     <div className={`stack scores${switching ? ' scores-switching' : ''}`} aria-busy={switching || pending}>
@@ -222,35 +219,20 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           )}
         </div>
       ) : (
-        <div className="game-grid" style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}>
-          {games.map((g) => (
-            <GameCard
-              key={g.id}
-              game={g}
-              teamId={teamId}
-              rivalId={matchup?.opponentId ?? null}
-              upcoming={upcoming.get(g.id) ?? []}
-              selected={g.id === selected?.id}
-              pending={pending}
-              onPick={() => setPicked(g.id)}
-            />
-          ))}
-        </div>
+        <GameBoard
+          key={data.day}
+          games={games}
+          upcoming={upcoming}
+          teamId={teamId}
+          rivalId={rivalId ?? null}
+          rivalColour={rivalColour}
+          abbrev={abbrev}
+          date={data.date}
+          pending={pending}
+          failed={failed}
+          onRetry={() => scores.refetch()}
+        />
       )}
-
-      {selected &&
-        (pending ? (
-          <BoxScoreFetching game={selected} date={data.date} failed={failed} onRetry={() => scores.refetch()} />
-        ) : (
-          <BoxScore
-            game={selected}
-            date={data.date}
-            teamId={teamId}
-            rivalId={rivalId ?? null}
-            rivalColour={rivalColour}
-            abbrev={abbrev}
-          />
-        ))}
 
       {/* The rest of the week sits below tonight's games and box score, not between them. */}
       {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
@@ -269,6 +251,216 @@ function myPlayersIn(game: Game, teamId: number, upcoming: FixturePlayer[]): { p
   const lines = game.lines.filter((l) => l.owner_team_id === teamId)
   if (game.status === 'scheduled' && !lines.length) return upcoming
   return lines.map((l) => ({ player_id: l.player_id, name: l.name }))
+}
+
+type Upcoming = Map<number, FixturePlayer[]>
+const cardOf = (id: number) => document.querySelector<HTMLElement>(`.game-grid [data-game='${id}']`)
+const topbarHeight = () => document.querySelector<HTMLElement>('.topbar')?.offsetHeight ?? 0
+
+/**
+ * Tonight's games and, once you pick one, its box score in place (Front Row, Can 2026-11-15/16).
+ * Nothing is open at first. The game you tap comes forward (bigger, the rest blur) and becomes the tab
+ * of its box score, which opens right after the game's row and pushes the rows below down; the page
+ * holds the card still, so you are never moved. Another game in the same row slides the tab along;
+ * one in another row folds the old box as the new one opens. Close, Esc or the card itself closes it.
+ * Phones keep the swipe strip as the row of games, with the box under it.
+ */
+function GameBoard({
+  games,
+  upcoming,
+  teamId,
+  rivalId,
+  rivalColour,
+  abbrev,
+  date,
+  pending,
+  failed,
+  onRetry,
+}: {
+  games: Game[]
+  upcoming: Upcoming
+  teamId: number
+  rivalId: number | null
+  rivalColour?: string
+  abbrev: Map<number, string>
+  date: string | null | undefined
+  pending: boolean
+  failed: boolean
+  onRetry: () => void
+}) {
+  const grid = useRef<HTMLDivElement>(null)
+  const cols = useGridColumns(grid)
+  const strip = cols === 0
+  const [picked, setPicked] = useState<number | null>(null)
+  const [closing, setClosing] = useState(false)
+  const [ghost, setGhost] = useState<{ after: number; height: number; n: number } | null>(null)
+  const intent = useRef<FrontRowIntent | null>(null)
+  const clearGhost = useCallback(() => setGhost(null), [])
+
+  const ids = games.map((g) => g.id)
+  // The Mine lens can hide the open game: then it is simply closed.
+  const open = picked != null ? games.find((g) => g.id === picked && g.status !== 'scheduled') : undefined
+  useEffect(() => {
+    if (picked != null && !open) {
+      setPicked(null)
+      setClosing(false)
+    }
+  }, [picked, open])
+
+  const rowEnd = open && !strip ? rowEndOf(ids, open.id, cols) : null
+  const openable = games.filter((g) => g.status !== 'scheduled').map((g) => g.id)
+  const at = open ? openable.indexOf(open.id) : -1
+  const prev = at > 0 ? games.find((g) => g.id === openable[at - 1]) : undefined
+  const next = at >= 0 && at < openable.length - 1 ? games.find((g) => g.id === openable[at + 1]) : undefined
+
+  const close = useCallback(
+    (focusCard = true) => {
+      if (picked == null || closing) return
+      const card = cardOf(picked)
+      if (!card) {
+        setPicked(null)
+        return
+      }
+      const r = card.getBoundingClientRect()
+      const top = topbarHeight()
+      // Closed from the pinned bar with the card scrolled away: bring the card back just under the top bar.
+      intent.current = {
+        kind: 'close',
+        anchor: () => cardOf(picked),
+        y0: r.top,
+        y1: r.bottom < top + 24 ? top + 16 : undefined,
+      }
+      setClosing(true)
+      if (focusCard) card.focus({ preventScroll: true })
+    },
+    [picked, closing],
+  )
+  const onClosed = useCallback(() => {
+    setPicked(null)
+    setClosing(false)
+  }, [])
+
+  // Esc closes from anywhere on the page.
+  useEffect(() => {
+    if (picked == null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        e.preventDefault()
+        close(true)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [picked, close])
+
+  /** Opens a game, or moves the box to it. `via` an arrow keeps the box's header still instead of the card. */
+  const go = (id: number, opts: { keyboard?: boolean; arrow?: 'prev' | 'next' } = {}) => {
+    if (closing) return
+    if (picked === id && !opts.arrow) return close(true)
+    const card = cardOf(id)
+    if (!card) return
+    const slot = document.getElementById('box')
+    const arrow = opts.arrow && slot ? slot : null
+    const anchor = arrow ? () => document.getElementById('box') : () => cardOf(id)
+    const y0 = (arrow ?? card).getBoundingClientRect().top
+    const focus = opts.arrow ?? (opts.keyboard ? 'title' : null)
+    if (strip && opts.arrow) {
+      const pad = parseFloat(getComputedStyle(grid.current!).paddingLeft) || 0
+      grid.current?.scrollTo({ left: card.offsetLeft - pad, behavior: reducedMotion() ? 'auto' : 'smooth' })
+    }
+    if (picked == null || !open) {
+      intent.current = { kind: 'open', anchor, y0, focus }
+      setPicked(id)
+      return
+    }
+    const h0 = slot?.querySelector<HTMLElement>('.sc-panel')?.offsetHeight ?? 0
+    if (strip || rowEndOf(ids, id, cols) === rowEndOf(ids, open.id, cols)) {
+      intent.current = { kind: 'hop', anchor, y0, h0, focus }
+    } else {
+      intent.current = { kind: 'open', anchor, y0, focus }
+      const after = rowEndOf(ids, open.id, cols)
+      if (!reducedMotion() && after != null) setGhost({ after, height: h0, n: Date.now() })
+    }
+    setPicked(id)
+  }
+
+  const box =
+    open &&
+    (pending ? (
+      <BoxScoreFetching
+        game={open}
+        date={date}
+        failed={failed}
+        onRetry={onRetry}
+        onClose={() => close(true)}
+        onHop={(d) => {
+          const t = d === 'prev' ? prev : next
+          if (t) go(t.id, { arrow: d })
+        }}
+        hops={[prev, next]}
+      />
+    ) : (
+      <BoxScore
+        game={open}
+        date={date}
+        teamId={teamId}
+        rivalId={rivalId}
+        rivalColour={rivalColour}
+        abbrev={abbrev}
+        onClose={() => close(true)}
+        onHop={(d) => {
+          const t = d === 'prev' ? prev : next
+          if (t) go(t.id, { arrow: d })
+        }}
+        hops={[prev, next]}
+      />
+    ))
+  const slot = (key: string) =>
+    open && (
+      <BoxSlot
+        key={key}
+        gameId={open.id}
+        card={() => cardOf(open.id)}
+        colours={[
+          teamLight(open.away.abbrev) ?? 'var(--accent)',
+          teamLight(open.home.abbrev) ?? 'var(--accent)',
+        ]}
+        strip={strip ? grid : null}
+        closing={closing}
+        onClosed={onClosed}
+        intent={intent}
+      >
+        {box}
+      </BoxSlot>
+    )
+
+  return (
+    <>
+      <div
+        ref={grid}
+        className={`game-grid${open && !closing ? ' has-open' : ''}`}
+        style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}
+      >
+        {games.map((g) => [
+          <GameCard
+            key={g.id}
+            game={g}
+            teamId={teamId}
+            rivalId={rivalId}
+            upcoming={upcoming.get(g.id) ?? []}
+            open={g.id === open?.id && !closing}
+            origin={tabOrigin(ids, g.id, strip ? 0 : cols)}
+            date={date}
+            pending={pending}
+            onPick={(e) => go(g.id, { keyboard: e.detail === 0 })}
+          />,
+          g.id === rowEnd && slot(`slot-${g.id}`),
+          g.id === ghost?.after && <BoxGhost key={`ghost-${ghost.n}`} height={ghost.height} onDone={clearGhost} />,
+        ])}
+      </div>
+      {strip && slot('slot-strip')}
+    </>
+  )
 }
 
 /** "6 of 15 games · 9 of your players in action" under the bar. */
@@ -505,7 +697,9 @@ function GameCard({
   teamId,
   rivalId = null,
   upcoming,
-  selected,
+  open,
+  origin,
+  date,
   pending = false,
   onPick,
 }: {
@@ -515,10 +709,14 @@ function GameCard({
   rivalId?: number | null
   /** Your players in this game from the week's fixtures, for games that haven't started. */
   upcoming: FixturePlayer[]
-  selected: boolean
+  /** Its box score is open: the card comes forward and is the box's tab. */
+  open: boolean
+  /** Where the card grows from when it comes forward (edge cards grow inward). */
+  origin: string
+  date: string | null | undefined
   /** The scores are still on their way: started games show a soft pulse where the numbers go. */
   pending?: boolean
-  onPick: () => void
+  onPick: (e: MouseEvent<HTMLButtonElement>) => void
 }) {
   const scheduled = game.status === 'scheduled'
   const mine = myPlayersIn(game, teamId, upcoming)
@@ -538,15 +736,22 @@ function GameCard({
     ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
   ].slice(0, 3)
   // The open game's edge runs from the away club's light to the home club's.
-  const edge = selected
-    ? ({
-        '--ta': teamLight(game.away.abbrev) ?? 'var(--accent)',
-        '--tb': teamLight(game.home.abbrev) ?? 'var(--accent)',
-      } as CSSProperties)
-    : undefined
+  const edge = {
+    ...tabStyle(origin),
+    '--ta': teamLight(game.away.abbrev) ?? 'var(--accent)',
+    '--tb': teamLight(game.home.abbrev) ?? 'var(--accent)',
+  } as CSSProperties
   const ember = emberOf(game)
   const tick = useClockTick(game.clock)
-  const className = ['game-card', 'sc-ember', mine.length ? 'has-mine' : '', stake ? 'stake' : '', cold ? 'cold' : '']
+  const left = game.status === 'live' ? timeLeftLine(ember.clock) : game.status === 'final' ? 'Final' : ''
+  const className = [
+    'game-card',
+    'sc-ember',
+    mine.length ? 'has-mine' : '',
+    stake ? 'stake' : '',
+    cold ? 'cold' : '',
+    open ? 'is-tab' : '',
+  ]
     .filter(Boolean)
     .join(' ')
   const body = (
@@ -584,6 +789,7 @@ function GameCard({
         home
       />
       <span className="game-foot small">
+        <span className="sc-foot-a">
         {pending && !scheduled ? (
           <span className="muted game-foot-text">Fetching the box score</span>
         ) : top && !scheduled ? (
@@ -603,18 +809,36 @@ function GameCard({
         ) : (
           <span className="muted">None of your players</span>
         )}
+        </span>
+        {/* As the open box's tab, the foot reads like the box head: time left and the day. */}
+        <span className="sc-foot-b" aria-hidden="true">
+          {left && (
+            <>
+              {left}
+              <i />
+            </>
+          )}
+          {dayLabel(date)}
+        </span>
       </span>
     </>
   )
   // A game that hasn't started has no box score to open.
   if (scheduled)
     return (
-      <div className={className} {...emberAttrs(ember)}>
+      <div className={className} data-game={game.id} {...emberAttrs(ember, tabStyle(origin))}>
         {body}
       </div>
     )
   return (
-    <button className={className} aria-pressed={selected} onClick={onPick} {...emberAttrs(ember, edge, tick)}>
+    <button
+      className={className}
+      data-game={game.id}
+      aria-expanded={open}
+      aria-controls={open ? 'box' : undefined}
+      onClick={onPick}
+      {...emberAttrs(ember, edge, tick)}
+    >
       {body}
     </button>
   )
@@ -678,41 +902,124 @@ function ScoresFilling({ failed, onRetry }: { failed: boolean; onRetry: () => vo
   )
 }
 
-/** The box score head as a one-line scoreboard: both scores on the left, the game time on the right
- *  with how much is left to play, and the game's burn behind it. */
-function BoxHead({ game, date }: { game: Game; date: string | null | undefined }) {
+type Hop = 'prev' | 'next'
+interface BoxNav {
+  onClose: () => void
+  onHop: (dir: Hop) => void
+  /** The games either side of this one (started games, in the grid's order). */
+  hops: [Game | undefined, Game | undefined]
+}
+
+/**
+ * The open box's title line: "Box score · Lakers at Suns", the team switch, the arrows to the games
+ * either side, and Close (Esc). It pins under the top bar while you read; once the tab (which carries
+ * the score) has scrolled away, it shows the score and clock in its place. On phones it always shows
+ * the score, with the clock line under it, and the team switch drops to its own row.
+ */
+function BoxTitle({
+  game,
+  date,
+  teamSwitch,
+  onClose,
+  onHop,
+  hops,
+}: BoxNav & { game: Game; date: string | null | undefined; teamSwitch?: (short: boolean) => ReactNode }) {
   const ember = emberOf(game)
-  const tick = useClockTick(game.clock)
+  const phone = useMediaQuery('(max-width: 640px)')
+  const narrow = useMediaQuery('(max-width: 1060px)')
+  const ref = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+  const [gone, setGone] = useState(false)
+  useEffect(() => {
+    let raf = 0
+    const check = () => {
+      raf = 0
+      const el = ref.current
+      if (!el) return
+      const top = topbarHeight()
+      setStuck(el.getBoundingClientRect().top <= top + 0.5 && (el.parentElement?.getBoundingClientRect().top ?? 0) < top - 1)
+      const card = cardOf(game.id)
+      setGone(!!card && card.getBoundingClientRect().bottom < top + 24)
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(check)
+    }
+    check()
+    addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [game.id])
   const a = game.away.score ?? 0
   const h = game.home.score ?? 0
   const started = game.status !== 'scheduled'
   const left = game.status === 'live' ? timeLeftLine(ember.clock) : ''
+  const name = (g: Game | undefined) => (g ? `${g.away.abbrev} at ${g.home.abbrev}` : '')
   return (
-    <div className="card-head sc-bh sc-ember" {...emberAttrs(ember, undefined, tick)}>
-      <Burn />
-      <h2 id="box-title">
-        <span className={`sc-bh-side${started && a < h ? ' trail' : ''}`}>
-          <span className="sc-bh-abbr">{game.away.abbrev}</span>{' '}
-          <span className="num sc-bh-pts">{game.away.score ?? ''}</span>
-        </span>{' '}
-        <span className={`sc-bh-side${started && h < a ? ' trail' : ''}`}>
-          <span className="sc-bh-abbr">{game.home.abbrev}</span>{' '}
-          <span className="num sc-bh-pts">{game.home.score ?? ''}</span>
-        </span>
-      </h2>
-      <div className="sc-bh-time">
-        <GameTime game={game} ember={ember} />
-        <span className="sc-bh-sub">
+    <>
+      <div ref={ref} className={`sc-bp-title${stuck ? ' stuck' : ''}${gone ? ' show-score' : ''}`}>
+        <h2 id="box-title" tabIndex={-1}>
+          <span className="sc-bt-label" aria-hidden="true">
+            Box score<span className="sc-bt-dot">·</span>
+            <span className="sc-bt-sub">
+              {nickname(game.away.name)} at {nickname(game.home.name)}
+            </span>
+          </span>
+          <span className="sc-bt-score" aria-hidden="true">
+            <span className={`sc-bt-side${started && a < h ? ' trail' : ''}`}>
+              <span className="sc-bt-abbr">{game.away.abbrev}</span>
+              <span className="num sc-bt-pts">{game.away.score ?? ''}</span>
+            </span>
+            <span className={`sc-bt-side${started && h < a ? ' trail' : ''}`}>
+              <span className="sc-bt-abbr">{game.home.abbrev}</span>
+              <span className="num sc-bt-pts">{game.home.score ?? ''}</span>
+            </span>
+            <span className="sc-bt-time">
+              <GameTime game={game} ember={ember} />
+            </span>
+          </span>
+          <span className="sr-only">
+            Box score: {game.away.name} {game.away.score ?? ''}, {game.home.name} {game.home.score ?? ''}
+            {left ? `, ${left}` : ''}
+          </span>
+        </h2>
+        <span className="sc-bt-line" aria-hidden="true">
+          <GameTime game={game} ember={ember} />
           {left && (
             <>
+              <i />
               {left}
-              <i aria-hidden="true" />
             </>
           )}
+          <i />
           {dayLabel(date)}
         </span>
+        {!phone && teamSwitch?.(narrow)}
+        <div className="sc-tools">
+          {(['prev', 'next'] as const).map((d, i) => (
+            <button
+              key={d}
+              type="button"
+              className="sc-hop"
+              data-hop={d}
+              disabled={!hops[i]}
+              aria-label={`${d === 'prev' ? 'Previous' : 'Next'} game${hops[i] ? `: ${name(hops[i])}` : ''}`}
+              title={name(hops[i])}
+              onClick={() => onHop(d)}
+            >
+              {d === 'prev' ? <CaretLeft size={16} weight="bold" /> : <CaretRight size={16} weight="bold" />}
+            </button>
+          ))}
+          <button type="button" className="sc-close" aria-label="Close box score" aria-keyshortcuts="Escape" onClick={onClose}>
+            <X size={16} weight="bold" aria-hidden="true" />
+            <span className="sc-close-label">Close</span>
+            <kbd>Esc</kbd>
+          </button>
+        </div>
       </div>
-    </div>
+      {phone && teamSwitch && <div className="sc-switch-row">{teamSwitch(true)}</div>}
+    </>
   )
 }
 
@@ -722,15 +1029,16 @@ function BoxScoreFetching({
   date,
   failed,
   onRetry,
-}: {
+  ...nav
+}: BoxNav & {
   game: Game
   date: string | null | undefined
   failed: boolean
   onRetry: () => void
 }) {
   return (
-    <section className="card flush sc-box-fetching" aria-labelledby="box-title" aria-busy={!failed}>
-      <BoxHead game={game} date={date} />
+    <div className="sc-box sc-box-fetching" aria-busy={!failed}>
+      <BoxTitle game={game} date={date} {...nav} />
       <div className="sc-box-wait" role="status">
         {failed ? (
           <>
@@ -746,7 +1054,7 @@ function BoxScoreFetching({
           </>
         )}
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -772,7 +1080,8 @@ function BoxScore({
   rivalId = null,
   rivalColour,
   abbrev,
-}: {
+  ...nav
+}: BoxNav & {
   game: Game
   date: string | null | undefined
   teamId: number
@@ -781,14 +1090,7 @@ function BoxScore({
   rivalColour?: string
   abbrev: Map<number, string>
 }) {
-  const ref = useRef<HTMLElement>(null)
-  const first = useRef(true)
-  useEffect(() => {
-    // Picking a game scrolls its box score into view; the first render doesn't jump.
-    if (first.current) first.current = false
-    else ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [game.id])
-
+  // It opens in place under its game, so it never scrolls the page (Front Row).
   // The header row stays in view while you scroll down the players. A table that fits sticks
   // under the top bar; one too wide for the card scrolls in a window-tall box of its own.
   const wrap = useRef<HTMLDivElement>(null)
@@ -813,6 +1115,23 @@ function BoxScore({
   // Sorted, the five lose their block, so each keeps his face lit by the team's colour.
   // Your and your rival's abbreviations size the dot box, so both dots line up hugging the wider name.
   const marked = [teamId, rivalId].flatMap((id) => (id != null && abbrev.has(id) ? [abbrev.get(id)!] : []))
+  // Desktop: in the title line. Phones: its own row. Narrow screens use the clubs' nicknames.
+  const teamSwitch = (short: boolean) => (
+    <div className="segmented sc-team-switch" role="group" aria-label="Team">
+      {sides.map((s) => (
+        <button
+          key={s.pro_team_id}
+          type="button"
+          aria-pressed={s.pro_team_id === side.pro_team_id}
+          onClick={() => setPicked({ game: game.id, team: s.pro_team_id })}
+          style={{ '--tl': teamLight(s.abbrev) ?? 'var(--accent)' } as CSSProperties}
+        >
+          <TeamLogo abbrev={s.abbrev} size={20} />
+          <span className="sc-team-label">{short ? nickname(s.name) : s.name}</span>
+        </button>
+      ))}
+    </div>
+  )
   const row = (l: GameLine) => (
     <BoxRow
       key={l.player_id}
@@ -826,27 +1145,8 @@ function BoxScore({
     />
   )
   return (
-    <section
-      className="card flush box-card"
-      ref={ref}
-      aria-labelledby="box-title"
-      style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}
-    >
-      <BoxHead game={game} date={date} />
-      <div className="segmented sc-team-switch" role="group" aria-label="Team">
-        {sides.map((s) => (
-          <button
-            key={s.pro_team_id}
-            type="button"
-            aria-pressed={s.pro_team_id === side.pro_team_id}
-            onClick={() => setPicked({ game: game.id, team: s.pro_team_id })}
-            style={{ '--tl': teamLight(s.abbrev) ?? 'var(--accent)' } as CSSProperties}
-          >
-            <TeamLogo abbrev={s.abbrev} size={20} />
-            <span className="sc-team-label">{s.name}</span>
-          </button>
-        ))}
-      </div>
+    <div className="sc-box box-card" style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}>
+      <BoxTitle game={game} date={date} teamSwitch={teamSwitch} {...nav} />
       <div
         ref={wrap}
         className={`table-wrap box-scroll${fits ? ' fits' : ''}`}
@@ -914,7 +1214,7 @@ function BoxScore({
           , {statLine(fa)} ({fa.fgm}/{fa.fga} FG).
         </p>
       )}
-    </section>
+    </div>
   )
 }
 
