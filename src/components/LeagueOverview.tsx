@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { CalendarDots, Target } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -12,7 +12,10 @@ import './LeagueOverview.css'
 import { Standings } from './Standings'
 import { TeamCrest } from './TeamCrest'
 import { todayMatters, useTodayMatchup } from '../lib/todayData'
-import { TodayLoading, TodayMatchup } from './TodayMatchup'
+import { TodayLoading, TodayMatchup, type TodaySide } from './TodayMatchup'
+import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
+import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
+import { useGridColumns } from '../lib/useGridColumns'
 
 interface Props {
   overview: Overview
@@ -41,6 +44,22 @@ function shortDate(iso: string | null | undefined) {
 
 function key(m: OverviewMatchup) {
   return `${m.home.team_id}-${m.away.team_id}`
+}
+
+/** A matchup card in the week's grid, by its place in the list. */
+const cardOf = (i: number) => document.getElementById(`mu-card-${i}`)
+const topbarHeight = () => document.querySelector<HTMLElement>('.topbar')?.offsetHeight ?? 0
+
+function TodayWeekSwitch({ view, onPick }: { view: 'today' | 'week'; onPick: (v: 'today' | 'week') => void }) {
+  return (
+    <div className="segmented lo-view" role="group" aria-label="Today or the whole week">
+      {(['today', 'week'] as const).map((v) => (
+        <button key={v} type="button" aria-pressed={view === v} onClick={() => onPick(v)}>
+          {v === 'today' ? 'Today' : 'Week'}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 const ICONS: Record<string, ReactNode> = {
@@ -130,8 +149,8 @@ export function LeagueOverview({
     leagueRef?.leagueId,
     leagueRef?.season,
     creds ?? null,
-    mine ? o.my_team_id : null,
-    rival?.team_id,
+    o.my_team_id,
+    mine && rival ? [o.my_team_id!, rival.team_id] : null,
     o.week_start,
     o.week_end,
   )
@@ -165,23 +184,134 @@ export function LeagueOverview({
   const week = [shortDate(o.week_start), shortDate(o.week_end)].filter(Boolean).join(' – ')
   const finished = Array.from({ length: Math.max(0, o.matchup_period - 1) }, (_, i) => i + 1)
   // The week before this one ended the day before this one started.
-  const lastEnd = o.week_start ? new Date(Date.parse(`${o.week_start}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10) : null
+  const lastEnd = o.week_start
+    ? new Date(Date.parse(`${o.week_start}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10)
+    : null
   const fresh = finished.length > 0 && isFresh(lastEnd, new Date())
-  const unseen = !!leagueRef && finished.length > 0 && seenWeek(leagueRef.leagueId, leagueRef.season) < finished[finished.length - 1]
-  const openMatchup = o.matchups.find((m) => key(m) === open)
-  // The box score opens right under the card that was tapped; bring it into view on phones.
+  const unseen =
+    !!leagueRef && finished.length > 0 && seenWeek(leagueRef.leagueId, leagueRef.season) < finished[finished.length - 1]
+  const side = (s: MatchupSide): TodaySide => ({
+    id: s.team_id,
+    name: nameOf(s.team_id),
+    colour: colours.get(s.team_id),
+    week: s.categories ?? [],
+  })
+
+  // The week's grid, Front Row (as on Scores): the matchup you open comes forward, the rest blur, and
+  // its box opens in place right under its row. The cards go by their place in the list.
+  const grid = useRef<HTMLUListElement>(null)
+  const cols = useGridColumns(grid)
+  const [closing, setClosing] = useState(false)
+  const [ghost, setGhost] = useState<{ after: number; height: number; n: number } | null>(null)
+  const intent = useRef<FrontRowIntent | null>(null)
+  const clearGhost = useCallback(() => setGhost(null), [])
+  const ids = o.matchups.map((_, i) => i)
+  const openAt = o.matchups.findIndex((m) => key(m) === open && hasBox(m))
+  const openMatchup = openAt >= 0 ? o.matchups[openAt] : undefined
+  const rowEnd = openMatchup ? rowEndOf(ids, openAt, cols) : null
   useEffect(() => {
-    if (!open) return
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    document.getElementById('mu-box')?.scrollIntoView?.({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
-  }, [open])
-  const boxPanel = openMatchup && (
-    <div className="card mu-box" id="mu-box">
+    if (open != null && !openMatchup) {
+      setOpen(null)
+      setClosing(false)
+    }
+  }, [open, openMatchup])
+
+  const close = useCallback(
+    (focusCard = true) => {
+      if (openAt < 0 || closing) return
+      const card = cardOf(openAt)
+      if (!card) {
+        setOpen(null)
+        return
+      }
+      const r = card.getBoundingClientRect()
+      const top = topbarHeight()
+      // Closed with the card scrolled away: bring it back just under the top bar.
+      intent.current = {
+        kind: 'close',
+        anchor: () => cardOf(openAt),
+        y0: r.top,
+        y1: r.bottom < top + 24 ? top + 16 : undefined,
+      }
+      setClosing(true)
+      if (focusCard) card.focus({ preventScroll: true })
+    },
+    [openAt, closing],
+  )
+  const onClosed = useCallback(() => {
+    setOpen(null)
+    setClosing(false)
+  }, [])
+
+  // Esc closes from anywhere on the page.
+  useEffect(() => {
+    if (openAt < 0) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        e.preventDefault()
+        close(true)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [openAt, close])
+
+  /** Opens a matchup, or moves the box to it (sliding along its row, or folding here and opening there). */
+  const go = (i: number, keyboard: boolean) => {
+    if (closing) return
+    if (openAt === i) return close(true)
+    const card = cardOf(i)
+    if (!card) return
+    const anchor = () => cardOf(i)
+    const y0 = card.getBoundingClientRect().top
+    const focus = keyboard ? ('title' as const) : null
+    const k = key(o.matchups[i])
+    if (openAt < 0) {
+      intent.current = { kind: 'open', anchor, y0, focus }
+      setOpen(k)
+      return
+    }
+    const h0 = document.querySelector<HTMLElement>('#box .sc-panel')?.offsetHeight ?? 0
+    if (rowEndOf(ids, i, cols) === rowEndOf(ids, openAt, cols)) {
+      intent.current = { kind: 'hop', anchor, y0, h0, focus }
+    } else {
+      intent.current = { kind: 'open', anchor, y0, focus }
+      const after = rowEndOf(ids, openAt, cols)
+      if (!reducedMotion() && after != null) setGhost({ after, height: h0, n: Date.now() })
+    }
+    setOpen(k)
+  }
+
+  // The open matchup, today: its two lineups live (yours shares the card's fetch).
+  const boxSides = openMatchup ? sides(openMatchup) : null
+  const boxToday = useTodayMatchup(
+    leagueRef?.leagueId,
+    leagueRef?.season,
+    creds ?? null,
+    o.my_team_id,
+    boxSides ? [boxSides[0].team_id, boxSides[1].team_id] : null,
+    o.week_start,
+    o.week_end,
+  )
+  const [boxPick, setBoxPick] = useState<{ key: string; view: 'today' | 'week' } | null>(null)
+  const boxCanToday =
+    !!boxSides && !!leagueRef && boxToday.inWeek !== false && !boxToday.failed && (!!boxToday.data || boxToday.loading)
+  const boxView: 'today' | 'week' = !boxCanToday
+    ? 'week'
+    : boxPick && boxPick.key === open
+      ? boxPick.view
+      : boxToday.data && !todayMatters(boxToday.data)
+        ? 'week'
+        : 'today'
+
+  const boxPanel = openMatchup && boxSides && (
+    <div className="mu-box">
       <div className="featured-head">
-        <span className="eyebrow">
-          {nameOf(sides(openMatchup)[0].team_id)} vs {nameOf(sides(openMatchup)[1].team_id)}
-        </span>
-        <button type="button" className="icon-button" aria-label="Close box score" onClick={() => setOpen(null)}>
+        <h3 id="box-title" className="eyebrow mu-box-title" tabIndex={-1}>
+          {nameOf(boxSides[0].team_id)} vs {nameOf(boxSides[1].team_id)}
+        </h3>
+        {boxCanToday && <TodayWeekSwitch view={boxView} onPick={(v) => setBoxPick({ key: open!, view: v })} />}
+        <button type="button" className="icon-button" aria-label="Close matchup" onClick={() => close(true)}>
           <svg
             width="18"
             height="18"
@@ -196,11 +326,24 @@ export function LeagueOverview({
           </svg>
         </button>
       </div>
-      <BoxScore
-        home={boxTeam(sides(openMatchup)[0])}
-        away={boxTeam(sides(openMatchup)[1])}
-        caption={`${nameOf(openMatchup.home.team_id)} against ${nameOf(openMatchup.away.team_id)}`}
-      />
+      {boxView === 'today' ? (
+        boxToday.data ? (
+          <TodayMatchup
+            data={boxToday.data}
+            me={side(boxSides[0])}
+            them={side(boxSides[1])}
+            myId={o.my_team_id ?? null}
+          />
+        ) : (
+          <TodayLoading />
+        )
+      ) : (
+        <BoxScore
+          home={boxTeam(boxSides[0])}
+          away={boxTeam(boxSides[1])}
+          caption={`${nameOf(openMatchup.home.team_id)} against ${nameOf(openMatchup.away.team_id)}`}
+        />
+      )}
     </div>
   )
 
@@ -272,35 +415,21 @@ export function LeagueOverview({
                 ) : null
               })()}
             {mine && onCheckTrade && matchupView === 'week' && (
-              <button
-                type="button"
-                className="secondary lo-check"
-                onClick={() => onCheckTrade(sides(mine)[1].team_id)}
-              >
+              <button type="button" className="secondary lo-check" onClick={() => onCheckTrade(sides(mine)[1].team_id)}>
                 <MaybeHandshake size={20} /> Check a Trade With Them
               </button>
             )}
-            {canToday && (
-              <div className="segmented lo-view" role="group" aria-label="Today or the whole week">
-                {(['today', 'week'] as const).map((v) => (
-                  <button key={v} type="button" aria-pressed={matchupView === v} onClick={() => pickView(v)}>
-                    {v === 'today' ? 'Today' : 'Week'}
-                  </button>
-                ))}
-              </div>
-            )}
+            {canToday && <TodayWeekSwitch view={matchupView} onPick={pickView} />}
           </div>
           {matchupView === 'today' &&
             mine &&
             (() => {
               const [me, them] = sides(mine)
-              const side = (s: MatchupSide) => ({
-                id: s.team_id,
-                name: nameOf(s.team_id),
-                colour: colours.get(s.team_id),
-                week: s.categories ?? [],
-              })
-              return today.data ? <TodayMatchup data={today.data} me={side(me)} them={side(them)} myId={o.my_team_id ?? null} /> : <TodayLoading />
+              return today.data ? (
+                <TodayMatchup data={today.data} me={side(me)} them={side(them)} myId={o.my_team_id ?? null} />
+              ) : (
+                <TodayLoading />
+              )
             })()}
           {matchupView === 'week' &&
             (() => {
@@ -315,45 +444,45 @@ export function LeagueOverview({
             })()}
           {matchupView === 'week' && (
             <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
-            {mine ? (
-              <>
+              {mine ? (
+                <>
+                  <li>
+                    <span className="lo-lit good" aria-hidden="true" />
+                    you lead
+                  </li>
+                  <li>
+                    <span className="lo-lit bad" aria-hidden="true" />
+                    they lead
+                  </li>
+                </>
+              ) : (
                 <li>
-                  <span className="lo-lit good" aria-hidden="true" />
-                  you lead
+                  <span className="box-cell lead num" aria-hidden="true">
+                    12
+                  </span>
+                  leading
                 </li>
+              )}
+              {mine && (
                 <li>
-                  <span className="lo-lit bad" aria-hidden="true" />
-                  they lead
+                  <span className="lo-res" aria-hidden="true">
+                    <span className="box-res W">W</span>
+                    <span className="box-res L">L</span>
+                  </span>
+                  your result
                 </li>
-              </>
-            ) : (
+              )}
               <li>
-                <span className="box-cell lead num" aria-hidden="true">
-                  12
-                </span>
-                leading
+                <Target size={16} className="lo-legend-close" aria-hidden="true" />
+                close, can flip
               </li>
-            )}
-            {mine && (
               <li>
-                <span className="lo-res" aria-hidden="true">
-                  <span className="box-res W">W</span>
-                  <span className="box-res L">L</span>
+                <span className="box-cell tie num" aria-hidden="true">
+                  0
                 </span>
-                your result
+                tied
               </li>
-            )}
-            <li>
-              <Target size={16} className="lo-legend-close" aria-hidden="true" />
-              close, can flip
-            </li>
-            <li>
-              <span className="box-cell tie num" aria-hidden="true">
-                0
-              </span>
-              tied
-            </li>
-          </ul>
+            </ul>
           )}
           {mine &&
             leagueRef &&
@@ -398,8 +527,13 @@ export function LeagueOverview({
           {o.matchups.some(hasBox) && <span className="small muted">Open a matchup for its box score</span>}
         </div>
         {o.matchups.length ? (
-          <ul className="mu-grid">
-            {o.matchups.map((m) => {
+          <ul
+            ref={grid}
+            className={`mu-grid lo-fr${openMatchup && !closing ? ' has-open' : ''}`}
+            // One column (phones): the open card stays its size, flush with its box.
+            style={{ '--sc-tab-scale': cols > 1 ? 1.08 : 1 } as CSSProperties}
+          >
+            {o.matchups.map((m, i) => {
               const [a, b] = sides(m)
               const isMine = m === mine
               const tag = isMine
@@ -435,16 +569,25 @@ export function LeagueOverview({
                   {(a.ties > 0 || b.ties > 0) && <span className="small muted">{a.ties} tied</span>}
                 </>
               )
+              const tab = i === openAt && !closing
               return (
                 <Fragment key={key(m)}>
-                  <li>
+                  <li className="mu-cell">
                     {expandable ? (
                       <button
                         type="button"
-                        className="mu-card"
-                        aria-expanded={open === key(m)}
-                        aria-controls="mu-box"
-                        onClick={() => setOpen(open === key(m) ? null : key(m))}
+                        id={`mu-card-${i}`}
+                        className={`mu-card${tab ? ' is-tab' : ''}`}
+                        style={
+                          {
+                            ...tabStyle(tabOrigin(ids, i, cols)),
+                            '--ta': colours.get(a.team_id) ?? 'var(--accent)',
+                            '--tb': colours.get(b.team_id) ?? 'var(--accent)',
+                          } as CSSProperties
+                        }
+                        aria-expanded={tab}
+                        aria-controls={tab ? 'box' : undefined}
+                        onClick={(e) => go(i, e.detail === 0)}
                       >
                         {body}
                       </button>
@@ -452,7 +595,30 @@ export function LeagueOverview({
                       <div className="mu-card">{body}</div>
                     )}
                   </li>
-                  {open === key(m) && boxPanel && <li className="mu-box-slot">{boxPanel}</li>}
+                  {i === rowEnd && boxSides && (
+                    <li className="mu-box-slot">
+                      <BoxSlot
+                        key={`slot-${i}`}
+                        gameId={openAt}
+                        card={() => cardOf(openAt)}
+                        colours={[
+                          colours.get(boxSides[0].team_id) ?? 'var(--accent)',
+                          colours.get(boxSides[1].team_id) ?? 'var(--accent)',
+                        ]}
+                        strip={null}
+                        closing={closing}
+                        onClosed={onClosed}
+                        intent={intent}
+                      >
+                        {boxPanel}
+                      </BoxSlot>
+                    </li>
+                  )}
+                  {i === ghost?.after && (
+                    <li className="mu-box-slot" aria-hidden="true">
+                      <BoxGhost key={`ghost-${ghost.n}`} height={ghost.height} onDone={clearGhost} />
+                    </li>
+                  )}
                 </Fragment>
               )
             })}

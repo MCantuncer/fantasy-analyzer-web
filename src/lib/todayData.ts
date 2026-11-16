@@ -23,16 +23,17 @@ export function nextFetch(s: ScoreDay | undefined, now = Date.now()): number | f
 }
 
 /**
- * Today's games and both lineups, read the way My Team → My Players reads them (the same query keys,
- * so the two share one fetch): the scores every minute while a game is on, each lineup every minute
- * until the night is over. Null until all three are in, or when today falls outside this week.
+ * Today's games and two teams' lineups, read the way My Team → My Players reads them (the same query
+ * keys, so they share one fetch): the scores every minute while a game is on, each lineup every minute
+ * until the night is over. The scores are asked for as the viewer (`viewerId`), so every matchup on the
+ * page shares them. Null until all three are in, or when today falls outside this week.
  */
 export function useTodayMatchup(
   leagueId: number | undefined,
   season: number | undefined,
   creds: Credentials | null,
-  myId: number | null | undefined,
-  oppId: number | null | undefined,
+  viewerId: number | null | undefined,
+  teams: readonly [number, number] | null | undefined,
   weekStart: string | null | undefined,
   weekEnd: string | null | undefined,
 ): {
@@ -42,10 +43,11 @@ export function useTodayMatchup(
   inWeek: boolean | null
 } {
   const swid = creds?.swid ?? null
-  const on = leagueId != null && season != null && myId != null && oppId != null
+  const viewer = viewerId ?? null
+  const on = leagueId != null && season != null && !!teams
   const scores = useQuery({
-    queryKey: ['scores', leagueId, season, null, myId, swid] as const,
-    queryFn: () => fetchScores(leagueId!, season!, null, myId!, creds),
+    queryKey: ['scores', leagueId, season, null, viewer, swid] as const,
+    queryFn: () => fetchScores(leagueId!, season!, null, viewer, creds),
     enabled: on,
     retry: 1,
     staleTime: 30_000,
@@ -55,7 +57,7 @@ export function useTodayMatchup(
   const inWeek = !!s?.date && (!weekStart || s.date >= weekStart) && (!weekEnd || s.date <= weekEnd)
   const over = !!s && s.games.length > 0 && s.games.every((g) => g.status === 'final')
   const lineups = useQueries({
-    queries: [myId, oppId].map((teamId) => ({
+    queries: [teams?.[0] ?? null, teams?.[1] ?? null].map((teamId) => ({
       queryKey: ['lineup', leagueId, season, teamId, s?.day ?? null, swid] as const,
       queryFn: () => fetchLineup(leagueId!, season!, teamId!, s!.day, creds),
       enabled: on && !!s && inWeek,

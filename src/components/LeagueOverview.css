@@ -1,12 +1,135 @@
-/* League page: a matchup's box score opens in the grid right after the card that was tapped,
-   spanning the full row. Dense flow lets the cards after it fill the rest of that row first. */
-.mu-grid {
-  grid-auto-flow: row dense;
+/* ---------- Week N matchups, Front Row (Can, 2026-11-16; as on Scores, web #247) ----------
+   The matchup you open comes forward (a little bigger, joined to its box by its two-team edge) and the
+   others blur and fade behind it. Its box opens in place, right under its row. The slot, the box and
+   the join are ScoresFrontRow's; the card styles here mirror ScoresFrontRow.css. */
+.mu-grid.lo-fr {
+  --sc-gap: 12px;
+  --sc-tab-rise: 0 -12px 30px -14px rgb(0 0 0 / 0.8);
+  position: relative;
+  row-gap: 0;
+  /* the gap lives on the cards, so a box slot adds none until it opens */
+  margin-bottom: calc(-1 * var(--sc-gap));
+}
+:root[data-theme='light'] .mu-grid.lo-fr {
+  --sc-tab-rise: 0 -12px 28px -14px rgb(70 45 20 / 0.35);
+}
+
+.lo-fr > .mu-cell {
+  min-width: 0;
+  margin-bottom: var(--sc-gap);
 }
 
 .mu-box-slot {
   grid-column: 1 / -1;
   min-width: 0;
+}
+
+.lo-fr .mu-card {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  transform-origin: var(--sc-tab-origin, 50% 100%);
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 160ms ease,
+    opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-bottom-left-radius 120ms ease 100ms,
+    border-bottom-right-radius 120ms ease 100ms;
+}
+
+/* The two-team edge (first team to second), drawn as a ring so it can fade in. */
+.lo-fr .mu-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(100deg, var(--ta, var(--accent)), var(--tb, var(--accent)));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.lo-fr .mu-card.is-tab,
+.lo-fr button.mu-card.is-tab:hover {
+  z-index: 3;
+  background: var(--surface);
+  border-color: transparent;
+  box-shadow: var(--sc-tab-rise);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  transform: scale(var(--sc-tab-scale, 1.08));
+}
+.lo-fr .mu-card.is-tab::after {
+  opacity: 1;
+  padding-bottom: 0;
+  clip-path: inset(0 0 2px 0);
+}
+.lo-fr .mu-card.is-tab:focus-visible {
+  outline-offset: -5px;
+}
+
+/* Everyone else steps back: blurred and faded. Hover or focus brings one back. */
+.lo-fr.has-open .mu-card:not(.is-tab) {
+  opacity: 0.7;
+  filter: blur(2.5px);
+}
+.lo-fr.has-open .mu-card:not(.is-tab):is(:hover, :focus-visible) {
+  opacity: 1;
+  filter: none;
+}
+
+/* The open matchup's box: the slot's panel is the surface, so no card of its own. Its padding matches
+   the Today view's full-bleed team bar (16px, then 20px from 760). */
+.sc-panel .mu-box {
+  padding: 16px;
+  animation: none;
+}
+
+/* Head: the two names, the Today/Week switch, Close. On phones the names get their own line. */
+.sc-panel .mu-box > .featured-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.mu-box-title {
+  min-width: 0;
+  margin: 0;
+  outline: none;
+}
+
+.mu-box > .featured-head > .lo-view {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+@media (min-width: 640px) {
+  .sc-panel .mu-box > .featured-head {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 16px;
+  }
+
+  .mu-box > .featured-head > .lo-view {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+@media (min-width: 760px) {
+  .sc-panel .mu-box {
+    padding: 20px;
+  }
 }
 
 /* Your matchup is marked by an icon in its tag, not a border: the outline belongs only to
