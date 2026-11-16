@@ -35,6 +35,7 @@ import { MyLeagues } from './components/MyLeagues'
 import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
+import { PlayerSearch, PlayerSearchBarKey, PlayerSearchKey } from './components/PlayerSearch'
 import { Report, TABS } from './components/Report'
 import type { Tab } from './components/Report'
 import { Scores } from './components/Scores'
@@ -675,7 +676,17 @@ export default function App() {
           </div>
         </div>
         {showTabs && (
-          <SectionNav sections={browseTabs} active={activeTab} onSelect={setTab} tabsRef={tabsRef} />
+          <SectionNav
+            sections={browseTabs}
+            active={activeTab}
+            onSelect={setTab}
+            tabsRef={tabsRef}
+            trailing={ref && <PlayerSearchKey />}
+            barTrailing={ref && <PlayerSearchBarKey />}
+          />
+        )}
+        {showTabs && ref && (
+          <PlayerSearch leagueRef={ref} creds={creds} teams={seatOverview?.teams ?? []} myTeamId={myTeamId} />
         )}
       </header>
 

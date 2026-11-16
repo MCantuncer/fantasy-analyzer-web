@@ -1,0 +1,288 @@
+/* Phones: player search is a key at the end of the bottom bar and opens as a sheet pinned to the
+   part of the screen the keyboard leaves (--ps-vvh/--ps-vvy from visualViewport). The field sits on
+   the keyboard and the list grows upwards from it: best match nearest the thumb. */
+@media (max-width: 640px) {
+  /* Search is an action, not a section: a fixed 58px key, set apart on a quiet raised cap. */
+  .sn-bar .ps-bar-key {
+    display: flex;
+    flex: 0 0 58px;
+    margin-left: 6px;
+    background: var(--raised);
+    box-shadow: var(--recess);
+    color: var(--text);
+  }
+
+  html.ps-lock,
+  html.ps-lock body {
+    overflow: hidden;
+  }
+
+  /* Above the bottom bar (40) while the sheet is up. */
+  html.ps-on .topbar {
+    z-index: 60;
+  }
+
+  .ps {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: var(--ps-vvh, 100dvh);
+    transform: translateY(var(--ps-vvy, 0px));
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: 56px;
+    background: var(--scrim);
+    animation: ps-fade 0.18s ease-out;
+  }
+
+  .ps-scrim {
+    display: none;
+  }
+
+  .ps-drawer {
+    position: static;
+    order: 1;
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin: 0 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: var(--lift);
+    animation: ps-rise 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .ps-line {
+    position: static;
+    order: 2;
+    flex: none;
+    height: auto;
+    gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--divider);
+    animation: none;
+  }
+
+  /* With the keyboard up the home bar is under it: no safe-area gap above the keys. */
+  .ps.ps-kb-up .ps-line {
+    padding-bottom: 8px;
+  }
+
+  .ps-line::after {
+    display: none;
+  }
+
+  .ps-box {
+    height: 48px;
+    padding: 0 4px 0 12px;
+    border-radius: var(--radius-sm);
+    background: var(--raised);
+    box-shadow:
+      var(--recess),
+      inset 0 -2px 0 var(--accent);
+  }
+
+  .ps-esc {
+    display: none;
+  }
+
+  .ps button.ps-cancel {
+    display: block;
+    min-height: 44px;
+    padding: 0 6px;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .ps-in {
+    container-type: normal;
+    flex: 0 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: 4px 8px 6px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: 'top' 'list' 'note' 'segs' 'hint';
+  }
+
+  .ps-top {
+    min-height: 40px;
+    padding: 0 8px;
+  }
+
+  .ps-keys,
+  .ps-cols {
+    display: none;
+  }
+
+  .ps-list {
+    max-height: none;
+    min-height: 0;
+    flex-direction: column-reverse;
+  }
+
+  .ps-more {
+    padding: 6px 12px;
+  }
+
+  .ps-segs {
+    padding: 6px 0 2px;
+  }
+
+  .ps-seg-group {
+    width: 100%;
+  }
+
+  .ps button.ps-seg {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 8px;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .ps-hint {
+    padding: 8px 8px 6px;
+  }
+
+  .ps-none {
+    padding: 14px 8px 8px;
+  }
+
+  /* Rows: 64px, owner on the meta line. */
+  .ps-row {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-areas: 'face name name' 'face meta own';
+    column-gap: 12px;
+    min-height: 64px;
+    padding: 8px 10px;
+  }
+
+  .ps-row > .head {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .ps-nm {
+    font-size: 16px;
+  }
+
+  .ps-meta {
+    font-size: 13px;
+  }
+
+  .ps-meta-tag {
+    display: inline-flex;
+  }
+
+  .ps-health,
+  .ps-ros,
+  .ps-go,
+  .ps-row.ps-active .ps-go,
+  .ps-one .ps-go {
+    display: none;
+  }
+
+  .ps-own {
+    font-size: 13px;
+    max-width: 150px;
+    justify-self: end;
+  }
+
+  /* The best match, nearest the thumb: three lines and the rostered %. */
+  .ps-row.ps-best,
+  .ps-row.ps-one {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-areas: 'face name ros' 'face meta ros' 'face own ros';
+    min-height: 84px;
+    padding: 10px 12px;
+    background: var(--raised);
+  }
+
+  .ps-best > .head,
+  .ps-one > .head {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .ps-best .ps-own,
+  .ps-one .ps-own {
+    justify-self: start;
+    max-width: none;
+    margin-top: 2px;
+  }
+
+  .ps-best .ps-ros,
+  .ps-one .ps-ros {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 20px;
+    font-weight: 650;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .ps-best .ps-ros-lbl,
+  .ps-one .ps-ros-lbl {
+    display: block;
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+
+  .ps-one .ps-nm {
+    font-size: 17px;
+  }
+
+  .ps-one .ps-tm-full {
+    display: none;
+  }
+
+  .ps-one .ps-tm-ab {
+    display: inline;
+  }
+}
+
+@media (max-width: 379px) {
+  .ps-seg .ps-long {
+    display: none;
+  }
+
+  .ps-seg .ps-short {
+    display: inline;
+  }
+}
+
+@keyframes ps-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps,
+  .ps-drawer {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The tabs live in the bottom bar on phones, so their row (and its search key) goes too. */
+  .topbar .sn-row {
+    display: none;
+  }
+}

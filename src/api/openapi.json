@@ -3930,6 +3930,115 @@
         }
       }
     },
+    "/api/players/index": {
+      "post": {
+        "summary": "Players Index",
+        "description": "Every NBA player this season with who has him in this league, for the header search. The\ndevice filters it with each key press, so this is asked once, not once a key.",
+        "operationId": "players_index_api_players_index_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-espn-s2",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-S2"
+            }
+          },
+          {
+            "name": "x-espn-swid",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-Swid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeagueRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerIndex"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/player-card": {
       "post": {
         "summary": "Player Card",
@@ -6370,6 +6479,66 @@
         "title": "HotRun",
         "description": "What a hot run over his last 15 days was made of, and how much of it tends to last (analysis/form.py)."
       },
+      "IndexedPlayer": {
+        "properties": {
+          "player_id": {
+            "type": "integer",
+            "title": "Player Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "pro_team": {
+            "type": "string",
+            "title": "Pro Team",
+            "description": "NBA team abbreviation; empty when he is on no NBA team"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          },
+          "percent_owned": {
+            "type": "number",
+            "title": "Percent Owned",
+            "description": "Share of ESPN leagues that roster him, 0-100"
+          },
+          "owner_team_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Team Id",
+            "description": "His team in this league; null for a free agent"
+          },
+          "injury_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Injury Status",
+            "description": "ESPN injury status (OUT, DAY_TO_DAY...) when known; null when healthy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "player_id",
+          "name",
+          "pro_team",
+          "position",
+          "percent_owned",
+          "owner_team_id"
+        ],
+        "title": "IndexedPlayer"
+      },
       "InjuryImpact": {
         "properties": {
           "player_id": {
@@ -7910,6 +8079,61 @@
             ],
             "title": "Ft Pct",
             "description": "FTM / FTA; none without attempts"
+          },
+          "opponent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opponent",
+            "description": "The opponent's abbreviation, when the game is known"
+          },
+          "home": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home",
+            "description": "True at home, False away, None when the game isn't known"
+          },
+          "tip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tip",
+            "description": "Tip-off, ISO 8601 UTC, when the game and its time are known"
+          },
+          "usual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextGameStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "His line on a plain night (no opponent, form, absences): what the reasons move from"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/NextGameReason"
+            },
+            "type": "array",
+            "title": "Reasons",
+            "description": "Biggest first, by value"
           }
         },
         "type": "object",
@@ -7928,7 +8152,186 @@
           "fta"
         ],
         "title": "NextGameLine",
-        "description": "His line for his next game: the per-game line this week's odds count (projection, his last 7\nand 15 days of minutes, minutes a teammate's absence gives him), with points, rebounds, blocks and\nturnovers set to the level players reach (report.NEXT_GAME_LEVEL). Matchup context (his past games\nagainst the opponent or its type of center, opponent strength, former team, streaks) was tested on\nfive seasons and moved a game's miss by under 0.1% beyond who he is (scripts/next_game_backtest.py)."
+        "description": "His line for his next game: the per-game line this week's odds count (projection, his last 7\nand 15 days of minutes, minutes a teammate's absence gives him), with points, rebounds, blocks and\nturnovers set to the level players reach (report.NEXT_GAME_LEVEL), then the game itself\n(analysis/gamebox.py): the opponent's defense in each stat, his last 10 games, teammates ruled\nout, games he just missed, home court, how favored his team is and back-to-backs, each tested on\nfive seasons (scripts/next_game_matchup_backtest.py)."
+      },
+      "NextGameReason": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "opponent",
+              "form",
+              "teammates_out",
+              "back_from_absence",
+              "heavy_minutes",
+              "recent_minutes",
+              "home",
+              "away",
+              "favored",
+              "underdog",
+              "back_to_back"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "What it is, in a few words: 'Against PHX', 'James out'"
+          },
+          "minutes": {
+            "type": "number",
+            "title": "Minutes",
+            "description": "Minutes it adds (+) or takes (-)"
+          },
+          "pts": {
+            "type": "number",
+            "title": "Pts",
+            "default": 0.0
+          },
+          "reb": {
+            "type": "number",
+            "title": "Reb",
+            "default": 0.0
+          },
+          "ast": {
+            "type": "number",
+            "title": "Ast",
+            "default": 0.0
+          },
+          "stl": {
+            "type": "number",
+            "title": "Stl",
+            "default": 0.0
+          },
+          "blk": {
+            "type": "number",
+            "title": "Blk",
+            "default": 0.0
+          },
+          "three_pm": {
+            "type": "number",
+            "title": "Three Pm",
+            "default": 0.0
+          },
+          "to": {
+            "type": "number",
+            "title": "To",
+            "default": 0.0
+          },
+          "fg_pct": {
+            "type": "number",
+            "title": "Fg Pct",
+            "description": "Change in FG%, as a share (+0.012 = 1.2 points of FG%)",
+            "default": 0.0
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "Its 9-category value a game (TO counted against), to rank reasons by"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "text",
+          "minutes",
+          "value"
+        ],
+        "title": "NextGameReason",
+        "description": "One thing about the game that moves his line away from his usual one (analysis/gamebox.py)."
+      },
+      "NextGameStats": {
+        "properties": {
+          "minutes": {
+            "type": "number",
+            "title": "Minutes"
+          },
+          "pts": {
+            "type": "number",
+            "title": "Pts"
+          },
+          "reb": {
+            "type": "number",
+            "title": "Reb"
+          },
+          "ast": {
+            "type": "number",
+            "title": "Ast"
+          },
+          "stl": {
+            "type": "number",
+            "title": "Stl"
+          },
+          "blk": {
+            "type": "number",
+            "title": "Blk"
+          },
+          "three_pm": {
+            "type": "number",
+            "title": "Three Pm"
+          },
+          "to": {
+            "type": "number",
+            "title": "To"
+          },
+          "fgm": {
+            "type": "number",
+            "title": "Fgm"
+          },
+          "fga": {
+            "type": "number",
+            "title": "Fga"
+          },
+          "ftm": {
+            "type": "number",
+            "title": "Ftm"
+          },
+          "fta": {
+            "type": "number",
+            "title": "Fta"
+          },
+          "fg_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fg Pct",
+            "description": "FGM / FGA; none without attempts"
+          },
+          "ft_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ft Pct",
+            "description": "FTM / FTA; none without attempts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "minutes",
+          "pts",
+          "reb",
+          "ast",
+          "stl",
+          "blk",
+          "three_pm",
+          "to",
+          "fgm",
+          "fga",
+          "ftm",
+          "fta"
+        ],
+        "title": "NextGameStats",
+        "description": "A per-game line: minutes and the nine categories' stats."
       },
       "NoteRead": {
         "properties": {
@@ -8953,6 +9356,33 @@
           "stats"
         ],
         "title": "PlayerGame"
+      },
+      "PlayerIndex": {
+        "properties": {
+          "league_id": {
+            "type": "integer",
+            "title": "League Id"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/IndexedPlayer"
+            },
+            "type": "array",
+            "title": "Players"
+          }
+        },
+        "type": "object",
+        "required": [
+          "league_id",
+          "season",
+          "players"
+        ],
+        "title": "PlayerIndex",
+        "description": "Every NBA player this season, for search as you type: the device filters, not the server."
       },
       "PlayerMove": {
         "properties": {
