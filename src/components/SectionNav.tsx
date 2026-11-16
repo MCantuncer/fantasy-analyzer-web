@@ -11,7 +11,7 @@ import {
   UsersThree,
   type Icon,
 } from '@phosphor-icons/react'
-import { useEffect, useRef, useState, type Ref } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { createPortal } from 'react-dom'
 import './SectionNav.css'
 
@@ -62,32 +62,55 @@ export function SectionNav({
   active,
   onSelect,
   tabsRef,
+  trailing,
+  barTrailing,
 }: {
   sections: readonly Section[]
   active: string
   onSelect: (id: string) => void
   tabsRef?: Ref<HTMLElement>
+  /** Pinned after the tabs, outside their scroller (the player search key). */
+  trailing?: ReactNode
+  /** The same for the phone's bottom bar, after More. */
+  barTrailing?: ReactNode
 }) {
+  const row = useRef<HTMLDivElement>(null)
+  // Tabs that run under the pinned key fade out at the edge rather than being cut.
+  useEffect(() => {
+    const nav = row.current?.querySelector<HTMLElement>('.sn-tabs')
+    if (!nav || typeof ResizeObserver === 'undefined') return
+    const check = () => nav.classList.toggle('sn-ovf', nav.scrollWidth > nav.clientWidth + 1)
+    const ro = new ResizeObserver(check)
+    ro.observe(nav)
+    check()
+    return () => ro.disconnect()
+  }, [sections.length])
   return (
     <>
-      <nav ref={tabsRef} className="tabs sn-tabs" role="tablist" aria-label="Sections">
-        {sections.map((t) => (
-          <button
-            key={t.id}
-            id={`tab-${t.id}`}
-            role="tab"
-            className="tab"
-            aria-selected={active === t.id}
-            aria-controls={`panel-${t.id}`}
-            onClick={() => onSelect(t.id)}
-          >
-            <SectionIcon id={t.id} active={active === t.id} size={17} />
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <div ref={row} className="sn-row">
+        <nav ref={tabsRef} className="tabs sn-tabs" role="tablist" aria-label="Sections">
+          {sections.map((t) => (
+            <button
+              key={t.id}
+              id={`tab-${t.id}`}
+              role="tab"
+              className="tab"
+              aria-selected={active === t.id}
+              aria-controls={`panel-${t.id}`}
+              onClick={() => onSelect(t.id)}
+            >
+              <SectionIcon id={t.id} active={active === t.id} size={17} />
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        {trailing}
+      </div>
       {/* On the page body, not in the sticky top bar's stacking context, so it layers over toasts. */}
-      {createPortal(<BottomBar sections={sections} active={active} onSelect={onSelect} />, document.body)}
+      {createPortal(
+        <BottomBar sections={sections} active={active} onSelect={onSelect} trailing={barTrailing} />,
+        document.body,
+      )}
     </>
   )
 }
@@ -96,10 +119,12 @@ function BottomBar({
   sections,
   active,
   onSelect,
+  trailing,
 }: {
   sections: readonly Section[]
   active: string
   onSelect: (id: string) => void
+  trailing?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const bar = useRef<HTMLElement>(null)
@@ -171,6 +196,7 @@ function BottomBar({
           <span>{moreActive ? (SHORT[active] ?? rest.find((s) => s.id === active)?.label) : 'More'}</span>
         </button>
       )}
+      {trailing}
     </nav>
   )
 }

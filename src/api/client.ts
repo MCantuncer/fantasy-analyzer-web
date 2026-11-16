@@ -86,6 +86,8 @@ export type TradeRuleKind = TradeRule['kind']
 export type PlayerCard = components['schemas']['PlayerCard']
 export type HotRun = components['schemas']['HotRun']
 export type PlayerCardExtras = components['schemas']['PlayerCardExtras']
+export type IndexedPlayer = components['schemas']['IndexedPlayer']
+export type PlayerIndex = components['schemas']['PlayerIndex']
 export type PlayerGame = components['schemas']['PlayerGame']
 export type GameNote = components['schemas']['GameNote']
 export type PlayerMove = components['schemas']['PlayerMove']
@@ -707,6 +709,11 @@ export function fetchPlayerCard(ref: LeagueRef, playerId: number, creds: Credent
 }
 
 /** The rest of a player card, loaded alongside the core: his news and the names of who moved with him. */
+/** Every NBA player with who has him in this league, for the header search (filtered on the device). */
+export function fetchPlayerIndex(ref: LeagueRef, creds: Credentials | null) {
+  return post<PlayerIndex>('/api/players/index', { league_id: ref.leagueId, season: ref.season }, creds)
+}
+
 export function fetchPlayerCardExtras(ref: LeagueRef, playerId: number, creds: Credentials | null) {
   return post<PlayerCardExtras>(
     '/api/player-card/extras',

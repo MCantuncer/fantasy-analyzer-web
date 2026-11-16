@@ -981,6 +981,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/players/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Players Index
+         * @description Every NBA player this season with who has him in this league, for the header search. The
+         *     device filters it with each key press, so this is asked once, not once a key.
+         */
+        post: operations["players_index_api_players_index_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/player-card": {
         parameters: {
             query?: never;
@@ -1990,6 +2011,35 @@ export interface components {
             /** Ft Usual */
             ft_usual?: number | null;
         };
+        /** IndexedPlayer */
+        IndexedPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Pro Team
+             * @description NBA team abbreviation; empty when he is on no NBA team
+             */
+            pro_team: string;
+            /** Position */
+            position: string;
+            /**
+             * Percent Owned
+             * @description Share of ESPN leagues that roster him, 0-100
+             */
+            percent_owned: number;
+            /**
+             * Owner Team Id
+             * @description His team in this league; null for a free agent
+             */
+            owner_team_id: number | null;
+            /**
+             * Injury Status
+             * @description ESPN injury status (OUT, DAY_TO_DAY...) when known; null when healthy
+             */
+            injury_status?: string | null;
+        };
         /** InjuryImpact */
         InjuryImpact: {
             /** Player Id */
@@ -2638,11 +2688,141 @@ export interface components {
          * NextGameLine
          * @description His line for his next game: the per-game line this week's odds count (projection, his last 7
          *     and 15 days of minutes, minutes a teammate's absence gives him), with points, rebounds, blocks and
-         *     turnovers set to the level players reach (report.NEXT_GAME_LEVEL). Matchup context (his past games
-         *     against the opponent or its type of center, opponent strength, former team, streaks) was tested on
-         *     five seasons and moved a game's miss by under 0.1% beyond who he is (scripts/next_game_backtest.py).
+         *     turnovers set to the level players reach (report.NEXT_GAME_LEVEL), then the game itself
+         *     (analysis/gamebox.py): the opponent's defense in each stat, his last 10 games, teammates ruled
+         *     out, games he just missed, home court, how favored his team is and back-to-backs, each tested on
+         *     five seasons (scripts/next_game_matchup_backtest.py).
          */
         NextGameLine: {
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Three Pm */
+            three_pm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+            /**
+             * Fg Pct
+             * @description FGM / FGA; none without attempts
+             */
+            fg_pct?: number | null;
+            /**
+             * Ft Pct
+             * @description FTM / FTA; none without attempts
+             */
+            ft_pct?: number | null;
+            /**
+             * Opponent
+             * @description The opponent's abbreviation, when the game is known
+             */
+            opponent?: string | null;
+            /**
+             * Home
+             * @description True at home, False away, None when the game isn't known
+             */
+            home?: boolean | null;
+            /**
+             * Tip
+             * @description Tip-off, ISO 8601 UTC, when the game and its time are known
+             */
+            tip?: string | null;
+            /** @description His line on a plain night (no opponent, form, absences): what the reasons move from */
+            usual?: components["schemas"]["NextGameStats"] | null;
+            /**
+             * Reasons
+             * @description Biggest first, by value
+             */
+            reasons?: components["schemas"]["NextGameReason"][];
+        };
+        /**
+         * NextGameReason
+         * @description One thing about the game that moves his line away from his usual one (analysis/gamebox.py).
+         */
+        NextGameReason: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "opponent" | "form" | "teammates_out" | "back_from_absence" | "heavy_minutes" | "recent_minutes" | "home" | "away" | "favored" | "underdog" | "back_to_back";
+            /**
+             * Text
+             * @description What it is, in a few words: 'Against PHX', 'James out'
+             */
+            text: string;
+            /**
+             * Minutes
+             * @description Minutes it adds (+) or takes (-)
+             */
+            minutes: number;
+            /**
+             * Pts
+             * @default 0
+             */
+            pts: number;
+            /**
+             * Reb
+             * @default 0
+             */
+            reb: number;
+            /**
+             * Ast
+             * @default 0
+             */
+            ast: number;
+            /**
+             * Stl
+             * @default 0
+             */
+            stl: number;
+            /**
+             * Blk
+             * @default 0
+             */
+            blk: number;
+            /**
+             * Three Pm
+             * @default 0
+             */
+            three_pm: number;
+            /**
+             * To
+             * @default 0
+             */
+            to: number;
+            /**
+             * Fg Pct
+             * @description Change in FG%, as a share (+0.012 = 1.2 points of FG%)
+             * @default 0
+             */
+            fg_pct: number;
+            /**
+             * Value
+             * @description Its 9-category value a game (TO counted against), to rank reasons by
+             */
+            value: number;
+        };
+        /**
+         * NextGameStats
+         * @description A per-game line: minutes and the nine categories' stats.
+         */
+        NextGameStats: {
             /** Minutes */
             minutes: number;
             /** Pts */
@@ -3199,6 +3379,18 @@ export interface components {
              */
             missed_reason?: string | null;
             stats: components["schemas"]["GameStats"];
+        };
+        /**
+         * PlayerIndex
+         * @description Every NBA player this season, for search as you type: the device filters, not the server.
+         */
+        PlayerIndex: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Players */
+            players: components["schemas"]["IndexedPlayer"][];
         };
         /** PlayerMove */
         PlayerMove: {
@@ -7749,6 +7941,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayerCardExtras"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    players_index_api_players_index_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerIndex"];
                 };
             };
             /** @description Unauthorized */
