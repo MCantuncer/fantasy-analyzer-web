@@ -395,7 +395,7 @@ button.tm-flag svg {
 .tm-row,
 .tm-tot {
   display: grid;
-  grid-template-columns: 26px 112px 30px 50px 46px 34px 34px 34px 30px 30px 30px 36px;
+  grid-template-columns: 30px 122px 30px 50px 46px 34px 34px 34px 30px 30px 30px 36px;
   column-gap: 4px;
   align-items: center;
   min-width: max-content;
@@ -478,7 +478,8 @@ button.tm-flag svg {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 5px;
+  padding-block: 4px;
   border-radius: 9px;
   background: var(--tm-bg);
   box-shadow:
@@ -505,13 +506,36 @@ button.tm-flag svg {
 }
 
 .tm-row > .tm-who {
-  left: 30px;
+  left: 34px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
   padding-right: 4px;
   background: var(--tm-bg);
+}
+
+/* The player's face, then his name over the game's state. */
+.tm-who > .pc-link-face {
+  flex: none;
+  display: flex;
+}
+
+.tm-head-hole {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1.5px var(--tm-outline, var(--border));
+  opacity: 0.6;
+}
+
+.tm-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Soft edges where the numbers slide under the pinned name and PTS. */
@@ -551,14 +575,15 @@ button.tm-flag svg {
 }
 
 .tm-slot {
-  font-size: 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
   font-weight: 700;
   line-height: 1;
   color: var(--text-2);
 }
 
 .tm-grade {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -582,16 +607,26 @@ button.tm-flag svg {
   color: var(--g-bad);
 }
 
-.tm-spine .tm-dot {
-  width: 6px;
-  height: 6px;
+/* The game-state mark that leads the game line: on the floor (filled gold), sitting (hollow gold),
+   done for the night (grey). */
+.tm-mk {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 2px;
+  border-radius: 50%;
 }
 
-.tm-ring {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--muted);
+.tm-mk.oncourt {
+  background: var(--gold);
+}
+
+.tm-mk.sitting {
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+
+.tm-mk.done {
+  background: var(--muted);
 }
 
 .tm-l1,
@@ -638,6 +673,10 @@ button.pc-link.tm-nm {
   color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
+}
+
+.tm-tag.tm-wmid {
+  display: none;
 }
 
 .tm-clk {
@@ -762,7 +801,7 @@ button.pc-link.tm-nm {
 }
 
 .tm-sublab {
-  margin: 4px 4px 0 34px;
+  margin: 4px 4px 0 38px;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-2);
@@ -866,20 +905,36 @@ button.pc-link.tm-nm {
   .tm-colhead,
   .tm-row,
   .tm-tot {
-    grid-template-columns: 34px minmax(200px, 1fr) repeat(10, minmax(40px, 64px));
+    grid-template-columns: 46px minmax(240px, 1fr) repeat(10, minmax(40px, 64px));
     min-width: 0;
   }
 
   .tm-row > .tm-who {
-    left: 38px;
+    left: 50px;
+    gap: 10px;
+  }
+
+  /* Bigger faces once the line has room (PlayerHead sets its phone size inline). */
+  .tm-who > .pc-link-face > .head,
+  .tm-head-hole {
+    width: 34px !important;
+    height: 34px !important;
   }
 
   .tm-wmid {
     display: inline;
   }
 
+  .tm-tag.tm-wmid {
+    display: inline-flex;
+  }
+
+  .tm-nmid {
+    display: none;
+  }
+
   .tm-sublab {
-    margin-left: 42px;
+    margin-left: 54px;
   }
 }
 
