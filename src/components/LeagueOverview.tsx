@@ -11,6 +11,8 @@ import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
 import { TeamCrest } from './TeamCrest'
+import { todayMatters, useTodayMatchup } from '../lib/todayData'
+import { TodayLoading, TodayMatchup } from './TodayMatchup'
 
 interface Props {
   overview: Overview
@@ -122,6 +124,43 @@ export function LeagueOverview({
     }
   }
 
+  // Your matchup, today: both lineups live, next to the week's box score.
+  const rival = mine ? sides(mine)[1] : undefined
+  const today = useTodayMatchup(
+    leagueRef?.leagueId,
+    leagueRef?.season,
+    creds ?? null,
+    mine ? o.my_team_id : null,
+    rival?.team_id,
+    o.week_start,
+    o.week_end,
+  )
+  // The Today/Week pick lasts the session, per league and day, so a refresh never flips it back.
+  const viewKey = leagueRef && today.data ? `court:matchup-view:${leagueRef.leagueId}:${today.data.scores.date}` : null
+  const [picked, setPicked] = useState<{ key: string | null; view: 'today' | 'week' } | null>(null)
+  const stored = (() => {
+    if (!viewKey) return null
+    if (picked?.key === viewKey) return picked.view
+    try {
+      const v = sessionStorage.getItem(viewKey)
+      return v === 'today' || v === 'week' ? v : null
+    } catch {
+      return null
+    }
+  })()
+  const canToday = !!mine && !!leagueRef && today.inWeek !== false && !today.failed && (!!today.data || today.loading)
+  // Today while a game is on or still to come for someone in either lineup; the week otherwise.
+  const autoView = today.data && !todayMatters(today.data) ? 'week' : 'today'
+  const matchupView = canToday ? (stored ?? autoView) : 'week'
+  const pickView = (v: 'today' | 'week') => {
+    setPicked({ key: viewKey, view: v })
+    try {
+      if (viewKey) sessionStorage.setItem(viewKey, v)
+    } catch {
+      // Private mode: the pick lasts until the page reloads.
+    }
+  }
+
   const pulse = o.pulse
   const week = [shortDate(o.week_start), shortDate(o.week_end)].filter(Boolean).join(' – ')
   const finished = Array.from({ length: Math.max(0, o.matchup_period - 1) }, (_, i) => i + 1)
@@ -221,6 +260,7 @@ export function LeagueOverview({
               {mine ? 'Your matchup' : 'Matchup of the week'}
             </h2>
             {mine &&
+              matchupView === 'week' &&
               (() => {
                 const [me, them] = sides(mine)
                 const hint = flipHint(me, them)
@@ -231,7 +271,7 @@ export function LeagueOverview({
                   </span>
                 ) : null
               })()}
-            {mine && onCheckTrade && (
+            {mine && onCheckTrade && matchupView === 'week' && (
               <button
                 type="button"
                 className="secondary lo-check"
@@ -240,18 +280,41 @@ export function LeagueOverview({
                 <MaybeHandshake size={20} /> Check a Trade With Them
               </button>
             )}
+            {canToday && (
+              <div className="segmented lo-view" role="group" aria-label="Today or the whole week">
+                {(['today', 'week'] as const).map((v) => (
+                  <button key={v} type="button" aria-pressed={matchupView === v} onClick={() => pickView(v)}>
+                    {v === 'today' ? 'Today' : 'Week'}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          {(() => {
-            const [a, b] = sides(featured)
-            return (
-              <BoxScore
-                home={boxTeam(a)}
-                away={boxTeam(b)}
-                caption={`${nameOf(a.team_id)} against ${nameOf(b.team_id)}, week ${o.matchup_period}`}
-              />
-            )
-          })()}
-          <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
+          {matchupView === 'today' &&
+            mine &&
+            (() => {
+              const [me, them] = sides(mine)
+              const side = (s: MatchupSide) => ({
+                id: s.team_id,
+                name: nameOf(s.team_id),
+                colour: colours.get(s.team_id),
+                week: s.categories ?? [],
+              })
+              return today.data ? <TodayMatchup data={today.data} me={side(me)} them={side(them)} myId={o.my_team_id ?? null} /> : <TodayLoading />
+            })()}
+          {matchupView === 'week' &&
+            (() => {
+              const [a, b] = sides(featured)
+              return (
+                <BoxScore
+                  home={boxTeam(a)}
+                  away={boxTeam(b)}
+                  caption={`${nameOf(a.team_id)} against ${nameOf(b.team_id)}, week ${o.matchup_period}`}
+                />
+              )
+            })()}
+          {matchupView === 'week' && (
+            <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
             {mine ? (
               <>
                 <li>
@@ -291,8 +354,10 @@ export function LeagueOverview({
               tied
             </li>
           </ul>
+          )}
           {mine &&
             leagueRef &&
+            matchupView === 'week' &&
             (() => {
               const [me, them] = sides(mine)
               return (
