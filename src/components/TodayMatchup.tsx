@@ -455,8 +455,16 @@ function stateOf(r: PlayerRow, now: number): { node: ReactNode; words: string } 
   return {
     node: (
       <>
-        <span className="tm-tag">{r.state === 'dnp' ? 'Did not play' : 'Final'}</span>
-        <span className="tm-wmid"> {result(r, g)}</span>
+        {r.state === 'dnp' ? (
+          <span className="tm-tag">
+            <span className="tm-wmid">Did not play</span>
+            <span className="tm-nmid">DNP</span>
+          </span>
+        ) : (
+          // On phones the grey mark says Final; the score always shows.
+          <span className="tm-tag tm-wmid">Final</span>
+        )}
+        <span>{result(r, g)}</span>
       </>
     ),
     words: r.state === 'dnp' ? 'did not play' : 'final',

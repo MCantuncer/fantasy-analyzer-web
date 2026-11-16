@@ -675,6 +675,10 @@ button.pc-link.tm-nm {
   overflow: hidden;
 }
 
+.tm-tag.tm-wmid {
+  display: none;
+}
+
 .tm-clk {
   color: var(--gold-text);
   font-weight: 600;
@@ -919,6 +923,14 @@ button.pc-link.tm-nm {
 
   .tm-wmid {
     display: inline;
+  }
+
+  .tm-tag.tm-wmid {
+    display: inline-flex;
+  }
+
+  .tm-nmid {
+    display: none;
   }
 
   .tm-sublab {
