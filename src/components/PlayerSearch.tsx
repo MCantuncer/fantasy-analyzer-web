@@ -14,6 +14,7 @@ import {
 import { flushSync } from 'react-dom'
 import { fetchPlayerIndex, type IndexedPlayer, type LeagueRef, type OverviewTeam } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { injuryShort } from '../lib/injury'
 import { teamColours } from '../lib/league'
 import { teamName } from '../lib/nbaTeams'
@@ -420,12 +421,13 @@ export function PlayerSearch({
       e.preventDefault()
       const row = rows[activeRow]
       if (row) pick(row.player)
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      if (q) setQ('')
-      else closePlayerSearch()
     }
   }
+  // Esc clears the field first, then closes; a player card opened from here closes before either.
+  useEscapeLayer(open, () => {
+    if (q) setQ('')
+    else closePlayerSearch()
+  })
 
   const listId = `${ids}-list`
   const countLabel = typing

@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { createPortal } from 'react-dom'
+import { useEscapeLayer } from '../lib/escapeStack'
 import './SectionNav.css'
 
 export interface Section {
@@ -136,15 +137,12 @@ function BottomBar({
   useEffect(() => {
     if (!open) return
     const close = (e: Event) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !bar.current?.contains(e.target as Node)) setOpen(false)
+      if (!bar.current?.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('pointerdown', close)
-    document.addEventListener('keydown', close)
-    return () => {
-      document.removeEventListener('pointerdown', close)
-      document.removeEventListener('keydown', close)
-    }
+    return () => document.removeEventListener('pointerdown', close)
   }, [open])
+  useEscapeLayer(open, () => setOpen(false))
 
   const pick = (id: string) => {
     setOpen(false)

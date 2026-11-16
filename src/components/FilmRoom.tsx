@@ -1093,7 +1093,11 @@ export function FilmRoomPicker({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false)
       }}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') setOpen(false)
+        // The menu takes this Esc, so a box score open behind it stays open.
+        if (e.key === 'Escape' && open) {
+          e.preventDefault()
+          setOpen(false)
+        }
       }}
     >
       <button

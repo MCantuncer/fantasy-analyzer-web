@@ -3,6 +3,7 @@ import { ArrowRight, X } from '@phosphor-icons/react'
 import type { AnalysisReport, AuthResult } from '../api/client'
 import { bestMoveOf } from '../lib/bestMove'
 import { parseLeagueInput } from '../lib/espnUrl'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { pct, ptsDiff } from '../lib/format'
 import type { Theme } from '../lib/theme'
 import { Auth } from './Auth'
@@ -66,17 +67,13 @@ export function JoinSheet({
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
     sheet.current?.querySelector<HTMLElement>('input, button')?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
     document.body.classList.add('join-open')
     return () => {
-      document.removeEventListener('keydown', onKey)
       document.body.classList.remove('join-open')
       opener?.focus?.()
     }
-  }, [onClose])
+  }, [])
+  useEscapeLayer(true, onClose)
 
   useEffect(() => {
     sheet.current?.querySelector<HTMLElement>('input')?.focus()

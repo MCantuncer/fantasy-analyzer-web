@@ -2,6 +2,7 @@ import { Lock, UsersThree, X } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import { pointChange, surname } from '../lib/tradeCheck'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { PlayerHead } from './PlayerHead'
 import './TradeCheckMoves.css'
 
@@ -51,7 +52,6 @@ function CutSheet({
     const el = box.current
     el?.querySelector<HTMLElement>('input:checked, input:not(:disabled)')?.focus()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
       if (e.key !== 'Tab' || !el) return
       const items = [...el.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')]
       const first = items[0]
@@ -66,7 +66,8 @@ function CutSheet({
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [])
+  useEscapeLayer(true, onClose)
 
   const row = (p: PlayerRef, odds: number | null | undefined) => (
     <li key={p.id}>

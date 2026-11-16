@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MyLeague } from '../api/client'
+import { useEscapeLayer } from '../lib/escapeStack'
 import './LeagueSwitcher.css'
 import { VerifiedBadge } from './VerifiedBadge'
 
@@ -16,6 +17,7 @@ interface Props {
 /** The league / team crumb in the top bar, which opens a menu to jump to another league or add one. */
 export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen, onAdd, onManage }: Props) {
   const ref = useRef<HTMLDetailsElement>(null)
+  const [open, setOpen] = useState(false)
 
   // Close on outside click and Escape, like any other menu.
   useEffect(() => {
@@ -24,19 +26,15 @@ export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen,
     const onDown = (e: PointerEvent) => {
       if (el.open && !el.contains(e.target as Node)) el.open = false
     }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && el.open) {
-        el.open = false
-        el.querySelector('summary')?.focus()
-      }
-    }
     document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
+    return () => document.removeEventListener('pointerdown', onDown)
   }, [])
+  useEscapeLayer(open, () => {
+    const el = ref.current
+    if (!el) return
+    el.open = false
+    el.querySelector('summary')?.focus()
+  })
 
   const close = (then: () => void) => () => {
     if (ref.current) ref.current.open = false
@@ -46,7 +44,7 @@ export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen,
     l.league_id === current.leagueId && (current.season === null || l.season === current.season)
 
   return (
-    <details className="switcher league-switcher" ref={ref}>
+    <details className="switcher league-switcher" ref={ref} onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary aria-label={`${leagueName}${teamName ? `, ${teamName}` : ''}. Switch league`}>
         <span className="league-name" title={leagueName}>
           {leagueName}

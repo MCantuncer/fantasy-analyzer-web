@@ -23,6 +23,7 @@ import { createPortal } from 'react-dom'
 import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerCardExtras, PlayerGame, PlayerNews } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { KIND_LABEL, ago, statusText } from '../lib/news'
 import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
 import {
@@ -291,15 +292,11 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
     const body = document.body.style
     const before = body.overflow
     body.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
     return () => {
       body.overflow = before
-      document.removeEventListener('keydown', onKey)
     }
-  }, [onClose])
+  }, [])
+  useEscapeLayer(true, onClose)
 
   // Keep Tab inside the card while it is open.
   const trap = (e: ReactKeyboardEvent) => {
