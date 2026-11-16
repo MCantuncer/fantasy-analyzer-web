@@ -254,8 +254,10 @@ function TabJoin({
     const f = 10
     const ext = 18
     const yb = gap + 0.5
-    const xl = x0 + 0.75
-    const xr = x1 - 0.75
+    // The card's ring is 1.5px on its own edge, scaled with the card: the lines below carry on from it.
+    const sw = 1.5 * end
+    const xl = x0 + sw / 2
+    const xr = x1 - sw / 2
     const fl = x0 < 2
     const fr = x1 > W - 2
     let d = `M${x0} -1`
@@ -266,6 +268,8 @@ function TabJoin({
     fill.current!.setAttribute('d', d)
     left.current!.setAttribute('d', dl)
     right.current!.setAttribute('d', dr)
+    left.current!.style.strokeWidth = `${sw}px`
+    right.current!.style.strokeWidth = `${sw}px`
     const grad = (g: SVGLinearGradientElement, xa: number, xb: number, yB: number) => {
       g.setAttribute('x1', String(xa))
       g.setAttribute('y1', '0')
