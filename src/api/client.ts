@@ -708,12 +708,56 @@ export function fetchPlayerCard(ref: LeagueRef, playerId: number, creds: Credent
   )
 }
 
-/** The rest of a player card, loaded alongside the core: his news and the names of who moved with him. */
 /** Every NBA player with who has him in this league, for the header search (filtered on the device). */
 export function fetchPlayerIndex(ref: LeagueRef, creds: Credentials | null) {
   return post<PlayerIndex>('/api/players/index', { league_id: ref.leagueId, season: ref.season }, creds)
 }
 
+export interface TeamScorer {
+  player_id: number
+  name: string
+  pts: number
+  reb: number
+  ast: number
+}
+
+export interface TeamResult {
+  game_id: number
+  date: string | null
+  start: string
+  home: boolean
+  opponent: string
+  opponent_name: string
+  points: number
+  opponent_points: number
+  won: boolean
+  /** This team's top scorer in the game. */
+  top: TeamScorer | null
+}
+
+/** An NBA team at a glance, for the team card: the roster comes from the player index. */
+export interface NbaTeamInfo {
+  abbrev: string
+  name: string
+  wins: number
+  losses: number
+  /** "W3" for three wins in a row; null before the first game. */
+  streak: string | null
+  /** The last five results, most recent first. */
+  latest: TeamResult[]
+  next_game: { start: string; home: boolean; opponent: string; opponent_name: string } | null
+}
+
+export function fetchNbaTeam(ref: LeagueRef, abbrev: string, creds: Credentials | null) {
+  return post<NbaTeamInfo>(
+    '/api/nba-team',
+    { league_id: ref.leagueId, season: ref.season, team: abbrev },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** The rest of a player card, loaded alongside the core: his news and the names of who moved with him. */
 export function fetchPlayerCardExtras(ref: LeagueRef, playerId: number, creds: Credentials | null) {
   return post<PlayerCardExtras>(
     '/api/player-card/extras',

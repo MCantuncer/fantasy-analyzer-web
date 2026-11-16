@@ -732,6 +732,49 @@
   padding-left: 8px;
 }
 
+/* Teams: a group above the players, the same row height, opening the team card. */
+.ps-group {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--faint);
+}
+
+.ps-tdisc {
+  grid-area: face;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--recess);
+}
+
+.ps-team .ps-meta {
+  gap: 6px;
+}
+
+.ps-stake {
+  gap: 12px;
+}
+
+.ps-stake > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ps-stake-none {
+  color: var(--faint);
+}
+
+.ps-trec .ps-ros-v {
+  font-weight: 650;
+  color: var(--text);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ps-scrim,
   .ps-line,

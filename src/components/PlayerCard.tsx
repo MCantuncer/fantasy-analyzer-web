@@ -2,6 +2,7 @@ import {
   ArrowUpRight,
   ArrowsClockwise,
   ArrowsLeftRight,
+  CaretLeft,
   CaretRight,
   ChatCircleDots,
   CircleDashed,
@@ -19,7 +20,7 @@ import type { Icon } from '@phosphor-icons/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerCardExtras, PlayerGame, PlayerNews } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -44,6 +45,7 @@ import {
   ownerText,
   scoreWords,
   setPlayerCardHost,
+  setPlayerCardShown,
   shareLabel,
   shortDate,
   spotlight,
@@ -55,6 +57,8 @@ import type { FormTile, GarbageNight, GarbageTally } from '../lib/playerCard'
 import { teamColour, teamName } from '../lib/nbaTeams'
 import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
+import { teamQuery, useTeamCardOpen } from '../lib/teamCard'
+import { teamByAbbrev } from '../lib/teamSearch'
 import { NextGameLine } from './NextGameLine'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
@@ -126,15 +130,28 @@ export function PlayerCardHost({ leagueRef, creds, teams, myTeamId }: HostProps)
   }, [leagueKey, client])
 
   const close = useCallback(() => {
-    setPlayer(null)
+    // A team card under this one is inert until it knows the card is gone: tell it first, so focus
+    // can land back on its roster row.
+    flushSync(() => {
+      setPlayer(null)
+      setPlayerCardShown(false)
+    })
     opener.current?.focus()
   }, [])
   const names = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
+  // A team card open under this one: the card sits on top of it, with a way back to it.
+  const onTeam = useTeamCardOpen()
+  const shown = !!player && !!leagueRef
+  useEffect(() => {
+    setPlayerCardShown(shown)
+  }, [shown])
+  useEffect(() => () => setPlayerCardShown(false), [])
 
   if (!player || !leagueRef) return null
   return (
     <PlayerSheet
       key={`${leagueKey}:${player.id}`}
+      onTeam={onTeam}
       player={player}
       leagueRef={leagueRef}
       creds={creds}
@@ -271,6 +288,8 @@ export function DealChips({ deal, label = 'Players in this deal' }: { deal: Deal
 }
 
 interface SheetProps {
+  /** The team card this one sits on, if any. */
+  onTeam?: string | null
   player: CardPlayer
   leagueRef: LeagueRef
   creds: Credentials | null
@@ -279,7 +298,7 @@ interface SheetProps {
   onClose: () => void
 }
 
-function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: SheetProps) {
+function PlayerSheet({ onTeam, player, leagueRef, creds, teams, myTeamId, onClose }: SheetProps) {
   const titleId = useId()
   const dialog = useRef<HTMLDivElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
@@ -321,7 +340,7 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
   const colour = teamColour(abbrev)
   const heroStyle = colour ? ({ '--pc-team': colour } as CSSProperties) : undefined
   return createPortal(
-    <div className="pc-layer">
+    <div className={onTeam ? 'pc-layer pc-stacked' : 'pc-layer'}>
       <div className="pc-backdrop" onClick={onClose} aria-hidden="true" />
       <div ref={dialog} className="pc-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={trap}>
         <header className={colour ? 'pc-hero pc-hero-team' : 'pc-hero'} style={heroStyle}>
@@ -387,9 +406,44 @@ function PlayerSheet({ player, leagueRef, creds, teams, myTeamId, onClose }: She
             />
           )}
         </div>
+        {onTeam && <BackToTeam abbrev={onTeam} leagueRef={leagueRef} creds={creds} onBack={onClose} />}
       </div>
     </div>,
     document.body,
+  )
+}
+
+/** "‹ Back to Nuggets 7–4" at the foot of a player card opened from a team card, under the thumb. */
+function BackToTeam({
+  abbrev,
+  leagueRef,
+  creds,
+  onBack,
+}: {
+  abbrev: string
+  leagueRef: LeagueRef
+  creds: Credentials | null
+  onBack: () => void
+}) {
+  // Already loaded by the team card under this one: read from the cache, never fetched here.
+  const info = useQuery({ ...teamQuery(leagueRef, abbrev, creds), enabled: false }).data
+  const name = teamByAbbrev(abbrev)?.nickname ?? abbrev
+  return (
+    <div className="pc-back-bar">
+      <button type="button" className="pc-back" onClick={onBack}>
+        <CaretLeft size={16} weight="bold" aria-hidden="true" />
+        <TeamLogo abbrev={abbrev} size={20} />
+        <span>
+          Back to {name}
+          {info && (
+            <span className="pc-back-rec tnum">
+              {' '}
+              {info.wins}–{info.losses}
+            </span>
+          )}
+        </span>
+      </button>
+    </div>
   )
 }
 
@@ -1020,7 +1074,10 @@ function GarbageStamp() {
   return (
     <svg className="pc-gt-stamp" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
       <rect className="pc-gt-stamp-tile" x=".5" y=".5" width="15" height="15" rx="4" />
-      <path className="pc-gt-stamp-glass" d="M5 4.1h6M5 11.9h6M5.9 4.1C5.9 6.6 8 6.9 8 8s-2.1 1.4-2.1 3.9M10.1 4.1C10.1 6.6 8 6.9 8 8s2.1 1.4 2.1 3.9" />
+      <path
+        className="pc-gt-stamp-glass"
+        d="M5 4.1h6M5 11.9h6M5.9 4.1C5.9 6.6 8 6.9 8 8s-2.1 1.4-2.1 3.9M10.1 4.1C10.1 6.6 8 6.9 8 8s2.1 1.4 2.1 3.9"
+      />
       <path className="pc-gt-stamp-sand" d="M8 9.2c-.5.5-1.6 1-1.75 2.1h3.5C9.6 10.2 8.5 9.7 8 9.2z" />
     </svg>
   )

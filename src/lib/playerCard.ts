@@ -30,6 +30,27 @@ function subscribe(listener: () => void) {
   }
 }
 
+// Whether a player card is on screen, so a team card under it can step back and go inert.
+let shown = false
+const shownListeners = new Set<() => void>()
+
+export function setPlayerCardShown(next: boolean) {
+  if (shown === next) return
+  shown = next
+  shownListeners.forEach((l) => l())
+}
+
+export function usePlayerCardShown(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      shownListeners.add(l)
+      return () => shownListeners.delete(l)
+    },
+    () => shown,
+    () => false,
+  )
+}
+
 /** Opens a player's card, or null outside a league, where names stay plain text. */
 export function usePlayerCard(): PlayerCardApi | null {
   return useSyncExternalStore(
