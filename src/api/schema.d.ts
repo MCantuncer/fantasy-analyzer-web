@@ -1002,6 +1002,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/nba-team": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Nba Team
+         * @description An NBA team's record, last five results and next game, for the team card the header search
+         *     opens. Built from the Scores page's day boxes, so a finished day costs no new ESPN call.
+         */
+        post: operations["nba_team_api_nba_team_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/player-card": {
         parameters: {
             query?: never;
@@ -2039,6 +2060,12 @@ export interface components {
              * @description ESPN injury status (OUT, DAY_TO_DAY...) when known; null when healthy
              */
             injury_status?: string | null;
+            /**
+             * On Roster
+             * @description On his NBA team's roster today (ESPN keeps long-gone players on their old team): rostered in this league, or in ESPN's news in the last 120 days
+             * @default true
+             */
+            on_roster: boolean;
         };
         /** InjuryImpact */
         InjuryImpact: {
@@ -2487,6 +2514,46 @@ export interface components {
              */
             team_id?: number | null;
         };
+        /**
+         * NbaTeam
+         * @description An NBA team at a glance: record, latest results and next game. The roster is the player index's.
+         */
+        NbaTeam: {
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /** Wins */
+            wins: number;
+            /** Losses */
+            losses: number;
+            /**
+             * Streak
+             * @description "W3" for three wins in a row; null before the first game
+             */
+            streak: string | null;
+            /**
+             * Latest
+             * @description The last five results, most recent first
+             */
+            latest: components["schemas"]["TeamResult"][];
+            next_game: components["schemas"]["TeamNextGame"] | null;
+        };
+        /** NbaTeamRequest */
+        NbaTeamRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Team
+             * @description NBA team abbreviation as ESPN writes it: DEN, GS, UTAH
+             */
+            team: string;
+        };
         /** NewsCheck */
         NewsCheck: {
             /**
@@ -2689,9 +2756,10 @@ export interface components {
          * @description His line for his next game: the per-game line this week's odds count (projection, his last 7
          *     and 15 days of minutes, minutes a teammate's absence gives him), with points, rebounds, blocks and
          *     turnovers set to the level players reach (report.NEXT_GAME_LEVEL), then the game itself
-         *     (analysis/gamebox.py): the opponent's defense in each stat, his last 10 games, teammates ruled
-         *     out, games he just missed, home court, how favored his team is and back-to-backs, each tested on
-         *     five seasons (scripts/next_game_matchup_backtest.py).
+         *     (analysis/gamebox.py): the opponent's defense in each stat, his recent form (recent games count most,
+         *     last season's end included), whether he started his last game, teammates ruled out, games he just
+         *     missed, home court, how favored his team is and back-to-backs, each tested on five seasons
+         *     (scripts/next_game_matchup_backtest.py).
          */
         NextGameLine: {
             /** Minutes */
@@ -2760,7 +2828,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "opponent" | "form" | "teammates_out" | "back_from_absence" | "heavy_minutes" | "recent_minutes" | "home" | "away" | "favored" | "underdog" | "back_to_back";
+            kind: "opponent" | "form" | "teammates_out" | "back_from_absence" | "heavy_minutes" | "recent_minutes" | "starter_switch" | "home" | "away" | "favored" | "underdog" | "back_to_back";
             /**
              * Text
              * @description What it is, in a few words: 'Against PHX', 'James out'
@@ -4902,6 +4970,46 @@ export interface components {
             /** Challenge */
             challenge: string;
         };
+        /** TeamNextGame */
+        TeamNextGame: {
+            /** Start */
+            start: string;
+            /** Home */
+            home: boolean;
+            /** Opponent */
+            opponent: string;
+            /** Opponent Name */
+            opponent_name: string;
+        };
+        /** TeamResult */
+        TeamResult: {
+            /** Game Id */
+            game_id: number;
+            /**
+             * Date
+             * @description US game date, YYYY-MM-DD
+             */
+            date: string | null;
+            /** Start */
+            start: string;
+            /** Home */
+            home: boolean;
+            /**
+             * Opponent
+             * @description Opponent abbreviation
+             */
+            opponent: string;
+            /** Opponent Name */
+            opponent_name: string;
+            /** Points */
+            points: number;
+            /** Opponent Points */
+            opponent_points: number;
+            /** Won */
+            won: boolean;
+            /** @description This team's top scorer in the game */
+            top: components["schemas"]["TeamScorer"] | null;
+        };
         /** TeamRoster */
         TeamRoster: {
             /** Team Id */
@@ -4910,6 +5018,19 @@ export interface components {
             team_name: string;
             /** Players */
             players: components["schemas"]["TradeTarget"][];
+        };
+        /** TeamScorer */
+        TeamScorer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
         };
         /** TeamSummary */
         TeamSummary: {
@@ -7996,6 +8117,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayerIndex"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    nba_team_api_nba_team_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NbaTeamRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NbaTeam"];
                 };
             };
             /** @description Unauthorized */

@@ -108,7 +108,8 @@ function TeamSheet({
   const roster = useMemo(
     () =>
       (index.data?.players ?? [])
-        .filter((p) => p.pro_team === abbrev)
+        // ESPN keeps long-gone players on their old team: only today's roster.
+        .filter((p) => p.pro_team === abbrev && p.on_roster !== false)
         .sort((a, b) => b.percent_owned - a.percent_owned || a.name.localeCompare(b.name)),
     [index.data, abbrev],
   )

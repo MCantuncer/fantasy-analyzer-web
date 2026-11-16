@@ -188,7 +188,9 @@ function TeamName({ hit }: { hit: TeamHit }) {
 /** What you have riding on a team: your players on it, and its free agents worth a look (5%+ on ESPN). */
 function stakeOf(team: NbaTeam, players: IndexedPlayer[] | undefined, myTeamId: number | null) {
   if (!players) return null
-  const on = players.filter((p) => p.pro_team === team.abbrev).sort((a, b) => b.percent_owned - a.percent_owned)
+  const on = players
+    .filter((p) => p.pro_team === team.abbrev && p.on_roster !== false)
+    .sort((a, b) => b.percent_owned - a.percent_owned)
   return {
     mine: on.filter((p) => myTeamId !== null && p.owner_team_id === myTeamId),
     free: on.filter((p) => p.owner_team_id == null && p.percent_owned >= 5).length,
