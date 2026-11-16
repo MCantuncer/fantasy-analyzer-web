@@ -56,9 +56,11 @@ export function TodayMatchup({
   const [view, setView] = useState<0 | 1>(0)
   // The bench flag's player, to bring into view once his team is on screen.
   const [seek, setSeek] = useState<number | null>(null)
+  const root = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (seek == null) return
-    const el = document.getElementById(`tm-p-${seek}`)
+    // Looked up inside this view: the same player can be on screen twice (your card and an open matchup).
+    const el = root.current?.querySelector<HTMLElement>(`[data-tm-p='${seek}']`)
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     el?.scrollIntoView?.({ block: 'center', behavior: reduce ? 'auto' : 'smooth' })
     el?.focus({ preventScroll: true })
@@ -98,7 +100,7 @@ export function TodayMatchup({
   const shown = sides[view]
 
   return (
-    <div className="tm">
+    <div className="tm" ref={root}>
       <p className="tm-status">
         {live ? (
           <span className="tm-live">
@@ -538,12 +540,7 @@ function Row({
   const player = { id: r.spot.player_id, name: r.spot.name }
   return (
     <li>
-      <div
-        className={cls}
-        id={left ? `tm-p-${r.spot.player_id}` : undefined}
-        tabIndex={left ? -1 : undefined}
-        {...attrs}
-      >
+      <div className={cls} data-tm-p={left ? r.spot.player_id : undefined} tabIndex={left ? -1 : undefined} {...attrs}>
         {ember && <Burn />}
         <span className="tm-spine" aria-hidden={!grade}>
           {!quiet && <span className="tm-slot">{r.spot.slot}</span>}
