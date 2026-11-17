@@ -1,6 +1,15 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bone, ScoresSkeleton } from './Skeleton'
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import { ArrowDown, ArrowUp, CaretLeft, CaretRight, Television, X } from '@phosphor-icons/react'
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
@@ -48,6 +57,8 @@ export interface TonightMatchup {
 
 export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Props) {
   const [day, setDay] = useState<number | null>(null)
+  const [root, setRoot] = useState<HTMLDivElement | null>(null)
+  const pinned = usePinnedDays(root)
   const [lens, setLens] = useState<Lens>('all')
   const qc = useQueryClient()
   const key = [leagueId, season, day, teamId, creds?.swid ?? null] as const
@@ -136,7 +147,14 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     week: base.week.map((d) => ({ ...d, sits: sitsByDay.get(d.day) ?? d.sits })),
   }
   // A new day starts with nothing open (the board is keyed by day).
-  const pickDay = (d: number) => setDay(d)
+  const pickDay = (d: number) => {
+    setDay(d)
+    // Picked from the pinned strip: the new day starts from its top, not where the last one was read.
+    if (pinned && root) {
+      const top = root.getBoundingClientRect().top + window.scrollY - topbarHeight() - 16
+      window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? 'auto' : 'smooth' })
+    }
+  }
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const upcoming = new Map((data.week ?? []).flatMap((d) => d.games.map((f) => [f.id, f.my_players] as const)))
   const mineByGame = new Map(data.games.map((g) => [g.id, myPlayersIn(g, teamId, upcoming.get(g.id) ?? [])]))
@@ -162,7 +180,11 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const games = [...shown.filter((g) => !cold(g)), ...shown.filter(cold)]
 
   return (
-    <div className={`stack scores${switching ? ' scores-switching' : ''}`} aria-busy={switching || pending}>
+    <div
+      ref={setRoot}
+      className={`stack scores${switching ? ' scores-switching' : ''}${pinned ? ' sc-pinned' : ''}`}
+      aria-busy={switching || pending}
+    >
       <div className="row scores-bar">
         <DayStrip data={data} onPick={pickDay} />
         <DayJump data={data} onPick={pickDay} />
@@ -264,6 +286,47 @@ function myPlayersIn(game: Game, teamId: number, upcoming: FixturePlayer[]): { p
 type Upcoming = Map<number, FixturePlayer[]>
 const cardOf = (id: number) => document.querySelector<HTMLElement>(`.game-grid [data-game='${id}']`)
 const topbarHeight = () => document.querySelector<HTMLElement>('.topbar')?.offsetHeight ?? 0
+
+/**
+ * The days stay in reach (Can, 2026-11-17): the day picker pins under the site's top bar while you
+ * scroll the games and box scores. On wide screens the whole bar pins (one row); on phones only the
+ * date strip does. The page gets --sc-bar (top bar height) and --sc-pin (the pinned part's height),
+ * so an open box score's title pins just below it. True while it is pinned.
+ */
+function usePinnedDays(el: HTMLDivElement | null): boolean {
+  const [pinned, setPinned] = useState(false)
+  useLayoutEffect(() => {
+    const bar = document.querySelector<HTMLElement>('.topbar')
+    if (!el) return
+    const pin = () =>
+      [el.querySelector<HTMLElement>('.scores-bar'), el.querySelector<HTMLElement>('.day-strip')].find(
+        (x) => x && getComputedStyle(x).position === 'sticky',
+      ) ?? null
+    const measure = () => {
+      const p = pin()
+      el.style.setProperty('--sc-bar', `${bar?.offsetHeight ?? 0}px`)
+      el.style.setProperty('--sc-pin', `${p?.offsetHeight ?? 0}px`)
+      check()
+    }
+    const check = () => {
+      const p = pin()
+      const top = bar?.offsetHeight ?? 0
+      // Pinned once the page has scrolled it up to the top bar (a pixel of slack for rounding).
+      setPinned(!!p && window.scrollY > 0 && p.getBoundingClientRect().top <= top + 1)
+    }
+    measure()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', measure)
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    if (ro) for (const x of [bar, el.querySelector('.scores-bar'), el.querySelector('.day-strip')]) if (x) ro.observe(x)
+    return () => {
+      window.removeEventListener('scroll', check)
+      window.removeEventListener('resize', measure)
+      ro?.disconnect()
+    }
+  }, [el])
+  return pinned
+}
 
 /**
  * Tonight's games and, once you pick one, its box score in place (Front Row, Can 2026-11-15/16).

@@ -438,3 +438,53 @@
 .day-jump select:focus-visible + .day-jump-chevron {
   color: var(--text);
 }
+
+/* ---------- The days stay in reach (Can, 2026-11-17) ----------
+   Changing the day shouldn't mean scrolling back to the top: the day picker pins under the site's
+   top bar. Wide screens pin the whole bar (one row); phones pin only the date strip. Its ground is
+   the page's, edge to edge, with a hairline under it once it is pinned. Scores.tsx usePinnedDays
+   sets --sc-bar and --sc-pin; an open box score's title pins below it. */
+.scores > .scores-bar,
+.scores > .scores-bar > .day-strip {
+  transition: box-shadow 160ms ease;
+}
+@media (min-width: 641px) {
+  .scores > .scores-bar {
+    position: sticky;
+    top: var(--sc-bar, 111px);
+    z-index: 8;
+    margin: -8px -24px 0;
+    padding: 8px 24px;
+    background: var(--bg);
+  }
+  .scores.sc-pinned > .scores-bar {
+    box-shadow: 0 1px 0 var(--divider);
+  }
+}
+@media (max-width: 640px) {
+  /* The bar's rows join the page's column, so the strip can pin on its own. */
+  .scores > .scores-bar {
+    display: contents;
+  }
+  .scores > .scores-bar > .grow {
+    display: none;
+  }
+  .scores > .scores-bar > .day-strip {
+    position: sticky;
+    top: var(--sc-bar, 65px);
+    z-index: 8;
+    width: auto;
+    margin: -8px -16px 0;
+    padding: 8px 16px;
+    background: var(--bg);
+  }
+  .scores.sc-pinned > .scores-bar > .day-strip {
+    box-shadow: 0 1px 0 var(--divider);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scores > .scores-bar,
+  .scores > .scores-bar > .day-strip {
+    transition: none;
+  }
+}
