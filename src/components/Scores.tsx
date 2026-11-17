@@ -224,7 +224,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
       ) : (
         <>
           {!pending && (
-            <CallNight key={data.day} games={data.games} date={data.date} today={data.date === usToday()} />
+            <CallNight key={`night-${data.day}`} games={data.games} date={data.date} today={data.date === usToday()} />
           )}
           <GameBoard
             key={data.day}

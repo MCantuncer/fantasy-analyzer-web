@@ -405,4 +405,26 @@ describe('Scores', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(document.getElementById('box')).toBeNull()
   })
+
+  it('shows one line of our calls for the day on screen, also after switching days', async () => {
+    const called = (day: number, date: string): ScoreDay => ({
+      ...DAY,
+      day,
+      date,
+      games: DAY.games.map((g) => ({ ...g, call: { away: 101, home: 112, chance: 0.82 } })),
+    })
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const path = new URL(String(input), 'http://x').pathname
+      if (path === '/api/scores/sits') return new Response(JSON.stringify({ days: [] }))
+      const day = JSON.parse(String(init?.body)).day
+      return new Response(JSON.stringify(day === 3 ? called(3, '2026-10-22') : called(4, '2026-10-23')))
+    })
+    const { container } = renderScores()
+    await screen.findByText(/Amen Thompson led with/)
+    expect(container.querySelectorAll('.call-night')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: /^Thu 22/ }))
+    await vi.waitFor(() => expect(screen.getAllByRole('button', { name: /^Thu 22/ })[0]).toHaveAttribute('aria-pressed', 'true'))
+    await vi.waitFor(() => expect(container.querySelectorAll('.call-night')).toHaveLength(1))
+    expect(container.querySelectorAll('.game-card.has-call').length).toBeGreaterThan(0)
+  })
 })
