@@ -557,7 +557,10 @@ export function PlayerSearch({
               input = el
             }}
             className="ps-input"
-            type="search"
+            // Plain text, not type="search": iOS draws the empty field's cursor at the left edge of a search
+            // field (on our magnifier), and its search styling fights ours.
+            type="text"
+            inputMode="search"
             role="combobox"
             aria-label="Find a player"
             aria-expanded={open && items.length > 0}
