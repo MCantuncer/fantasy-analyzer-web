@@ -34,6 +34,10 @@
     justify-content: flex-end;
     padding-top: 56px;
     background: var(--scrim);
+    /* iOS Safari floats its AutoFill bar (passwords, cards, places) between the visible area and the
+       keyboard, over the page: the sheet's surface carries on past its edges (all off screen but that
+       strip), so the page never shows through there. */
+    box-shadow: 0 0 0 100vh var(--surface);
     animation: ps-fade 0.18s ease-out;
   }
 
