@@ -76,13 +76,27 @@ html.sc-tweening {
   transform: scale(var(--sc-tab-scale));
 }
 .scores .game-grid > .game-card.is-tab::after {
+  /* The ring is open at the bottom and runs a hair past the card, over the start of the join's lines
+     (ScoresFrontRow.tsx: same x, same width), so the edge never breaks. The clip trims the faint line a
+     scaled mask leaves along its bottom edge. */
+  bottom: -3px;
   opacity: 1;
   padding-bottom: 0;
-  /* the open bottom stays open (a scaled ring leaves a hairline there); the join carries the edge down */
-  clip-path: inset(0 0 2px 0);
+  clip-path: inset(0 0 1px 0);
 }
+/* Focus on the tab: the ring is open at the bottom too, so it never draws a line across the join. */
 .scores .game-grid > .game-card.is-tab:focus-visible {
-  outline-offset: -5px;
+  outline: none;
+}
+.scores .game-grid > .game-card.is-tab:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: 4px 4px 0;
+  z-index: 3;
+  pointer-events: none;
+  border: 2px solid var(--focus);
+  border-bottom: 0;
+  border-radius: calc(var(--radius) - 4px) calc(var(--radius) - 4px) 0 0;
 }
 .scores .game-grid > .game-card.is-tab[data-ember='final'] > .sc-burn {
   background: none;
