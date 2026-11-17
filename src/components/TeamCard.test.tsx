@@ -32,6 +32,7 @@ const PLAYERS = [
   p(3, 'Cameron Johnson', null, { position: 'SF', percent_owned: 13 }),
   p(4, 'Spencer Jones', null, { position: 'SF', percent_owned: 0.2 }),
   p(5, 'Josh Hart', null, { pro_team: 'NY' }),
+  p(6, 'Jarnell Stokes', null, { percent_owned: 0, on_roster: false }),
 ]
 const TEAMS = [
   { id: 3, name: 'Kucukesat Aspavas' },
@@ -137,6 +138,7 @@ describe('TeamCard', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /^All/ })[0])
     fireEvent.click(screen.getByRole('button', { name: /Deep bench/ }))
     expect(rows()).toContain('Spencer Jones')
+    expect(rows()).not.toContain('Jarnell Stokes') // ESPN still lists him on Denver; he isn't
     fireEvent.click(screen.getAllByRole('button', { name: /^Yours/ })[0])
     expect(rows()).toEqual(['Christian Braun'])
   })

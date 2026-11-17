@@ -24,6 +24,7 @@ function p(
     position: 'C',
     percent_owned: 50,
     injury_status: null,
+    on_roster: true,
     ...extra,
   }
 }

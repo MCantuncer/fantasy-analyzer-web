@@ -10,6 +10,7 @@ function p(player_id: number, name: string, percent_owned = 50): IndexedPlayer {
     pro_team: 'DEN',
     position: 'C',
     owner_team_id: null,
+    on_roster: true,
     injury_status: null,
   }
 }
