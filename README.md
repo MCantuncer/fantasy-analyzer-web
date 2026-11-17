@@ -58,7 +58,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 🎬 | **Film Room** | Every finished week in review on the League tab: your tape (score and all nine categories), game balls for the player, team and pickup of the week, standout free agents still on the wire or grabbed, the week's top ten players, every final score and a few awards. |
 | ⭐ | **Trade of the day** | One league-wide win-win trade between any two teams, the same for everyone that day, with a "Would you take it?" poll. |
 | 📅 | **Projected final** | Who wins your matchup and each category by Sunday, and who to bench on crowded days when more players have games than you have lineup spots. |
-| 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. |
+| 🏀 | **Scores** | Live NBA scores and box scores, each player tagged with his fantasy team, plus your games still to play this week. Every game carries our call: the score we expect for each side, locked at tip-off, on a faint plate beside the score, with how sure we are of the winner (the % in green when sure, amber for a lean, grey for a coin flip). After the final, "Called it" or "Missed" and how far off we were; the box score draws the call large in outline over the real result. |
 | 📰 | **NBA News** | Injuries, trades and role changes checked against several sources, and who gains minutes when a player is out. |
 | 💬 | **League Chat** | The league's moves feed (claims, bids, adds, drops and trades) and chat, with reactions, replies and trade votes for verified managers. |
 | 🔐 | **Accounts** | Email or Google sign-in, Forgot password with a single-use emailed link, followed leagues, and team verification through ESPN. |
