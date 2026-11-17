@@ -38,6 +38,24 @@ export function CallCell({ call, side }: { call: Call; side: 'away' | 'home' }) 
   )
 }
 
+/** The ledger's last line under the two teams: the game's total, ours on the plate under our two
+    figures (with a short rule, like a sum) and, from tip-off, the real one in the score column. */
+export function CallTotal({ game }: { game: Game }) {
+  const c = game.call
+  if (!c) return null
+  const a = game.away.score
+  const h = game.home.score
+  const real = game.status !== 'scheduled' && a != null && h != null ? a + h : null
+  return (
+    <span className="call-total-row" aria-hidden="true">
+      <span />
+      <span className="ct-label">Total</span>
+      <span className="ct-real num">{real ?? ''}</span>
+      <span className="ct-call num">{c.away + c.home}</span>
+    </span>
+  )
+}
+
 /** The flat plate behind both figures: a slip with our numbers on it. Not a line, no glow. */
 export function CallPlate() {
   return <span className="call-plate" aria-hidden="true" />
@@ -88,7 +106,7 @@ export function CallSentence({ game }: { game: Game }) {
   if (!c) return null
   const away = nickname(game.away.name)
   const home = nickname(game.home.name)
-  const pair = `${away} ${c.away}, ${home} ${c.home}, ${percent(c)}% sure of the ${pick(c) === 'home' ? home : away}`
+  const pair = `${away} ${c.away}, ${home} ${c.home}, ${c.away + c.home} in all, ${percent(c)}% sure of the ${pick(c) === 'home' ? home : away}`
   const v = verdict(game)
   let text = `Our call, locked at tip-off: ${pair}.`
   if (game.status === 'scheduled') text = `Our call: ${pair}. Locks at tip-off.`

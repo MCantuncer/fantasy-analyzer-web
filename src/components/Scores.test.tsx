@@ -406,6 +406,28 @@ describe('Scores', () => {
     expect(document.getElementById('box')).toBeNull()
   })
 
+  it("adds our call's total under the two teams, and the real total once the game is on", async () => {
+    const called: ScoreDay = {
+      ...DAY,
+      games: DAY.games.map((g) => ({ ...g, call: { away: 101, home: 112, chance: 0.82 } })),
+    }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const path = new URL(String(input), 'http://x').pathname
+      if (path === '/api/scores/sits') return new Response(JSON.stringify({ days: [] }))
+      return new Response(JSON.stringify(called))
+    })
+    const { container } = renderScores()
+    await screen.findByText(/Amen Thompson led with/)
+    const played = container.querySelector('.game-card[data-game="7"] .call-total-row')!
+    const g = DAY.games[0]
+    expect(played.querySelector('.ct-call')!.textContent).toBe('213')
+    expect(played.querySelector('.ct-real')!.textContent).toBe(String(g.away.score! + g.home.score!))
+    const later = container.querySelector('.game-card[data-game="8"] .call-total-row')!
+    expect(later.querySelector('.ct-call')!.textContent).toBe('213')
+    expect(later.querySelector('.ct-real')!.textContent).toBe('')
+    expect(container.querySelector('.game-card[data-game="8"]')!.textContent).toMatch(/213 in all/)
+  })
+
   it('shows one line of our calls for the day on screen, also after switching days', async () => {
     const called = (day: number, date: string): ScoreDay => ({
       ...DAY,
