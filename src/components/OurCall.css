@@ -23,6 +23,54 @@
   grid-template-columns: 28px minmax(0, 1fr) auto var(--call-w);
 }
 
+/* The total line under the two teams makes the card one short row taller. */
+.game-grid .game-card.sc-ember.has-call {
+  grid-template-rows: 26px 32px 32px 18px 1fr;
+  height: 184px;
+}
+.call-total-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto var(--call-w);
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted);
+}
+.call-total-row .ct-label {
+  font-weight: 500;
+}
+.call-total-row .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  text-align: right;
+}
+.call-total-row .ct-real {
+  min-width: 3ch;
+  padding-right: 11px; /* under the score, past the winner's caret */
+  color: var(--text-2);
+}
+/* Our total on the plate, under a short rule like a sum: under the figures, not across the card. */
+.call-total-row .ct-call {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-weight: 500;
+}
+.call-total-row .ct-call::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 8px;
+  right: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+}
+
 /* The plate: 2px past both team rows, from just inside the column to 6px into the card's padding.
    Fixed to the card's anatomy (160px, rows 26/32/32, 12px padding). Translucent, so hover, the live
    wash and the burnt-out final all show through. */
@@ -188,6 +236,7 @@
    word stays; the full text is in the sentence). */
 @container card (max-width: 259px) {
   .game-card.has-call .team-row,
+  .game-card.has-call .call-total-row,
   .scores .game-card.has-call > .call-plate {
     --call-w: 40px;
   }

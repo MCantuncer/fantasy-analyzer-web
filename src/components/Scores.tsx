@@ -36,7 +36,7 @@ import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { useEscapeLayer } from '../lib/escapeStack'
-import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallVerdict } from './OurCall'
+import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallTotal, CallVerdict } from './OurCall'
 import { shortNick } from '../lib/ourCall'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
@@ -865,6 +865,7 @@ function GameCard({
         call={call}
         home
       />
+      {call && <CallTotal game={game} />}
       <span className="game-foot small">
         <span className="sc-foot-a">
         {pending && !scheduled ? (
