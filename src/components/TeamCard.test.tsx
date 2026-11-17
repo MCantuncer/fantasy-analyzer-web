@@ -128,6 +128,13 @@ describe('TeamCard', () => {
     // Most rostered first; the 0.2% free agent folds into the deep bench.
     const rows = () => [...dialog.querySelectorAll('.tc-row')].map((r) => r.getAttribute('aria-label')?.split(',')[0])
     await waitFor(() => expect(rows()).toEqual(['Nikola Jokic', 'Christian Braun', 'Cameron Johnson']))
+    // Free Agents shows every free agent its count says, the deep bench too.
+    const fa = screen.getAllByRole('button', { name: /^Free Agents/ })[0]
+    expect(fa.textContent).toBe('Free Agents2')
+    fireEvent.click(fa)
+    expect(rows()).toEqual(['Cameron Johnson', 'Spencer Jones'])
+    expect(screen.queryByRole('button', { name: /Deep bench/ })).toBeNull()
+    fireEvent.click(screen.getAllByRole('button', { name: /^All/ })[0])
     fireEvent.click(screen.getByRole('button', { name: /Deep bench/ }))
     expect(rows()).toContain('Spencer Jones')
     fireEvent.click(screen.getAllByRole('button', { name: /^Yours/ })[0])

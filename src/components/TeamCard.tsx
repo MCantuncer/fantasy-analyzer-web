@@ -123,7 +123,8 @@ function TeamSheet({
   const filters = FILTERS.filter((f) => f.id !== 'yours' || counts.yours > 0)
   const shown = filter === 'all' ? roster : roster.filter((p) => ownerKind(p, myTeamId) === filter)
   const isDeep = (p: IndexedPlayer) => p.owner_team_id == null && p.percent_owned < DEEP
-  const top = filter === 'yours' || deep ? shown : shown.filter((p) => !isDeep(p))
+  // The deep bench folds only under All: a filter shows every player its count says.
+  const top = filter !== 'all' || deep ? shown : shown.filter((p) => !isDeep(p))
   const folds = shown.length - top.length
 
   const data = info.data
