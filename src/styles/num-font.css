@@ -12,3 +12,14 @@
     format('woff2-variations');
   unicode-range: U+0000-00FF, U+2013, U+2014, U+2191, U+2193, U+2212, U+2215;
 }
+
+/* Our call in the box score: Mona Sans digits as one static, overlap-free cut (wght 700, wdth 100),
+   so a text stroke draws one clean outline with no seams inside 1 and 4. Digits and the en dash. */
+@font-face {
+  font-family: 'Mona Sans Outline';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  size-adjust: 90%;
+  src: url('./fonts/mona-sans-outline.woff2') format('woff2');
+}

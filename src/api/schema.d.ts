@@ -1843,6 +1843,29 @@ export interface components {
              * @description Everyone who played, most minutes first
              */
             lines: components["schemas"]["GameLine"][];
+            /** @description Our call for the score; None before the box is built */
+            call?: components["schemas"]["GameCall"] | null;
+        };
+        /**
+         * GameCall
+         * @description Our call for a game (analysis/gamescore.py), from the games before its day: fixed at tip-off.
+         */
+        GameCall: {
+            /**
+             * Away
+             * @description Points we expect the away team to score
+             */
+            away: number;
+            /**
+             * Home
+             * @description Points we expect the home team to score; never equal to away
+             */
+            home: number;
+            /**
+             * Chance
+             * @description How sure the call is of its winner, 0.5-1 (calibrated on five seasons)
+             */
+            chance: number;
         };
         /** GameLine */
         GameLine: {

@@ -1,0 +1,385 @@
+/* ---------- Our call (Plate) ----------
+   Our expected score sits in its own column right of the score, on a faint plate, named in the foot
+   with how sure we were of the winner. Only the % takes a colour, by band; there is no red, a low %
+   is a coin flip, not bad news. Gold stays for you, live and focus. */
+:root {
+  --call-w: 44px;
+  --plate: color-mix(in srgb, var(--text) 5%, transparent);
+  --conf-sure: var(--good); /* 80% and up */
+  --conf-likely: color-mix(in oklab, var(--good) 50%, var(--muted)); /* 65-79% */
+  --conf-lean: color-mix(in oklab, var(--warn) 70%, var(--text-2)); /* 55-64%, softened away from gold */
+  --conf-flip: var(--text-2); /* under 55% */
+}
+:root[data-theme='light'] {
+  --plate: color-mix(in srgb, var(--text) 4.5%, transparent);
+  --conf-likely: color-mix(in oklab, var(--good) 62%, var(--muted));
+}
+
+/* The card's own width drives the tight sizes below (its content box: card width less 30px). */
+.scores .game-grid > .game-card.has-call {
+  container: card / inline-size;
+}
+.game-card.has-call .team-row {
+  grid-template-columns: 28px minmax(0, 1fr) auto var(--call-w);
+}
+
+/* The plate: 2px past both team rows, from just inside the column to 6px into the card's padding.
+   Fixed to the card's anatomy (160px, rows 26/32/32, 12px padding). Translucent, so hover, the live
+   wash and the burnt-out final all show through. */
+.scores .game-card.has-call > .call-plate {
+  position: absolute;
+  z-index: 0;
+  top: 42px;
+  bottom: 42px;
+  right: 8px;
+  width: calc(var(--call-w) + 4px);
+  border-radius: var(--radius-tag);
+  background: var(--plate);
+  pointer-events: none;
+}
+
+/* The figures: small, solid, tabular. Before tip-off the pick is a shade stronger with the open caret;
+   from tip-off both step back to muted and never move. */
+.call {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  height: 100%;
+  padding-left: 8px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 600ms ease;
+}
+.call .open-caret {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  visibility: hidden;
+}
+.call.call-pick .open-caret {
+  visibility: visible;
+}
+.game-card[data-ember='pre'] .call.call-pick {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* "Our call · 84%" in the foot, right-aligned under the figures. */
+.call-label {
+  flex: none;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.badge-you + .call-label {
+  margin-left: 0;
+}
+.conf-band {
+  --band: var(--conf-flip);
+}
+.conf-band[data-band='sure'] {
+  --band: var(--conf-sure);
+}
+.conf-band[data-band='likely'] {
+  --band: var(--conf-likely);
+}
+.conf-band[data-band='lean'] {
+  --band: var(--conf-lean);
+}
+.conf-band .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--band);
+  transition: color 600ms ease;
+}
+/* From tip-off the % softens one step; the figure never changes. */
+.game-card:not([data-ember='pre']) .call-label .conf-band .num {
+  color: color-mix(in oklab, var(--band) 85%, var(--muted));
+}
+
+/* After "Final": the mark and one word for the winner, then the larger single-team miss. */
+.gt-called {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.call-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.call-verdict .word {
+  font-weight: 650;
+  color: var(--text);
+}
+.call-verdict .off .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--text);
+}
+.call-verdict svg {
+  flex: none;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.call-verdict .tick {
+  stroke: var(--good);
+  stroke-width: 1.8;
+}
+.call-verdict .cross {
+  stroke: var(--text-2);
+  stroke-width: 1.6;
+}
+/* Drawn once, the first time this browser sees the game final. */
+.call-verdict.fresh .tick {
+  stroke-dasharray: 16;
+  animation: call-draw 420ms cubic-bezier(0.3, 0.7, 0.2, 1) 300ms both;
+}
+.call-verdict.fresh .cross path {
+  stroke-dasharray: 11;
+  animation: call-draw-x 200ms cubic-bezier(0.3, 0.7, 0.2, 1) 300ms both;
+}
+.call-verdict.fresh .cross path:last-child {
+  animation-delay: 460ms;
+}
+@keyframes call-draw {
+  from {
+    stroke-dashoffset: 16;
+  }
+}
+@keyframes call-draw-x {
+  from {
+    stroke-dashoffset: 11;
+  }
+}
+
+/* Room for "Our call · 84%": the top performer keeps one stat on cards under 300px, or when the
+   short name is long. */
+@container card (max-width: 269px) {
+  .has-call .s2 {
+    display: none;
+  }
+}
+.has-call.one .s2 {
+  display: none;
+}
+/* Cards under 290px: the call column tightens, and with two or more faces "off by N" drops (the
+   word stays; the full text is in the sentence). */
+@container card (max-width: 259px) {
+  .game-card.has-call .team-row,
+  .scores .game-card.has-call > .call-plate {
+    --call-w: 40px;
+  }
+  .call {
+    padding-left: 7px;
+    gap: 2px;
+  }
+  .crowd .call-verdict .off {
+    display: none;
+  }
+}
+/* Cards under 260px: nicknames go, so abbreviations, scores and calls stay whole. */
+@container card (max-width: 229px) {
+  .has-call .team-nick {
+    display: none;
+  }
+}
+
+/* ---------- Above the games: the key, then the day's tally ---------- */
+.call-night {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.call-night .lbl,
+.call-night .dot {
+  color: var(--muted);
+}
+.call-night .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--text);
+}
+.call-night .kw {
+  font-weight: 600;
+}
+.kw[data-band='sure'] {
+  color: var(--conf-sure);
+}
+.kw[data-band='lean'] {
+  color: var(--conf-lean);
+}
+.kw[data-band='flip'] {
+  color: var(--conf-flip);
+}
+
+/* ---------- Box score: the one place our call is drawn large, in outline ---------- */
+.callband {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 20px 40px;
+  align-items: center;
+  padding: 22px 20px 24px;
+  border-bottom: 1px solid var(--divider);
+}
+.ledger-mini {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: 100%;
+}
+.lm-row {
+  display: grid;
+  grid-template-columns: 76px 100px 100px;
+  align-items: center;
+  padding: 0 4px 0 12px;
+  border-radius: var(--radius-tag);
+}
+.lm-row.head {
+  padding-bottom: 4px;
+}
+.lm-row .h {
+  padding-right: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: right;
+}
+.lm-row .rl {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.lm-row .rl small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.lm-row .rl small .num {
+  font-size: 12px;
+  font-weight: 650;
+}
+.lm-row .big {
+  position: relative;
+  padding-right: 14px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0;
+  color: var(--text);
+}
+/* Never below 32px: thinner outlines break up on low-density screens. */
+.lm-row .hollow {
+  font-family: 'Mona Sans Outline', var(--font-num);
+  color: transparent;
+  -webkit-text-stroke: 1.25px var(--text-2);
+}
+.lm-row .solid.trail {
+  color: var(--muted);
+  font-weight: 500;
+}
+.lm-row .win-caret {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin: -4px 0 0;
+  fill: var(--text-2);
+}
+.lm-row .oc {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -5px;
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.lm-row.call-row {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  background: var(--plate);
+}
+.lm-gap {
+  height: 8px;
+}
+.callnote {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.callnote p {
+  margin: 0;
+}
+.callnote .lead {
+  font-size: 15px;
+  color: var(--text);
+}
+.callnote .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--text);
+}
+.callnote .fine {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .callband {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding: 18px 16px 20px;
+  }
+  .lm-row {
+    grid-template-columns: 68px 88px 88px;
+  }
+  .lm-row .big {
+    font-size: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call,
+  .conf-band .num {
+    transition: none;
+  }
+  .call-verdict.fresh .tick,
+  .call-verdict.fresh .cross path {
+    animation: none;
+  }
+}

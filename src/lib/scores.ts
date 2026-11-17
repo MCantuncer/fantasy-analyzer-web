@@ -131,3 +131,10 @@ export function gamesLeft(week: FixtureDay[]): number {
     0,
   )
 }
+
+/** "Boston Celtics" → "Celtics", "Portland Trail Blazers" → "Trail Blazers". */
+export function nickname(name: string) {
+  const words = name.trim().split(/\s+/)
+  if (words.length < 2) return name
+  return /trail/i.test(words[words.length - 2]) ? words.slice(-2).join(' ') : words[words.length - 1]
+}

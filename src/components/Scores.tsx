@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, CaretLeft, CaretRight, Television, X } from '@phosp
 import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { best, dayLabel, leader, longDayLabel, myLines, nightTotals, statLine, usToday } from '../lib/scores'
+import { best, dayLabel, leader, longDayLabel, myLines, nickname, nightTotals, statLine, usToday } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
@@ -27,6 +27,8 @@ import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallVerdict } from './OurCall'
+import { shortNick } from '../lib/ourCall'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 interface Props {
@@ -220,19 +222,24 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           )}
         </div>
       ) : (
-        <GameBoard
-          key={data.day}
-          games={games}
-          upcoming={upcoming}
-          teamId={teamId}
-          rivalId={rivalId ?? null}
-          rivalColour={rivalColour}
-          abbrev={abbrev}
-          date={data.date}
-          pending={pending}
-          failed={failed}
-          onRetry={() => scores.refetch()}
-        />
+        <>
+          {!pending && (
+            <CallNight key={data.day} games={data.games} date={data.date} today={data.date === usToday()} />
+          )}
+          <GameBoard
+            key={data.day}
+            games={games}
+            upcoming={upcoming}
+            teamId={teamId}
+            rivalId={rivalId ?? null}
+            rivalColour={rivalColour}
+            abbrev={abbrev}
+            date={data.date}
+            pending={pending}
+            failed={failed}
+            onRetry={() => scores.refetch()}
+          />
+        </>
       )}
 
       {/* The rest of the week sits below tonight's games and box score, not between them. */}
@@ -722,6 +729,7 @@ function GameCard({
   const stake = mine.length > 0 || rivals.length > 0
   const cold = known && !stake
   const final = game.status === 'final'
+  const call = game.call ?? null
   const faces = [
     ...mine.map((p) => ({ ...p, side: 'you' as const })),
     ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
@@ -742,14 +750,27 @@ function GameCard({
     stake ? 'stake' : '',
     cold ? 'cold' : '',
     open ? 'is-tab' : '',
+    call ? 'has-call' : '',
+    // Room for "Our call · 84%" in the foot: a long top performer keeps one stat.
+    call && top && shortName(top.name).length > 10 ? 'one' : '',
+    // Two or more faces, or the "Not in your matchup" note: on a narrow card "off by N" drops.
+    faces.length > 1 || (cold && faces.length === 0 && rivalId != null) ? 'crowd' : '',
   ]
     .filter(Boolean)
     .join(' ')
   const body = (
     <>
       <Burn />
+      {call && <CallPlate />}
       <span className="game-status">
-        <GameTime game={game} ember={ember} />
+        {final && call ? (
+          <span className="gt-called">
+            <GameTime game={game} ember={ember} />
+            <CallVerdict game={game} />
+          </span>
+        ) : (
+          <GameTime game={game} ember={ember} />
+        )}
         {faces.length > 0 ? (
           <span className="game-mine game-faces">
             {faces.map((p) => (
@@ -771,12 +792,14 @@ function GameCard({
         state={scheduled ? 'pre' : lead === 'away' ? 'lead' : lead === 'home' ? 'trail' : 'level'}
         filling={pending && !scheduled}
         won={final && lead === 'away'}
+        call={call}
       />
       <TeamRow
         side={game.home}
         state={scheduled ? 'pre' : lead === 'home' ? 'lead' : lead === 'away' ? 'trail' : 'level'}
         filling={pending && !scheduled}
         won={final && lead === 'home'}
+        call={call}
         home
       />
       <span className="game-foot small">
@@ -787,7 +810,7 @@ function GameCard({
           <>
             <PlayerHead player={{ id: top.player_id, name: top.name }} size={20} />
             <span className="game-foot-text">
-              <b>{shortName(top.name)}</b> {statLine(top)}
+              <b>{shortName(top.name)}</b> <TopStats line={statLine(top)} />
             </span>
             {top.owner_team_id === teamId && <span className="badge badge-you">You</span>}
           </>
@@ -800,6 +823,7 @@ function GameCard({
         ) : (
           <span className="muted">None of your players</span>
         )}
+        {call && <CallLabel call={call} />}
         </span>
         {/* As the open box's tab, the foot reads like the box head: time left and the day. */}
         <span className="sc-foot-b" aria-hidden="true">
@@ -812,6 +836,7 @@ function GameCard({
           {dayLabel(date)}
         </span>
       </span>
+      <CallSentence game={game} />
     </>
   )
   // A game that hasn't started has no box score to open.
@@ -841,6 +866,7 @@ function TeamRow({
   home = false,
   filling = false,
   won = false,
+  call = null,
 }: {
   side: Game['home']
   state: 'lead' | 'trail' | 'level' | 'pre'
@@ -849,6 +875,8 @@ function TeamRow({
   filling?: boolean
   /** The final winner: a small caret after the score. */
   won?: boolean
+  /** Our call for the game: this side's figure in a fourth column. */
+  call?: Game['call']
 }) {
   return (
     <span className={`team-row ${state}`}>
@@ -857,7 +885,7 @@ function TeamRow({
       </span>
       <span className="team-name" title={home ? `${side.name} (home)` : side.name}>
         <b>{side.abbrev}</b>
-        <span className="team-nick muted">{nickname(side.name)}</span>
+        <span className="team-nick muted">{shortNick(nickname(side.name))}</span>
         {home && <span className="sr-only"> (home)</span>}
       </span>
       <span className="num score">
@@ -868,7 +896,20 @@ function TeamRow({
           </svg>
         )}
       </span>
+      {call && <CallCell call={call} side={home ? 'home' : 'away'} />}
     </span>
+  )
+}
+
+/** "34 pts, 9 ast": the stats after the first can drop on a narrow card with our call in the foot. */
+function TopStats({ line }: { line: string }) {
+  const at = line.indexOf(', ')
+  if (at < 0) return <>{line}</>
+  return (
+    <>
+      {line.slice(0, at)}
+      <span className="s2">{line.slice(at)}</span>
+    </>
   )
 }
 
@@ -1057,13 +1098,6 @@ function Spinner({ size = 14 }: { size?: number }) {
   )
 }
 
-/** "Boston Celtics" → "Celtics", "Portland Trail Blazers" → "Trail Blazers". */
-function nickname(name: string) {
-  const words = name.trim().split(/\s+/)
-  if (words.length < 2) return name
-  return /trail/i.test(words[words.length - 2]) ? words.slice(-2).join(' ') : words[words.length - 1]
-}
-
 function BoxScore({
   game,
   date,
@@ -1138,6 +1172,7 @@ function BoxScore({
   return (
     <div className="sc-box box-card" style={rivalColour ? ({ '--rival': rivalColour } as CSSProperties) : undefined}>
       <BoxTitle game={game} date={date} teamSwitch={teamSwitch} {...nav} />
+      <CallBand game={game} />
       <div
         ref={wrap}
         className={`table-wrap box-scroll${fits ? ' fits' : ''}`}
