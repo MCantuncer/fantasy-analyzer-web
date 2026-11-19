@@ -972,3 +972,475 @@
   color: inherit;
   font-weight: inherit;
 }
+
+/* ---------- Final Word ----------
+   A chance to play, said once and plainly. The injury-report tag (Q, D, DTD, OUT; Probable gets
+   none) carries the colour; the number is always ink and always labelled ("55% to play"), because
+   a chance is not an outcome. Line 2 leads with the verb. The night's one call hangs under the
+   doubtful starter as a tray: the decision, the night as two lanes to scale, the two ifs. Gold is
+   the "now" rule and the column where the final word usually lands, nothing else. */
+
+.mp-tag {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mp-tag.toss {
+  color: var(--warn);
+}
+
+.mp-tag.low {
+  color: var(--bad);
+}
+
+.mp-tag-name {
+  display: inline-flex;
+  flex: none;
+}
+
+.mp-tag-line,
+.mp-playline,
+.mp-play-lead,
+.mp-narrow,
+.mp-call-strip,
+.mp-call-basis {
+  display: none;
+}
+
+.mp-play-under {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.mp-pw em,
+.mp-play-lead em,
+.mp-basis em,
+.mp-call-basis em,
+.mp-strip-text em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* the verb and the number: ink, a step bolder than the line */
+.mp-verb,
+.mp-pw-n {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* coming back: green on the arrow and the words only, never on the number */
+.mp-pw-up {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--good);
+  font-weight: 650;
+}
+
+.mp-pw.covers {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mp-pw.covers svg {
+  color: var(--text-2);
+}
+
+/* desktop: under the season line, what the number is */
+.mp-basis {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ruled out tonight: the one state that dims a face. */
+.mp-row.mp-ruled .mp-who .head {
+  opacity: 0.5;
+}
+
+/* A rated row is one big tap (the face and the name keep their own): it opens the basis. */
+.mp-why-hit,
+.mp-why-hit:hover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mp-tappable .pc-link {
+  position: relative;
+  z-index: 2;
+}
+
+/* Desktop keeps the call's tray open, so its row has nothing to open. */
+.mp-row.mp-docked > .mp-why-hit {
+  display: none;
+}
+
+.mp-docked .mp-pw-n {
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .mp-row.mp-tappable:not(.mp-docked):hover {
+    border-color: color-mix(in srgb, var(--text) 22%, var(--border));
+  }
+}
+
+/* "% to play" wears the app's dotted underline: it opens something */
+.mp-tappable .mp-pw-n {
+  text-decoration: underline dotted color-mix(in srgb, var(--text) 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+/* The basis box and the tray: drawers pulled from the row, inset to where its corners curve. */
+.mp-whybox,
+.mp-call {
+  position: relative;
+  margin: -9px 16px 0;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-row) var(--radius-row);
+  background: var(--surface-2);
+}
+
+.mp-whybox {
+  padding: 16px 18px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.mp-whybox[hidden] {
+  display: none;
+}
+
+.mp-whybox p {
+  margin: 0;
+}
+
+.mp-why-basis {
+  display: flex;
+  gap: 8px;
+  color: var(--text);
+}
+
+.mp-why-basis svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.mp-why-news {
+  margin-top: 6px !important;
+  padding-left: 22px;
+}
+
+.mp-row.mp-docked {
+  z-index: 1;
+}
+
+.mp-call p {
+  margin: 0;
+}
+
+.mp-call-body {
+  display: grid;
+  grid-template-columns: minmax(210px, 280px) minmax(0, 1fr) minmax(240px, 300px);
+  align-items: start;
+  gap: 10px 32px;
+  padding: 18px 20px 14px;
+}
+
+.mp-call-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.mp-call-kicker svg {
+  color: var(--muted);
+}
+
+.mp-call-head {
+  margin-top: 4px !important;
+  font-size: 16.5px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.mp-call-soft {
+  display: block;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.mp-call-odds {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px !important;
+}
+
+.mp-call-n {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.mp-call-n-label {
+  max-width: 150px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--text-2);
+}
+
+/* The night as lanes, to scale: each bar runs from now (the gold rule) to his tip-off. */
+.mp-lanes {
+  position: relative;
+  padding-top: 20px;
+}
+
+.mp-lanes::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 17px;
+  bottom: 2px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--gold);
+}
+
+.mp-now,
+.mp-word {
+  position: absolute;
+  top: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 14px;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.mp-now {
+  left: 0;
+}
+
+.mp-word {
+  left: var(--c0);
+}
+
+.mp-word.end {
+  left: auto;
+  right: calc(100% - var(--c1));
+}
+
+/* The word is an estimate, so its column has soft edges, never a hard box. */
+.mp-col {
+  position: absolute;
+  top: 17px;
+  bottom: 0;
+  left: calc(var(--c0) - 4px);
+  width: max(14px, calc(var(--c1) - var(--c0) + 8px));
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--gold) 26%, transparent) 4px,
+    color-mix(in srgb, var(--gold) 26%, transparent) calc(100% - 4px),
+    transparent
+  );
+}
+
+.mp-lane {
+  position: relative;
+  display: block;
+  height: 32px;
+}
+
+.mp-lane-who,
+.mp-lane-tip {
+  position: absolute;
+  top: 3px;
+  font-size: 12px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.mp-lane-who {
+  left: 9px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mp-lane.sub .mp-lane-who {
+  color: var(--text-2);
+}
+
+.mp-lane-tip {
+  right: calc(100% - var(--x));
+  color: var(--text-2);
+}
+
+.mp-lane-tip .num {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mp-lane-bar {
+  position: absolute;
+  left: 2px;
+  bottom: 7px;
+  width: calc(var(--x) - 2px);
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 32%, transparent);
+}
+
+.mp-lane.sub .mp-lane-bar {
+  background: color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+/* the tip: a short post at the end of the lane */
+.mp-lane-bar::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -5px;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.mp-lane.sub .mp-lane-bar::after {
+  background: var(--text-2);
+}
+
+/* A lane that ends early (the sub locks before the word): its time sits just past the post. */
+.mp-lane.short .mp-lane-tip {
+  right: auto;
+  left: calc(var(--x) + 8px);
+  top: auto;
+  bottom: 2px;
+}
+
+.mp-call-why {
+  margin-top: 8px !important;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text-2);
+}
+
+.mp-call-why b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mp-call-ifs {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--text-2);
+}
+
+.mp-call-ifs li {
+  display: grid;
+  grid-template-columns: 14px 70px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px;
+}
+
+.mp-call-ifs svg {
+  align-self: start;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.mp-if {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.mp-call-ifs b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mp-call-news {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-call-news-at {
+  color: var(--muted);
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .mp-call-body {
+    grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+    gap: 14px 28px;
+  }
+
+  .mp-call-ifs {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    gap: 24px;
+  }
+}
+
+.mp-word.due {
+  display: none;
+}
+
+/* A lane that ends very soon: its time rides with the name, clear of the post. */
+.mp-lane-who-t,
+.mp-lane.tiny .mp-lane-tip {
+  display: none;
+}
+
+.mp-lane.tiny .mp-lane-who-t {
+  display: inline;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.mp-lane.tiny .mp-lane-who {
+  left: 9px;
+}

@@ -569,3 +569,312 @@
     display: none;
   }
 }
+
+/* Final Word on phones. Line 2 carries the call: the tag (moved off the name, so the name keeps its
+   room), the verb, the labelled number. A row that must act drops its season line; a quiet one keeps
+   points and rebounds after it. The call's tray is one 44px strip until Can must decide now. */
+@media (max-width: 900px) {
+  .mp .mp-play-under,
+  .mp .mp-wide,
+  .mp .mp-tag-name,
+  .mp .mp-basis,
+  .mp .mp-call-lead,
+  .mp .mp-call-why,
+  .mp .mp-call-news {
+    display: none;
+  }
+
+  .mp .mp-narrow,
+  .mp .mp-tag-line {
+    display: inline;
+  }
+
+  .mp .mp-tag-line .mp-inj {
+    margin: 0 5px 0 0;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 14px;
+    vertical-align: 1px;
+  }
+
+  .mp .mp-play-lead {
+    display: inline;
+    color: var(--text-2);
+  }
+
+  /* a row with a call: the call is line 2, the season line steps aside */
+  .mp .mp-acts .mp-season,
+  .mp .mp-acts .mp-season-sep {
+    display: none;
+  }
+
+  .mp .mp-led .mp-avg-ast {
+    display: none;
+  }
+
+  .mp .mp-row > .mp-avg-note {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .mp .mp-row > .mp-avg-note .mp-pw-n,
+  .mp .mp-row > .mp-avg-note .mp-verb {
+    font-size: 12px;
+  }
+
+  .mp .mp-row > .mp-playline {
+    display: block;
+    grid-column: 2 / -1;
+    grid-row: 2;
+    min-width: 0;
+    margin-top: -2px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mp .mp-row.mp-has-play:not(.mp-card) > .mp-spine {
+    grid-row: 1 / span 2;
+  }
+
+  .mp .mp-pw-up svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .mp .mp-pw.covers svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* phones: the call's row opens its tray too */
+  .mp .mp-row.mp-docked > .mp-why-hit {
+    display: block;
+  }
+
+  .mp .mp-docked .mp-pw-n {
+    text-decoration: underline dotted color-mix(in srgb, var(--text) 45%, transparent);
+  }
+
+  /* drawers: inset 10px under the row */
+  .mp .mp-whybox,
+  .mp .mp-call {
+    margin: -8px 10px 0;
+  }
+
+  .mp .mp-whybox {
+    padding: 14px 12px 10px;
+    font-size: 12.5px;
+  }
+
+  .mp .mp-why-news {
+    padding-left: 0;
+  }
+
+  /* the strip: the verdict, its deadline, a thumbnail of the lanes; the whole strip is the tap */
+  .mp .mp-call-strip,
+  .mp .mp-call-strip:hover {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px 0 12px;
+    border: 0;
+    border-radius: 0 0 var(--radius-row) var(--radius-row);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .mp .mp-strip-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mp .mp-strip-text b {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .mp .mp-strip-caret {
+    flex: none;
+    color: var(--muted);
+    transition: transform 200ms ease;
+  }
+
+  .mp .mp-call.open .mp-strip-caret {
+    transform: rotate(180deg);
+  }
+
+  /* open, the lanes themselves are right below: the thumbnail steps aside */
+  .mp .mp-call.open .mp-thumb {
+    display: none;
+  }
+
+  /* the thumbnail: the gold "now" tick, the word band, his lane and the sub's, to the same scale */
+  .mp .mp-thumb {
+    position: relative;
+    flex: none;
+    width: 46px;
+    height: 16px;
+  }
+
+  .mp .mp-thumb::before,
+  .mp .mp-thumb::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 1px;
+  }
+
+  .mp .mp-thumb::before {
+    left: 0;
+    width: 2px;
+    background: var(--gold);
+  }
+
+  .mp .mp-thumb::after {
+    left: var(--c0);
+    width: max(4px, calc(var(--c1) - var(--c0)));
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--gold) 34%, transparent);
+  }
+
+  .mp .mp-thumb i {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: calc(var(--x) - 3px);
+    height: 2px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--text) 55%, transparent);
+  }
+
+  .mp .mp-thumb i.sub {
+    top: 11px;
+    background: color-mix(in srgb, var(--text) 30%, transparent);
+  }
+
+  .mp .mp-thumb i::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -2px;
+    width: 2px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--text);
+  }
+
+  .mp .mp-thumb i.sub::after {
+    background: var(--text-2);
+  }
+
+  .mp .mp-call-body {
+    display: none;
+  }
+
+  .mp .mp-call.open .mp-call-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 0 12px 9px;
+  }
+
+  .mp .mp-lanes {
+    padding-top: 16px;
+  }
+
+  .mp .mp-lanes::before {
+    top: 15px;
+  }
+
+  .mp .mp-col {
+    top: 15px;
+  }
+
+  .mp .mp-now,
+  .mp .mp-word {
+    font-size: 11px;
+    line-height: 13px;
+  }
+
+  .mp .mp-lane {
+    height: 26px;
+  }
+
+  .mp .mp-lane-who,
+  .mp .mp-lane-tip {
+    top: 1px;
+    font-size: 11.5px;
+  }
+
+  .mp .mp-lane-bar {
+    bottom: 5px;
+  }
+
+  .mp .mp-call-ifs {
+    gap: 3px;
+    padding: 0;
+    font-size: 12.5px;
+    line-height: 17px;
+  }
+
+  .mp .mp-call-ifs li {
+    grid-template-columns: 14px 40px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .mp .mp-call-ifs li > span:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mp .mp-call.now .mp-call-ifs li {
+    grid-template-columns: 14px 72px minmax(0, 1fr);
+  }
+
+  .mp .mp-if {
+    font-size: 11.5px;
+  }
+
+  .mp .mp-call-basis {
+    display: block;
+    padding-top: 7px;
+    border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+    font-size: 11.5px;
+    line-height: 15px;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 900px) {
+  .mp .mp-pw.covers {
+    line-height: 16px;
+    vertical-align: top;
+  }
+}
+
+/* Small phones: an IR line keeps its number and drops "no word yet" (the tap still has it). */
+@media (max-width: 380px) {
+  .mp .mp-ir .mp-pw-b {
+    display: none;
+  }
+}
