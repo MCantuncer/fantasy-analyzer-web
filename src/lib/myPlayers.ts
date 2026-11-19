@@ -1,4 +1,4 @@
-import type { Game, GameLine, LineupSpot, NextGame } from '../api/client'
+import type { Game, GameLine, LineupSpot, NextGame, PlayChance } from '../api/client'
 
 /**
  * What one of your players is doing on the day on screen:
@@ -177,4 +177,209 @@ export function nextLabel(g: NextGame): string {
 /** His team's games left this week after the day on screen. */
 export function gamesLeft(spot: LineupSpot, day: number): number {
   return (spot.week_games ?? []).filter((d) => d > day).length
+}
+
+/* ---------- Game-time call ---------- */
+
+/** The tag as the NBA injury report writes it, never wider than ESPN's "DTD". */
+export const PLAY_TAG: Record<PlayChance['tag'], string> = {
+  Probable: 'P',
+  Questionable: 'Q',
+  Doubtful: 'D',
+  Available: 'A',
+  Out: 'OUT',
+  'Day-to-day': 'DTD',
+}
+
+/** How a chance reads: calm (likely plays), toss (a real doubt), low (likely sits), up (coming back). */
+export type PlayTone = 'calm' | 'toss' | 'low' | 'up'
+
+export function playTone(p: PlayChance): PlayTone {
+  if (p.upgraded) return 'up'
+  if (p.chance >= 0.8) return 'calm'
+  if (p.chance >= 0.3) return 'toss'
+  return 'low'
+}
+
+/** "55%": whole numbers, never "0.55" or "55.0%". */
+export const pct = (c: number) => `${Math.round(c * 100)}%`
+
+/** How a bench player gets into a starter's slot: straight in, or with one starter sliding over. */
+export interface Fill {
+  sub: PlayerRow
+  /** The slot the bench player takes. */
+  slot: string
+  /** A starter who moves into the doubtful player's slot to make room, if the sub doesn't fit it. */
+  slide: PlayerRow | null
+}
+
+/** Can ``sub`` cover ``out``? Straight into his slot, or one unlocked starter slides over. */
+export function fillFor(sub: PlayerRow, out: PlayerRow, rows: PlayerRow[]): Fill | null {
+  const elig = sub.spot.eligible ?? []
+  if (elig.includes(out.spot.slot)) return { sub, slot: out.spot.slot, slide: null }
+  const sliders = rows.filter(
+    (r) =>
+      r.spot.starting &&
+      r !== out &&
+      r.state === 'later' &&
+      elig.includes(r.spot.slot) &&
+      (r.spot.eligible ?? []).includes(out.spot.slot),
+  )
+  // A healthy slider first: moving a doubt around is a second worry.
+  const slide = sliders.sort((a, b) => (b.spot.play?.chance ?? 1) - (a.spot.play?.chance ?? 1))[0]
+  return slide ? { sub, slot: slide.spot.slot, slide } : null
+}
+
+const HOUR = 3_600_000
+const at = (iso: string) => new Date(iso).getTime()
+
+export interface GameCall {
+  /** The starter in doubt. */
+  doubt: PlayerRow
+  play: PlayChance
+  tip: number
+  /** When the final word usually lands: 30 to 90 minutes before his tip (9 in 10 of the questionable
+   * players who got a final word, NBA injury reports 2022-23 to 2025-26). */
+  wordFrom: number
+  wordTo: number
+  /** Who steps in if he is ruled out. */
+  fill: Fill | null
+  /** The sub tips after the word lands, so waiting costs nothing. */
+  free: boolean
+  /** If he plays after all: where the sub goes instead (another doubt, by the sub's tip). */
+  planB: { row: PlayerRow; fill: Fill } | null
+  /** wait: leave him in, check the word. now: the sub locks first, decide now. keep: nobody to swap in. */
+  verdict: 'wait' | 'now' | 'keep'
+}
+
+const BENCHED = new Set(['OUT', 'INJURY_RESERVE', 'SUSPENSION'])
+
+/**
+ * The night's one game-time call: the starter whose doubt is a real decision, the bench player
+ * who can step in, and whether waiting for the final word is free (the sub tips after it lands).
+ * One call, not a list: the rest of the doubts are marks on their rows.
+ */
+export function gameTimeCall(rows: PlayerRow[]): GameCall | null {
+  const doubts = rows
+    .filter((r) => r.spot.starting && r.state === 'later' && r.game && r.spot.play && r.spot.play.chance < 0.8)
+    .sort((a, b) => a.spot.play!.chance - b.spot.play!.chance)
+  if (!doubts.length) return null
+  const subs = rows.filter(
+    (r) =>
+      isBench(r.spot) &&
+      r.state === 'later' &&
+      r.game &&
+      !BENCHED.has(r.spot.injury_status) &&
+      (r.spot.play?.chance ?? 1) >= 0.8,
+  )
+  const build = (doubt: PlayerRow): GameCall => {
+    const tip = at(doubt.game!.start)
+    const wordFrom = tip - 1.5 * HOUR
+    const wordTo = tip - HOUR / 2
+    let fill: Fill | null = null
+    for (const s of subs) {
+      fill = fillFor(s, doubt, rows)
+      if (fill) break
+    }
+    const free = !!fill && at(fill.sub.game!.start) > wordTo
+    let planB: GameCall['planB'] = null
+    if (fill && free) {
+      // If he plays, the sub is still free: the likeliest hole that he can fill by his own tip.
+      for (const other of doubts) {
+        if (other === doubt || other.spot.play!.chance >= 0.3) continue
+        const f = fillFor(fill.sub, other, rows)
+        if (f && !(f.slide && f.slide === doubt)) {
+          planB = { row: other, fill: f }
+          break
+        }
+      }
+    }
+    return {
+      doubt,
+      play: doubt.spot.play!,
+      tip,
+      wordFrom,
+      wordTo,
+      fill,
+      free,
+      planB,
+      // 10% or less (or ruled out): swap now, the word won't save him.
+      verdict: !fill ? 'keep' : free && doubt.spot.play!.chance > 0.1 ? 'wait' : 'now',
+    }
+  }
+  // A real call is a toss-up (10% to 80%) with someone to swap in and time to wait for the word.
+  // When the sub locks first, the call is "decide now", and the likeliest-out starter gets him.
+  // Nobody to swap in: no card, the rows say it.
+  // Ruled out comes first: an empty slot is a sure loss, waiting can't save it.
+  const calls = doubts.map(build).filter((c) => c.fill)
+  return (
+    calls.find((c) => c.play.chance === 0) ??
+    calls.find((c) => c.play.chance > 0.1 && c.free) ??
+    calls[0] ??
+    null
+  )
+}
+
+/** In the word window: the final word on him usually lands now, so the call opens itself. */
+export const inWordWindow = (call: GameCall, now: number) => now >= call.wordFrom && now < call.tip
+
+/** Past the window with the tag unchanged: the word is late, and the sub's lock is the deadline. */
+export const wordLate = (call: GameCall, now: number) => now >= call.wordTo && now < call.tip
+
+/**
+ * Line 2 of a doubtful starter's row, verb first ("Leave in", "Swap now"), and the short reason
+ * that goes with it. The bench player is claimed once a night: the call's doubt gets the verb,
+ * the plan-B row waits on the call, every other doubt is left in and told who the sub covers.
+ * Null for a probable starter (his row just says "94% to play"), the bench and IR.
+ */
+export interface RowCall {
+  verb: string | null
+  why: string | null
+  /** Desktop's longer reason, when there's room for it ("Gafford's on Thompson"). */
+  whyWide?: string
+}
+
+export function rowCall(row: PlayerRow, call: GameCall | null): RowCall | null {
+  const p = row.spot.play
+  if (!p || p.tag === 'Available' || !row.spot.starting || row.state !== 'later') return null
+  const sub = call?.fill ? lastName(call.fill.sub.spot.name) : null
+  if (call && call.doubt === row) {
+    if (call.verdict === 'wait') return { verb: 'Leave in', why: `${sub} covers` }
+    if (call.verdict === 'now')
+      // The tray's strip under the row says why (the sub locks first), so the row doesn't.
+      return { verb: p.chance < 0.3 ? 'Swap now' : 'Decide now', why: p.chance === 0 ? 'ruled out tonight' : null }
+  }
+  if (call?.planB?.row === row) return { verb: `Swap if ${lastName(call.doubt.spot.name)} plays`, why: null }
+  if (p.chance === 0) return { verb: null, why: 'Ruled out tonight' }
+  if (p.chance >= 0.8) return null
+  // The sub is claimed by the call: no verb to offer, only why there's no swap.
+  if (call && sub) return { verb: null, why: 'no sub left', whyWide: `${sub}'s on ${lastName(call.doubt.spot.name)}` }
+  return { verb: 'Leave in', why: 'no sub plays' }
+}
+
+const TAG_PLAYERS: Record<PlayChance['tag'], string> = {
+  Probable: 'probable players',
+  Questionable: 'questionable players',
+  Doubtful: 'doubtful players',
+  Available: 'available players',
+  Out: 'regulars out that long',
+  'Day-to-day': 'day-to-day players',
+}
+
+/**
+ * What the number is, in one short line: "55% of questionable players like him played". The long
+ * form (the tag's timing, the seasons, the minutes cut) stays in ``basis``. Null when ruled out.
+ */
+export function basisShort(p: PlayChance, brief = false): string | null {
+  if (p.chance === 0) return null
+  const n = pct(p.chance)
+  if (p.tag === 'Out') return `${n} of ${TAG_PLAYERS.Out} played the next one`
+  return `${n} of ${TAG_PLAYERS[p.tag]}${brief ? '' : ' like him'} played`
+}
+
+/** "news 3h ago", "no word yet": how fresh the word on him is. */
+export function newsAge(p: PlayChance, now: number): string {
+  if (!p.news || !p.news_at) return 'no word yet'
+  const h = Math.floor((now - new Date(p.news_at).getTime()) / HOUR)
+  return h < 1 ? 'news just now' : h < 48 ? `news ${h}h ago` : `news ${Math.floor(h / 24)}d ago`
 }

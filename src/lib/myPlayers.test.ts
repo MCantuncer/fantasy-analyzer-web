@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import type { Game, GameLine, LineupSpot } from '../api/client'
+import type { Game, GameLine, LineupSpot, PlayChance } from '../api/client'
 import {
+  basisShort,
   benchLeftOut,
   buildRows,
   countdown,
   counts,
   espnTeamUrl,
   gamesLeft,
+  gameTimeCall,
+  inWordWindow,
+  newsAge,
   nextLabel,
+  rowCall,
   starterTotals,
   swapToMake,
+  wordLate,
 } from './myPlayers'
 
 const spot = (id: number, slot: string, game_id: number | null, extra: Partial<LineupSpot> = {}): LineupSpot => ({
@@ -127,5 +133,95 @@ describe('My Players rows', () => {
     expect(nextLabel(nx)).toBe('Wed @ IND')
     expect(nextLabel({ ...nx, home: true })).toBe('Wed vs IND')
     expect(gamesLeft(spot(14, 'F', null, { week_games: [21, 23, 24, 27] }), 22)).toBe(3)
+  })
+})
+
+describe('Final Word: chance to play', () => {
+  const play = (chance: number, tag: PlayChance['tag'], extra: Partial<PlayChance> = {}): PlayChance => ({
+    chance,
+    tag,
+    basis: '',
+    news: 'He is listed.',
+    news_at: '2026-11-17T20:00:00Z',
+    return_date: null,
+    upgraded: false,
+    missed_in_a_row: null,
+    ...extra,
+  })
+  const at = (id: number, start: string): Game => ({ ...game(id, 'scheduled'), start })
+  // Thompson (SG) tips 00:00, Gafford (bench C) 01:00; Gillespie (UTIL) doubtful, tips 03:00.
+  const night = (gaffordTip: string, thompson = play(0.55, 'Questionable')) =>
+    buildRows(
+      [
+        spot(1, 'SG', 1, { name: 'Amen Thompson', eligible: ['SG', 'UTIL'], play: thompson }),
+        spot(2, 'UTIL', 3, {
+          name: 'Christian Braun',
+          eligible: ['SG', 'UTIL'],
+          play: play(0.62, 'Day-to-day', { news: null }),
+        }),
+        spot(3, 'UTIL', 3, {
+          name: 'Collin Gillespie',
+          eligible: ['PG', 'UTIL'],
+          play: play(0.05, 'Doubtful'),
+        }),
+        spot(9, 'BE', 2, { name: 'Daniel Gafford', eligible: ['C', 'UTIL'] }),
+      ],
+      [at(1, '2026-11-19T00:00:00Z'), at(2, gaffordTip), at(3, '2026-11-19T03:00:00Z')],
+    )
+
+  it('waits for the word when the sub tips after it, and claims the sub once', () => {
+    const rows = night('2026-11-19T01:00:00Z')
+    const call = gameTimeCall(rows)!
+    expect(call.doubt.spot.name).toBe('Amen Thompson')
+    expect(call.verdict).toBe('wait')
+    expect(call.fill).toMatchObject({ slot: 'UTIL' })
+    expect(call.planB?.row.spot.name).toBe('Collin Gillespie')
+    expect(rowCall(rows[0], call)).toEqual({ verb: 'Leave in', why: 'Gafford covers' })
+    expect(rowCall(rows[2], call)).toEqual({ verb: 'Swap if Thompson plays', why: null })
+    expect(rowCall(rows[1], call)).toMatchObject({ verb: null, why: 'no sub left' })
+  })
+
+  it('decides now when the sub tips before the word, and gives him to the likeliest out', () => {
+    const rows = night('2026-11-18T22:30:00Z')
+    const call = gameTimeCall(rows)!
+    expect(call.verdict).toBe('now')
+    expect(call.doubt.spot.name).toBe('Collin Gillespie')
+    expect(rowCall(rows[2], call)).toEqual({ verb: 'Swap now', why: null })
+    expect(rowCall(rows[0], call)).toMatchObject({ verb: null, why: 'no sub left' })
+  })
+
+  it('puts a ruled-out starter first, whatever else is waiting', () => {
+    const rows = night('2026-11-19T01:00:00Z', play(0, 'Out'))
+    const call = gameTimeCall(rows)!
+    expect(call.doubt.spot.name).toBe('Amen Thompson')
+    expect(call.verdict).toBe('now')
+    expect(rowCall(rows[0], call)).toEqual({ verb: 'Swap now', why: 'ruled out tonight' })
+  })
+
+  it('opens itself in the word window and flags a late word', () => {
+    const call = gameTimeCall(night('2026-11-19T01:00:00Z'))!
+    const t = (iso: string) => new Date(iso).getTime()
+    expect(inWordWindow(call, t('2026-11-18T22:20:00Z'))).toBe(false)
+    expect(inWordWindow(call, t('2026-11-18T22:40:00Z'))).toBe(true)
+    expect(wordLate(call, t('2026-11-18T23:10:00Z'))).toBe(false)
+    expect(wordLate(call, t('2026-11-18T23:40:00Z'))).toBe(true)
+  })
+
+  it('says what the number is, and how fresh the word is', () => {
+    expect(basisShort(play(0.55, 'Questionable'))).toBe('55% of questionable players like him played')
+    expect(basisShort(play(0.55, 'Questionable'), true)).toBe('55% of questionable players played')
+    expect(basisShort(play(0.1, 'Out'))).toBe('10% of regulars out that long played the next one')
+    expect(basisShort(play(0.58, 'Questionable', { upgraded: true }))).toBe('58% of questionable players like him played')
+    expect(basisShort(play(0, 'Out'))).toBeNull()
+    expect(newsAge(play(0.55, 'Questionable'), new Date('2026-11-18T19:00:00Z').getTime())).toBe('news 23h ago')
+    expect(newsAge(play(0.62, 'Day-to-day', { news: null }), 0)).toBe('no word yet')
+  })
+
+  it('stays quiet for a probable starter', () => {
+    const rows = buildRows(
+      [spot(1, 'PG', 1, { play: play(0.94, 'Probable') })],
+      [at(1, '2026-11-19T00:00:00Z')],
+    )
+    expect(rowCall(rows[0], gameTimeCall(rows))).toBeNull()
   })
 })

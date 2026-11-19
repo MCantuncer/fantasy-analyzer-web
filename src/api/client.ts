@@ -56,7 +56,25 @@ export type RecapMatchup = components['schemas']['RecapMatchup']
 export type WeekTotals = components['schemas']['WeekTotals']
 export type WeekSits = components['schemas']['WeekSits']
 export type DayLineup = components['schemas']['DayLineup']
-export type LineupSpot = components['schemas']['LineupSpot']
+/**
+ * His chance to play his next game (``spot.play``): null for a healthy player or once his game has
+ * started. ``chance`` is the share of past players in his spot who played (NBA injury reports,
+ * 2021-22 to 2025-26). Local until the schema ships it.
+ */
+export interface PlayChance {
+  chance: number
+  tag: 'Probable' | 'Questionable' | 'Doubtful' | 'Available' | 'Out' | 'Day-to-day'
+  basis: string
+  news: string | null
+  news_at: string | null
+  /** ESPN's guess, untested. */
+  return_date: string | null
+  /** ESPN still says OUT but the news has him questionable, probable or available. */
+  upgraded: boolean
+  /** Out players: team games missed in a row. */
+  missed_in_a_row: number | null
+}
+export type LineupSpot = components['schemas']['LineupSpot'] & { play?: PlayChance | null }
 export type SeasonAverage = components['schemas']['SeasonAverage']
 export type NextGame = components['schemas']['NextGame']
 export type LineupDay = components['schemas']['LineupDay']
