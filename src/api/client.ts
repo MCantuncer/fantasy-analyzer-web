@@ -672,6 +672,117 @@ export function fetchScoreSits(leagueId: number, season: number | null, teamId: 
   return post<WeekSits>('/api/scores/sits', { league_id: leagueId, season, team_id: teamId }, creds, SCORES_TIMEOUT_MS)
 }
 
+/** One stat line of a player's estimate for a game (the API's NextGameStats). */
+export interface PregameStats {
+  minutes: number
+  pts: number
+  reb: number
+  ast: number
+  stl: number
+  blk: number
+  three_pm: number
+  to: number
+  fgm: number
+  fga: number
+  ftm: number
+  fta: number
+  fg_pct: number | null
+  ft_pct: number | null
+}
+
+/** One thing that moved a player's line, in the units of each stat (fg_pct as a share). */
+export interface PregameReason {
+  kind: string
+  text: string
+  minutes: number
+  pts: number
+  reb: number
+  ast: number
+  stl: number
+  blk: number
+  three_pm: number
+  to: number
+  fg_pct: number
+  value: number
+}
+
+export interface PregameLine extends PregameStats {
+  opponent?: string | null
+  home?: boolean | null
+  tip?: string | null
+  usual?: PregameStats | null
+  reasons?: PregameReason[]
+}
+
+export interface PregamePlayer {
+  player_id: number
+  name: string
+  injury_status: string
+  owner_team_id: number | null
+  /** False: a rotation player outside the league's own list, read for this box only. */
+  in_pool: boolean
+  line: PregameLine
+}
+
+export interface PregameSide {
+  pro_team_id: number
+  abbrev: string
+  name: string
+  call: number
+  call_raw: number
+  parts: {
+    ratings: number
+    level: number
+    home: number
+    opp_three_luck: number
+    own_three_luck: number
+    back_to_back: number
+    possessions: number
+    offense: number
+    defense_allowed: number
+    league: number
+    points_a_game: number
+  }
+  players: PregamePlayer[]
+  out: { player_id: number; name: string; injury_status: string; owner_team_id: number | null }[]
+  team_line: { shown: number; rest: number; total: number; call: number; gap: number }
+}
+
+export type PregameTermKind = 'matchup' | 'home_court' | 'three_point_luck' | 'back_to_back'
+
+/** A game before tip-off (POST /api/scores/pregame): Our call piece by piece and every player's line. */
+export interface PregameBox {
+  league_id: number
+  season: number
+  day: number
+  game_id: number
+  start: string
+  status: 'scheduled' | 'live' | 'final'
+  chance: number
+  pick: 'away' | 'home'
+  margin: number
+  margin_raw: number
+  terms: { kind: PregameTermKind; points: number; raw: number }[]
+  away: PregameSide
+  home: PregameSide
+}
+
+/** One game before tip-off: why Our call, every player expected to play and his line. 409 until the box is built. */
+export function fetchPregame(
+  leagueId: number,
+  season: number | null,
+  gameId: number,
+  day: number | null,
+  creds: Credentials | null,
+) {
+  return post<PregameBox>(
+    '/api/scores/pregame',
+    { league_id: leagueId, season, game_id: gameId, day },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
 /** Your lineup on a day, read fresh from ESPN (the server keeps it 30 s): who starts, who sits, each player's game. */
 export function fetchLineup(
   leagueId: number,

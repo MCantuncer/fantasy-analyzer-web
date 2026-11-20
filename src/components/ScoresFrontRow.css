@@ -472,7 +472,7 @@ html.sc-tweening {
   }
   .sc-switch-row {
     display: block;
-    padding: 12px 16px 4px;
+    padding: 12px 16px;
   }
   .sc-switch-row .sc-team-switch {
     display: grid;

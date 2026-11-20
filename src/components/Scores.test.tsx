@@ -5,6 +5,7 @@ import type { ScoreDay } from '../api/client'
 import { game, line } from '../test/fixtures'
 import { PlayerCardHost } from './PlayerCard'
 import { Scores, type TonightMatchup } from './Scores'
+import pregame from '../test/pregame-orl-bkn.json'
 
 const TEAMS = [
   { id: 3, abbrev: 'KEA', name: 'Kucukesat Aspavas' },
@@ -448,5 +449,45 @@ describe('Scores', () => {
     await vi.waitFor(() => expect(screen.getAllByRole('button', { name: /^Thu 22/ })[0]).toHaveAttribute('aria-pressed', 'true'))
     await vi.waitFor(() => expect(container.querySelectorAll('.call-night')).toHaveLength(1))
     expect(container.querySelectorAll('.game-card.has-call').length).toBeGreaterThan(0)
+  })
+
+  it('opens a game that has not started into its pre-game box once Our call is in', async () => {
+    const tonight: ScoreDay = {
+      ...DAY,
+      games: [
+        ...DAY.games,
+        game({
+          id: 401909306,
+          status: 'scheduled',
+          start: '2099-11-21T00:30:00Z',
+          away: { pro_team_id: 19, abbrev: 'ORL', name: 'Orlando Magic', score: null },
+          home: { pro_team_id: 17, abbrev: 'BKN', name: 'Brooklyn Nets', score: null },
+          call: { away: 114, home: 109, chance: 0.636 },
+        }),
+      ],
+    }
+    const fetchMock = mockApi({ '/api/scores/games': () => tonight, '/api/scores': () => tonight, '/api/scores/pregame': () => pregame })
+    const { container } = renderScores({ opponentId: 8, opponentName: 'Rival' })
+    await screen.findByText(/Amen Thompson led with/)
+    // Without a call there is nothing to open yet.
+    expect(container.querySelector('.game-card[data-game="8"]')!.tagName).toBe('DIV')
+    const card = container.querySelector<HTMLButtonElement>('.game-card[data-game="401909306"]')!
+    expect(card.tagName).toBe('BUTTON')
+    fireEvent.click(card)
+    expect(await screen.findByText(/Brooklyn's defense is soft, and that outweighs Orlando playing on the road/)).toBeInTheDocument()
+    expect(bodies(fetchMock, '/api/scores/pregame')).toContainEqual(expect.objectContaining({ game_id: 401909306, day: 4 }))
+    const box = container.querySelector('#box')!
+    expect(within(box as HTMLElement).getByRole('heading', { level: 2 }).textContent).toMatch(/Pre-game box/)
+    expect(within(box as HTMLElement).getByText('How it could go')).toBeInTheDocument()
+    expect(within(box as HTMLElement).getByText('Orlando by 15+')).toBeInTheDocument()
+    // Can owns Banchero (out tonight); the rival owns Wagner and Carter Jr.
+    expect(within(box as HTMLElement).getByText('Yours tonight')).toBeInTheDocument()
+    expect(within(box as HTMLElement).getAllByText('Out tonight').length).toBeGreaterThan(0)
+    // A row opens to his line built step by step.
+    fireEvent.click(within(box as HTMLElement).getByRole('button', { name: "Why Franz Wagner's line" }))
+    expect(within(box as HTMLElement).getByText('His usual line')).toBeInTheDocument()
+    expect(within(box as HTMLElement).getByText('Tonight, our estimate')).toBeInTheDocument()
+    fireEvent.click(within(box as HTMLElement).getByRole('button', { name: /Why the gap/ }))
+    expect(within(box as HTMLElement).getByText(/more than the 240 a game has/)).toBeVisible()
   })
 })
