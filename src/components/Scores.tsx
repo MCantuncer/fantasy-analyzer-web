@@ -38,6 +38,7 @@ import { useMediaQuery } from '../lib/useMediaQuery'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallTotal, CallVerdict } from './OurCall'
 import { shortNick } from '../lib/ourCall'
+import { PreGameBox } from './PreGameBox'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 interface Props {
@@ -250,6 +251,10 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           )}
           <GameBoard
             key={data.day}
+            leagueId={leagueId}
+            season={season}
+            creds={creds}
+            day={data.day ?? null}
             games={games}
             upcoming={upcoming}
             teamId={teamId}
@@ -284,6 +289,8 @@ function myPlayersIn(game: Game, teamId: number, upcoming: FixturePlayer[]): { p
 }
 
 type Upcoming = Map<number, FixturePlayer[]>
+/** A started game opens its box score; one that hasn't, its pre-game box once Our call is in. */
+const canOpen = (g: Game) => g.status !== 'scheduled' || g.call != null
 const cardOf = (id: number) => document.querySelector<HTMLElement>(`.game-grid [data-game='${id}']`)
 const topbarHeight = () => document.querySelector<HTMLElement>('.topbar')?.offsetHeight ?? 0
 
@@ -337,6 +344,10 @@ function usePinnedDays(el: HTMLDivElement | null): boolean {
  * Phones keep the swipe strip as the row of games, with the box under it.
  */
 function GameBoard({
+  leagueId,
+  season,
+  creds,
+  day,
   games,
   upcoming,
   teamId,
@@ -348,6 +359,10 @@ function GameBoard({
   failed,
   onRetry,
 }: {
+  leagueId: number
+  season: number
+  creds: Credentials | null
+  day: number | null
   games: Game[]
   upcoming: Upcoming
   teamId: number
@@ -370,7 +385,7 @@ function GameBoard({
 
   const ids = games.map((g) => g.id)
   // The Mine lens can hide the open game: then it is simply closed.
-  const open = picked != null ? games.find((g) => g.id === picked && g.status !== 'scheduled') : undefined
+  const open = picked != null ? games.find((g) => g.id === picked && canOpen(g)) : undefined
   useEffect(() => {
     if (picked != null && !open) {
       setPicked(null)
@@ -379,7 +394,7 @@ function GameBoard({
   }, [picked, open])
 
   const rowEnd = open && !strip ? rowEndOf(ids, open.id, cols) : null
-  const openable = games.filter((g) => g.status !== 'scheduled').map((g) => g.id)
+  const openable = games.filter(canOpen).map((g) => g.id)
   const at = open ? openable.indexOf(open.id) : -1
   const prev = at > 0 ? games.find((g) => g.id === openable[at - 1]) : undefined
   const next = at >= 0 && at < openable.length - 1 ? games.find((g) => g.id === openable[at + 1]) : undefined
@@ -445,9 +460,37 @@ function GameBoard({
     setPicked(id)
   }
 
+  const hop = (d: 'prev' | 'next') => {
+    const t = d === 'prev' ? prev : next
+    if (t) go(t.id, { arrow: d })
+  }
   const box =
     open &&
-    (pending ? (
+    (open.status === 'scheduled' ? (
+      <PreGameBox
+        key={open.id}
+        game={open}
+        day={day}
+        leagueId={leagueId}
+        season={season}
+        creds={creds}
+        teamId={teamId}
+        rivalId={rivalId}
+        rivalColour={rivalColour}
+        abbrev={abbrev}
+        head={(teamSwitch, line) => (
+          <BoxTitle
+            game={open}
+            date={date}
+            teamSwitch={teamSwitch}
+            pregame={line}
+            onClose={() => close(true)}
+            onHop={hop}
+            hops={[prev, next]}
+          />
+        )}
+      />
+    ) : pending ? (
       <BoxScoreFetching
         game={open}
         date={date}
@@ -903,8 +946,8 @@ function GameCard({
       <CallSentence game={game} />
     </>
   )
-  // A game that hasn't started has no box score to open.
-  if (scheduled)
+  // A game that hasn't started opens its pre-game box once Our call is in; before that there's nothing to open.
+  if (scheduled && !call)
     return (
       <div className={className} data-game={game.id} {...emberAttrs(ember, tabStyle(origin))}>
         {body}
@@ -1002,7 +1045,7 @@ type Hop = 'prev' | 'next'
 interface BoxNav {
   onClose: () => void
   onHop: (dir: Hop) => void
-  /** The games either side of this one (started games, in the grid's order). */
+  /** The games either side of this one (games that open, in the grid's order). */
   hops: [Game | undefined, Game | undefined]
 }
 
@@ -1019,7 +1062,14 @@ function BoxTitle({
   onClose,
   onHop,
   hops,
-}: BoxNav & { game: Game; date: string | null | undefined; teamSwitch?: (short: boolean) => ReactNode }) {
+  pregame,
+}: BoxNav & {
+  game: Game
+  date: string | null | undefined
+  teamSwitch?: (short: boolean) => ReactNode
+  /** Before tip-off: the countdown and lineup-news line, and the title reads "Pre-game box". */
+  pregame?: ReactNode
+}) {
   const ember = emberOf(game)
   const phone = useMediaQuery('(max-width: 640px)')
   const narrow = useMediaQuery('(max-width: 1060px)')
@@ -1054,10 +1104,14 @@ function BoxTitle({
   const name = (g: Game | undefined) => (g ? `${g.away.abbrev} at ${g.home.abbrev}` : '')
   return (
     <>
-      <div ref={ref} className={`sc-bp-title${stuck ? ' stuck' : ''}${gone ? ' show-score' : ''}`}>
+      <div
+        ref={ref}
+        className={`sc-bp-title${stuck ? ' stuck' : ''}${gone ? ' show-score' : ''}${pregame ? ' sc-bp-pre' : ''}`}
+      >
         <h2 id="box-title" tabIndex={-1}>
           <span className="sc-bt-label" aria-hidden="true">
-            Box score<span className="sc-bt-dot">·</span>
+            {pregame ? 'Pre-game box' : 'Box score'}
+            <span className="sc-bt-dot">·</span>
             <span className="sc-bt-sub">
               {nickname(game.away.name)} at {nickname(game.home.name)}
             </span>
@@ -1076,21 +1130,42 @@ function BoxTitle({
             </span>
           </span>
           <span className="sr-only">
-            Box score: {game.away.name} {game.away.score ?? ''}, {game.home.name} {game.home.score ?? ''}
-            {left ? `, ${left}` : ''}
+            {pregame ? (
+              <>
+                Pre-game box: {game.away.name} at {game.home.name}
+              </>
+            ) : (
+              <>
+                Box score: {game.away.name} {game.away.score ?? ''}, {game.home.name} {game.home.score ?? ''}
+                {left ? `, ${left}` : ''}
+              </>
+            )}
           </span>
         </h2>
-        <span className="sc-bt-line" aria-hidden="true">
-          <GameTime game={game} ember={ember} />
-          {left && (
-            <>
-              <i />
-              {left}
-            </>
-          )}
-          <i />
-          {dayLabel(date)}
-        </span>
+        {pregame ? (
+          // Before tip-off: the tip time (on wide screens), the countdown and the lineup-news window.
+          <span className="sc-bt-line">
+            {!phone && (
+              <>
+                <GameTime game={game} ember={ember} />
+                <i />
+              </>
+            )}
+            {pregame}
+          </span>
+        ) : (
+          <span className="sc-bt-line" aria-hidden="true">
+            <GameTime game={game} ember={ember} />
+            {left && (
+              <>
+                <i />
+                {left}
+              </>
+            )}
+            <i />
+            {dayLabel(date)}
+          </span>
+        )}
         {!phone && teamSwitch?.(narrow)}
         <div className="sc-tools">
           {(['prev', 'next'] as const).map((d, i) => (
@@ -1107,7 +1182,13 @@ function BoxTitle({
               {d === 'prev' ? <CaretLeft size={16} weight="bold" /> : <CaretRight size={16} weight="bold" />}
             </button>
           ))}
-          <button type="button" className="sc-close" aria-label="Close box score" aria-keyshortcuts="Escape" onClick={onClose}>
+          <button
+            type="button"
+            className="sc-close"
+            aria-label={pregame ? 'Close pre-game box' : 'Close box score'}
+            aria-keyshortcuts="Escape"
+            onClick={onClose}
+          >
             <X size={16} weight="bold" aria-hidden="true" />
             <span className="sc-close-label">Close</span>
             <kbd>Esc</kbd>

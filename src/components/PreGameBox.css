@@ -1,0 +1,629 @@
+/* ---------- Pre-game box ("Overture", Can 2026-11-20) ----------
+   The live box's bones before tip-off. Art lives in one place: Our call drawn large in outline on its
+   plate, with a quiet warm light behind it that comes up as tip-off nears (--pg-house, set per minute,
+   never animated). Gold stays for you and focus; outcomes carry their meaning in words and shape. */
+
+.pg-box {
+  --pg-house: 0.5;
+}
+
+/* ---------- Our call and why ---------- */
+.pg-call {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 20px 40px;
+  align-items: start;
+  padding: 22px 20px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+.pg-ledger {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 248px;
+}
+/* The house light: a soft warm pool behind the call, quiet hours out, full at tip-off. */
+.pg-ledger::before {
+  content: '';
+  position: absolute;
+  inset: -18px -24px -12px;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 70% at 40% 45%, color-mix(in srgb, var(--warn) 16%, transparent), transparent 72%);
+  opacity: var(--pg-house);
+}
+.pg-ledger > * {
+  position: relative;
+}
+.pg-teams,
+.pg-plate {
+  display: grid;
+  grid-template-columns: repeat(2, 136px);
+}
+.pg-team {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.pg-plate {
+  padding: 4px 0;
+  border-radius: var(--radius-tag);
+  background: var(--plate);
+}
+.pg-big {
+  position: relative;
+  padding-right: 18px;
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 64px;
+  line-height: 1.05;
+  font-weight: 700;
+  text-align: right;
+  color: transparent;
+  -webkit-text-stroke: 1.4px var(--text-2);
+}
+.pg-big.pick {
+  -webkit-text-stroke-color: var(--text);
+}
+.pg-big .oc {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -5px;
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.pg-call-label {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.pg-call-label b {
+  color: var(--text);
+  font-weight: 650;
+}
+.pg-call-label .conf-band .num {
+  font-weight: 650;
+}
+
+.pg-why {
+  min-width: 0;
+  max-width: 68ch;
+}
+.pg-headline {
+  margin: 0 0 12px;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text);
+  text-wrap: balance;
+}
+.pg-terms {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.pg-term {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 2px 16px;
+  padding: 8px 0;
+  border-top: 1px solid var(--divider);
+}
+.pg-term dt {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.pg-term .pg-pts {
+  min-width: 3ch;
+  text-align: right;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.pg-term dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.pg-term.quiet dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+.pg-term.total {
+  border-top: 1.5px solid color-mix(in srgb, var(--text) 30%, transparent);
+}
+.pg-term.total dt {
+  font-weight: 700;
+}
+
+/* ---------- How it could go ---------- */
+.pg-how {
+  padding: 16px 20px 18px;
+  border-bottom: 1px solid var(--divider);
+}
+.pg-how h3,
+.pg-stake h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+}
+.pg-bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.pg-seg {
+  flex-basis: 0;
+  min-width: 4px;
+}
+/* The pick's side in solid ink, the other side hollow: the sign is in the shape, not only the colour. */
+.pg-seg.win-big,
+.pg-bands .win-big i {
+  background: color-mix(in srgb, var(--text) 78%, transparent);
+}
+.pg-seg.win,
+.pg-bands .win i {
+  background: color-mix(in srgb, var(--text) 48%, transparent);
+}
+.pg-seg.close,
+.pg-bands .close i {
+  background: color-mix(in srgb, var(--text) 20%, transparent);
+}
+.pg-seg.lose,
+.pg-bands .lose i {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 48%, transparent);
+}
+.pg-seg.lose-big,
+.pg-bands .lose-big i {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 78%, transparent);
+}
+.pg-seg.lose,
+.pg-seg.lose-big {
+  border-radius: 2px;
+}
+.pg-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 10px 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.pg-bands li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pg-bands i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.pg-bands .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text);
+}
+.pg-bands .pg-in {
+  color: var(--muted);
+}
+.pg-how p {
+  margin: 0;
+}
+
+/* ---------- Yours tonight, rival ---------- */
+.pg-stakes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+.pg-stake ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 12px 4px 6px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--edge, var(--gold));
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+.pg-chip.rival {
+  --edge: var(--rival);
+}
+.pg-chip:hover {
+  background: var(--raised);
+}
+.pg-chip-name {
+  font-weight: 650;
+}
+.pg-chip-team {
+  font-size: 12px;
+  color: var(--muted);
+}
+.pg-chip-line {
+  color: var(--text-2);
+}
+.pg-chip-line .num {
+  font-family: var(--font-num);
+  color: var(--text);
+}
+.pg-chip-out {
+  font-weight: 600;
+  color: var(--bad);
+}
+
+/* ---------- Out line ---------- */
+.pg-outline {
+  margin: 0;
+  padding: 12px 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--divider);
+}
+.pg-outline b {
+  color: var(--text);
+}
+.pg-outline .num {
+  font-family: var(--font-num);
+  font-weight: 650;
+  color: var(--text);
+}
+.pg-yours {
+  color: var(--gold-text);
+}
+
+/* ---------- The table: the live box's columns, whole numbers ---------- */
+.pg-scroll {
+  margin-top: 4px;
+}
+table.box .pg-key {
+  cursor: default;
+}
+.pg-player {
+  align-items: center;
+}
+.pg-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.pg-note {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 30ch;
+}
+.pg-dtd {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warn);
+}
+.pg-toggle {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.pg-toggle:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+.pg-toggle svg {
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pg-toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.pg-who {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* A player's why under his row: same columns, one decimal. */
+table.box tr.pg-step > :is(th, td) {
+  height: 32px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-2);
+  background-color: var(--surface-2);
+  animation: pg-in 0.16s ease-out both;
+}
+table.box tr.pg-step > th {
+  font-weight: 500;
+}
+.pg-step-label {
+  display: block;
+  padding-left: 32px;
+  white-space: normal;
+  line-height: 1.3;
+}
+table.box tr.pg-step.usual > :is(th, td) {
+  color: var(--text);
+}
+table.box tr.pg-step.lean > :is(th, td) {
+  color: var(--muted);
+}
+table.box tr.pg-step.tonight > :is(th, td) {
+  color: var(--text);
+  font-weight: 650;
+  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--text) 30%, transparent);
+}
+table.box tr.pg-step-note > th {
+  height: auto;
+  padding: 6px 12px 10px 44px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: left;
+}
+.pg-step-note-text {
+  position: sticky;
+  left: 12px;
+  display: block;
+  max-width: min(72ch, calc(100vw - 72px));
+  white-space: normal;
+}
+@keyframes pg-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Out: names struck, no numbers. */
+.pg-out-break th {
+  padding: 14px 12px 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+  text-align: left;
+  text-transform: none;
+}
+table.box tr.pg-out s {
+  color: var(--muted);
+}
+table.box td.pg-out-note {
+  width: auto;
+  min-width: 0;
+  font-size: 12px;
+}
+
+/* ---------- Team line ---------- */
+.pg-foot {
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--divider);
+  font-size: 13px;
+  color: var(--text-2);
+}
+.pg-foot p {
+  margin: 0;
+}
+.pg-foot > p:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.pg-foot .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.pg-foot b.num {
+  color: var(--text);
+}
+.pg-dot {
+  margin: 0 4px;
+  color: var(--muted);
+}
+.pg-gap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: 8px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.pg-gap-btn:hover {
+  background: var(--raised);
+}
+.pg-gap-btn svg {
+  transition: transform 0.18s;
+}
+.pg-gap-btn[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.pg-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 72ch;
+  margin: 4px 0 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  line-height: 1.5;
+}
+.pg-gap[hidden] {
+  display: none;
+}
+/* Pinned and scrolled past the card: the tip time is already on the line below. */
+.sc-bp-title.sc-bp-pre .sc-bt-score .sc-bt-time {
+  display: none;
+}
+/* Desktop: the countdown line sits under the title, in the title's own column. */
+@media (min-width: 641px) {
+  .sc-bp-title.sc-bp-pre > h2 {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    margin-top: 12px;
+  }
+  .sc-bp-title.sc-bp-pre > .sc-team-switch {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .sc-bp-title.sc-bp-pre > .sc-tools {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .sc-bp-title.sc-bp-pre .sc-bt-line {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    margin-bottom: 11px;
+  }
+}
+.pg-news-now {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 900px) {
+  .pg-call {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+@media (max-width: 640px) {
+  .pg-call {
+    padding: 18px 16px;
+  }
+  .pg-ledger {
+    min-width: 0;
+    width: max-content;
+  }
+  .pg-teams,
+  .pg-plate {
+    grid-template-columns: repeat(2, 104px);
+  }
+  .pg-big {
+    font-size: 44px;
+  }
+  .pg-headline {
+    font-size: 16px;
+  }
+  .pg-term {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 44px;
+  }
+  .pg-term dt {
+    justify-content: space-between;
+  }
+  .pg-how,
+  .pg-stakes,
+  .pg-outline,
+  .pg-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .pg-bands {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pg-bands li {
+    min-height: 22px;
+  }
+  .pg-stakes {
+    flex-direction: column;
+  }
+  .pg-stake ul {
+    flex-direction: column;
+  }
+  .pg-chip {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .pg-note {
+    display: none;
+  }
+  .pg-toggle {
+    width: 36px;
+    height: 44px;
+  }
+  .pg-step-label {
+    padding-left: 0;
+  }
+  table.box tr.pg-step-note > th {
+    padding-left: 12px;
+    white-space: normal;
+  }
+  .pg-gap-btn {
+    margin-left: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  table.box tr.pg-step > :is(th, td) {
+    animation: none;
+  }
+  .pg-toggle svg,
+  .pg-gap-btn svg {
+    transition: none;
+  }
+}
