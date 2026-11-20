@@ -117,6 +117,7 @@ describe('pre-game box', () => {
   it('gives a row the reason his teammates don’t share', () => {
     const wagner = box.away.players[0]
     expect(rowNote(wagner, box.away)).not.toMatch(/Teammates out/)
+    expect(rowNote(wagner, box.away)).toBe('Big minutes ease off: 1 point fewer than usual')
     expect(splitRotation(box.home.players).starters).toHaveLength(5)
   })
 

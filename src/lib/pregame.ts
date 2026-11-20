@@ -398,7 +398,9 @@ export function rowNote(p: PregamePlayer, side: PregameSide): string {
   )
   const r = (p.line.reasons ?? []).find((x) => !everyone.has(x.kind) && Math.round(Math.abs(x.pts)) >= 1)
   if (!r) return 'Near his usual night'
-  return `${r.text} · ${signed(Math.round(r.pts))} pts`
+  // "Against CHA: 1 point fewer than usual" (Can, 2026-11-21: "Against CHA · −1 pts" didn't say what it meant).
+  const n = Math.abs(Math.round(r.pts))
+  return `${r.text}: ${n} point${n === 1 ? '' : 's'} ${r.pts > 0 ? 'more' : 'fewer'} than usual`
 }
 
 /** The starting five by minutes until lineups are out, then the bench. */

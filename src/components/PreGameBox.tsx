@@ -305,12 +305,18 @@ function Ready({
 function CallPanel({ b }: { b: PregameBox }) {
   const pct = Math.round(b.chance * 100)
   const W = place(b[b.pick])
+  // Each club's light colours its own number, and the plate runs from one to the other.
+  const clubs = {
+    '--ca': teamLight(b.away.abbrev) ?? 'var(--text-2)',
+    '--cb': teamLight(b.home.abbrev) ?? 'var(--text-2)',
+    '--cw': teamLight(b[b.pick].abbrev) ?? 'var(--text-2)',
+  } as CSSProperties
   return (
     <section className="pg-call" aria-label="Our call and why">
-      <div className="pg-ledger">
+      <div className="pg-ledger" style={clubs}>
         <div className="pg-teams" aria-hidden="true">
           {(['away', 'home'] as const).map((s) => (
-            <span key={s} className="pg-team">
+            <span key={s} className={`pg-team ${s}`}>
               <TeamLogo abbrev={b[s].abbrev} size={22} />
               {b[s].abbrev}
             </span>
@@ -318,18 +324,17 @@ function CallPanel({ b }: { b: PregameBox }) {
         </div>
         <div className="pg-plate" aria-hidden="true">
           {(['away', 'home'] as const).map((s) => (
-            <span key={s} className={`pg-big${s === b.pick ? ' pick' : ''}`}>
+            <span key={s} className={`pg-big ${s}${s === b.pick ? ' pg-pick' : ''}`}>
               {b[s].call}
-              {s === b.pick && (
-                <svg className="oc" viewBox="0 0 8 10" width="7" height="9" aria-hidden="true">
-                  <path d="M7.2 1v8L1 5z" />
-                </svg>
-              )}
+              {/* Both cells are built the same: the caret shows on the pick only. */}
+              <svg className="oc" viewBox="0 0 8 10" width="7" height="9" aria-hidden="true">
+                <path d="M7.2 1v8L1 5z" />
+              </svg>
             </span>
           ))}
         </div>
         <p className="pg-call-label">
-          Our call · <b>{W}</b> ·{' '}
+          Our call · <b className="pg-winner">{W}</b> ·{' '}
           <span className="conf-band" data-band={band(pct)}>
             <span className="num">{pct}%</span>
           </span>
@@ -362,8 +367,14 @@ function CallPanel({ b }: { b: PregameBox }) {
     difference"): five bands of the final margin with how often, from five seasons of games. */
 function HowItCouldGo({ b }: { b: PregameBox }) {
   const { bands, blowout } = outcomes(b)
+  const other = b.pick === 'away' ? 'home' : 'away'
+  // The pick's side of the strip in its club's colour, the other side's in theirs; "Within 5" stays ink.
+  const clubs = {
+    '--cw': teamLight(b[b.pick].abbrev) ?? 'var(--text)',
+    '--cl': teamLight(b[other].abbrev) ?? 'var(--text)',
+  } as CSSProperties
   return (
-    <section className="pg-how" aria-labelledby="pg-how-h">
+    <section className="pg-how" aria-labelledby="pg-how-h" style={clubs}>
       <h3 id="pg-how-h">How it could go</h3>
       <div className="pg-bar" aria-hidden="true">
         {bands.map((x) => (

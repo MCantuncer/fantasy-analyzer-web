@@ -54,10 +54,33 @@
 .pg-plate {
   padding: 4px 0;
   border-radius: var(--radius-tag);
-  background: var(--plate);
+  /* the plate runs from the away club's light to the home club's, faintly */
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--ca) 16%, transparent),
+      transparent 48%,
+      transparent 52%,
+      color-mix(in srgb, var(--cb) 16%, transparent)
+    ),
+    var(--plate);
+  box-shadow:
+    inset 3px 0 0 color-mix(in srgb, var(--ca) 70%, transparent),
+    inset -3px 0 0 color-mix(in srgb, var(--cb) 70%, transparent);
+}
+.pg-team.away {
+  --c: var(--ca);
+}
+.pg-team.home {
+  --c: var(--cb);
+}
+.pg-team {
+  text-decoration: underline 2px var(--c);
+  text-underline-offset: 5px;
 }
 .pg-big {
   position: relative;
+  display: block;
   padding-right: 18px;
   font-family: 'Mona Sans Outline', var(--font-num);
   font-variant-numeric: tabular-nums;
@@ -66,10 +89,27 @@
   font-weight: 700;
   text-align: right;
   color: transparent;
-  -webkit-text-stroke: 1.4px var(--text-2);
+  -webkit-text-stroke: 1.4px color-mix(in srgb, var(--c) 55%, var(--text-2));
 }
-.pg-big.pick {
-  -webkit-text-stroke-color: var(--text);
+.pg-big.away {
+  --c: var(--ca);
+}
+.pg-big.home {
+  --c: var(--cb);
+}
+/* the pick: its club's colour at full, with a faint fill of it inside the outline */
+.pg-big.pg-pick {
+  color: color-mix(in srgb, var(--c) 18%, transparent);
+  -webkit-text-stroke-color: color-mix(in srgb, var(--c) 85%, var(--text));
+}
+:root[data-theme='light'] .pg-big {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--c) 45%, var(--text-2));
+}
+:root[data-theme='light'] .pg-big.pg-pick {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--c) 70%, var(--text));
+}
+.pg-big:not(.pg-pick) .oc {
+  visibility: hidden;
 }
 .pg-big .oc {
   position: absolute;
@@ -77,7 +117,7 @@
   top: 50%;
   margin-top: -5px;
   fill: none;
-  stroke: var(--text-2);
+  stroke: var(--c);
   stroke-width: 1.2;
   stroke-linejoin: round;
 }
@@ -89,6 +129,10 @@
 .pg-call-label b {
   color: var(--text);
   font-weight: 650;
+}
+.pg-call-label .pg-winner {
+  text-decoration: underline 2px var(--cw);
+  text-underline-offset: 3px;
 }
 .pg-call-label .conf-band .num {
   font-weight: 650;
@@ -174,28 +218,29 @@
   flex-basis: 0;
   min-width: 4px;
 }
-/* The pick's side in solid ink, the other side hollow: the sign is in the shape, not only the colour. */
+/* The pick's side solid in its club's colour, the other side hollow in theirs: the sign is in the shape
+   as well as the colour. "Within 5" stays ink. */
 .pg-seg.win-big,
 .pg-bands .win-big i {
-  background: color-mix(in srgb, var(--text) 78%, transparent);
+  background: var(--cw);
 }
 .pg-seg.win,
 .pg-bands .win i {
-  background: color-mix(in srgb, var(--text) 48%, transparent);
+  background: color-mix(in srgb, var(--cw) 55%, transparent);
 }
 .pg-seg.close,
 .pg-bands .close i {
-  background: color-mix(in srgb, var(--text) 20%, transparent);
+  background: color-mix(in srgb, var(--text) 22%, transparent);
 }
 .pg-seg.lose,
 .pg-bands .lose i {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 48%, transparent);
+  background: color-mix(in srgb, var(--cl) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--cl) 60%, transparent);
 }
 .pg-seg.lose-big,
 .pg-bands .lose-big i {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 78%, transparent);
+  background: color-mix(in srgb, var(--cl) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--cl);
 }
 .pg-seg.lose,
 .pg-seg.lose-big {
@@ -331,10 +376,7 @@ table.box .pg-key {
   font-size: 12px;
   font-weight: 400;
   color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 30ch;
+  max-width: 38ch;
 }
 .pg-dtd {
   font-size: 11px;
