@@ -299,7 +299,7 @@ export function teamLine(side: PregameSide) {
   } else if (gap > 0) {
     if (minutes > 245)
       why.push(
-        `Each line expects that player's usual minutes, and together they come to ${Math.round(minutes)}, more than the 240 a game has. We're testing a fix that fits them to 240.`,
+        `Each line expects that player's usual minutes, and together they come to ${Math.round(minutes)}, more than the 240 a game has. We tested trimming them to fit on five seasons: it made the lines less accurate every season, because on nights like this the players who do play tend to play more, so each line stays his own.`,
       )
     if (moved >= 5 && side.out.length) {
       const { share } = outShare(side)

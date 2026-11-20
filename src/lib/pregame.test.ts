@@ -124,7 +124,7 @@ describe('pre-game box', () => {
     const t = teamLine(box.away)
     expect(t.gap).toBe(18.1)
     expect(t.minutes).toBeGreaterThan(245)
-    expect(t.why[0]).toContain('more than the 240 a game has')
+    expect(t.why[0]).toContain('more than the 240 a game has. We tested trimming them to fit on five seasons')
     expect(t.why.some((w) => w.startsWith('Banchero is out, he scores 24 a game, and these lines picked up'))).toBe(
       true,
     )
