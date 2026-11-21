@@ -143,6 +143,7 @@ export interface Line {
   stat: Stat
   name: string // the player, or "MIL @ PHI"
   initials: string
+  playerId: number | null // the ESPN id, for the headshot
   team: string // the player's team; a market's pick or side
   game: CompareGame
   gameLabel: string
@@ -180,6 +181,7 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
       out.push(make(`${g.game_id}-${p.name}-${p.stat}`, 'player', stat, p.name, p.team, g, gameLabel, p, data.bands, tipped, {
         ladder: p.ladder ?? [],
         played: p.played,
+        playerId: p.player_id,
       }))
     }
     for (const m of g.markets) {
@@ -223,6 +225,7 @@ function make(
     stat,
     name,
     initials: kind === 'player' ? initials(name) : '',
+    playerId: null,
     team,
     game,
     gameLabel,
@@ -345,4 +348,50 @@ export function nightLabel(date: string | null | undefined): string {
 export function nightTab(date: string | null | undefined): string {
   const l = nightLabel(date)
   return l.split(' ').slice(0, 2).join(' ')
+}
+
+const pct = (v: number) => `${Math.round(v * 100)}%`
+const CLOSER: Record<Closer, string> = { ours: 'we were closer', book: 'the book was closer', tie: 'both as close' }
+
+/** One line in plain words, for the row under a name: what we expect against the book before the
+ *  game, what happened and who was nearer after it. */
+export function plain(l: Line, settled: boolean): string {
+  const unit = STAT_UNIT[l.stat]
+  if (settled) {
+    if (l.stat === 'WIN') return l.won ? `${l.won} won, so our pick was ${l.oursHit ? 'right' : 'wrong'}` : ''
+    if (l.actual == null) return l.played === false ? "didn't play" : ''
+    const near = l.closer ? `, ${CLOSER[l.closer]}` : ''
+    if (l.stat === 'MAR') return `${l.actual >= 0 ? l.team : l.other} won by ${num(Math.abs(l.actual))}${near}`
+    if (l.stat === 'TOT') return `${num(l.actual)} points in all${near}`
+    if (l.stat === 'TEAM') return `${l.team} scored ${num(l.actual)}${near}`
+    return `finished with ${num(l.actual)} ${l.actual === 1 ? unit.replace(/s$/, '') : unit}${near}`
+  }
+  if (l.ours == null || l.book == null) return l.ours == null ? 'no number of ours for him' : ''
+  const gap = l.gap ?? 0
+  switch (l.stat) {
+    case 'WIN':
+      return l.bookTeam && l.bookTeam !== l.team
+        ? `we pick ${l.team} (${pct(l.ours)}), the book picks ${l.bookTeam}`
+        : `we give ${l.team} ${pct(l.ours)} to win, the book ${pct(l.book)}`
+    case 'MAR': {
+      const side = (v: number) => `${v >= 0 ? l.team : l.other} by ${num(Math.abs(v))}`
+      const same = l.ours >= 0 === l.book >= 0
+      return `we see ${side(l.ours)}, the book ${same ? `by ${num(Math.abs(l.book))}` : side(l.book)}`
+    }
+    case 'TOT':
+      return `we expect ${num(l.ours)} points in all, the book ${num(l.book)}`
+    case 'TEAM':
+      return `we expect ${l.team} to score ${num(l.ours)}, the book ${num(l.book)}`
+    default:
+      if (Math.abs(gap) < 0.05) return `we expect the same as the book`
+      return `we expect ${num(Math.abs(gap))} ${gap > 0 ? 'more' : 'fewer'} ${unit} than the book`
+  }
+}
+
+/** A game in two or three plain sentences: who wins and by how much, and the total. */
+export function gameStory(lines: Line[], settled: boolean): string {
+  const get = (s: Stat) => lines.find((l) => l.stat === s)
+  const say = (l: Line | undefined) => (l ? plain(l, settled) : '')
+  const parts = [say(get('WIN')), say(get('MAR')), say(get('TOT'))].filter(Boolean)
+  return parts.map((p) => p[0].toUpperCase() + p.slice(1) + '.').join(' ')
 }

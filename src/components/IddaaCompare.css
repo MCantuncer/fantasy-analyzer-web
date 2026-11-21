@@ -1809,3 +1809,93 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Faces: a headshot with the team's logo in the corner; a game's two logos, away over home */
+.ic-face.head {
+  position: relative;
+  background: none;
+  box-shadow: none;
+}
+.ic-face-team {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.ic-face-team:empty {
+  display: none;
+}
+.ic-face.logos {
+  position: relative;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.ic-face.logos > * {
+  position: absolute;
+  width: var(--lg);
+  height: var(--lg);
+}
+.ic-face.logos > :first-child {
+  left: -2px;
+  top: -2px;
+}
+.ic-face.logos > :last-child {
+  right: -4px;
+  bottom: -4px;
+}
+.ic-face.logos .team-logo-ab {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--raised);
+  color: var(--text-2);
+  font-weight: 700;
+}
+.ic-gb-h .ic-face.logos {
+  width: 40px;
+  height: 40px;
+}
+.ic-nm-st {
+  font-weight: 500;
+  color: var(--text-2);
+  font-size: 13px;
+  margin-left: 4px;
+}
+.ic-chip .team-logo {
+  margin: 0 -2px;
+}
+.ic-gt td .team-logo {
+  vertical-align: -3px;
+}
+
+/* Plain words */
+.ic-read,
+.ic-say {
+  color: var(--text-2);
+  font-size: 13.5px;
+  max-width: 720px;
+}
+.ic-read {
+  padding-top: 12px;
+}
+.ic-say {
+  margin-bottom: 16px !important;
+}
+.ic-say b {
+  font-family: var(--font-num);
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-gb-say {
+  margin: 0 0 10px !important;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
