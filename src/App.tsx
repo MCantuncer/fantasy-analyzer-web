@@ -88,9 +88,9 @@ const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_T
 // Read once, before the first render writes the URL (StrictMode runs state initialisers twice).
 const linkedReset = readResetToken()
 
-/** The admin pages that stand in for My leagues: Site health and iddaa vs Ours. */
-type AdminView = '' | 'health' | 'iddaa'
-const ADMIN_VIEWS: AdminView[] = ['health', 'iddaa']
+/** The pages that stand in for My leagues: Our Estimates (anyone signed in) and Site health (admins). */
+type AdminView = '' | 'health' | 'estimates'
+const ADMIN_VIEWS: AdminView[] = ['health', 'estimates']
 
 function readUrl(): {
   selection: Selection | null
@@ -107,7 +107,10 @@ function readUrl(): {
     tab: ALL_TABS.find((t) => t.id === q.get('tab'))?.id ?? '',
     verifying: q.get('view') === 'verify',
     film: q.get('film') === 'last' ? null : Number(q.get('film')) > 0 ? Number(q.get('film')) : undefined,
-    admin: league <= 0 ? (ADMIN_VIEWS.find((v) => v === q.get('view')) ?? '') : '',
+    admin:
+      league <= 0
+        ? (ADMIN_VIEWS.find((v) => v === (q.get('view') === 'iddaa' ? 'estimates' : q.get('view'))) ?? '')
+        : '',
   }
 }
 
@@ -170,7 +173,7 @@ export default function App() {
   const [focusAdd, setFocusAdd] = useState(0)
   // The team the verify page opens on: the one already picked, when "Verify" was pressed for it.
   const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
-  // Site health or iddaa vs Ours (admins only) stands in for My leagues while it is open.
+  // Our Estimates, or Site health for admins, stands in for My leagues while it is open.
   const [admin, setAdmin] = useState<AdminView>(initial.admin)
   // Signed out: the sample league, scouting one team. A door opens the join sheet over it.
   const [joining, setJoining] = useState<'signup' | 'signin' | null>(null)
@@ -665,19 +668,17 @@ export default function App() {
                       Site health
                     </button>
                   )}
-                  {me.data.admin && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={(e) => {
-                        e.currentTarget.closest('details')?.removeAttribute('open')
-                        goHome()
-                        setAdmin('iddaa')
-                      }}
-                    >
-                      iddaa vs Ours
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={(e) => {
+                      e.currentTarget.closest('details')?.removeAttribute('open')
+                      goHome()
+                      setAdmin('estimates')
+                    }}
+                  >
+                    Our Estimates
+                  </button>
                   <button
                     type="button"
                     className="secondary"
@@ -739,11 +740,11 @@ export default function App() {
 
         {signedIn && me.data && !selection && admin === 'health' && me.data.admin && <SiteHealth onBack={goHome} />}
 
-        {signedIn && me.data && !selection && admin === 'iddaa' && me.data.admin && (
-          <IddaaCompare onBack={goHome} onHealth={() => setAdmin('health')} />
+        {signedIn && me.data && !selection && admin === 'estimates' && (
+          <IddaaCompare onBack={goHome} onHealth={me.data.admin ? () => setAdmin('health') : undefined} />
         )}
 
-        {signedIn && me.data && !selection && !(admin && me.data.admin) && (
+        {signedIn && me.data && !selection && !(admin === 'estimates' || (admin === 'health' && me.data.admin)) && (
           <MyLeagues
             key={pendingInput}
             me={me.data}
@@ -753,6 +754,10 @@ export default function App() {
               setCreds(loadCredentials() ?? c)
             }}
             onOpen={openLeague}
+            onEstimates={() => {
+              setAdmin('estimates')
+              window.scrollTo({ top: 0 })
+            }}
             focusAdd={focusAdd}
             initialInput={pendingInput}
           />
