@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
 import { fetchBookCompare } from '../api/client'
 import {
@@ -21,6 +22,7 @@ import {
   tallyOf,
 } from '../lib/iddaaCompare'
 import type { BookCompare, Line, Stat } from '../lib/iddaaCompare'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './IddaaCompare.css'
@@ -666,8 +668,12 @@ function Row({
   onOpen: (id: string) => void
 }) {
   const judged = l.oursHit != null || l.bookHit != null
+  const done = settledOf(l) && l.closer != null // this game is final and judged, even if the night isn't
+  const cls = `ic-row${open ? ' is-open' : ''}${l.tipped && !settled && !done ? ' tipped' : ''}${
+    done && l.closer === 'ours' ? ' ours-closer' : ''
+  }`
   return (
-    <li className={`ic-row${open ? ' is-open' : ''}${l.tipped && !settled ? ' tipped' : ''}`}>
+    <li className={cls}>
       <button
         type="button"
         className={`ic-row-main ${settled ? 'ic-grid-s' : 'ic-grid-t'}`}
@@ -709,7 +715,9 @@ function Row({
           </>
         ) : (
           <div className="ic-meta">
-            {l.tipped ? (
+            {done ? (
+              <Verdict line={l} />
+            ) : l.tipped ? (
               <span className="ic-clock">
                 <ClockIcon />
                 Tipped off <span className="num">{clock(l.game.tip)}</span>
@@ -719,9 +727,11 @@ function Row({
                 Tip <span className="num">{clock(l.game.tip)}</span>
               </>
             )}
-            <div className="ic-lk">
-              {l.tipped ? 'kept at' : 'read'} <span className="num">{clock(l.game.checked)}</span>
-            </div>
+            {!done && (
+              <div className="ic-lk">
+                {l.tipped ? 'kept at' : 'read'} <span className="num">{clock(l.game.checked)}</span>
+              </div>
+            )}
           </div>
         )}
       </button>
@@ -862,6 +872,30 @@ function Mark({ line: l, side, i }: { line: Line; side: 'ours' | 'book'; i: numb
     >
       {ok ? <CheckIcon /> : <XIcon />}
     </span>
+  )
+}
+
+/** A tipped row whose game is final: who was nearer, in place of the tip-off time. */
+function Verdict({ line: l }: { line: Line }) {
+  const by = l.by == null ? '' : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+  if (l.closer === 'tie') return <span className="ic-verdict">Level with the book</span>
+  const ours = l.closer === 'ours'
+  return (
+    <>
+      <span className={`ic-verdict${ours ? ' ours' : ''}`}>
+        {ours && <CheckIcon />}
+        {ours ? 'We were closer' : 'Book was closer'}
+      </span>
+      <div className="ic-lk">
+        {by ? (
+          <>
+            by <span className="num">{by}</span> · final
+          </>
+        ) : (
+          'final'
+        )}
+      </div>
+    </>
   )
 }
 
@@ -1050,7 +1084,8 @@ function HowDivided({
           <h2 id="ic-h-field">How divided</h2>
           <p className="ic-sub">
             Every line is one mark at its gap, measured in bands (the edges are 0.6 of a band, the same scale as the row
-            bands).
+            bands). <span className="ic-hover-hint">Hover a mark to see whose line it is.</span>
+            <span className="ic-tap-hint">Tap a mark to see whose line it is.</span>
           </p>
         </div>
         <div className="ic-legend">
@@ -1098,7 +1133,7 @@ function HowDivided({
               <b>{STAT_NAME[s]}</b>
               <span>{ls.length} lines</span>
             </div>
-            <Field lines={ls} />
+            <Field lines={ls} stat={s} />
             <div className="notes">
               {settled && t.judged ? (
                 <>
@@ -1122,10 +1157,14 @@ function HowDivided({
   )
 }
 
-/** One stat's lines as marks along the seam (a beeswarm); view only, the list is the readable one. */
-function Field({ lines }: { lines: Line[] }) {
+/** One stat's lines as marks along the seam (a beeswarm). Hover a mark (tap on phones, or focus the
+ *  strip and step with the arrow keys) and a card says whose line it is: the name, our number, the
+ *  book's and, once the game is final, what happened. */
+function Field({ lines, stat }: { lines: Line[]; stat: Stat }) {
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
+  const [active, setActive] = useState<string | null>(null)
+  const pointer = useRef('mouse')
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -1136,25 +1175,190 @@ function Field({ lines }: { lines: Line[] }) {
     return () => ro?.disconnect()
   }, [])
   const placed = useMemo(() => swarm(lines, width), [lines, width])
+  const on = placed.marks.find((m) => m.line.id === active) ?? null
+  useEscapeLayer(on != null, () => setActive(null))
+  useEffect(() => {
+    if (!on) return
+    // a tap anywhere else puts the card away
+    const away = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setActive(null)
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [on])
+
+  /** The mark nearest the pointer, if one is within reach. */
+  const near = (e: { clientX: number; clientY: number }, reach: number) => {
+    const box = ref.current?.getBoundingClientRect()
+    if (!box) return null
+    const px = e.clientX - box.left
+    const py = e.clientY - box.top
+    let best: (typeof placed.marks)[number] | null = null
+    let d2 = reach * reach
+    for (const m of placed.marks) {
+      const d = (m.x - px) ** 2 + (m.y - py) ** 2
+      if (d < d2) {
+        d2 = d
+        best = m
+      }
+    }
+    return best
+  }
+  const step = (by: number) => {
+    const ms = placed.marks // already left to right
+    if (!ms.length) return
+    const i = ms.findIndex((m) => m.line.id === active)
+    const next = i < 0 ? (by > 0 ? 0 : ms.length - 1) : Math.max(0, Math.min(ms.length - 1, i + by))
+    setActive(ms[next].line.id)
+  }
+
   return (
     <div
       ref={ref}
-      className={`ic-fld${placed.dense ? ' dense' : ''}`}
+      className={`ic-fld${placed.dense ? ' dense' : ''}${on ? ' has-on' : ''}`}
       style={{ height: placed.height }}
-      aria-hidden="true"
+      tabIndex={0}
+      role="group"
+      aria-label={`${STAT_NAME[stat]}: ${lines.length} lines. Use the arrow keys to step through them.`}
+      onPointerDown={(e) => {
+        pointer.current = e.pointerType
+      }}
+      onPointerMove={(e) => {
+        if (e.pointerType !== 'mouse') return
+        setActive(near(e, 14)?.line.id ?? null)
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === 'mouse') setActive(null)
+      }}
+      onClick={(e) => {
+        if (pointer.current === 'mouse') return
+        const m = near(e, 24) // a finger is wider than a mark
+        setActive((a) => (m && m.line.id !== a ? m.line.id : null))
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') step(1)
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') step(-1)
+        else if (e.key === 'Home') setActive(placed.marks[0]?.line.id ?? null)
+        else if (e.key === 'End') setActive(placed.marks[placed.marks.length - 1]?.line.id ?? null)
+        else return
+        e.preventDefault()
+      }}
+      onBlur={() => setActive(null)}
     >
-      {width > 0 && <span className="med" style={{ left: placed.median }} />}
+      {width > 0 && <span className="med" style={{ left: placed.median }} aria-hidden="true" />}
       {width > 0 &&
-        placed.marks.map(({ line, x, y }) =>
-          line.oursHit != null ? (
-            <span key={line.id} className={`m ${line.oursHit ? 'ok' : 'no'}`} style={{ left: x, top: y }}>
+        placed.marks.map(({ line, x, y }) => {
+          const cls = line.id === active ? ' on' : ''
+          return line.oursHit != null ? (
+            <span
+              key={line.id}
+              className={`m ${line.oursHit ? 'ok' : 'no'}${cls}`}
+              style={{ left: x, top: y }}
+              aria-hidden="true"
+            >
               {line.oursHit ? <CheckIcon /> : <XIcon />}
             </span>
           ) : (
-            <span key={line.id} className={`m ring${line.tipped ? ' dim' : ''}`} style={{ left: x, top: y }} />
-          ),
-        )}
+            <span
+              key={line.id}
+              className={`m ring${line.tipped ? ' dim' : ''}${cls}`}
+              style={{ left: x, top: y }}
+              aria-hidden="true"
+            />
+          )
+        })}
+      {on && ref.current && <MarkCard line={on.line} field={ref.current} x={on.x} y={on.y} />}
     </div>
+  )
+}
+
+/** The card over a mark in How divided. Drawn in a portal so the section's edges never clip it,
+ *  placed above the mark (below when there is no room) and kept on screen. */
+function MarkCard({ line: l, field, x, y }: { line: Line; field: HTMLElement; x: number; y: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ left: number; top: number; below: boolean; tip: number } | null>(null)
+  useLayoutEffect(() => {
+    const place = () => {
+      const card = ref.current
+      if (!card) return
+      const box = field.getBoundingClientRect()
+      const ax = box.left + x
+      const ay = box.top + y
+      const w = card.offsetWidth
+      const h = card.offsetHeight
+      const vw = document.documentElement.clientWidth
+      const left = Math.max(8, Math.min(vw - w - 8, ax - w / 2))
+      const below = ay - h - 14 < 8
+      const top = below ? ay + 14 : ay - h - 14
+      setPos({ left, top, below, tip: Math.max(14, Math.min(w - 14, ax - left)) })
+    }
+    place()
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [field, x, y, l.id])
+  const final = settledOf(l)
+  const say = plain(l, final)
+  const what =
+    l.stat === 'TEAM' ? `${l.team} points` : l.stat === 'WIN' ? `${STAT_NAME.WIN} · ${l.team}` : STAT_NAME[l.stat]
+  const verdict = (side: 'ours' | 'book') => {
+    const hit = side === 'ours' ? l.oursHit : l.bookHit
+    if (hit == null) return null
+    const v = l[side]
+    const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
+    return (
+      <span className={`ic-mc-hit ${hit ? 'ok' : 'no'}`}>
+        {hit ? <CheckIcon /> : <XIcon />}
+        {l.stat === 'WIN' ? (hit ? 'right' : 'wrong') : hit ? 'in band' : `off ${off}`}
+      </span>
+    )
+  }
+  return createPortal(
+    <div
+      ref={ref}
+      className={`ic-mc${pos?.below ? ' below' : ''}${l.closer === 'ours' && final ? ' ours-closer' : ''}`}
+      role="status"
+      style={
+        {
+          left: pos?.left ?? -9999,
+          top: pos?.top ?? 0,
+          visibility: pos ? 'visible' : 'hidden',
+          '--tip': `${pos?.tip ?? 0}px`,
+        } as CSSProperties
+      }
+    >
+      <div className="ic-mc-h">
+        <Face line={l} />
+        <div className="ic-mc-who">
+          <b>{l.kind === 'player' ? l.name : l.gameLabel}</b>
+          <span>
+            {what}
+            {l.kind === 'player' && <> · {l.gameLabel}</>}
+          </span>
+        </div>
+      </div>
+      <div className={`ic-mc-nums${final && l.actual != null ? ' three' : ''}`}>
+        <div>
+          <span className="lab">Ours</span>
+          <span className="v">{value(l, 'ours')}</span>
+          {verdict('ours')}
+        </div>
+        <div>
+          <span className="lab">Book</span>
+          <span className="v">{value(l, 'book')}</span>
+          {verdict('book')}
+        </div>
+        <div>
+          <span className="lab">{final ? 'Result' : 'Gap'}</span>
+          <span className="v">{final ? (resultValue(l) ?? '–') : signed(l.gap ?? 0, l.stat)}</span>
+        </div>
+      </div>
+      {say && <p className="ic-mc-say">{cap(say)}.</p>}
+    </div>,
+    document.body,
   )
 }
 

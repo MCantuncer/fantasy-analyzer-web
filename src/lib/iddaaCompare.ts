@@ -353,6 +353,15 @@ export function nightTab(date: string | null | undefined): string {
 const pct = (v: number) => `${Math.round(v * 100)}%`
 const CLOSER: Record<Closer, string> = { ours: 'we were closer', book: 'the book was closer', tie: 'both as close' }
 
+/** Who was nearer the result, saying which way we leaned when it was us (Can 2026-11-21: "we gave
+ *  higher inputs, we should mention that"). Margins skip the lean: "higher" has no plain side there. */
+function nearer(l: Line): string {
+  if (!l.closer) return ''
+  if (l.closer === 'ours' && l.stat !== 'MAR' && l.gap != null && Math.abs(l.gap) >= 0.05)
+    return `we went ${l.gap > 0 ? 'higher' : 'lower'} than the book and were closer`
+  return CLOSER[l.closer]
+}
+
 /** One line in plain words, for the row under a name: what we expect against the book before the
  *  game, what happened and who was nearer after it. */
 export function plain(l: Line, settled: boolean): string {
@@ -360,7 +369,7 @@ export function plain(l: Line, settled: boolean): string {
   if (settled) {
     if (l.stat === 'WIN') return l.won ? `${l.won} won, so our pick was ${l.oursHit ? 'right' : 'wrong'}` : ''
     if (l.actual == null) return l.played === false ? "didn't play" : ''
-    const near = l.closer ? `, ${CLOSER[l.closer]}` : ''
+    const near = l.closer ? `, ${nearer(l)}` : ''
     if (l.stat === 'MAR') return `${l.actual >= 0 ? l.team : l.other} won by ${num(Math.abs(l.actual))}${near}`
     if (l.stat === 'TOT') return `${num(l.actual)} points in all${near}`
     if (l.stat === 'TEAM') return `${l.team} scored ${num(l.actual)}${near}`

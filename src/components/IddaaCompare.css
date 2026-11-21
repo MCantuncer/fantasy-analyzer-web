@@ -1913,3 +1913,256 @@
   color: var(--text-2);
   line-height: 1.45;
 }
+
+/* Rows where our number was nearer the result (Can 2026-11-21): a soft green light from the left. */
+.ic-row.ours-closer {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--good) 14%, transparent),
+    color-mix(in srgb, var(--good) 4%, transparent) 75%
+  );
+  border-radius: var(--radius-row);
+  border-top-color: transparent;
+}
+.ic-row.ours-closer + .ic-row {
+  border-top-color: transparent;
+}
+.ic-row.ours-closer + .ic-row.ours-closer {
+  margin-top: 4px;
+}
+.ic-row.ours-closer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--good);
+  pointer-events: none;
+}
+.ic-row.ours-closer.is-open {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--good) 12%, transparent), transparent 75%),
+    var(--slip);
+}
+.ic-row.ours-closer .ic-row-main:hover {
+  background: color-mix(in srgb, var(--good) 6%, transparent);
+}
+.ic-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.ic-verdict.ours {
+  color: var(--good);
+}
+.ic-verdict svg,
+.ic-mc-hit svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* How divided: the marks answer a hover, a tap or the arrow keys. */
+.ic-fld {
+  outline: none;
+  touch-action: manipulation;
+}
+.ic-fld:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.ic-fld .m {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.ic-fld.has-on .m:not(.on) {
+  opacity: 0.32;
+}
+.ic-fld .m.on {
+  z-index: 2;
+  transform: scale(1.55);
+  opacity: 1;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.ic-fld .m.ring.on {
+  box-shadow:
+    inset 0 0 0 1.5px var(--text),
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--gold);
+}
+.ic-fld .m.ok.on,
+.ic-fld .m.no.on {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--gold);
+}
+.ic-tap-hint {
+  display: none;
+}
+@media (hover: none) {
+  .ic-hover-hint {
+    display: none;
+  }
+  .ic-tap-hint {
+    display: inline;
+  }
+}
+
+/* The mark card */
+.ic-mc {
+  position: fixed;
+  z-index: 90;
+  box-sizing: border-box;
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  padding: 12px 14px;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--lift);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  animation: ic-mc-in 140ms ease-out;
+}
+.ic-mc::after {
+  content: '';
+  position: absolute;
+  left: var(--tip);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  background: var(--raised);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: translateX(-50%) rotate(45deg);
+}
+.ic-mc.below::after {
+  top: -6px;
+  bottom: auto;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+.ic-mc.below {
+  animation-name: ic-mc-in-below;
+}
+.ic-mc-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ic-mc-h .ic-face {
+  flex: none;
+}
+.ic-mc-who {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ic-mc-who b {
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-mc-who span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-mc-nums {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--divider);
+}
+.ic-mc-nums > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ic-mc-nums .lab {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 550;
+}
+.ic-mc-nums .v {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.ic-mc-nums .v small {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-right: 3px;
+}
+.ic-mc-nums .v .pct {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.ic-mc-hit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ic-mc-hit.ok {
+  color: var(--good);
+}
+.ic-mc-hit.no {
+  color: var(--bad);
+}
+.ic-mc-say {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.ic-mc.ours-closer .ic-mc-say {
+  padding: 6px 8px;
+  border-radius: var(--radius-tag);
+  background: color-mix(in srgb, var(--good) 13%, transparent);
+  color: var(--text);
+}
+@keyframes ic-mc-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes ic-mc-in-below {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ic-mc,
+  .ic-fld .m {
+    animation: none;
+    transition: none;
+  }
+}
