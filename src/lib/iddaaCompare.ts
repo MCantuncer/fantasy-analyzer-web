@@ -1,4 +1,4 @@
-// iddaa vs Ours (admins only): iddaa's lines beside ours, and once the games are final, what
+// Our Estimates: the sportsbook's lines (iddaa, through nesine) beside ours, and once the games are final, what
 // happened. Each side is judged against the result, never by which side of iddaa's line it fell
 // (Can 2026-11-21: "we're trying to match the actual score"). The server judges; this file shapes
 // its answer into the page's rows.
