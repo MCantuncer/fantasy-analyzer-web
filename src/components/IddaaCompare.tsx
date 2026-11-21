@@ -450,13 +450,11 @@ function GapList(p: ListProps) {
   const pool = lines.filter((l) => stats.includes(l.stat) && inGame(l) && l.gap != null)
   const shown = pool.filter((l) => stat === 'ALL' || l.stat === stat)
   const { above, rest } = ranked(shown, stat === 'ALL')
-  const pending = settled ? above : above.filter((l) => !l.tipped)
-  const tipped = settled ? [] : above.filter((l) => l.tipped)
   const limit = p.showAll ? Infinity : PAGE
   const count = (g: 'players' | 'games') =>
     lines.filter((l) => (g === 'players' ? l.kind === 'player' : l.kind === 'game') && inGame(l) && l.gap != null)
       .length
-  const hidden = Math.max(0, pending.length - limit) + Math.max(0, tipped.length - (p.showAll ? Infinity : 4))
+  const hidden = Math.max(0, above.length - limit)
   const most = rest[0]
   return (
     <section className="ic-sec" aria-labelledby="ic-h-list">
@@ -512,7 +510,7 @@ function GapList(p: ListProps) {
         </p>
         <Key judged={lines.some((l) => l.oursHit != null)} />
       </div>
-      <ColHead settled={settled} />
+      <ColHead />
       {above.length === 0 ? (
         <p className="ic-none">
           No line had Ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
@@ -525,23 +523,10 @@ function GapList(p: ListProps) {
         </p>
       ) : (
         <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
-          {pending.slice(0, limit).map((l, i) => (
+          {above.slice(0, limit).map((l, i) => (
             <Row key={l.id} line={l} i={i} rank={i + 1} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
           ))}
         </ol>
-      )}
-      {tipped.length > 0 && (
-        <>
-          <div className="ic-divider">
-            <ClockIcon />
-            Tipped off · kept as read at the last look
-          </div>
-          <ol className={`ic-rows no-house${p.open ? ' has-open' : ''}`}>
-            {tipped.slice(0, p.showAll ? undefined : 4).map((l, i) => (
-              <Row key={l.id} line={l} i={i} rank={0} settled={false} open={p.open === l.id} onOpen={p.onOpen} />
-            ))}
-          </ol>
-        </>
       )}
       <div className="ic-list-foot">
         {hidden > 0 && (
@@ -592,9 +577,9 @@ function Key({ judged }: { judged: boolean }) {
   )
 }
 
-function ColHead({ settled }: { settled: boolean }) {
+function ColHead() {
   return (
-    <div className={`ic-colhead ${settled ? 'ic-grid-s' : 'ic-grid-t'}`} aria-hidden="true">
+    <div className="ic-colhead ic-grid" aria-hidden="true">
       <span />
       <span />
       <span>Line</span>
@@ -603,16 +588,7 @@ function ColHead({ settled }: { settled: boolean }) {
         <span className="c">Gap</span>
         <span className="r">Ours</span>
       </div>
-      {settled ? (
-        <>
-          <span className="ic-ch-ruler">Band around the result</span>
-          <span className="ic-ch-res">Result</span>
-          <span className="ic-ch-marks">Ours Book</span>
-          <span className="ic-ch-closer">Closer</span>
-        </>
-      ) : (
-        <span className="ic-ch-meta">Tip · last look</span>
-      )}
+      <span className="ic-ch-slot">Result</span>
     </div>
   )
 }
@@ -703,76 +679,80 @@ function Row({
   open: boolean
   onOpen: (id: string) => void
 }) {
-  const judged = l.oursHit != null || l.bookHit != null
-  const done = settledOf(l) && l.closer != null // this game is final and judged, even if the night isn't
-  const cls = `ic-row${open ? ' is-open' : ''}${l.tipped && !settled && !done ? ' tipped' : ''}${
-    done && l.closer === 'ours' ? ' ours-closer' : ''
-  }`
   return (
-    <li className={cls}>
-      <button
-        type="button"
-        className={`ic-row-main ${settled ? 'ic-grid-s' : 'ic-grid-t'}`}
-        aria-expanded={open}
-        onClick={() => onOpen(l.id)}
-      >
+    <li className={`ic-row${open ? ' is-open' : ''}`}>
+      <button type="button" className="ic-row-main ic-grid" aria-expanded={open} onClick={() => onOpen(l.id)}>
         <span className="ic-rk">{rank || ''}</span>
         <Face line={l} />
         <Who line={l} />
         <Lane line={l} i={i} />
-        {settled ? (
-          <>
-            <div className="ic-ruler">
-              {l.stat === 'WIN' ? (
-                <div className="ic-final">
-                  Final {l.game.away} <span className="num">{l.game.away_score}</span>–
-                  <span className="num">{l.game.home_score}</span> {l.game.home}
-                </div>
-              ) : (
-                judged && <Ruler line={l} />
-              )}
-            </div>
-            <div className="ic-res">{resultValue(l)}</div>
-            <div className="ic-marks">
-              {judged && (
-                <>
-              <span className="ic-mk-w">
-                <span className="ic-mk-l">Ours</span>
-                <Mark line={l} side="ours" i={i} />
-              </span>
-              <span className="ic-mk-w">
-                <span className="ic-mk-l">Book</span>
-                <Mark line={l} side="book" i={i} />
-              </span>
-                </>
-              )}
-            </div>
-            <CloserCell line={l} />
-          </>
-        ) : (
-          <div className="ic-meta">
-            {done ? (
-              <Verdict line={l} />
-            ) : l.tipped ? (
-              <span className="ic-clock">
-                <ClockIcon />
-                Tipped off <span className="num">{clock(l.game.tip)}</span>
-              </span>
-            ) : (
-              <>
-                Tip <span className="num">{clock(l.game.tip)}</span>
-              </>
-            )}
-            {!done && (
-              <div className="ic-lk">
-                {l.tipped ? 'kept at' : 'read'} <span className="num">{clock(l.game.checked)}</span>
-              </div>
-            )}
-          </div>
-        )}
+        <ResultSlot line={l} />
       </button>
       {open && <RowOpen line={l} settled={settled} />}
     </li>
+  )
+}
+
+/** Where the result lands: a quiet well until tip-off, "Playing" during the game, then the result
+ *  and who was nearer. A soft green light marks the slot (never the row) when we were closer. */
+function ResultSlot({ line: l }: { line: Line }) {
+  const g = l.game
+  if (g.status === 'final') {
+    const by = l.by == null || l.closer === 'tie' ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+    return (
+      <div className={`ic-slot fin${l.closer === 'ours' ? ' ours' : ''}`}>
+        <span className="ic-slot-res">
+          <span className="lab">Result</span>
+          <b>{resultValue(l) ?? '–'}</b>
+        </span>
+        {l.closer && (
+          <span className={`ic-slot-vd ${l.closer}`}>
+            <b>{l.closer === 'ours' ? 'We were closer' : l.closer === 'book' ? 'Book was closer' : 'Level with the book'}</b>
+            {by && (
+              <span>
+                by <span className="num">{by}</span>
+              </span>
+            )}
+          </span>
+        )}
+      </div>
+    )
+  }
+  if (l.tipped)
+    return (
+      <div className="ic-slot live">
+        <span className="ic-live" aria-hidden="true" />
+        Playing
+        <span className="sub">
+          kept at <span className="num">{clock(g.checked)}</span>
+        </span>
+      </div>
+    )
+  return (
+    <div className="ic-slot wait">
+      <span className="sub">
+        Tip <span className="num">{clock(g.tip)}</span>
+      </span>
+    </div>
+  )
+}
+
+/** ✓ or ✗ beside a number: did it land within its band of the result. Nothing else. */
+function Hit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
+  const ok = side === 'ours' ? l.oursHit : l.bookHit
+  if (ok == null || l.game.status !== 'final') return null
+  const who = side === 'ours' ? 'Ours' : 'Book'
+  const v = l[side]
+  const label =
+    l.stat === 'WIN'
+      ? `${who} ${ok ? 'right' : 'wrong'}`
+      : ok
+        ? `${who} within band`
+        : `${who} outside the band${v != null && l.actual != null ? `, off by ${num(Math.abs(l.actual - v))}` : ''}`
+  return (
+    <span className={`ic-hit ${ok ? 'ok' : 'no'}`} role="img" aria-label={label}>
+      {ok ? <CheckIcon /> : <XIcon />}
+    </span>
   )
 }
 
@@ -875,6 +855,7 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
   return (
     <div className="ic-lane">
       <div className="l">
+        <Hit line={l} side="book" />
         <span className="ic-v ic-v-i">{value(l, 'book')}</span>
         {gap < 0 && <span className={`ic-band bl${clamp}`} style={style} />}
       </div>
@@ -885,6 +866,7 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
           {value(l, 'ours')}
           <Caret />
         </span>
+        <Hit line={l} side="ours" />
       </div>
     </div>
   )
@@ -908,49 +890,6 @@ function Mark({ line: l, side, i }: { line: Line; side: 'ours' | 'book'; i: numb
     >
       {ok ? <CheckIcon /> : <XIcon />}
     </span>
-  )
-}
-
-/** A tipped row whose game is final: who was nearer, in place of the tip-off time. */
-function Verdict({ line: l }: { line: Line }) {
-  const by = l.by == null ? '' : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
-  if (l.closer === 'tie') return <span className="ic-verdict">Level with the book</span>
-  const ours = l.closer === 'ours'
-  return (
-    <>
-      <span className={`ic-verdict${ours ? ' ours' : ''}`}>
-        {ours && <CheckIcon />}
-        {ours ? 'We were closer' : 'Book was closer'}
-      </span>
-      <div className="ic-lk">
-        {by ? (
-          <>
-            by <span className="num">{by}</span> · final
-          </>
-        ) : (
-          'final'
-        )}
-      </div>
-    </>
-  )
-}
-
-function CloserCell({ line: l }: { line: Line }) {
-  if (!l.closer) return <div className="ic-closer" />
-  if (l.closer === 'tie')
-    return (
-      <div className="ic-closer">
-        <span>Level</span>
-      </div>
-    )
-  const by = l.by == null ? '' : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
-  return (
-    <div className="ic-closer">
-      {l.closer === 'ours' ? <ShapeOurs /> : <ShapeBook />}
-      <span>
-        <b>{l.closer === 'ours' ? 'Ours' : 'Book'}</b> by <span className="num">{by}</span>
-      </span>
-    </div>
   )
 }
 
@@ -1627,35 +1566,10 @@ function Caret() {
   )
 }
 
-function ClockIcon() {
-  return (
-    <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 7.5V12l3 2" />
-    </svg>
-  )
-}
-
 function Chevron() {
   return (
     <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
       <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
-}
-
-function ShapeOurs() {
-  return (
-    <svg className="ic-shape so" viewBox="0 0 10 9" aria-hidden="true">
-      <path d="M1 1h8L5 8z" />
-    </svg>
-  )
-}
-
-function ShapeBook() {
-  return (
-    <svg className="ic-shape si" viewBox="0 0 10 9" aria-hidden="true">
-      <path d="M5 1l4 7H1z" />
     </svg>
   )
 }
