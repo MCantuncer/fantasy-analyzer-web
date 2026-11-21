@@ -21,6 +21,7 @@ import {
   tallyOf,
 } from '../lib/iddaaCompare'
 import type { BookCompare, Line, Stat } from '../lib/iddaaCompare'
+import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './IddaaCompare.css'
 
@@ -757,7 +758,9 @@ function Who({ line: l }: { line: Line }) {
   if (l.kind === 'player') {
     return (
       <div className="ic-who">
-        <div className="ic-nm">{l.name}</div>
+        <div className="ic-nm">
+          <NameLink line={l} />
+        </div>
         <div className="ic-sub">
           <b>{STAT_NAME[l.stat]}</b> · {plain(l, settledOf(l))}
         </div>
@@ -771,6 +774,47 @@ function Who({ line: l }: { line: Line }) {
       </div>
       <div className="ic-sub">{cap(plain(l, settledOf(l)))}</div>
     </div>
+  )
+}
+
+/** His name opens his player card. It sits inside the row's open/close button, so it is a tap
+ * target only; keyboard users get the "Player details" button in the opened row. */
+function NameLink({ line: l }: { line: Line }) {
+  const card = usePlayerCard()
+  const id = l.playerId ?? 0
+  if (!card || id <= 0) return <>{l.name}</>
+  const who = { id, name: l.name }
+  return (
+    <span
+      className="ic-nm-link"
+      title={`${l.name}: player details`}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
+      onPointerDown={() => card.prefetch(who)}
+      onClick={(e) => {
+        e.stopPropagation()
+        card.open(who)
+      }}
+    >
+      {l.name}
+    </span>
+  )
+}
+
+function DetailsButton({ line: l }: { line: Line }) {
+  const card = usePlayerCard()
+  const id = l.playerId ?? 0
+  if (l.kind !== 'player' || !card || id <= 0) return null
+  const who = { id, name: l.name }
+  return (
+    <button
+      type="button"
+      className="secondary ic-card-btn"
+      aria-haspopup="dialog"
+      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
+      onClick={() => card.open(who)}
+    >
+      Player details
+    </button>
   )
 }
 
@@ -969,6 +1013,7 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
           Last look <span className="num">{clock(l.game.checked)}</span> · tip{' '}
           <span className="num">{clock(l.game.tip)}</span>
         </div>
+        <DetailsButton line={l} />
       </div>
     </div>
   )

@@ -244,6 +244,22 @@ export default function App() {
     return { ...o, my_team_id: pickedTeamId, teams: o.teams.map((t) => ({ ...t, mine: t.id === pickedTeamId })) }
   }, [overview.data, pickedTeamId])
   const ref = overview.data ? { leagueId: overview.data.league_id, season: overview.data.season } : null
+  // Our Estimates sits outside a league, but a player's card is league-scoped (who has him, moves):
+  // it opens in the league this account manages a team in, else the first one saved.
+  const cardHome =
+    signedIn && !selection && admin === 'estimates'
+      ? (me.data?.leagues.find((l) => l.team_id != null) ?? me.data?.leagues[0] ?? null)
+      : null
+  const cardHomeView = useQuery({
+    queryKey: ['overview', cardHome?.league_id, cardHome?.season, creds?.swid ?? null],
+    queryFn: () => fetchOverview({ leagueId: cardHome!.league_id, season: cardHome!.season }, creds),
+    enabled: cardHome !== null,
+    retry: false,
+    staleTime: 2 * 60_000,
+  })
+  const cardRef = ref ?? (cardHome ? { leagueId: cardHome.league_id, season: cardHome.season } : null)
+  const cardTeams = seatOverview?.teams ?? (cardHome ? cardHomeView.data?.teams : undefined) ?? []
+  const cardTeamId = ref ? myTeamId : (cardHome?.team_id ?? null)
 
   // Once the league is in, fetch the first screen of the "While you wait" pages in the
   // background, so opening one of them during the analysis finds it ready.
@@ -1002,10 +1018,10 @@ export default function App() {
         myTeamId={myTeamId}
       />
       <PlayerCardHost
-        leagueRef={verifying ? null : ref}
+        leagueRef={verifying ? null : cardRef}
         creds={creds}
-        teams={seatOverview?.teams ?? []}
-        myTeamId={myTeamId}
+        teams={cardTeams}
+        myTeamId={cardTeamId}
       />
       {readyToast && (
         <ReadyToast
