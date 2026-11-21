@@ -32,6 +32,7 @@ import { LeagueChat } from './components/LeagueChat'
 import { LeagueOverview } from './components/LeagueOverview'
 import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
+import { IddaaCompare } from './components/IddaaCompare'
 import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
@@ -87,12 +88,16 @@ const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_T
 // Read once, before the first render writes the URL (StrictMode runs state initialisers twice).
 const linkedReset = readResetToken()
 
+/** The admin pages that stand in for My leagues: Site health and iddaa vs Ours. */
+type AdminView = '' | 'health' | 'iddaa'
+const ADMIN_VIEWS: AdminView[] = ['health', 'iddaa']
+
 function readUrl(): {
   selection: Selection | null
   tab: string
   verifying: boolean
   film: number | null | undefined
-  health: boolean
+  admin: AdminView
 } {
   const q = new URLSearchParams(window.location.search)
   const league = Number(q.get('league'))
@@ -102,7 +107,7 @@ function readUrl(): {
     tab: ALL_TABS.find((t) => t.id === q.get('tab'))?.id ?? '',
     verifying: q.get('view') === 'verify',
     film: q.get('film') === 'last' ? null : Number(q.get('film')) > 0 ? Number(q.get('film')) : undefined,
-    health: league <= 0 && q.get('view') === 'health',
+    admin: league <= 0 ? (ADMIN_VIEWS.find((v) => v === q.get('view')) ?? '') : '',
   }
 }
 
@@ -112,11 +117,11 @@ function writeUrl(
   tab: string,
   verifying: boolean,
   film: number | null | undefined,
-  health: boolean,
+  admin: AdminView,
   scout: number | null = null,
 ) {
   const q = new URLSearchParams()
-  if (!selection && health) q.set('view', 'health')
+  if (!selection && admin) q.set('view', admin)
   if (!selection && scout != null) q.set(SCOUT_PARAM, String(scout))
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
@@ -165,8 +170,8 @@ export default function App() {
   const [focusAdd, setFocusAdd] = useState(0)
   // The team the verify page opens on: the one already picked, when "Verify" was pressed for it.
   const [verifyTeam, setVerifyTeam] = useState<number | null>(null)
-  // Site health (admins only) stands in for My leagues while it is open.
-  const [health, setHealth] = useState(initial.health)
+  // Site health or iddaa vs Ours (admins only) stands in for My leagues while it is open.
+  const [admin, setAdmin] = useState<AdminView>(initial.admin)
   // Signed out: the sample league, scouting one team. A door opens the join sheet over it.
   const [joining, setJoining] = useState<'signup' | 'signin' | null>(null)
   // A league pasted in the join sheet that couldn't be added straight away (a private one): My leagues starts with it.
@@ -184,8 +189,8 @@ export default function App() {
   const closeJoin = useCallback(() => setJoining(null), [])
 
   useEffect(
-    () => writeUrl(selection, tab, verifying, film, health, scout?.id ?? null),
-    [selection, tab, verifying, film, health, scout?.id],
+    () => writeUrl(selection, tab, verifying, film, admin, scout?.id ?? null),
+    [selection, tab, verifying, film, admin, scout?.id],
   )
   // Scores, NBA News and League Chat show their last answer at once and refresh underneath.
   const isPrivate = useRef(creds !== null)
@@ -346,7 +351,7 @@ export default function App() {
     selection && !verifying && overview.data && !(waitingForReport && ANALYSIS_TABS.has(activeTab))
   const tabsRef = useTabInView(showTabs ? activeTab : null)
   usePageView(
-    health
+    admin
       ? null
       : pageName({
           signedIn,
@@ -432,7 +437,7 @@ export default function App() {
   }
 
   function openLeague(l: MyLeague) {
-    setHealth(false)
+    setAdmin('')
     setSelection({ leagueId: l.league_id, season: l.season })
     setTab('')
     setVerifying(false)
@@ -447,7 +452,7 @@ export default function App() {
   const reveal = useCourtReveal(markRef, brandRef)
 
   function goHome() {
-    setHealth(false)
+    setAdmin('')
     setSelection(null)
     setFocusAdd(0)
     setVerifying(false)
@@ -654,10 +659,23 @@ export default function App() {
                       onClick={(e) => {
                         e.currentTarget.closest('details')?.removeAttribute('open')
                         goHome()
-                        setHealth(true)
+                        setAdmin('health')
                       }}
                     >
                       Site health
+                    </button>
+                  )}
+                  {me.data.admin && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={(e) => {
+                        e.currentTarget.closest('details')?.removeAttribute('open')
+                        goHome()
+                        setAdmin('iddaa')
+                      }}
+                    >
+                      iddaa vs Ours
                     </button>
                   )}
                   <button
@@ -719,9 +737,13 @@ export default function App() {
 
         {signedIn && me.isPending && !selection && <LeaguesSkeleton />}
 
-        {signedIn && me.data && !selection && health && me.data.admin && <SiteHealth onBack={goHome} />}
+        {signedIn && me.data && !selection && admin === 'health' && me.data.admin && <SiteHealth onBack={goHome} />}
 
-        {signedIn && me.data && !selection && !(health && me.data.admin) && (
+        {signedIn && me.data && !selection && admin === 'iddaa' && me.data.admin && (
+          <IddaaCompare onBack={goHome} onHealth={() => setAdmin('health')} />
+        )}
+
+        {signedIn && me.data && !selection && !(admin && me.data.admin) && (
           <MyLeagues
             key={pendingInput}
             me={me.data}

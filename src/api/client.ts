@@ -1,6 +1,7 @@
 import type { components } from './schema'
 import type { Credentials } from '../lib/credentials'
 import { loadToken } from '../lib/session'
+import type { BookCompare } from '../lib/iddaaCompare'
 
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
@@ -291,6 +292,11 @@ export function fetchErrorReports() {
 /** Admins only: marks a report fixed; it opens again if it happens again. */
 export function resolveErrorReport(id: number) {
   return send<{ ok: boolean }>('/api/admin/errors/resolve', { id })
+}
+
+/** Admins only: iddaa's lines beside ours for one night (the latest when no day), judged against the result once final. */
+export function fetchBookCompare(day: number | null) {
+  return post<BookCompare>('/api/admin/book-compare', day == null ? {} : { day })
 }
 
 /** Admins only: daily visitors, page views and account totals. */
