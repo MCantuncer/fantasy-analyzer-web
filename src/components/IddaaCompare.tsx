@@ -21,7 +21,7 @@ import {
   signed,
   tallyOf,
 } from '../lib/iddaaCompare'
-import type { BookCompare, Line, Stat } from '../lib/iddaaCompare'
+import type { BookCompare, CompareGame, Line, Stat, Tally } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
@@ -151,11 +151,18 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
           <Empty data={data} onDay={onDay} />
         ) : (
           <>
-            <Status data={data} lines={lines} settled={settled} />
-            {settled && <NightTally lines={lines} />}
+            <NightCard
+              data={data}
+              lines={lines}
+              settled={settled}
+              game={game}
+              onGame={(g) => {
+                setGame(g)
+                setOpen(null)
+              }}
+            />
             <GapList
               lines={lines}
-              data={data}
               settled={settled}
               group={group}
               stat={stat}
@@ -172,14 +179,11 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
                 setStat(s)
                 setOpen(null)
               }}
-              onGame={(g) => {
-                setGame(g)
-                setOpen(null)
-              }}
               onShowAll={() => setShowAll(true)}
               onFold={() => setFold((f) => !f)}
               onOpen={(id) => setOpen((o) => (o === id ? null : id))}
             />
+            <StatCloser lines={lines} game={game} />
             <HowDivided lines={lines} settled={settled} group={group} game={game} />
             <GameBoxes data={data} lines={lines} settled={settled} />
             <p className="ic-bands">
@@ -244,147 +248,187 @@ function NightTabs({
   )
 }
 
-function Status({ data, lines, settled }: { data: BookCompare; lines: Line[]; settled: boolean }) {
+const ORDER = { final: 0, live: 1, scheduled: 2 } as const
+
+/** The night in one card: where the games stand, how the judged lines have gone so far, and the
+ *  games themselves as the page's game filter (final first, then live, then still to come). */
+function NightCard({
+  data,
+  lines,
+  settled,
+  game,
+  onGame,
+}: {
+  data: BookCompare
+  lines: Line[]
+  settled: boolean
+  game: number | null
+  onGame: (g: number | null) => void
+}) {
   const looks = data.games.map((g) => g.checked).sort()
-  const tipped = data.games.filter((g) => g.status !== 'scheduled').length
+  const count = (st: CompareGame['status']) => data.games.filter((g) => g.status === st).length
+  const where = [
+    count('final') && `${count('final')} final`,
+    count('live') && `${count('live')} live`,
+    count('scheduled') && `${count('scheduled')} to come`,
+  ].filter(Boolean)
   const t = tallyOf(lines)
+  const games = [...data.games].sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.tip.localeCompare(b.tip))
   return (
-    <div className="ic-status">
-      <span className="ic-date">{nightLabel(data.date)}</span>
-      <span>
-        <span className="num">{data.games.length}</span> games{' '}
-        {settled ? 'settled' : tipped ? `· ${tipped} tipped off` : ''}
-      </span>
-      {!settled && (
+    <div className="ic-nc">
+      <div className="ic-status">
+        <span className="ic-date">{nightLabel(data.date)}</span>
+        <span>{settled ? `${data.games.length} games, all final` : where.join(' · ')}</span>
         <span className="ic-opt">
           <span className="num">{t.n}</span> lines · <span className="num">{t.above}</span> Ours above
         </span>
-      )}
-      <span>
-        {!settled && <span className="ic-live" />}
-        {settled ? 'Last looks ' : 'Last look '}
-        <span className="num">
-          {settled && looks.length > 1
-            ? `${clock(looks[0])}–${clock(looks[looks.length - 1])}`
-            : clock(looks[looks.length - 1] ?? '')}
+        <span className="ic-look">
+          {!settled && <span className="ic-live" />}
+          {settled ? 'Last looks ' : 'Last look '}
+          <span className="num">
+            {settled && looks.length > 1
+              ? `${clock(looks[0])}–${clock(looks[looks.length - 1])}`
+              : clock(looks[looks.length - 1] ?? '')}
+          </span>
         </span>
-      </span>
+      </div>
+      {t.judged > 0 && (
+        <div className="ic-tally-line">
+          <span className="ic-tl-say">
+            {settled ? '' : 'So far: '}We were closer on <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book{' '}
+            <b>{t.bookCloser}</b> · Level <b>{t.level}</b>
+          </span>
+          <Split t={t} />
+          <span className="ic-tl-band">
+            Within band: Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b>
+          </span>
+        </div>
+      )}
+      <div className="ic-games" role="group" aria-label="Game">
+        <button type="button" className="ic-chip ic-chip-all" aria-pressed={game == null} onClick={() => onGame(null)}>
+          All Games
+        </button>
+        {games.map((g) => {
+          const gt = tallyOf(lines.filter((l) => l.game.game_id === g.game_id))
+          const score = g.away_score != null && g.home_score != null ? `${g.away_score}–${g.home_score}` : ''
+          return (
+            <button
+              key={g.game_id}
+              type="button"
+              className="ic-chip ic-chip-g"
+              aria-pressed={game === g.game_id}
+              onClick={() => onGame(game === g.game_id ? null : g.game_id)}
+            >
+              <span className="ic-chip-h">
+                <TeamLogo abbrev={g.away} size={18} />
+                {g.away} @ {g.home}
+                <TeamLogo abbrev={g.home} size={18} />
+              </span>
+              <span className="ic-chip-s">
+                {g.status === 'final' ? (
+                  <>
+                    Final <span className="num">{score}</span>
+                  </>
+                ) : g.status === 'live' ? (
+                  <>
+                    <span className="ic-live" aria-hidden="true" />
+                    Live <span className="num">{score}</span>
+                  </>
+                ) : (
+                  <>
+                    Tip <span className="num">{clock(g.tip)}</span>
+                  </>
+                )}
+              </span>
+              <span className="ic-chip-f">
+                {g.status === 'final' && gt.judged ? (
+                  <>
+                    Closer: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
+                    <span className="num">{gt.bookCloser}</span>
+                  </>
+                ) : (
+                  <>
+                    {g.status === 'scheduled' ? 'Read at' : 'Kept as read at'}{' '}
+                    <span className="num">{clock(g.checked)}</span>
+                  </>
+                )}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-function NightTally({ lines }: { lines: Line[] }) {
-  const all = tallyOf(lines)
-  const players = tallyOf(lines.filter((l) => l.kind === 'player'))
-  const wide = typeof window !== 'undefined' && window.innerWidth >= 720
+/** Who was nearer, as a bar: green for us, the track for level, muted for the book. */
+function Split({ t }: { t: Tally }) {
+  return (
+    <span className="ic-split" aria-hidden="true">
+      {t.oursCloser > 0 && <span className="o" style={{ flex: t.oursCloser }} />}
+      {t.level > 0 && <span className="lv" style={{ flex: t.level }} />}
+      {t.bookCloser > 0 && <span className="i" style={{ flex: t.bookCloser }} />}
+    </span>
+  )
+}
+
+/** Who was closer, stat by stat: under the list, once any line is judged. */
+function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
+  const mine = lines.filter((l) => game == null || l.game.game_id === game)
+  if (!tallyOf(mine).judged) return null
   const row = (s: Stat) => {
-    const ls = lines.filter((l) => l.stat === s)
-    const t = tallyOf(ls)
-    if (!t.judged) return null
+    const t = tallyOf(mine.filter((l) => l.stat === s))
+    if (!t.n) return null
     return (
       <li key={s}>
-        <span className="ic-st">{STAT_NAME[s]}:</span>
-        <span className="ic-tx">
-          Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b> · Closer: Ours{' '}
-          <b>{t.oursCloser}</b>, Book <b>{t.bookCloser}</b>
-          {t.level ? (
-            <>
-              , level <b>{t.level}</b>
-            </>
-          ) : null}
-        </span>
-        <span className="ic-mm">
-          {s === 'WIN' ? (
-            <>
-              Our pick won <span className="num">{t.ours}</span> of <span className="num">{t.judged}</span>
-            </>
-          ) : t.oursMiss != null && t.bookMiss != null ? (
-            <>
-              Mean miss <span className="num">{t.oursMiss.toFixed(1)}</span> ·{' '}
-              <span className="num">{t.bookMiss.toFixed(1)}</span>
-            </>
-          ) : null}
-        </span>
+        <span className="ic-st">{STAT_NAME[s]}</span>
+        {t.judged ? (
+          <>
+            <Split t={t} />
+            <span className="ic-tx">
+              We were closer on <b className="g">{t.oursCloser}</b> · Book <b>{t.bookCloser}</b> · Level{' '}
+              <b>{t.level}</b>
+            </span>
+            <span className="ic-mm">
+              {s === 'WIN' ? (
+                <>
+                  Our pick won <span className="num">{t.ours}</span> of <span className="num">{t.judged}</span>
+                </>
+              ) : (
+                <>
+                  Within band: Ours <span className="num">{`${t.ours}/${t.judged}`}</span> · Book{' '}
+                  <span className="num">{`${t.book}/${t.judged}`}</span>
+                </>
+              )}
+            </span>
+          </>
+        ) : (
+          <span className="ic-tx ic-none-yet">No results yet</span>
+        )}
       </li>
     )
   }
   return (
-    <section className="ic-sec" aria-labelledby="ic-h-tally">
+    <section className="ic-sec" aria-labelledby="ic-h-closer">
       <div className="ic-sec-h">
         <div>
-          <h2 id="ic-h-tally">Night tally</h2>
-          <p className="ic-sub">
-            Matched against the actual result. Ours ✓ when the result lands within the band of our number; the book
-            judged the same way on its own line.
-          </p>
+          <h2 id="ic-h-closer">Who was closer, stat by stat</h2>
+          <p className="ic-sub">Each side judged against the actual result: within band when it lands close.</p>
         </div>
       </div>
-      <p className="ic-say">
-        Our numbers landed close to the result <b>{all.ours}</b> times out of <b>{all.judged}</b>, the book's{' '}
-        <b>{all.book}</b>.{' '}
-        {all.oursCloser === all.bookCloser
-          ? 'On who was nearer, it was even.'
-          : all.oursCloser > all.bookCloser
-            ? `We were nearer more often (${all.oursCloser} to ${all.bookCloser}).`
-            : `The book was nearer more often (${all.bookCloser} to ${all.oursCloser}).`}
+      <div className="ic-t-group">Players</div>
+      <ul className="ic-t-list">{PLAYER_STATS.map(row)}</ul>
+      <div className="ic-t-group">Games</div>
+      <ul className="ic-t-list">{GAME_STATS.map(row)}</ul>
+      <p className="ic-t-note">
+        Steals, blocks and 3PM bands (±1) are loose on lines near 1, so read those rows by who was closer.
       </p>
-      <div className="ic-tally-top">
-        <div className="ic-fig">
-          <span className="ic-lab">Ours within band</span>
-          <span className="ic-big">
-            {all.ours}
-            <small>/{all.judged}</small>
-          </span>
-        </div>
-        <div className="ic-fig">
-          <span className="ic-lab">Book within band</span>
-          <span className="ic-big i">
-            {all.book}
-            <small>/{all.judged}</small>
-          </span>
-        </div>
-        <div className="ic-fig">
-          <span className="ic-lab">Closer to the result</span>
-          <div className="ic-split" aria-hidden="true">
-            <span className="o" style={{ flex: all.oursCloser }} />
-            <span className="lv" style={{ flex: all.level }} />
-            <span className="i" style={{ flex: all.bookCloser }} />
-          </div>
-          <span className="ic-split-lab">
-            <ShapeOurs /> Ours <span className="num">{all.oursCloser}</span> · level{' '}
-            <span className="num">{all.level}</span> · <ShapeBook /> Book <span className="num">{all.bookCloser}</span>
-          </span>
-        </div>
-        {players.oursMiss != null && players.bookMiss != null && (
-          <div className="ic-fig">
-            <span className="ic-lab">Mean miss, players</span>
-            <span className="ic-split-lab ic-mean">
-              Ours <span className="num">{players.oursMiss.toFixed(2)}</span> · Book{' '}
-              <span className="num">{players.bookMiss.toFixed(2)}</span>
-            </span>
-          </div>
-        )}
-      </div>
-      <details className="ic-det" open={wide}>
-        <summary>
-          <Chevron />
-          Per stat
-        </summary>
-        <div className="ic-t-group">Players</div>
-        <ul className="ic-t-list">{PLAYER_STATS.map(row)}</ul>
-        <div className="ic-t-group">Games</div>
-        <ul className="ic-t-list">{GAME_STATS.map(row)}</ul>
-        <p className="ic-t-note">
-          Steals, blocks and 3PM bands (±1) are loose on lines near 1, so read those rows by Closer.
-        </p>
-      </details>
     </section>
   )
 }
 
 interface ListProps {
   lines: Line[]
-  data: BookCompare
   settled: boolean
   group: 'players' | 'games'
   stat: Stat | 'ALL'
@@ -394,14 +438,13 @@ interface ListProps {
   open: string | null
   onGroup: (g: 'players' | 'games') => void
   onStat: (s: Stat | 'ALL') => void
-  onGame: (g: number | null) => void
   onShowAll: () => void
   onFold: () => void
   onOpen: (id: string) => void
 }
 
 function GapList(p: ListProps) {
-  const { lines, data, settled, group, stat, game } = p
+  const { lines, settled, group, stat, game } = p
   const stats = group === 'players' ? PLAYER_STATS : GAME_STATS
   const inGame = (l: Line) => game == null || l.game.game_id === game
   const pool = lines.filter((l) => stats.includes(l.stat) && inGame(l) && l.gap != null)
@@ -436,27 +479,6 @@ function GapList(p: ListProps) {
               </button>
             ))}
           </div>
-          <div className="ic-games" role="group" aria-label="Game">
-            <button type="button" className="ic-chip" aria-pressed={game == null} onClick={() => p.onGame(null)}>
-              All games
-            </button>
-            {data.games.map((g) => (
-              <button
-                key={g.game_id}
-                type="button"
-                className="ic-chip"
-                aria-pressed={game === g.game_id}
-                onClick={() => p.onGame(g.game_id)}
-              >
-                <TeamLogo abbrev={g.away} size={18} />
-                {g.away} @ {g.home}
-                <TeamLogo abbrev={g.home} size={18} />
-                <span className="t">
-                  {g.status === 'final' ? `${g.away_score}–${g.home_score}` : clock(g.tip)}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
         <div className="ic-tabs" role="tablist" aria-label="Stat">
           <button type="button" role="tab" className="ic-tab" aria-selected={stat === 'ALL'} onClick={() => p.onStat('ALL')}>
@@ -481,26 +503,15 @@ function GapList(p: ListProps) {
           })}
         </div>
       </div>
-      <p className="ic-read">
-        Left is the book's number, right is ours, and the middle is how far apart they are.
-        {settled
-          ? ' ✓ means the result landed close to that number, ✗ means it missed.'
-          : ' A + means we expect more than the book.'}
-      </p>
-      <p className="ic-explain">
-        {stat === 'ALL' ? (
-          <>
-            All ranks by gap in bands
-            <span className="ic-hide-s">
-              , so a +0.5 steal and a +2.5 point gap compare fairly
-            </span>
-            .
-          </>
-        ) : (
-          `${STAT_NAME[stat]}: ranked by raw gap.`
-        )}{' '}
-        {above.length} of {shown.length} have Ours above.
-      </p>
+      <div className="ic-explain">
+        <p>
+          {stat === 'ALL'
+            ? 'Ranked by gap in bands, so a +0.5 steal and a +2.5 point gap compare fairly.'
+            : `${STAT_NAME[stat]}: ranked by the raw gap.`}{' '}
+          <span className="num">{above.length}</span> of <span className="num">{shown.length}</span> have Ours above.
+        </p>
+        <Key judged={lines.some((l) => l.oursHit != null)} />
+      </div>
       <ColHead settled={settled} />
       {above.length === 0 ? (
         <p className="ic-none">
@@ -553,6 +564,31 @@ function GapList(p: ListProps) {
         )}
       </div>
     </section>
+  )
+}
+
+/** How to read a line, once, instead of a paragraph. */
+function Key({ judged }: { judged: boolean }) {
+  return (
+    <span className="ic-key" aria-label="How to read a line: the book's number, the gap, our number">
+      <span>
+        <span className="kb">5.3</span>Book
+      </span>
+      <span>
+        <span className="kg">+2.3</span>Gap
+      </span>
+      <span>
+        <span className="ko">7.6</span>Ours
+      </span>
+      {judged && (
+        <span>
+          <span className="ic-key-ok">
+            <CheckIcon />
+          </span>
+          within band
+        </span>
+      )}
+    </span>
   )
 }
 
