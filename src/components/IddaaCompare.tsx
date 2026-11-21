@@ -34,6 +34,25 @@ interface Props {
 }
 
 const PAGE = 12
+/** Phones show fewer rows before "Show all": ranks 4 to 11. */
+const PAGE_PHONE = 8
+const PHONE = '(max-width: 719px)'
+
+/** True at phone widths, following the window as it resizes. */
+function usePhone() {
+  const ask = () =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(PHONE).matches
+  const [phone, setPhone] = useState(ask)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia(PHONE)
+    const on = () => setPhone(mq.matches)
+    on()
+    mq.addEventListener?.('change', on)
+    return () => mq.removeEventListener?.('change', on)
+  }, [])
+  return phone
+}
 
 /** "Seambook": the sportsbook's lines (iddaa, read through nesine) beside ours, night by night, the biggest gaps above the book
  *  first, and once the games are final each side judged against what happened. Comparison only:
@@ -450,7 +469,8 @@ function GapList(p: ListProps) {
   const pool = lines.filter((l) => stats.includes(l.stat) && inGame(l) && l.gap != null)
   const shown = pool.filter((l) => stat === 'ALL' || l.stat === stat)
   const { above, rest } = ranked(shown, stat === 'ALL')
-  const limit = p.showAll ? Infinity : PAGE
+  const page = usePhone() ? PAGE_PHONE : PAGE
+  const limit = p.showAll ? Infinity : page
   const count = (g: 'players' | 'games') =>
     lines.filter((l) => (g === 'players' ? l.kind === 'player' : l.kind === 'game') && inGame(l) && l.gap != null)
       .length
@@ -493,6 +513,21 @@ function GapList(p: ListProps) {
             )
           })}
         </div>
+        <label className="ic-stat-sel">
+          <span className="sr-only">Stat</span>
+          <select value={stat} onChange={(e) => p.onStat(e.target.value as Stat | 'ALL')}>
+            <option value="ALL">{`All Stats · ${pool.length}`}</option>
+            {stats.map((s) => {
+              const c = pool.filter((l) => l.stat === s).length
+              return (
+                <option key={s} value={s} disabled={!c}>
+                  {`${STAT_NAME[s]} · ${c}`}
+                </option>
+              )
+            })}
+          </select>
+          <Chevron />
+        </label>
       </div>
       <div className="ic-sec-h ic-stage-h">
         <div>
@@ -548,7 +583,7 @@ function GapList(p: ListProps) {
         )}
         {p.fold && (
           <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
-            {rest.slice(0, p.showAll ? undefined : PAGE).map((l, i) => (
+            {rest.slice(0, p.showAll ? undefined : page).map((l, i) => (
               <Row key={l.id} line={l} i={i} rank={0} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
             ))}
           </ol>
@@ -975,8 +1010,11 @@ function Who({ line: l }: { line: Line }) {
         <div className="ic-nm">
           <NameLink line={l} />
         </div>
-        <div className="ic-sub">
+        <div className="ic-sub ic-sub-l">
           <b>{STAT_NAME[l.stat]}</b> · {plain(l, settledOf(l))}
+        </div>
+        <div className="ic-sub ic-sub-s">
+          <b>{STAT_NAME[l.stat]}</b> · {l.gameLabel}
         </div>
       </div>
     )
@@ -986,7 +1024,7 @@ function Who({ line: l }: { line: Line }) {
       <div className="ic-nm">
         {l.gameLabel} <span className="ic-nm-st">{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</span>
       </div>
-      <div className="ic-sub">{cap(plain(l, settledOf(l)))}</div>
+      <div className="ic-sub ic-sub-l">{cap(plain(l, settledOf(l)))}</div>
     </div>
   )
 }
@@ -1040,14 +1078,29 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
   const share = Math.abs(l.score) / FULL_AT
   const style = { '--w': Math.min(share, 1).toFixed(3), '--i': i } as CSSProperties
   const clamp = share > 1 ? ' clamp' : ''
+  const res = l.game.status === 'final' ? resultValue(l) : null
   return (
-    <div className="ic-lane">
+    <div className={`ic-lane${gap < 0 ? ' dn' : gap > 0 ? ' up' : ''}`} style={style}>
+      <span className="pg pg-l" aria-hidden="true">
+        Book
+      </span>
       <div className="l">
         <Hit line={l} side="book" />
         <span className="ic-v ic-v-i">{value(l, 'book')}</span>
         {gap < 0 && <span className={`ic-band bl${clamp}`} style={style} />}
       </div>
-      <span className={`ic-pill${gap === 0 ? ' zero' : ''}`}>{signed(gap, l.stat)}</span>
+      <span className={`ic-pill${gap === 0 ? ' zero' : ''}${res != null ? ' has-r' : ''}`}>
+        <span className="g">
+          <span className="t">Gap</span>
+          <span className="v">{signed(gap, l.stat)}</span>
+        </span>
+        {res != null && (
+          <span className="r">
+            <span className="t">Result</span>
+            <span className="v">{res}</span>
+          </span>
+        )}
+      </span>
       <div className="r">
         {gap > 0 && <span className={`ic-band br${clamp}`} style={style} />}
         <span className="ic-v ic-v-o">
@@ -1056,6 +1109,9 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
         </span>
         <Hit line={l} side="ours" />
       </div>
+      <span className="pg pg-r" aria-hidden="true">
+        Ours
+      </span>
     </div>
   )
 }
@@ -1563,6 +1619,7 @@ function swarm(lines: Line[], width: number) {
 }
 
 function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[]; settled: boolean }) {
+  const phone = usePhone()
   return (
     <section className="ic-sec" aria-labelledby="ic-h-games">
       <div className="ic-sec-h">
@@ -1611,56 +1668,62 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                 </span>
               </div>
               {gameStory(ls, final) && <p className="ic-gb-say">{gameStory(ls, final)}</p>}
-              <table className="ic-gt">
-                <thead>
-                  <tr>
-                    <th scope="col">
-                      <span className="sr-only">Market</span>
-                    </th>
-                    <th scope="col">Book</th>
-                    <th scope="col">Ours</th>
-                    {final ? (
-                      <>
-                        <th scope="col">Result</th>
-                        <th scope="col">Ours</th>
-                        <th scope="col">Book</th>
-                      </>
-                    ) : (
-                      <th scope="col" className="hide-xs">
-                        Gap
+              <details className="ic-gt-fold" open={!phone}>
+                <summary>
+                  Winner, margin, total and team points
+                  <Chevron />
+                </summary>
+                <table className="ic-gt">
+                  <thead>
+                    <tr>
+                      <th scope="col">
+                        <span className="sr-only">Market</span>
                       </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map(([label, l]) => (
-                    <tr key={label}>
-                      <td>
-                        {label.endsWith(' pts') && <TeamLogo abbrev={label.slice(0, -4)} size={16} />} {label}
-                      </td>
-                      <td>
-                        <span className="num">{l ? value(l, 'book') : '–'}</span>
-                      </td>
-                      <td className="o">
-                        <span className="num">{l ? value(l, 'ours') : '–'}</span>
-                      </td>
+                      <th scope="col">Book</th>
+                      <th scope="col">Ours</th>
                       {final ? (
                         <>
-                          <td>
-                            <span className="num">{l ? resultValue(l) : ''}</span>
-                          </td>
-                          <td className="mkc">{l && <Mark line={l} side="ours" i={0} />}</td>
-                          <td className="mkc">{l && <Mark line={l} side="book" i={0} />}</td>
+                          <th scope="col">Result</th>
+                          <th scope="col">Ours</th>
+                          <th scope="col">Book</th>
                         </>
                       ) : (
-                        <td className="hide-xs">
-                          <span className="num">{l && l.gap != null ? signed(l.gap, l.stat) : ''}</span>
-                        </td>
+                        <th scope="col" className="hide-xs">
+                          Gap
+                        </th>
                       )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {rows.map(([label, l]) => (
+                      <tr key={label}>
+                        <td>
+                          {label.endsWith(' pts') && <TeamLogo abbrev={label.slice(0, -4)} size={16} />} {label}
+                        </td>
+                        <td>
+                          <span className="num">{l ? value(l, 'book') : '–'}</span>
+                        </td>
+                        <td className="o">
+                          <span className="num">{l ? value(l, 'ours') : '–'}</span>
+                        </td>
+                        {final ? (
+                          <>
+                            <td>
+                              <span className="num">{l ? resultValue(l) : ''}</span>
+                            </td>
+                            <td className="mkc">{l && <Mark line={l} side="ours" i={0} />}</td>
+                            <td className="mkc">{l && <Mark line={l} side="book" i={0} />}</td>
+                          </>
+                        ) : (
+                          <td className="hide-xs">
+                            <span className="num">{l && l.gap != null ? signed(l.gap, l.stat) : ''}</span>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
               <div className="ic-gb-f">
                 {final ? (
                   <>
