@@ -7,6 +7,8 @@
   --lane-w: 300px;
   --closer-light: color-mix(in srgb, var(--good) 10%, transparent);
   --closer-rim: color-mix(in srgb, var(--good) 24%, transparent);
+  --warm: rgb(255 190 130 / 0.3);
+  --warm-cap: rgb(255 205 160 / 0.85);
   width: 100%;
   max-width: 1168px;
   margin: 0 auto;
@@ -16,6 +18,8 @@
   --band-fill: color-mix(in srgb, var(--text) 7%, transparent);
   --closer-light: color-mix(in srgb, var(--good) 9%, transparent);
   --closer-rim: color-mix(in srgb, var(--good) 22%, transparent);
+  --warm: rgb(232 150 60 / 0.3);
+  --warm-cap: rgb(196 110 30 / 0.9);
 }
 .ic p {
   margin: 0;
@@ -2262,5 +2266,410 @@
   }
   .ic-t-list .ic-mm {
     white-space: normal;
+  }
+}
+
+/* The duel stage (Across the Seam, PR 3): the top three gaps, the book facing ours on one ruler. */
+.ic-stage-h {
+  margin: 18px 0 6px;
+}
+.ic-stage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 14px 0 6px;
+}
+.ic-duel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px 18px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  overflow: hidden;
+}
+.ic-duel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(340px 200px at 100% 30%, var(--glow), transparent 70%);
+  pointer-events: none;
+}
+.ic-duel > * {
+  position: relative;
+}
+.ic-duel header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.ic-duel .ic-face {
+  flex: none;
+}
+.ic-rkd {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 12px/22px var(--font-num);
+  text-align: center;
+}
+.ic-dw {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ic-dw b {
+  font-weight: 650;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-dw > span {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-dw em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-when {
+  margin-left: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-when .num {
+  font-family: var(--font-num);
+  color: var(--text-2);
+}
+.ic-faceoff {
+  display: grid;
+  grid-template-columns: auto minmax(24px, 1fr) auto;
+  grid-template-areas:
+    'lb . lo'
+    'vb wire vo'
+    'hb . ho';
+  column-gap: 12px;
+  margin-top: 14px;
+}
+.ic-faceoff .lab {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ic-faceoff .lab.bk {
+  grid-area: lb;
+}
+.ic-faceoff .lab.ou {
+  grid-area: lo;
+  justify-self: end;
+}
+.ic-faceoff .v {
+  align-self: end;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+.ic-faceoff .v small {
+  font-family: var(--font-ui);
+  -webkit-text-stroke: 0;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.32em;
+  margin-right: 0.3em;
+  vertical-align: 0.6em;
+}
+.ic-faceoff .v .pct {
+  -webkit-text-stroke: 0;
+  color: var(--muted);
+  font-size: 0.45em;
+}
+.ic-faceoff .v.bk {
+  grid-area: vb;
+  font-size: 40px;
+  font-weight: 450;
+  color: var(--text-2);
+}
+.ic-faceoff .v.ou {
+  grid-area: vo;
+  justify-self: end;
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-weight: 700;
+  font-size: 54px;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--text);
+}
+:root[data-theme='light'] .ic-faceoff .v.ou {
+  -webkit-text-stroke-width: 1.6px;
+}
+.ic-faceoff .wire {
+  grid-area: wire;
+  position: relative;
+  height: 56px;
+}
+.ic-faceoff .wire::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 8px;
+  bottom: 16px;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--seam), var(--text-2));
+}
+.ic-faceoff .wire::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 12.5px;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid var(--text-2);
+  border-right: 1.5px solid var(--text-2);
+  transform: rotate(45deg);
+}
+.ic-faceoff .gap {
+  position: absolute;
+  left: 50%;
+  bottom: 25px;
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  font: 650 13px/1 var(--font-num);
+  white-space: nowrap;
+}
+.ic-faceoff .hw {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.ic-faceoff .hw.bk {
+  grid-area: hb;
+}
+.ic-faceoff .hw.ou {
+  grid-area: ho;
+  justify-self: end;
+}
+.ic-faceoff .hw.ok {
+  color: var(--good);
+}
+.ic-faceoff .hw.no {
+  color: var(--bad);
+}
+.ic-faceoff .hw svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ic-sruler {
+  position: relative;
+  height: 40px;
+  margin: 14px 2px 0;
+}
+.ic-sruler i,
+.ic-sruler span {
+  position: absolute;
+}
+.ic-sruler .ax {
+  left: 0;
+  right: 0;
+  top: 12px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--track);
+}
+.ic-sruler .tk {
+  top: 9px;
+  width: 1px;
+  height: 8px;
+  background: var(--seam);
+}
+.ic-sruler .bar {
+  top: 9px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, transparent, var(--warm));
+}
+.ic-sruler .bar::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--warm-cap);
+}
+.ic-sruler .bar.dn {
+  background: linear-gradient(270deg, transparent, var(--warm));
+}
+.ic-sruler .bar.dn::after {
+  right: auto;
+  left: -1px;
+}
+.ic-sruler .bk {
+  top: 5px;
+  width: 2px;
+  height: 16px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+.ic-sruler .pin {
+  top: 7px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+.ic-sruler .lbl {
+  top: 23px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-sruler .lbl.r {
+  color: var(--text);
+  font-weight: 600;
+}
+.ic-duel-cap {
+  margin: 2px 0 12px;
+  font-size: 11px;
+  color: var(--faint);
+  text-align: right;
+}
+.ic-dslot {
+  margin-top: auto;
+  min-height: 46px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--plate);
+  box-shadow: var(--recess);
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+.ic-dslot b {
+  font-family: var(--font-num);
+  font-weight: 650;
+  color: var(--text);
+}
+.ic-dslot .ic-slot-vd b {
+  font-family: var(--font-ui);
+}
+.ic-dslot.ours {
+  background:
+    radial-gradient(120% 160% at 100% 50%, var(--closer-light), transparent 75%),
+    var(--plate);
+  box-shadow: inset 0 0 0 1px var(--closer-rim);
+}
+.ic-dslot.ours .ic-slot-vd b {
+  color: var(--good);
+}
+.ic-dslot .sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-dslot .num {
+  font-family: var(--font-num);
+}
+.ic-rest-h {
+  margin: 22px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+@media (max-width: 1100px) {
+  .ic-faceoff .v.bk {
+    font-size: 32px;
+  }
+  .ic-faceoff .v.ou {
+    font-size: 42px;
+  }
+}
+@media (max-width: 899px) {
+  .ic-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+@media (max-width: 719px) {
+  .ic-duel {
+    padding: 12px 14px;
+    border-radius: var(--radius-tile);
+  }
+  .ic-faceoff {
+    margin-top: 8px;
+  }
+  .ic-faceoff .lab {
+    font-size: 11.5px;
+  }
+  .ic-faceoff .v.bk {
+    font-size: 30px;
+  }
+  .ic-faceoff .v.ou {
+    font-size: 40px;
+  }
+  .ic-faceoff .wire {
+    height: 44px;
+  }
+  .ic-faceoff .wire::before {
+    bottom: 11px;
+  }
+  .ic-faceoff .wire::after {
+    bottom: 7.5px;
+  }
+  .ic-faceoff .gap {
+    bottom: 19px;
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+  .ic-sruler {
+    margin: 6px 0 4px;
+    height: 34px;
+  }
+  .ic-duel:not(.has-res) .ic-sruler {
+    height: 24px;
+  }
+  .ic-duel:not(.has-res) .ic-sruler .lbl,
+  .ic-duel-cap,
+  .ic-dslot.pre {
+    display: none;
+  }
+  .ic-dslot {
+    margin-top: 8px;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 13px;
   }
 }
