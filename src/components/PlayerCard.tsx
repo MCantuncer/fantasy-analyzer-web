@@ -1162,11 +1162,17 @@ function GarbageExplainer({ id, tally }: { id: string; tally?: GarbageTally }) {
               <span className="pc-gt-step-when" aria-hidden="true">
                 {st.when} <span className="pc-gt-nw">{st.unit}</span>
               </span>
-              <span className="sr-only"> {st.words}</span>
+              <span className="pc-gt-step-bench" aria-hidden="true">
+                starters out
+              </span>
+              <span className="sr-only"> {st.words}, with the starters out</span>
             </li>
           ))}
         </ol>
-        <p>and two or fewer starters are on the floor.</p>
+        <p>
+          A lead alone isn't enough: two or fewer starters (both teams together) can be on the floor. Coaches rarely sit
+          their starters in a 10-point game, so those stay unmarked until the benches empty.
+        </p>
       </div>
       <p className="pc-gt-explain-worth">
         These stats still count in your league. They just say less about his next games: a point, assist or three is

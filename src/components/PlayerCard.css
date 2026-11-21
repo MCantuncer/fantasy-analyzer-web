@@ -1071,6 +1071,16 @@ table.pc-table {
   white-space: nowrap;
 }
 
+/* The second half of the rule, on every step, so no lead reads as enough on its own. */
+.pc-gt-step-bench {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
 .pc-gt-explain-fine {
   font-size: 12px;
   color: var(--muted);
