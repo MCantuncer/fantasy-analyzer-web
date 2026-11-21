@@ -15,6 +15,16 @@ interface Judged {
   closer: Closer | null
 }
 
+/** One of the book's "n+" rungs: its decimal odds and the chance they read as (margin taken out). */
+export interface CompareRung {
+  n: number
+  odd: number
+  book: number
+  ours: number | null
+  value: number | null
+  hit: boolean | null
+}
+
 export interface ComparePlayer extends Judged {
   name: string
   player_id: number | null
@@ -22,6 +32,14 @@ export interface ComparePlayer extends Judged {
   stat: 'three_pm' | 'reb' | 'ast' | 'stl' | 'blk' | 'pts'
   played: boolean | null
   ladder: [number, number][]
+  rungs?: CompareRung[]
+}
+
+/** One of the book's prices for a game market, from our pick's side (pick/other) or the line's
+ *  (over/under). */
+export interface CompareOdd {
+  side: 'pick' | 'other' | 'over' | 'under'
+  odd: number
 }
 
 export interface CompareMarket extends Judged {
@@ -29,6 +47,7 @@ export interface CompareMarket extends Judged {
   team: string
   book_team: string
   won: string
+  odds?: CompareOdd[]
 }
 
 export interface CompareGame {
@@ -123,6 +142,17 @@ const BAND_KEY: Record<Stat, string> = {
   TOT: 'total',
   TEAM: 'team_pts',
 }
+/** Can 2026-11-21: odds at or under 1.33 are the book closing a near-certainty, not a price to show. */
+export const MIN_ODD = 1.33
+
+/** The book's price beside its number: the rung nearest its line for a player (or its top rung when
+ *  ours is past it), and for a game the side we lean to (our pick, or over/under the line). */
+export interface Price {
+  label: string
+  odd: number
+  top: boolean // a player's highest priced rung, and our number is past it
+}
+
 /** Winner gaps are chances: 20 points of chance count as one band when ranking. */
 export const WIN_BAND = 0.2
 /** A row's band grows to full width at this share of a band (the same scale on the field). */
@@ -161,9 +191,37 @@ export interface Line {
   won: string // winner: who won
   other: string // margin: the other team
   ladder: [number, number][]
+  rungs: CompareRung[] // the book's priced rungs, odds over MIN_ODD
+  price: Price | null
   played: boolean | null
   tipped: boolean
 }
+
+/** A player's price: the rung whose threshold (n - 0.5) sits nearest the book's line, or the top
+ *  rung when our number is past it, so the page can say we expect more than the book offers. */
+export function playerPrice(rungs: CompareRung[], book: number | null, ours: number | null): Price | null {
+  if (!rungs.length) return null
+  const top = rungs.reduce((a, r) => (r.n > a.n ? r : a))
+  // past it: at least half a unit beyond the top rung (Can's case: ours 9.9, the book's top 8+)
+  if (ours != null && ours >= top.n + 0.5) return { label: `${top.n}+`, odd: top.odd, top: true }
+  if (book == null) return null
+  const near = rungs.reduce((a, r) => (Math.abs(r.n - 0.5 - book) < Math.abs(a.n - 0.5 - book) ? r : a))
+  return { label: `${near.n}+`, odd: near.odd, top: false }
+}
+
+/** A game market's price on the side we lean to: our pick for winner and margin; over or under for
+ *  totals, by which way our number sits from the book's. */
+export function marketPrice(m: CompareMarket): Price | null {
+  const odds = (m.odds ?? []).filter((o) => o.odd > MIN_ODD)
+  const want = m.market === 'winner' || m.market === 'margin' ? 'pick' : (m.gap ?? 0) < 0 ? 'under' : 'over'
+  const o = odds.find((x) => x.side === want)
+  if (!o) return null
+  const label = want === 'pick' ? m.team : want === 'over' ? 'Over' : 'Under'
+  return { label, odd: o.odd, top: false }
+}
+
+/** "1.95": decimal odds as the book prints them. */
+export const odds = (v: number) => v.toFixed(2)
 
 function initials(name: string): string {
   const words = name.replace(/\./g, '').split(/\s+/).filter(Boolean)
@@ -178,8 +236,11 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
     const tipped = g.status !== 'scheduled' || new Date(g.tip) <= now
     for (const p of g.players) {
       const stat = statOf(p.stat)
+      const rungs = (p.rungs ?? []).filter((r) => r.odd > MIN_ODD).sort((a, b) => a.n - b.n)
       out.push(make(`${g.game_id}-${p.name}-${p.stat}`, 'player', stat, p.name, p.team, g, gameLabel, p, data.bands, tipped, {
         ladder: p.ladder ?? [],
+        rungs,
+        price: playerPrice(rungs, p.book, p.ours),
         played: p.played,
         playerId: p.player_id,
       }))
@@ -192,6 +253,7 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
           bookTeam: m.book_team,
           won: m.won,
           other,
+          price: marketPrice(m),
         }),
       )
     }
@@ -243,6 +305,8 @@ function make(
     won: '',
     other: '',
     ladder: [],
+    rungs: [],
+    price: null,
     played: null,
     tipped,
     ...extra,
@@ -391,9 +455,11 @@ export function plain(l: Line, settled: boolean): string {
       return `we expect ${num(l.ours)} points in all, the book ${num(l.book)}`
     case 'TEAM':
       return `we expect ${l.team} to score ${num(l.ours)}, the book ${num(l.book)}`
-    default:
+    default: {
       if (Math.abs(gap) < 0.05) return `we expect the same as the book`
-      return `we expect ${num(Math.abs(gap))} ${gap > 0 ? 'more' : 'fewer'} ${unit} than the book`
+      const past = l.price?.top ? `, past its top line (${l.price.label})` : ''
+      return `we expect ${num(Math.abs(gap))} ${gap > 0 ? 'more' : 'fewer'} ${unit} than the book${past}`
+    }
   }
 }
 

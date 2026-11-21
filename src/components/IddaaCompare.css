@@ -783,7 +783,7 @@
 }
 .ic-ladder {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px 40px;
   gap: 4px 10px;
   align-items: center;
   max-width: 420px;
@@ -3240,6 +3240,75 @@
   }
   .ic-gt td .team-logo {
     display: none;
+  }
+}
+
+/* The book's odds beside its number (PR 7): "20+ · 1.95" under the Book value, "Top 8+" in the warm
+   Ours colour when our number is past the highest rung the book prices. */
+.ic-bk {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0 12px 0 4px;
+}
+.ic-bk .ic-v-i {
+  padding: 0;
+}
+.ic-px {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-px .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-px.top,
+.ic-px.top .num {
+  color: var(--warm-cap);
+}
+.ic-faceoff .lab .ic-px {
+  margin: 0;
+  font-size: 12px;
+}
+.ic-mc-nums .ic-px {
+  display: block;
+  margin-top: 2px;
+}
+.ic-gt-px {
+  display: block;
+  margin-top: 1px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.ic-gt-px .num {
+  font-family: var(--font-num);
+  color: var(--text-2);
+}
+.ic-ladder .o {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.ic-key .kp {
+  font-family: var(--font-num);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+@media (max-width: 719px) {
+  .ic-lane .ic-bk {
+    padding: 0;
+  }
+  .ic-lane .ic-px {
+    margin-top: 2px;
+    font-size: 10px;
   }
 }
 .ic-gt td.cl {

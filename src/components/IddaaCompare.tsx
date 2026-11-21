@@ -16,6 +16,7 @@ import {
   nightLabel,
   nightTab,
   num,
+  odds,
   plain,
   ranked,
   signed,
@@ -654,6 +655,9 @@ function Key({ judged }: { judged: boolean }) {
       <span>
         <span className="ko">7.6</span>Ours
       </span>
+      <span>
+        <span className="kp">1.95</span>the book's odds
+      </span>
       {judged && (
         <span>
           <span className="ic-key-ok">
@@ -833,7 +837,15 @@ function DuelCard({
         </span>
       </header>
       <div className="ic-faceoff">
-        <span className="lab bk">Book</span>
+        <span className="lab bk">
+          Book
+          {l.price && (
+            <>
+              {' · '}
+              <Px line={l} long />
+            </>
+          )}
+        </span>
         <span className="lab ou">Ours</span>
         <span className="v bk">{value(l, 'book')}</span>
         <span className="wire" aria-hidden="true">
@@ -1143,11 +1155,14 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
   return (
     <div className={`ic-lane${gap < 0 ? ' dn' : gap > 0 ? ' up' : ''}`} style={style}>
       <span className="pg pg-l" aria-hidden="true">
-        Book
+        {l.price?.top ? 'Book · top line' : 'Book'}
       </span>
       <div className="l">
         <Hit line={l} side="book" />
-        <span className="ic-v ic-v-i">{value(l, 'book')}</span>
+        <span className="ic-bk">
+          <span className="ic-v ic-v-i">{value(l, 'book')}</span>
+          <Px line={l} />
+        </span>
         {gap < 0 && <span className={`ic-band bl${clamp}`} style={style} />}
       </div>
       <span className={`ic-pill${gap === 0 ? ' zero' : ''}${res != null ? ' has-r' : ''}`}>
@@ -1174,6 +1189,28 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
         Ours
       </span>
     </div>
+  )
+}
+
+/** The book's odds under its number: "20+ · 1.95", "Over · 1.93", or "Top 8+ · 2.10" when our
+ *  number is past the highest rung the book prices. */
+function Px({ line: l, long = false }: { line: Line; long?: boolean }) {
+  const p = l.price
+  if (!p) return null
+  const say = `${p.top ? (long ? 'top line ' : 'Top ') : ''}${p.label}`
+  return (
+    <span
+      className={`ic-px${p.top ? ' top' : ''}`}
+      title={
+        p.top
+          ? `The book's highest line is ${p.label} at ${odds(p.odd)}; our number is past it`
+          : `The book's odds: ${p.label} at ${odds(p.odd)}`
+      }
+    >
+      {say}
+      {long ? ' at ' : ' · '}
+      <span className="num">{odds(p.odd)}</span>
+    </span>
   )
 }
 
@@ -1293,11 +1330,12 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
         {l.ladder.length > 0 && l.book != null && (
           <>
             <div className="ic-ladder-cap">
-              The book's N+ ladder with its margin removed. It crosses 50% at {l.book.toFixed(1)}, its line.
+              The book's N+ ladder: each rung's chance with its margin removed, then its odds. It crosses 50% at{' '}
+              {l.book.toFixed(1)}, its line.
             </div>
             <div className="ic-ladder" aria-label="The book's ladder">
               {l.ladder.map(([n, chance]) => (
-                <LadderRow key={n} n={n} chance={chance} />
+                <LadderRow key={n} n={n} chance={chance} odd={l.rungs.find((r) => r.n === n)?.odd} />
               ))}
             </div>
           </>
@@ -1312,7 +1350,7 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
   )
 }
 
-function LadderRow({ n, chance }: { n: number; chance: number }) {
+function LadderRow({ n, chance, odd }: { n: number; chance: number; odd?: number }) {
   return (
     <>
       <span className="n">{n}+</span>
@@ -1320,6 +1358,7 @@ function LadderRow({ n, chance }: { n: number; chance: number }) {
         <span style={{ width: `${(chance * 100).toFixed(1)}%` }} />
       </span>
       <span className="p">{Math.round(chance * 100)}%</span>
+      <span className="o">{odd ? odds(odd) : '–'}</span>
     </>
   )
 }
@@ -1763,6 +1802,7 @@ function MarkCard({
           <span className="lab">Book</span>
           <span className="v bk">{value(l, 'book')}</span>
           <McHit line={l} side="book" />
+          <Px line={l} />
         </div>
         <div>
           <span className="lab">Ours</span>
@@ -1947,6 +1987,12 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                           <td>
                             {l && <Hit line={l} side="book" />}
                             <span className="num">{l ? value(l, 'book') : '–'}</span>
+                            {l?.price && (
+                              <small className="ic-gt-px">
+                                {l.price.label === l.team ? 'at' : `${l.price.label} ·`}{' '}
+                              <span className="num">{odds(l.price.odd)}</span>
+                              </small>
+                            )}
                           </td>
                           <td className="o">
                             {l && <Hit line={l} side="ours" />}
