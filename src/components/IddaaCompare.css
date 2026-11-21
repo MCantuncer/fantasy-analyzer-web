@@ -1820,12 +1820,6 @@
   font-size: 12.5px;
   color: var(--text-2);
 }
-.ic-mc.ours-closer .ic-mc-say {
-  padding: 6px 8px;
-  border-radius: var(--radius-tag);
-  background: color-mix(in srgb, var(--good) 13%, transparent);
-  color: var(--text);
-}
 @keyframes ic-mc-in {
   from {
     opacity: 0;
@@ -2909,4 +2903,341 @@
   .ic-gt-fold[open] > summary .ic-i {
     transform: rotate(180deg);
   }
+}
+
+/* How divided marks and the mark card (Across the Seam, PR 5). A mark's shape says where its line
+   stands: ○ to come, ◉ playing, ● we were closer, ◆ the book was closer, ⊙ level, and the top
+   three gaps as numbered discs. The same player's marks in the other strips light up together. */
+.ic-fld .m {
+  box-sizing: border-box;
+}
+.ic-fld .m.win,
+.ic-legend .lg.win,
+.ic-strip .notes .lg.win {
+  border-radius: 50%;
+  background: var(--good);
+}
+.ic-fld .m.bk,
+.ic-legend .lg.bk {
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 1.5px;
+  background: var(--muted);
+  rotate: 45deg;
+}
+.ic-fld .m.lv,
+.ic-legend .lg.lv {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--muted);
+  background: radial-gradient(circle, var(--muted) 0 1.6px, transparent 2.2px);
+}
+.ic-fld .m.play,
+.ic-legend .lg.play {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+  background: radial-gradient(circle, var(--gold) 0 2px, transparent 2.6px);
+}
+.ic-fld .m.n,
+.ic-legend .lg.n {
+  width: 17px;
+  height: 17px;
+  margin: -8.5px 0 0 -8.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 10px/17px var(--font-num);
+  font-style: normal;
+  text-align: center;
+  z-index: 1;
+}
+.ic-fld.dense .m.bk {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+}
+.ic-fld.dense .m.n {
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+  font-size: 9px;
+  line-height: 15px;
+}
+.ic-fld.dense .m.play,
+.ic-fld.dense .m.lv {
+  background-size: 100% 100%;
+}
+.ic-fld .m.on:not(.ring) {
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--gold);
+}
+.ic-fld .m.win.on {
+  background: var(--good);
+}
+.ic-fld .m.bk.on {
+  border-radius: 1.5px;
+  background: var(--muted);
+}
+.ic-fld .m.lv.on,
+.ic-fld .m.play.on {
+  box-shadow:
+    inset 0 0 0 1.5px var(--text),
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--gold);
+}
+.ic-fld .m.n.on {
+  background: var(--accent);
+}
+.ic-fld.has-on .m.kin {
+  opacity: 1;
+  z-index: 1;
+  transform: scale(1.3);
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3px var(--text-2);
+}
+.ic-fld.has-on .m.kin.ring {
+  box-shadow:
+    inset 0 0 0 1.5px var(--text),
+    0 0 0 2px var(--surface),
+    0 0 0 3px var(--text-2);
+}
+.ic-legend .lg {
+  flex: none;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 11px;
+  height: 11px;
+  margin: 0;
+}
+.ic-legend .lg.ring {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+}
+.ic-legend .lg.n {
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 9.5px;
+}
+.ic-strip .notes .lg.win {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 5px 1px 0;
+  vertical-align: middle;
+}
+.ic-strip .notes b.g {
+  color: var(--good);
+}
+
+/* The card: a 300px tile with an arrow to the mark; pinned, it takes the pointer and has Close and
+   See in game. On phones it is a bottom sheet over a scrim. */
+.ic-mc {
+  width: 300px;
+}
+.ic-mc.pinned {
+  pointer-events: auto;
+}
+.ic-mc-h {
+  position: relative;
+}
+.ic-mc.pinned .ic-mc-h {
+  padding-right: 36px;
+}
+.ic-mc-who span .ic-live {
+  margin-right: 4px;
+}
+.ic-mc-x {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ic-mc-x:hover {
+  color: var(--text);
+  background: var(--plate);
+}
+.ic-mc-x svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.ic-mc-nums .v {
+  min-height: 34px;
+  display: flex;
+  align-items: flex-end;
+}
+.ic-mc-nums .v.bk {
+  font-weight: 450;
+  color: var(--text-2);
+}
+.ic-mc-nums .v.ou {
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.1px var(--text);
+}
+.ic-mc-nums .v.ou small,
+.ic-mc-nums .v.ou .pct {
+  -webkit-text-stroke: 0;
+  font-family: var(--font-ui);
+  color: var(--muted);
+  align-self: center;
+}
+.ic-mc-nums .v.ou .pct {
+  font-size: 13px;
+}
+.ic-mc-well {
+  box-sizing: border-box;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--plate);
+  box-shadow: var(--recess);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.ic-mc-well .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--text);
+  margin-left: 2px;
+}
+.ic-mc-well .sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+}
+.ic-mc-well.ours {
+  background:
+    radial-gradient(130% 170% at 100% 50%, var(--closer-light), transparent 78%),
+    var(--plate);
+  box-shadow: inset 0 0 0 1px var(--closer-rim);
+}
+.ic-mc-see {
+  width: 100%;
+  margin-top: 10px;
+}
+.ic-mc.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  z-index: 1001;
+  width: auto;
+  max-width: none;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 18px 18px 0 0;
+  border-bottom: 0;
+  font-size: 14px;
+  animation: ic-mc-sheet 200ms ease-out;
+}
+.ic-mc.sheet::after {
+  display: none;
+}
+.ic-mc-grab {
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.ic-mc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgb(0 0 0 / 0.45);
+  animation: ic-mc-fade 160ms ease-out;
+}
+@keyframes ic-mc-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes ic-mc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* "See in game": the line comes forward, ringed in the focus colour for 1.8s. */
+.ic-flash {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  animation: ic-flash 1.8s ease-out forwards;
+}
+.ic-row.ic-flash {
+  border-radius: var(--radius-sm);
+}
+@keyframes ic-flash {
+  0%,
+  70% {
+    outline-color: var(--focus);
+  }
+  100% {
+    outline-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ic-mc.sheet,
+  .ic-mc-scrim {
+    animation: none;
+  }
+  .ic-flash {
+    animation: none;
+  }
+}
+.ic-mc-who .num {
+  white-space: nowrap;
+}
+.ic-legend .lg.n,
+.ic-legend .lg.bk {
+  margin: 0;
+}
+.ic-legend .lg.bk {
+  margin: 0 1px;
+}
+/* Numbered discs sit on the swarm's own step, so they overlap like stacked coins with a rim. */
+.ic-fld .m.n {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  font-size: 8.5px;
+  line-height: 14px;
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+.ic-fld.dense .m.n {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  font-size: 7.5px;
+  line-height: 12px;
 }

@@ -152,6 +152,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const [fold, setFold] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
   const [motion, setMotion] = useState(false)
+  const [flash, setFlash] = useState<string | null>(null)
   const first = useRef(true)
   useEffect(() => {
     if (first.current) first.current = false
@@ -161,6 +162,33 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const latest = data.days[data.days.length - 1]
+  const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
+
+  /** "See in game" on a mark card: filter to that game, bring the line forward and ring it. */
+  const see = (l: Line) => {
+    const pool = lines.filter((x) => x.kind === l.kind && x.game.game_id === l.game.game_id && x.gap != null)
+    const at = ranked(pool, true).above.findIndex((x) => x.id === l.id)
+    setGroup(l.kind === 'player' ? 'players' : 'games')
+    setStat('ALL')
+    setGame(l.game.game_id)
+    setOpen(null)
+    if (at < 0) setFold(true)
+    if (at < 0 || at >= 3 + PAGE_PHONE) setShowAll(true)
+    setFlash(l.id)
+  }
+  useEffect(() => {
+    if (!flash) return
+    const raf = requestAnimationFrame(() => {
+      const el = [...document.querySelectorAll<HTMLElement>('[data-line]')].find((e) => e.dataset.line === flash)
+      const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      el?.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' })
+    })
+    const t = window.setTimeout(() => setFlash(null), 1800)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(t)
+    }
+  }, [flash])
 
   return (
     <>
@@ -189,6 +217,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               showAll={showAll}
               fold={fold}
               open={open}
+              flash={flash}
               onGroup={(g) => {
                 setGroup(g)
                 setStat('ALL')
@@ -203,7 +232,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               onOpen={(id) => setOpen((o) => (o === id ? null : id))}
             />
             <StatCloser lines={lines} game={game} />
-            <HowDivided lines={lines} settled={settled} group={group} game={game} />
+            <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
             <GameBoxes data={data} lines={lines} settled={settled} />
             <p className="ic-bands">
               Bands: points ±{data.bands.pts}, rebounds and assists ±{data.bands.reb}, 3PM, steals and blocks ±
@@ -460,6 +489,7 @@ interface ListProps {
   onShowAll: () => void
   onFold: () => void
   onOpen: (id: string) => void
+  flash: string | null
 }
 
 function GapList(p: ListProps) {
@@ -543,7 +573,7 @@ function GapList(p: ListProps) {
         </p>
         <Key judged={lines.some((l) => l.oursHit != null)} />
       </div>
-      {top.length > 0 && <DuelStage lines={top} />}
+      {top.length > 0 && <DuelStage lines={top} flash={p.flash} />}
       {list.length > 0 && (
         <>
           <h3 className="ic-rest-h">The rest of the gaps</h3>
@@ -564,7 +594,16 @@ function GapList(p: ListProps) {
         list.length > 0 && (
           <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
             {list.slice(0, limit).map((l, i) => (
-              <Row key={l.id} line={l} i={i} rank={i + 4} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
+              <Row
+                key={l.id}
+                line={l}
+                i={i}
+                rank={i + 4}
+                settled={settled}
+                open={p.open === l.id}
+                flash={p.flash === l.id}
+                onOpen={p.onOpen}
+              />
             ))}
           </ol>
         )
@@ -584,7 +623,16 @@ function GapList(p: ListProps) {
         {p.fold && (
           <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
             {rest.slice(0, p.showAll ? undefined : page).map((l, i) => (
-              <Row key={l.id} line={l} i={i} rank={0} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
+              <Row
+                key={l.id}
+                line={l}
+                i={i}
+                rank={0}
+                settled={settled}
+                open={p.open === l.id}
+                flash={p.flash === l.id}
+                onOpen={p.onOpen}
+              />
             ))}
           </ol>
         )}
@@ -722,18 +770,28 @@ function stageScale(lines: Line[]) {
 }
 
 /** The top three gaps as duel cards: the book's number facing ours across the gap, on one ruler. */
-function DuelStage({ lines }: { lines: Line[] }) {
+function DuelStage({ lines, flash }: { lines: Line[]; flash: string | null }) {
   const scale = stageScale(lines)
   return (
     <div className="ic-stage">
       {lines.map((l, i) => (
-        <DuelCard key={l.id} line={l} rank={i + 1} scale={scale} />
+        <DuelCard key={l.id} line={l} rank={i + 1} scale={scale} flash={flash === l.id} />
       ))}
     </div>
   )
 }
 
-function DuelCard({ line: l, rank, scale }: { line: Line; rank: number; scale: { lo: number; hi: number } }) {
+function DuelCard({
+  line: l,
+  rank,
+  scale,
+  flash,
+}: {
+  line: Line
+  rank: number
+  scale: { lo: number; hi: number }
+  flash: boolean
+}) {
   const g = l.game
   const final = g.status === 'final' && l.closer != null
   const unit = STAT_UNIT[l.stat]
@@ -743,7 +801,8 @@ function DuelCard({ line: l, rank, scale }: { line: Line; rank: number; scale: {
       : `Each tick: one band, ${num(l.band)} ${l.band === 1 ? unit.replace(/s$/, '') : unit}`
   return (
     <article
-      className={`ic-duel${final ? ' has-res' : ''}`}
+      className={`ic-duel${final ? ' has-res' : ''}${flash ? ' ic-flash' : ''}`}
+      data-line={l.id}
       aria-label={`Number ${rank}: ${l.kind === 'player' ? l.name : l.gameLabel}, ${STAT_NAME[l.stat]}`}
     >
       <header>
@@ -887,6 +946,7 @@ function Row({
   rank,
   settled,
   open,
+  flash,
   onOpen,
 }: {
   line: Line
@@ -894,10 +954,11 @@ function Row({
   rank: number
   settled: boolean
   open: boolean
+  flash: boolean
   onOpen: (id: string) => void
 }) {
   return (
-    <li className={`ic-row${open ? ' is-open' : ''}`}>
+    <li className={`ic-row${open ? ' is-open' : ''}${flash ? ' ic-flash' : ''}`} data-line={l.id}>
       <button type="button" className="ic-row-main ic-grid" aria-expanded={open} onClick={() => onOpen(l.id)}>
         <span className="ic-rk">{rank || ''}</span>
         <Face line={l} />
@@ -1284,18 +1345,59 @@ function LadderRow({ n, chance }: { n: number; chance: number }) {
   )
 }
 
+/** The top three gaps the list shows right now (the duel stage), as the field's numbered marks. */
+function stageOf(lines: Line[], group: 'players' | 'games', stat: Stat | 'ALL', game: number | null) {
+  const stats = group === 'players' ? PLAYER_STATS : GAME_STATS
+  const shown = lines.filter(
+    (l) =>
+      stats.includes(l.stat) &&
+      (game == null || l.game.game_id === game) &&
+      l.gap != null &&
+      (stat === 'ALL' || l.stat === stat),
+  )
+  return new Map(ranked(shown, stat === 'ALL').above.slice(0, 3).map((l, i) => [l.id, i + 1]))
+}
+
+/** Lines that belong together across the strips: the same player, or the same game. */
+const kinOf = (l: Line) => (l.kind === 'player' ? `p:${l.playerId || l.name}` : `g:${l.game.game_id}`)
+
+/** The mark in focus across every strip: a hover preview, or pinned by a click, Enter or a tap. */
+type Active = { id: string; pin: boolean } | null
+
 function HowDivided({
   lines,
-  settled,
   group,
   game,
+  stage,
+  onSee,
 }: {
   lines: Line[]
-  settled: boolean
   group: 'players' | 'games'
   game: number | null
+  stage: Map<string, number>
+  onSee: (l: Line) => void
 }) {
   const stats = group === 'players' ? PLAYER_STATS : GAME_STATS
+  const [act, setAct] = useState<Active>(null)
+  const phone = usePhone()
+  const mine = lines.filter((l) => stats.includes(l.stat) && l.gap != null && (game == null || l.game.game_id === game))
+  const activeLine = act ? mine.find((l) => l.id === act.id) ?? null : null
+  const kin = activeLine ? kinOf(activeLine) : null
+  useEscapeLayer(act != null, () => setAct(null))
+  useEffect(() => {
+    if (!act) return
+    // a press anywhere but a strip or the card puts the card away
+    const away = (e: PointerEvent) => {
+      const t = e.target as Element | null
+      if (!t?.closest?.('.ic-fld, .ic-mc, .ic-mc-scrim')) setAct(null)
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [act])
+  useEffect(() => setAct(null), [group, game])
+
+  const has = (f: (l: Line) => boolean) => mine.some(f)
+  const fin = (l: Line) => l.game.status === 'final' && l.closer != null
   return (
     <section className="ic-sec" aria-labelledby="ic-h-field">
       <div className="ic-sec-h">
@@ -1303,26 +1405,45 @@ function HowDivided({
           <h2 id="ic-h-field">How divided</h2>
           <p className="ic-sub">
             Every line is one mark at its gap, measured in bands (the edges are 0.6 of a band, the same scale as the row
-            bands). <span className="ic-hover-hint">Hover a mark to see whose line it is.</span>
+            bands). <span className="ic-hover-hint">Hover a mark to see whose line it is, click to keep the card open.</span>
             <span className="ic-tap-hint">Tap a mark to see whose line it is.</span>
           </p>
         </div>
         <div className="ic-legend">
-          {settled ? (
-            <>
-              <span className="ok">
-                <CheckIcon />
-                Ours within band
-              </span>
-              <span className="no">
-                <XIcon />
-                Ours outside
-              </span>
-            </>
-          ) : (
+          {stage.size > 0 && (
             <span>
-              <span className="ring" />
-              One line
+              <i className="lg n">1</i>
+              Top gaps above
+            </span>
+          )}
+          {has((l) => fin(l) && l.closer === 'ours') && (
+            <span>
+              <i className="lg win" />
+              We were closer
+            </span>
+          )}
+          {has((l) => fin(l) && l.closer === 'book') && (
+            <span>
+              <i className="lg bk" />
+              Book was closer
+            </span>
+          )}
+          {has((l) => fin(l) && l.closer === 'tie') && (
+            <span>
+              <i className="lg lv" />
+              Level
+            </span>
+          )}
+          {has((l) => !fin(l) && l.tipped) && (
+            <span>
+              <i className="lg play" />
+              Playing
+            </span>
+          )}
+          {has((l) => !fin(l) && !l.tipped) && (
+            <span>
+              <i className="lg ring" />
+              To come
             </span>
           )}
           <span>
@@ -1338,10 +1459,10 @@ function HowDivided({
           <span>Seam: the book's line</span>
           <span>Ours higher</span>
         </div>
-        <span className="notes-h">{settled ? 'Within band' : 'Ours above'}</span>
+        <span className="notes-h">Ours above · closer</span>
       </div>
       {stats.map((s) => {
-        const ls = lines.filter((l) => l.stat === s && l.gap != null && (game == null || l.game.game_id === game))
+        const ls = mine.filter((l) => l.stat === s)
         if (!ls.length) return null
         const t = tallyOf(ls)
         const med = median(ls.map((l) => l.gap ?? 0))
@@ -1352,18 +1473,29 @@ function HowDivided({
               <b>{STAT_NAME[s]}</b>
               <span>{ls.length} lines</span>
             </div>
-            <Field lines={ls} stat={s} />
+            <Field
+              lines={ls}
+              stat={s}
+              act={act}
+              kin={kin}
+              stage={stage}
+              phone={phone}
+              onAct={setAct}
+              onSee={(l) => {
+                setAct(null)
+                onSee(l)
+              }}
+            />
             <div className="notes">
-              {settled && t.judged ? (
+              <b>{t.above}</b> of {t.n} above · median {signed(med, s)}
+              <br />
+              {t.judged ? (
                 <>
-                  Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b>
-                  <br />
-                  median gap {signed(med, s)}
+                  <i className="lg win" aria-hidden="true" />
+                  We were closer on <b className="g">{t.oursCloser}</b> of {t.judged}
                 </>
               ) : (
                 <>
-                  <b>{t.above}</b> of {t.n} above · median {signed(med, s)}
-                  <br />
                   biggest {signed(best.gap ?? 0, s)}{' '}
                   {best.kind === 'player' ? best.name.split(' ').slice(-1)[0] : best.gameLabel}
                 </>
@@ -1376,13 +1508,30 @@ function HowDivided({
   )
 }
 
-/** One stat's lines as marks along the seam (a beeswarm). Hover a mark (tap on phones, or focus the
- *  strip and step with the arrow keys) and a card says whose line it is: the name, our number, the
- *  book's and, once the game is final, what happened. */
-function Field({ lines, stat }: { lines: Line[]; stat: Stat }) {
+/** One stat's lines as marks along the seam (a beeswarm). Hover a mark for a preview card, click it
+ *  (or press Enter on the strip) to keep the card open, tap on phones; the arrow keys step through
+ *  the marks. The same player's (or game's) marks in the other strips light up with it. */
+function Field({
+  lines,
+  stat,
+  act,
+  kin,
+  stage,
+  phone,
+  onAct,
+  onSee,
+}: {
+  lines: Line[]
+  stat: Stat
+  act: Active
+  kin: string | null
+  stage: Map<string, number>
+  phone: boolean
+  onAct: (a: Active) => void
+  onSee: (l: Line) => void
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
-  const [active, setActive] = useState<string | null>(null)
   const pointer = useRef('mouse')
   useEffect(() => {
     const el = ref.current
@@ -1394,17 +1543,10 @@ function Field({ lines, stat }: { lines: Line[]; stat: Stat }) {
     return () => ro?.disconnect()
   }, [])
   const placed = useMemo(() => swarm(lines, width), [lines, width])
-  const on = placed.marks.find((m) => m.line.id === active) ?? null
-  useEscapeLayer(on != null, () => setActive(null))
-  useEffect(() => {
-    if (!on) return
-    // a tap anywhere else puts the card away
-    const away = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setActive(null)
-    }
-    document.addEventListener('pointerdown', away)
-    return () => document.removeEventListener('pointerdown', away)
-  }, [on])
+  const on = placed.marks.find((m) => m.line.id === act?.id) ?? null
+  const pinned = !!on && !!act?.pin
+  /** The card is a portal, but React still bubbles its events through here: answer the strip's own only. */
+  const inside = (e: { target: EventTarget }) => !!ref.current?.contains(e.target as Node)
 
   /** The mark nearest the pointer, if one is within reach. */
   const near = (e: { clientX: number; clientY: number }, reach: number) => {
@@ -1426,77 +1568,157 @@ function Field({ lines, stat }: { lines: Line[]; stat: Stat }) {
   const step = (by: number) => {
     const ms = placed.marks // already left to right
     if (!ms.length) return
-    const i = ms.findIndex((m) => m.line.id === active)
+    const i = ms.findIndex((m) => m.line.id === on?.line.id)
     const next = i < 0 ? (by > 0 ? 0 : ms.length - 1) : Math.max(0, Math.min(ms.length - 1, i + by))
-    setActive(ms[next].line.id)
+    onAct({ id: ms[next].line.id, pin: !!act?.pin })
   }
 
   return (
     <div
       ref={ref}
-      className={`ic-fld${placed.dense ? ' dense' : ''}${on ? ' has-on' : ''}`}
+      className={`ic-fld${placed.dense ? ' dense' : ''}${act ? ' has-on' : ''}`}
       style={{ height: placed.height }}
       tabIndex={0}
       role="group"
-      aria-label={`${STAT_NAME[stat]}: ${lines.length} lines. Use the arrow keys to step through them.`}
+      aria-label={`${STAT_NAME[stat]}: ${lines.length} lines. Use the arrow keys to step through them and Enter to keep a card open.`}
       onPointerDown={(e) => {
-        pointer.current = e.pointerType
+        if (inside(e)) pointer.current = e.pointerType
       }}
       onPointerMove={(e) => {
-        if (e.pointerType !== 'mouse') return
-        setActive(near(e, 14)?.line.id ?? null)
+        if (e.pointerType !== 'mouse' || act?.pin || !inside(e)) return
+        const m = near(e, 14)
+        if (m) onAct({ id: m.line.id, pin: false })
+        else if (on) onAct(null)
       }}
       onPointerLeave={(e) => {
-        if (e.pointerType === 'mouse') setActive(null)
+        if (e.pointerType === 'mouse' && on && !act?.pin) onAct(null)
       }}
       onClick={(e) => {
-        if (pointer.current === 'mouse') return
-        const m = near(e, 24) // a finger is wider than a mark
-        setActive((a) => (m && m.line.id !== a ? m.line.id : null))
+        if (!inside(e)) return
+        const m = near(e, pointer.current === 'mouse' ? 14 : 24) // a finger is wider than a mark
+        if (m && !(act?.pin && act.id === m.line.id)) onAct({ id: m.line.id, pin: true })
+        else if (on || !m) onAct(null)
+      }}
+      onFocus={(e) => {
+        // a keyboard focus opens the biggest gap's card, so the strip says what it holds at once
+        if (!inside(e)) return
+        let keyed = false
+        try {
+          keyed = e.currentTarget.matches(':focus-visible')
+        } catch {
+          keyed = false
+        }
+        if (keyed && !on && placed.marks.length) onAct({ id: placed.marks[placed.marks.length - 1].line.id, pin: false })
       }}
       onKeyDown={(e) => {
+        if (!inside(e)) return
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') step(1)
         else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') step(-1)
-        else if (e.key === 'Home') setActive(placed.marks[0]?.line.id ?? null)
-        else if (e.key === 'End') setActive(placed.marks[placed.marks.length - 1]?.line.id ?? null)
+        else if (e.key === 'Home') onAct({ id: placed.marks[0]?.line.id ?? '', pin: !!act?.pin })
+        else if (e.key === 'End') onAct({ id: placed.marks[placed.marks.length - 1]?.line.id ?? '', pin: !!act?.pin })
+        else if ((e.key === 'Enter' || e.key === ' ') && on) onAct({ id: on.line.id, pin: !act?.pin })
         else return
         e.preventDefault()
       }}
-      onBlur={() => setActive(null)}
+      onBlur={(e) => {
+        if (!inside(e)) return
+        const to = e.relatedTarget as Element | null
+        if (on && !act?.pin && !to?.closest?.('.ic-mc')) onAct(null)
+      }}
     >
       {width > 0 && <span className="med" style={{ left: placed.median }} aria-hidden="true" />}
       {width > 0 &&
         placed.marks.map(({ line, x, y }) => {
-          const cls = line.id === active ? ' on' : ''
-          return line.oursHit != null ? (
+          const n = stage.get(line.id)
+          const cls = `${line.id === act?.id ? ' on' : ''}${kin && kinOf(line) === kin && line.id !== act?.id ? ' kin' : ''}`
+          return (
             <span
               key={line.id}
-              className={`m ${line.oursHit ? 'ok' : 'no'}${cls}`}
-              style={{ left: x, top: y }}
+              className={`m ${n ? 'n' : shapeOf(line)}${cls}`}
+              style={{ left: x, top: y, zIndex: n ? 5 - n : undefined }}
               aria-hidden="true"
             >
-              {line.oursHit ? <CheckIcon /> : <XIcon />}
+              {n}
             </span>
-          ) : (
-            <span
-              key={line.id}
-              className={`m ring${line.tipped ? ' dim' : ''}${cls}`}
-              style={{ left: x, top: y }}
-              aria-hidden="true"
-            />
           )
         })}
-      {on && ref.current && <MarkCard line={on.line} field={ref.current} x={on.x} y={on.y} />}
+      {on && ref.current && (
+        <MarkCard
+          line={on.line}
+          field={ref.current}
+          x={on.x}
+          y={on.y}
+          pinned={pinned}
+          sheet={phone}
+          onClose={() => {
+            onAct(null)
+            ref.current?.focus({ preventScroll: true })
+          }}
+          onSee={() => onSee(on.line)}
+        />
+      )}
     </div>
   )
 }
 
-/** The card over a mark in How divided. Drawn in a portal so the section's edges never clip it,
- *  placed above the mark (below when there is no room) and kept on screen. */
-function MarkCard({ line: l, field, x, y }: { line: Line; field: HTMLElement; x: number; y: number }) {
+/** A mark's shape says where the line stands, never its colour alone: ○ to come, ◉ playing,
+ *  ● we were closer, ◆ the book was closer, ⊙ level. */
+function shapeOf(l: Line): string {
+  if (l.game.status === 'final' && l.closer) return l.closer === 'ours' ? 'win' : l.closer === 'book' ? 'bk' : 'lv'
+  if (l.game.status === 'final') return 'ring dim'
+  return l.tipped ? 'play' : 'ring'
+}
+
+/** Where the game stands, for the card's sub line. */
+function gameWhen(l: Line) {
+  const g = l.game
+  if (g.status === 'final')
+    return (
+      <>
+        Final{' '}
+        {g.away_score != null && g.home_score != null && <span className="num">{`${g.away_score}–${g.home_score}`}</span>}
+      </>
+    )
+  if (g.status === 'live' || l.tipped)
+    return (
+      <>
+        <span className="ic-live" aria-hidden="true" />
+        Live
+      </>
+    )
+  return (
+    <>
+      Tip <span className="num">{clock(g.tip)}</span>
+    </>
+  )
+}
+
+/** The card over a mark in How divided: Book, Ours, then the result (the gap before the game), the
+ *  plain sentence and a footer well with the gap and who was closer. A preview follows the hover; a
+ *  pinned card takes the pointer and has Close and See in game. On phones it is a bottom sheet. */
+function MarkCard({
+  line: l,
+  field,
+  x,
+  y,
+  pinned,
+  sheet,
+  onClose,
+  onSee,
+}: {
+  line: Line
+  field: HTMLElement
+  x: number
+  y: number
+  pinned: boolean
+  sheet: boolean
+  onClose: () => void
+  onSee: () => void
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number; below: boolean; tip: number } | null>(null)
   useLayoutEffect(() => {
+    if (sheet) return
     const place = () => {
       const card = ref.current
       if (!card) return
@@ -1507,7 +1729,7 @@ function MarkCard({ line: l, field, x, y }: { line: Line; field: HTMLElement; x:
       const h = card.offsetHeight
       const vw = document.documentElement.clientWidth
       const left = Math.max(8, Math.min(vw - w - 8, ax - w / 2))
-      const below = ay - h - 14 < 8
+      const below = ay - h - 14 < 72
       const top = below ? ay + 14 : ay - h - 14
       setPos({ left, top, below, tip: Math.max(14, Math.min(w - 14, ax - left)) })
     }
@@ -1518,57 +1740,55 @@ function MarkCard({ line: l, field, x, y }: { line: Line; field: HTMLElement; x:
       window.removeEventListener('scroll', place, true)
       window.removeEventListener('resize', place)
     }
-  }, [field, x, y, l.id])
+  }, [field, x, y, l.id, sheet, pinned])
   const final = settledOf(l)
   const say = plain(l, final)
   const what =
     l.stat === 'TEAM' ? `${l.team} points` : l.stat === 'WIN' ? `${STAT_NAME.WIN} · ${l.team}` : STAT_NAME[l.stat]
-  const verdict = (side: 'ours' | 'book') => {
-    const hit = side === 'ours' ? l.oursHit : l.bookHit
-    if (hit == null) return null
-    const v = l[side]
-    const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
-    return (
-      <span className={`ic-mc-hit ${hit ? 'ok' : 'no'}`}>
-        {hit ? <CheckIcon /> : <XIcon />}
-        {l.stat === 'WIN' ? (hit ? 'right' : 'wrong') : hit ? 'in band' : `off ${off}`}
-      </span>
-    )
-  }
-  return createPortal(
+  const open = pinned || sheet
+  const card = (
     <div
       ref={ref}
-      className={`ic-mc${pos?.below ? ' below' : ''}${l.closer === 'ours' && final ? ' ours-closer' : ''}`}
-      role="status"
+      className={`ic-mc${sheet ? ' sheet' : pos?.below ? ' below' : ''}${open ? ' pinned' : ''}`}
+      role={open ? 'dialog' : 'status'}
+      aria-label={open ? `${l.kind === 'player' ? l.name : l.gameLabel}, ${what}` : undefined}
       style={
-        {
-          left: pos?.left ?? -9999,
-          top: pos?.top ?? 0,
-          visibility: pos ? 'visible' : 'hidden',
-          '--tip': `${pos?.tip ?? 0}px`,
-        } as CSSProperties
+        sheet
+          ? undefined
+          : ({
+              left: pos?.left ?? -9999,
+              top: pos?.top ?? 0,
+              visibility: pos ? 'visible' : 'hidden',
+              '--tip': `${pos?.tip ?? 0}px`,
+            } as CSSProperties)
       }
     >
+      {sheet && <span className="ic-mc-grab" aria-hidden="true" />}
       <div className="ic-mc-h">
         <Face line={l} />
         <div className="ic-mc-who">
           <b>{l.kind === 'player' ? l.name : l.gameLabel}</b>
           <span>
             {what}
-            {l.kind === 'player' && <> · {l.gameLabel}</>}
+            {l.kind === 'player' && <> · {l.gameLabel}</>} · {gameWhen(l)}
           </span>
         </div>
+        {open && (
+          <button type="button" className="ic-mc-x" aria-label="Close" onClick={onClose}>
+            <XIcon />
+          </button>
+        )}
       </div>
-      <div className={`ic-mc-nums${final && l.actual != null ? ' three' : ''}`}>
-        <div>
-          <span className="lab">Ours</span>
-          <span className="v">{value(l, 'ours')}</span>
-          {verdict('ours')}
-        </div>
+      <div className="ic-mc-nums">
         <div>
           <span className="lab">Book</span>
-          <span className="v">{value(l, 'book')}</span>
-          {verdict('book')}
+          <span className="v bk">{value(l, 'book')}</span>
+          <McHit line={l} side="book" />
+        </div>
+        <div>
+          <span className="lab">Ours</span>
+          <span className="v ou">{value(l, 'ours')}</span>
+          <McHit line={l} side="ours" />
         </div>
         <div>
           <span className="lab">{final ? 'Result' : 'Gap'}</span>
@@ -1576,8 +1796,52 @@ function MarkCard({ line: l, field, x, y }: { line: Line; field: HTMLElement; x:
         </div>
       </div>
       {say && <p className="ic-mc-say">{cap(say)}.</p>}
-    </div>,
+      <div className={`ic-mc-well${final && l.closer === 'ours' ? ' ours' : ''}`}>
+        <span>
+          Gap <b className="num">{signed(l.gap ?? 0, l.stat)}</b>
+        </span>
+        {final ? (
+          <Verdict line={l} />
+        ) : l.tipped ? (
+          <span className="sub">
+            <span className="ic-live" aria-hidden="true" />
+            Playing now
+          </span>
+        ) : (
+          <span className="sub">Result after the game</span>
+        )}
+      </div>
+      {open && (
+        <button type="button" className="secondary ic-mc-see" onClick={onSee}>
+          See in game
+        </button>
+      )}
+    </div>
+  )
+  return createPortal(
+    sheet ? (
+      <>
+        <div className="ic-mc-scrim" aria-hidden="true" onClick={onClose} />
+        {card}
+      </>
+    ) : (
+      card
+    ),
     document.body,
+  )
+}
+
+/** "✓ in band" or "✗ off 2.7" under the card's Book and Ours. */
+function McHit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
+  const hit = side === 'ours' ? l.oursHit : l.bookHit
+  if (hit == null || l.game.status !== 'final') return null
+  const v = l[side]
+  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
+  return (
+    <span className={`ic-mc-hit ${hit ? 'ok' : 'no'}`}>
+      {hit ? <CheckIcon /> : <XIcon />}
+      {l.stat === 'WIN' ? (hit ? 'right' : 'wrong') : hit ? 'in band' : `off ${off}`}
+    </span>
   )
 }
 
