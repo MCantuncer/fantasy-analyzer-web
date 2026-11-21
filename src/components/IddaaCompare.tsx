@@ -454,19 +454,12 @@ function GapList(p: ListProps) {
   const count = (g: 'players' | 'games') =>
     lines.filter((l) => (g === 'players' ? l.kind === 'player' : l.kind === 'game') && inGame(l) && l.gap != null)
       .length
-  const hidden = Math.max(0, above.length - limit)
+  const top = above.slice(0, 3)
+  const list = above.slice(3)
+  const hidden = Math.max(0, list.length - limit)
   const most = rest[0]
   return (
     <section className="ic-sec" aria-labelledby="ic-h-list">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-list">Biggest gaps above the book</h2>
-          <p className="ic-sub">
-            Gap = Ours − Book. Largest first.
-            {settled && ' Each line is judged against the result: ✓ when it lands within the band.'}
-          </p>
-        </div>
-      </div>
       <div className="ic-controls">
         <div className="ic-ctrl-top">
           <div className="ic-seg" role="group" aria-label="Lines">
@@ -501,6 +494,11 @@ function GapList(p: ListProps) {
           })}
         </div>
       </div>
+      <div className="ic-sec-h ic-stage-h">
+        <div>
+          <h2 id="ic-h-list">{settled ? 'The biggest gaps, and how they landed' : 'Where we and the book disagree most'}</h2>
+        </div>
+      </div>
       <div className="ic-explain">
         <p>
           {stat === 'ALL'
@@ -510,7 +508,13 @@ function GapList(p: ListProps) {
         </p>
         <Key judged={lines.some((l) => l.oursHit != null)} />
       </div>
-      <ColHead />
+      {top.length > 0 && <DuelStage lines={top} />}
+      {list.length > 0 && (
+        <>
+          <h3 className="ic-rest-h">The rest of the gaps</h3>
+          <ColHead />
+        </>
+      )}
       {above.length === 0 ? (
         <p className="ic-none">
           No line had Ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
@@ -522,11 +526,13 @@ function GapList(p: ListProps) {
           )}
         </p>
       ) : (
-        <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
-          {above.slice(0, limit).map((l, i) => (
-            <Row key={l.id} line={l} i={i} rank={i + 1} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
-          ))}
-        </ol>
+        list.length > 0 && (
+          <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
+            {list.slice(0, limit).map((l, i) => (
+              <Row key={l.id} line={l} i={i} rank={i + 4} settled={settled} open={p.open === l.id} onOpen={p.onOpen} />
+            ))}
+          </ol>
+        )
       )}
       <div className="ic-list-foot">
         {hidden > 0 && (
@@ -664,6 +670,182 @@ function resultValue(l: Line) {
   return num(l.actual)
 }
 
+/** The duel stage's shared scale, in bands: wide enough for every card's gap and result. */
+function stageScale(lines: Line[]) {
+  let lo = -0.25
+  let hi = 0.5
+  for (const l of lines) {
+    hi = Math.max(hi, l.score + 0.25)
+    lo = Math.min(lo, l.score - 0.25)
+    if (l.actual != null && l.book != null && l.stat !== 'WIN') {
+      const r = (l.actual - l.book) / l.band
+      hi = Math.max(hi, r + 0.25)
+      lo = Math.min(lo, r - 0.25)
+    }
+  }
+  return { lo: Math.max(-2, lo), hi: Math.min(2.6, hi) }
+}
+
+/** The top three gaps as duel cards: the book's number facing ours across the gap, on one ruler. */
+function DuelStage({ lines }: { lines: Line[] }) {
+  const scale = stageScale(lines)
+  return (
+    <div className="ic-stage">
+      {lines.map((l, i) => (
+        <DuelCard key={l.id} line={l} rank={i + 1} scale={scale} />
+      ))}
+    </div>
+  )
+}
+
+function DuelCard({ line: l, rank, scale }: { line: Line; rank: number; scale: { lo: number; hi: number } }) {
+  const g = l.game
+  const final = g.status === 'final' && l.closer != null
+  const unit = STAT_UNIT[l.stat]
+  const cap1 =
+    l.stat === 'WIN'
+      ? 'Each tick: 20 points of chance'
+      : `Each tick: one band, ${num(l.band)} ${l.band === 1 ? unit.replace(/s$/, '') : unit}`
+  return (
+    <article
+      className={`ic-duel${final ? ' has-res' : ''}`}
+      aria-label={`Number ${rank}: ${l.kind === 'player' ? l.name : l.gameLabel}, ${STAT_NAME[l.stat]}`}
+    >
+      <header>
+        <span className="ic-rkd" aria-hidden="true">
+          {rank}
+        </span>
+        <Face line={l} />
+        <div className="ic-dw">
+          <b>{l.kind === 'player' ? <NameLink line={l} /> : l.gameLabel}</b>
+          <span>
+            <em>{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</em>
+            {l.kind === 'player' && <> · {l.gameLabel}</>}
+          </span>
+        </div>
+        <span className="ic-when">
+          {g.status === 'final' ? (
+            'Final'
+          ) : g.status === 'live' || l.tipped ? (
+            <>
+              <span className="ic-live" aria-hidden="true" />
+              Live
+            </>
+          ) : (
+            <>
+              Tip <span className="num">{clock(g.tip)}</span>
+            </>
+          )}
+        </span>
+      </header>
+      <div className="ic-faceoff">
+        <span className="lab bk">Book</span>
+        <span className="lab ou">Ours</span>
+        <span className="v bk">{value(l, 'book')}</span>
+        <span className="wire" aria-hidden="true">
+          <span className="gap">{signed(l.gap ?? 0, l.stat)}</span>
+        </span>
+        <span className="v ou">{value(l, 'ours')}</span>
+        {final && (
+          <>
+            <HitWord line={l} side="book" />
+            <HitWord line={l} side="ours" />
+          </>
+        )}
+      </div>
+      <StageRuler line={l} scale={scale} />
+      <div className="ic-duel-cap">{cap1}</div>
+      <DuelSlot line={l} />
+    </article>
+  )
+}
+
+/** "✓ in band" or "✗ off 6.6" under a duel number: did it land within its band. */
+function HitWord({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
+  const ok = side === 'ours' ? l.oursHit : l.bookHit
+  if (ok == null) return <span className={`hw ${side === 'ours' ? 'ou' : 'bk'}`} />
+  const v = l[side]
+  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
+  return (
+    <span className={`hw ${side === 'ours' ? 'ou' : 'bk'} ${ok ? 'ok' : 'no'}`}>
+      {ok ? <CheckIcon /> : <XIcon />}
+      {l.stat === 'WIN' ? (ok ? 'right' : 'wrong') : ok ? 'in band' : `off ${off}`}
+    </span>
+  )
+}
+
+/** One duel's ruler on the stage's shared scale: the book's tick, the warm bar to ours, the result pin. */
+function StageRuler({ line: l, scale }: { line: Line; scale: { lo: number; hi: number } }) {
+  const x = (b: number) => ((Math.max(scale.lo, Math.min(scale.hi, b)) - scale.lo) / (scale.hi - scale.lo)) * 100
+  const b0 = x(0)
+  const o = x(l.score)
+  const ticks: number[] = []
+  for (let k = Math.ceil(scale.lo); k <= Math.floor(scale.hi); k++) if (k !== 0) ticks.push(k)
+  const res = l.actual != null && l.book != null && l.stat !== 'WIN' ? x((l.actual - l.book) / l.band) : null
+  const label = `The book's line, then ours ${signed(l.gap ?? 0, l.stat)} away${
+    l.actual != null && l.stat !== 'WIN' ? `, and the result ${num(l.actual)}` : ''
+  }.`
+  return (
+    <div className="ic-sruler" role="img" aria-label={label}>
+      <i className="ax" />
+      {ticks.map((k) => (
+        <i key={k} className="tk" style={{ left: `${x(k)}%` }} />
+      ))}
+      <i className={`bar${(l.gap ?? 0) < 0 ? ' dn' : ''}`} style={{ left: `${Math.min(b0, o)}%`, width: `${Math.abs(o - b0)}%` }} />
+      <i className="bk" style={{ left: `${b0}%` }} />
+      {res != null && <i className="pin" style={{ left: `${res}%` }} />}
+      {(res == null || Math.abs(res - b0) >= 16) && (
+        <span className="lbl" style={{ left: `${Math.max(6, b0)}%` }}>
+          Book
+        </span>
+      )}
+      {res != null && (
+        <span className="lbl r" style={{ left: `${Math.max(8, Math.min(92, res))}%` }}>
+          Result {num(l.actual ?? 0)}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** The duel's footer: the plain sentence before the game, Playing during it, then who was nearer. */
+function DuelSlot({ line: l }: { line: Line }) {
+  const g = l.game
+  if (g.status === 'final' && l.closer) {
+    const say =
+      l.kind === 'player' && l.actual != null ? (
+        <>
+          Finished with <b>{num(l.actual)}</b> {l.actual === 1 ? STAT_UNIT[l.stat].replace(/s$/, '') : STAT_UNIT[l.stat]}.
+        </>
+      ) : (
+        <>{cap(plain(l, true))}.</>
+      )
+    return (
+      <div className={`ic-dslot${l.closer === 'ours' ? ' ours' : ''}`}>
+        <span>{say}</span>
+        <Verdict line={l} />
+      </div>
+    )
+  }
+  if (l.tipped)
+    return (
+      <div className="ic-dslot live">
+        <span>
+          <span className="ic-live" aria-hidden="true" />
+          Playing now
+        </span>
+        <span className="sub">
+          kept as read at <span className="num">{clock(g.checked)}</span>
+        </span>
+      </div>
+    )
+  return (
+    <div className="ic-dslot pre">
+      <span>{cap(plain(l, false))}.</span>
+    </div>
+  )
+}
+
 function Row({
   line: l,
   i,
@@ -698,23 +880,13 @@ function Row({
 function ResultSlot({ line: l }: { line: Line }) {
   const g = l.game
   if (g.status === 'final') {
-    const by = l.by == null || l.closer === 'tie' ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
     return (
       <div className={`ic-slot fin${l.closer === 'ours' ? ' ours' : ''}`}>
         <span className="ic-slot-res">
           <span className="lab">Result</span>
           <b>{resultValue(l) ?? '–'}</b>
         </span>
-        {l.closer && (
-          <span className={`ic-slot-vd ${l.closer}`}>
-            <b>{l.closer === 'ours' ? 'We were closer' : l.closer === 'book' ? 'Book was closer' : 'Level with the book'}</b>
-            {by && (
-              <span>
-                by <span className="num">{by}</span>
-              </span>
-            )}
-          </span>
-        )}
+        <Verdict line={l} />
       </div>
     )
   }
@@ -734,6 +906,22 @@ function ResultSlot({ line: l }: { line: Line }) {
         Tip <span className="num">{clock(g.tip)}</span>
       </span>
     </div>
+  )
+}
+
+/** Who was nearer the result, in words: green for us, calm for the book, muted when level. */
+function Verdict({ line: l }: { line: Line }) {
+  if (!l.closer) return null
+  const by = l.by == null || l.closer === 'tie' ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+  return (
+    <span className={`ic-slot-vd ${l.closer}`}>
+      <b>{l.closer === 'ours' ? 'We were closer' : l.closer === 'book' ? 'Book was closer' : 'Level with the book'}</b>
+      {by && (
+        <span>
+          by <span className="num">{by}</span>
+        </span>
+      )}
+    </span>
   )
 }
 
