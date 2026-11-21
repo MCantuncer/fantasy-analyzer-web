@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { linesOf, num, ranked, signed, tallyOf } from './iddaaCompare'
+import { gameStory, linesOf, num, plain, ranked, signed, tallyOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer } from './iddaaCompare'
 
 const BANDS = { pts: 5, reb: 2, ast: 2, stl: 1, blk: 1, three_pm: 1, team_pts: 8, total: 12, margin: 8 }
@@ -105,5 +105,29 @@ describe('iddaa vs Ours numbers', () => {
     expect(signed(-0.4, 'REB')).toBe('−0.4')
     expect(signed(0, 'AST')).toBe('0.0')
     expect(signed(0.031, 'WIN')).toBe('+3pp')
+  })
+})
+
+describe('iddaa vs Ours in plain words', () => {
+  it('says what we expect against the book, then what happened', () => {
+    const [before] = linesOf(night([player('A One', 'pts', 22, 19.5, null)], 'scheduled'), new Date('2026-11-20T12:00:00Z'))
+    expect(plain(before, false)).toBe('we expect 2.5 more points than the book')
+    const [after] = linesOf(night([player('A One', 'pts', 22, 19.5, 24)]), new Date())
+    expect(plain(after, true)).toBe('finished with 24 points, we were closer')
+    const [one] = linesOf(night([player('B Two', 'stl', 0.8, 1.5, 1)]), new Date())
+    expect(plain(one, true)).toBe('finished with 1 steal, we were closer')
+  })
+
+  it('tells a game as who wins, by how much and the total', () => {
+    const data = night([], 'scheduled')
+    data.games[0].markets = [
+      { market: 'winner', team: 'PHI', book_team: 'PHI', won: '', ours: 0.89, book: 0.8, actual: null, gap: 0.09, ours_hit: null, book_hit: null, closer: null },
+      { market: 'margin', team: 'PHI', book_team: 'PHI', won: '', ours: 14, book: 10.5, actual: null, gap: 3.5, ours_hit: null, book_hit: null, closer: null },
+      { market: 'total', team: '', book_team: '', won: '', ours: 230, book: 229.5, actual: null, gap: 0.5, ours_hit: null, book_hit: null, closer: null },
+    ]
+    const lines = linesOf(data, new Date('2026-11-20T12:00:00Z'))
+    expect(gameStory(lines, false)).toBe(
+      'We give PHI 89% to win, the book 80%. We see PHI by 14, the book by 10.5. We expect 230 points in all, the book 229.5.',
+    )
   })
 })

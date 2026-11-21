@@ -9,16 +9,19 @@ import {
   STAT_NAME,
   STAT_UNIT,
   clock,
+  gameStory,
   linesOf,
   median,
   nightLabel,
   nightTab,
   num,
+  plain,
   ranked,
   signed,
   tallyOf,
 } from '../lib/iddaaCompare'
 import type { BookCompare, Line, Stat } from '../lib/iddaaCompare'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 import './IddaaCompare.css'
 
 interface Props {
@@ -313,6 +316,15 @@ function NightTally({ lines }: { lines: Line[] }) {
           </p>
         </div>
       </div>
+      <p className="ic-say">
+        Our numbers landed close to the result <b>{all.ours}</b> times out of <b>{all.judged}</b>, the book's{' '}
+        <b>{all.book}</b>.{' '}
+        {all.oursCloser === all.bookCloser
+          ? 'On who was nearer, it was even.'
+          : all.oursCloser > all.bookCloser
+            ? `We were nearer more often (${all.oursCloser} to ${all.bookCloser}).`
+            : `The book was nearer more often (${all.bookCloser} to ${all.oursCloser}).`}
+      </p>
       <div className="ic-tally-top">
         <div className="ic-fig">
           <span className="ic-lab">Ours within band</span>
@@ -433,7 +445,9 @@ function GapList(p: ListProps) {
                 aria-pressed={game === g.game_id}
                 onClick={() => p.onGame(g.game_id)}
               >
+                <TeamLogo abbrev={g.away} size={18} />
                 {g.away} @ {g.home}
+                <TeamLogo abbrev={g.home} size={18} />
                 <span className="t">
                   {g.status === 'final' ? `${g.away_score}–${g.home_score}` : clock(g.tip)}
                 </span>
@@ -464,6 +478,12 @@ function GapList(p: ListProps) {
           })}
         </div>
       </div>
+      <p className="ic-read">
+        Left is the book's number, right is ours, and the middle is how far apart they are.
+        {settled
+          ? ' ✓ means the result landed close to that number, ✗ means it missed.'
+          : ' A + means we expect more than the book.'}
+      </p>
       <p className="ic-explain">
         {stat === 'ALL' ? (
           <>
@@ -712,15 +732,23 @@ function Row({
 function Face({ line: l }: { line: Line }) {
   if (l.kind === 'player') {
     return (
-      <span className="ic-face" aria-hidden="true">
-        {l.initials}
+      <span className="ic-face head" aria-hidden="true">
+        <PlayerHead player={{ id: l.playerId ?? 0, name: l.name }} team={l.team} size={38} />
+        <span className="ic-face-team">
+          <TeamLogo abbrev={l.team} size={16} />
+        </span>
       </span>
     )
   }
+  return <Pair away={l.game.away} home={l.game.home} />
+}
+
+/** The two teams' logos, away over home, overlapping. */
+function Pair({ away, home, size = 24 }: { away: string; home: string; size?: number }) {
   return (
-    <span className="ic-face pair" aria-hidden="true">
-      <i>{l.game.away}</i>
-      <i>{l.game.home}</i>
+    <span className="ic-face logos" aria-hidden="true" style={{ '--lg': `${size}px` } as CSSProperties}>
+      <TeamLogo abbrev={away} size={size} fallback />
+      <TeamLogo abbrev={home} size={size} fallback />
     </span>
   )
 }
@@ -731,26 +759,23 @@ function Who({ line: l }: { line: Line }) {
       <div className="ic-who">
         <div className="ic-nm">{l.name}</div>
         <div className="ic-sub">
-          <b>{STAT_NAME[l.stat]}</b> · {l.gameLabel}
-          {l.ours == null && ' · no line of ours'}
+          <b>{STAT_NAME[l.stat]}</b> · {plain(l, settledOf(l))}
         </div>
       </div>
     )
   }
-  let extra = ''
-  if (l.stat === 'WIN' && l.bookTeam && l.bookTeam !== l.team && l.book != null)
-    extra = ` · the book favours ${l.bookTeam} ${Math.round((1 - l.book) * 100)}%`
-  if (l.stat === 'MAR' && l.book != null && l.book < 0) extra = ` · the book has ${l.other}`
   return (
     <div className="ic-who">
-      <div className="ic-nm">{l.gameLabel}</div>
-      <div className="ic-sub">
-        <b>{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</b>
-        {extra}
+      <div className="ic-nm">
+        {l.gameLabel} <span className="ic-nm-st">{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</span>
       </div>
+      <div className="ic-sub">{cap(plain(l, settledOf(l)))}</div>
     </div>
   )
 }
+
+const settledOf = (l: Line) => l.game.status === 'final'
+const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
 function Lane({ line: l, i }: { line: Line; i: number }) {
   const gap = l.gap ?? 0
@@ -1150,10 +1175,7 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
           return (
             <div className={`ic-gbox${!settled && g.status !== 'scheduled' ? ' tipped' : ''}`} key={g.game_id}>
               <div className="ic-gb-h">
-                <span className="ic-face pair" aria-hidden="true">
-                  <i>{g.away}</i>
-                  <i>{g.home}</i>
-                </span>
+                <Pair away={g.away} home={g.home} size={26} />
                 <span className="t">
                   {final ? (
                     <>
@@ -1176,6 +1198,7 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                   )}
                 </span>
               </div>
+              {gameStory(ls, final) && <p className="ic-gb-say">{gameStory(ls, final)}</p>}
               <table className="ic-gt">
                 <thead>
                   <tr>
@@ -1200,7 +1223,9 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                 <tbody>
                   {rows.map(([label, l]) => (
                     <tr key={label}>
-                      <td>{label}</td>
+                      <td>
+                        {label.endsWith(' pts') && <TeamLogo abbrev={label.slice(0, -4)} size={16} />} {label}
+                      </td>
                       <td>
                         <span className="num">{l ? value(l, 'book') : '–'}</span>
                       </td>
