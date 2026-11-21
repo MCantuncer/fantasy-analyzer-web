@@ -695,21 +695,6 @@
   stroke-width: 2;
 }
 
-.ic-shape {
-  width: 10px;
-  height: 9px;
-  flex: none;
-  vertical-align: -1px;
-}
-.ic-shape.so {
-  fill: none;
-  stroke: var(--text);
-  stroke-width: 1.4;
-  stroke-linejoin: round;
-}
-.ic-shape.si {
-  fill: var(--text-2);
-}
 
 .ic-list-foot {
   display: flex;
@@ -875,91 +860,6 @@
   color: var(--muted);
 }
 
-/* Night tally */
-.ic-tally-top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px 40px;
-  align-items: flex-end;
-  margin-bottom: 18px;
-}
-.ic-fig {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.ic-lab {
-  font-size: 12.5px;
-  color: var(--muted);
-  font-weight: 550;
-}
-.ic-big {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1;
-}
-.ic-big small {
-  font-size: 0.55em;
-  color: var(--muted);
-  font-weight: 500;
-}
-.ic-big.i {
-  color: var(--text-2);
-  font-weight: 500;
-}
-.ic-split {
-  display: flex;
-  height: 12px;
-  width: 220px;
-  max-width: 100%;
-  border-radius: 4px;
-  overflow: hidden;
-  gap: 2px;
-}
-.ic-split span {
-  display: block;
-  height: 100%;
-}
-.ic-split .o {
-  background: color-mix(in srgb, var(--text) 55%, transparent);
-  border-radius: 4px 0 0 4px;
-}
-.ic-split .lv {
-  background: var(--track);
-}
-.ic-split .i {
-  box-shadow: inset 0 0 0 1.5px var(--text-2);
-  border-radius: 0 4px 4px 0;
-}
-.ic-split-lab {
-  font-size: 12px;
-  color: var(--muted);
-}
-.ic-split-lab .num {
-  color: var(--text-2);
-}
-.ic-mean {
-  font-size: 14px;
-}
-.ic-det summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  cursor: pointer;
-  list-style: none;
-  font-weight: 600;
-  color: var(--text-2);
-  border-top: 1px solid var(--divider);
-}
-.ic-det summary::-webkit-details-marker {
-  display: none;
-}
-.ic-det[open] summary svg {
-  transform: rotate(180deg);
-}
 .ic-t-list {
   list-style: none;
   margin: 0;
@@ -1415,7 +1315,6 @@
   .ic-seg button {
     flex: 1;
   }
-  .ic-games,
   .ic-colhead {
     display: none;
   }
@@ -1716,14 +1615,10 @@
 }
 
 /* Plain words */
-.ic-read,
 .ic-say {
   color: var(--text-2);
   font-size: 13.5px;
   max-width: 720px;
-}
-.ic-read {
-  padding-top: 12px;
 }
 .ic-say {
   margin-bottom: 16px !important;
@@ -2125,5 +2020,247 @@
   }
   .ic-slot-vd span {
     display: none;
+  }
+}
+
+/* The night card (Across the Seam, PR 2): status, the tally so far, and the games as the filter. */
+.ic-nc {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px 16px;
+  border-bottom: 1px solid var(--divider);
+  background: radial-gradient(90% 140% at 0% 0%, var(--glow), transparent 60%);
+}
+.ic-nc .ic-status {
+  padding: 0;
+  border: 0;
+}
+.ic-look {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ic-look .ic-live {
+  margin-right: 2px;
+}
+.ic-tally-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+.ic-tally-line b,
+.ic-t-list .ic-tx b {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--text);
+}
+.ic-tally-line b.g,
+.ic-t-list b.g {
+  color: var(--good);
+}
+.ic-tl-band {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.ic-tl-band b {
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-split {
+  display: flex;
+  height: 8px;
+  width: 200px;
+  max-width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  gap: 2px;
+  background: none;
+}
+.ic-split span {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+}
+.ic-split .o {
+  background: var(--good);
+}
+.ic-split .lv {
+  background: var(--track);
+}
+.ic-split .i {
+  background: color-mix(in srgb, var(--text) 38%, transparent);
+  box-shadow: none;
+}
+.ic-split :first-child {
+  border-radius: 4px 0 0 4px;
+}
+.ic-split :last-child {
+  border-radius: 0 4px 4px 0;
+}
+.ic-split :only-child {
+  border-radius: 4px;
+}
+.ic-nc .ic-games {
+  flex: none;
+  padding-bottom: 2px;
+}
+.ic-chip-all {
+  min-height: 64px;
+  padding: 0 18px;
+  font-weight: 600;
+}
+.ic-chip-g {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 8px 14px;
+  text-align: left;
+}
+.ic-chip-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-chip-s {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.ic-chip-s .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+}
+.ic-chip-f .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.ic-chip-f {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-chip[aria-pressed='true'] .ic-chip-h,
+.ic-chip[aria-pressed='true'] .ic-chip-s,
+.ic-chip[aria-pressed='true'] .ic-chip-f {
+  color: inherit;
+}
+.ic-chip[aria-pressed='true'] .ic-chip-f {
+  opacity: 0.75;
+}
+/* One line of how to rank + a small key, in place of the stacked notes. */
+.ic-explain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+}
+.ic-explain p {
+  margin: 0;
+}
+.ic-explain .num {
+  font-family: var(--font-num);
+  color: var(--text-2);
+}
+.ic-key {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.ic-key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ic-key .kb {
+  font-family: var(--font-num);
+  font-size: 14px;
+  color: var(--text-2);
+}
+.ic-key .kg {
+  font-family: var(--font-num);
+  font-weight: 650;
+  font-size: 12px;
+  color: var(--text);
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.ic-key .ko {
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-weight: 700;
+  font-size: 15px;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text);
+}
+.ic-key-ok {
+  display: inline-grid;
+  color: var(--good);
+}
+.ic-key-ok svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Who was closer, stat by stat */
+.ic-t-list li {
+  grid-template-columns: 110px 160px minmax(0, 1fr) auto;
+  align-items: center;
+}
+.ic-t-list .ic-split {
+  width: 100%;
+}
+.ic-none-yet {
+  grid-column: 2 / -1;
+  color: var(--muted);
+}
+@media (max-width: 719px) {
+  .ic-nc {
+    padding: 12px;
+    gap: 10px;
+  }
+  .ic-look {
+    margin-left: 0;
+  }
+  .ic-tally-line .ic-split {
+    width: 100%;
+  }
+  .ic-chip-f {
+    display: none;
+  }
+  .ic-chip-all,
+  .ic-chip-g {
+    min-height: 52px;
+  }
+  .ic-t-list li {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 4px 12px;
+  }
+  .ic-t-list .ic-tx,
+  .ic-t-list .ic-mm {
+    grid-column: 1 / -1;
+  }
+  .ic-t-list .ic-mm {
+    white-space: normal;
   }
 }
