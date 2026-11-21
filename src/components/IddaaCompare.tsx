@@ -27,6 +27,7 @@ import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
+import { RecordRibbon, RungRecord } from './RungRecord'
 import { RungScorecard } from './RungScorecard'
 import { ValueRungs } from './ValueRungs'
 import './IddaaCompare.css'
@@ -90,6 +91,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
           </button>
         </div>
       </div>
+      <RecordRibbon nights={data?.nights} />
       {q.isPending && <Skeleton />}
       {q.error && (
         <section className="card error stack" role="alert">
@@ -97,6 +99,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
         </section>
       )}
       {data && <Night data={data} onDay={setDay} key={data.day ?? 0} />}
+      <RungRecord nights={data?.nights} day={data?.day ?? null} />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import type { components } from './schema'
 import type { Credentials } from '../lib/credentials'
 import { loadToken } from '../lib/session'
-import type { BookCompare } from '../lib/iddaaCompare'
+import type { BookCompare, BookRecord } from '../lib/iddaaCompare'
 
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
@@ -297,6 +297,11 @@ export function resolveErrorReport(id: number) {
 /** Our estimates beside the sportsbook's lines for one night (the latest when no day), each judged against the result once final. */
 export function fetchBookCompare(day: number | null) {
   return post<BookCompare>('/api/book-compare', day == null ? {} : { day })
+}
+
+/** The running record of the value rungs over the latest saved nights (the server's default, 30, when unset). */
+export function fetchBookRecord(nights?: number) {
+  return post<BookRecord>('/api/book-compare/record', nights == null ? {} : { nights })
 }
 
 /** Admins only: daily visitors, page views and account totals. */
