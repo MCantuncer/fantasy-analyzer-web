@@ -2673,3 +2673,240 @@
     font-size: 13px;
   }
 }
+
+/* Phone spread (Across the Seam, PR 4): the lane becomes Book page | Gap or Result tab | Ours page,
+   the stat tabs become a select and the game tables fold. Desktop keeps the lane as it is. */
+.ic-pill .t,
+.ic-pill .r,
+.ic-lane .pg,
+.ic-sub-s,
+.ic-stat-sel,
+.ic-gt-fold > summary {
+  display: none;
+}
+.ic {
+  --spread-light: rgb(255 190 130 / 0.17);
+}
+:root[data-theme='light'] .ic {
+  --spread-light: rgb(232 150 60 / 0.16);
+}
+@media (max-width: 719px) {
+  .ic-tabs {
+    display: none;
+  }
+  .ic-stat-sel {
+    display: block;
+    position: relative;
+    margin-top: 10px;
+  }
+  .ic-stat-sel select {
+    appearance: none;
+    -webkit-appearance: none;
+    min-height: 44px;
+    padding: 0 42px 0 14px;
+    font-weight: 550;
+    color: var(--text);
+    background: var(--surface-2);
+    cursor: pointer;
+  }
+  .ic-stat-sel .ic-i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  /* Row top: rank, face, name over stat and game, then the verdict or Playing on the right. */
+  .ic-grid {
+    grid-template-columns: 16px 34px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'rk face who slot'
+      'lane lane lane lane';
+    column-gap: 10px;
+  }
+  .ic-row-main {
+    padding: 12px 4px 14px;
+    row-gap: 10px;
+  }
+  .ic-rk {
+    display: block;
+    font-size: 12px;
+    text-align: center;
+  }
+  .ic-grid .ic-face {
+    width: 34px;
+    height: 34px;
+  }
+  .ic-sub-l {
+    display: none;
+  }
+  .ic-sub-s {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ic-slot.fin .ic-slot-res {
+    display: none;
+  }
+  .ic-slot-vd > span {
+    display: block;
+  }
+  .ic-slot-vd > span .num {
+    display: inline;
+  }
+  .ic-slot.fin.ours {
+    margin: -6px -4px -6px 0;
+    padding: 6px 10px;
+  }
+
+  /* The spread: two pages on either side of the spine, each labelled in its outer corner. */
+  .ic-lane {
+    height: 46px;
+    min-height: 46px;
+    margin: 0;
+    padding: 0;
+    border-radius: 12px;
+    background: var(--plate);
+    overflow: hidden;
+  }
+  .ic-lane::before {
+    top: 0;
+    bottom: 0;
+  }
+  .ic-lane::after {
+    display: none;
+  }
+  .ic-lane.up::after,
+  .ic-lane.dn::after {
+    display: block;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+    width: calc(min(var(--w, 0), 1) * 50%);
+  }
+  .ic-lane.up::after {
+    left: 50%;
+    right: auto;
+    background: linear-gradient(90deg, var(--spread-light), transparent);
+  }
+  .ic-lane.dn::after {
+    left: auto;
+    right: 50%;
+    background: linear-gradient(270deg, var(--spread-light), transparent);
+  }
+  .ic-lane .pg {
+    display: block;
+    position: absolute;
+    top: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--faint);
+    pointer-events: none;
+  }
+  .ic-lane .pg-l {
+    left: 12px;
+  }
+  .ic-lane .pg-r {
+    right: 12px;
+  }
+  .ic-lane .l {
+    padding-right: 12px;
+  }
+  .ic-lane .r {
+    padding-left: 12px;
+  }
+  .ic-lane .ic-band {
+    display: none;
+  }
+  .ic-lane .ic-v-i {
+    padding: 0;
+    font-size: 16px;
+  }
+  .ic-lane .ic-v-o,
+  .ic-lane .ic-band.br + .ic-v-o {
+    height: auto;
+    padding: 0;
+    background: none;
+    font-size: 19px;
+  }
+  .ic-lane .ic-v-o .caret {
+    display: none;
+  }
+  .ic-pill {
+    min-width: 62px;
+    height: 38px;
+    padding: 0 8px;
+  }
+  .ic-pill .g,
+  .ic-pill .r {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.05;
+  }
+  .ic-pill.has-r .g {
+    display: none;
+  }
+  .ic-pill .t {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 1px;
+  }
+  .ic-pill .v {
+    font-size: 15px;
+  }
+  .ic-pill .v small {
+    font-family: var(--font-ui);
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+
+  /* Game cards: the story clamped to two lines, the table folded behind one 44px line. */
+  .ic-gb-say {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ic-gt-fold > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 0 4px;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 550;
+    color: var(--text-2);
+    cursor: pointer;
+    border-top: 1px solid var(--divider);
+  }
+  .ic-gt-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .ic-gt-fold > summary .ic-i {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    transition: transform 0.2s ease;
+  }
+  .ic-gt-fold[open] > summary .ic-i {
+    transform: rotate(180deg);
+  }
+}
