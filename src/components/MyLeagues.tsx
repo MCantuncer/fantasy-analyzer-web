@@ -5,19 +5,22 @@ import type { Me, MyLeague } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { parseLeagueInput } from '../lib/espnUrl'
 import { CookieForm } from './CookieForm'
+import { EstimatesTeaser } from './IddaaCompare'
 
 interface Props {
   me: Me
   creds: Credentials | null
   onCreds: (creds: Credentials, remember: boolean) => void
   onOpen: (league: MyLeague) => void
+  /** Opens Our Estimates: our numbers beside the sportsbook's, judged against the results. */
+  onEstimates?: () => void
   /** Changes when the top bar asks to add a league: focus the add box. */
   focusAdd?: number
   /** A league pasted before sign-up that still needs adding (a private one needs cookies first). */
   initialInput?: string
 }
 
-export function MyLeagues({ me, creds, onCreds, onOpen, focusAdd = 0, initialInput = '' }: Props) {
+export function MyLeagues({ me, creds, onCreds, onOpen, onEstimates, focusAdd = 0, initialInput = '' }: Props) {
   const qc = useQueryClient()
   const [input, setInput] = useState(initialInput)
   const [tried, setTried] = useState(false)
@@ -109,6 +112,8 @@ export function MyLeagues({ me, creds, onCreds, onOpen, focusAdd = 0, initialInp
           </article>
         ))}
       </div>
+
+      {onEstimates && <EstimatesTeaser onOpen={onEstimates} />}
 
       {needsCookies ? (
         <CookieForm

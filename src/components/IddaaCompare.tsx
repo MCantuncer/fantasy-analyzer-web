@@ -23,18 +23,19 @@ import './IddaaCompare.css'
 
 interface Props {
   onBack: () => void
-  onHealth: () => void
+  /** Admins: a way over to Site health. */
+  onHealth?: () => void
 }
 
 const PAGE = 12
 
-/** Admins only: "Seambook". iddaa's lines beside ours, night by night, the biggest gaps above iddaa
+/** "Seambook": the sportsbook's lines (iddaa, read through nesine) beside ours, night by night, the biggest gaps above the book
  *  first, and once the games are final each side judged against what happened. Comparison only:
- *  iddaa never feeds our model. */
+ *  the book never feeds our model. */
 export function IddaaCompare({ onBack, onHealth }: Props) {
   const [day, setDay] = useState<number | null>(null)
   const q = useQuery({
-    queryKey: ['admin-book-compare', day],
+    queryKey: ['book-compare', day],
     queryFn: () => fetchBookCompare(day),
     refetchInterval: (query) => (isTonight(query.state.data) ? 5 * 60_000 : false),
   })
@@ -43,16 +44,18 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
     <div className="ic stack">
       <div className="ic-head">
         <div>
-          <h1 className="page-title">iddaa vs Ours</h1>
+          <h1 className="page-title">Our Estimates</h1>
           <p className="ic-note">
-            iddaa's lines at the last look before each tip-off, set against ours.{' '}
-            <span className="ic-hide-s">For comparison only: iddaa never feeds our model.</span>
+            The sportsbook's lines at the last look before each tip-off, set against ours.{' '}
+            <span className="ic-hide-s">For comparison only: the sportsbook never feeds our model.</span>
           </p>
         </div>
         <div className="ic-head-btns">
-          <button type="button" className="secondary" onClick={onHealth}>
-            Site health
-          </button>
+          {onHealth && (
+            <button type="button" className="secondary" onClick={onHealth}>
+              Site health
+            </button>
+          )}
           <button type="button" className="secondary" onClick={onBack}>
             Back
           </button>
@@ -66,6 +69,49 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
       )}
       {data && <Night data={data} onDay={setDay} key={data.day ?? 0} />}
     </div>
+  )
+}
+
+/** The way in from My leagues: tonight's biggest gap above the book, or last night's tally once
+ *  it is settled, on a card that opens the page. */
+export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
+  const q = useQuery({ queryKey: ['book-compare', null], queryFn: () => fetchBookCompare(null), retry: false })
+  const data = q.data
+  const lines = useMemo(() => (data ? linesOf(data, new Date()) : []), [data])
+  const settled = !!data && data.games.length > 0 && data.games.every((g) => g.status === 'final')
+  const top = ranked(lines.filter((l) => !l.tipped || settled), true).above[0]
+  const t = tallyOf(lines)
+  return (
+    <button type="button" className="ic-teaser" onClick={onOpen}>
+      <span className="ic-teaser-h">
+        <span className="ic-teaser-t">
+          {data && !settled && data.games.length > 0 && <span className="ic-live" aria-hidden="true" />}
+          Our Estimates vs the Sportsbook
+        </span>
+        <span className="ic-teaser-go">
+          See all
+          <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </span>
+      </span>
+      <span className="ic-teaser-sub">
+        {settled
+          ? `${nightLabel(data.date)}: within band, Ours ${t.ours}/${t.judged} · Book ${t.book}/${t.judged}`
+          : 'Every player and game, our number beside the book’s, judged against the result once the games end.'}
+      </span>
+      {top && !settled && (
+        <span className="ic-teaser-row">
+          <span className="ic-teaser-who">
+            <b>{top.kind === 'player' ? top.name : top.gameLabel}</b>
+            <span>
+              Biggest gap tonight · {top.stat === 'TEAM' ? `${top.team} points` : STAT_NAME[top.stat]}
+            </span>
+          </span>
+          <Lane line={top} i={0} />
+        </span>
+      )}
+    </button>
   )
 }
 
@@ -133,8 +179,8 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
             <p className="ic-bands">
               Bands: points ±{data.bands.pts}, rebounds and assists ±{data.bands.reb}, 3PM, steals and blocks ±
               {data.bands.stl}, team points ±{data.bands.team_pts}, game total ±{data.bands.total}, margin ±
-              {data.bands.margin}. Winner: right when the pick won. Closer is level within 0.1. iddaa's lines have
-              its margin removed. Last read of iddaa{' '}
+              {data.bands.margin}. Winner: right when the pick won. Closer is level within 0.1. The book's lines have
+              its margin removed. Last read of the sportsbook{' '}
               {data.look.checked ? (
                 <>
                   at <span className="num">{clock(data.look.checked)}</span>{' '}
@@ -233,8 +279,8 @@ function NightTally({ lines }: { lines: Line[] }) {
       <li key={s}>
         <span className="ic-st">{STAT_NAME[s]}:</span>
         <span className="ic-tx">
-          Ours <b>{`${t.ours}/${t.judged}`}</b> · iddaa <b>{`${t.book}/${t.judged}`}</b> · Closer: Ours{' '}
-          <b>{t.oursCloser}</b>, iddaa <b>{t.bookCloser}</b>
+          Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b> · Closer: Ours{' '}
+          <b>{t.oursCloser}</b>, Book <b>{t.bookCloser}</b>
           {t.level ? (
             <>
               , level <b>{t.level}</b>
@@ -262,7 +308,7 @@ function NightTally({ lines }: { lines: Line[] }) {
         <div>
           <h2 id="ic-h-tally">Night tally</h2>
           <p className="ic-sub">
-            Matched against the actual result. Ours ✓ when the result lands within the band of our number; iddaa
+            Matched against the actual result. Ours ✓ when the result lands within the band of our number; the book
             judged the same way on its own line.
           </p>
         </div>
@@ -276,7 +322,7 @@ function NightTally({ lines }: { lines: Line[] }) {
           </span>
         </div>
         <div className="ic-fig">
-          <span className="ic-lab">iddaa within band</span>
+          <span className="ic-lab">Book within band</span>
           <span className="ic-big i">
             {all.book}
             <small>/{all.judged}</small>
@@ -291,14 +337,14 @@ function NightTally({ lines }: { lines: Line[] }) {
           </div>
           <span className="ic-split-lab">
             <ShapeOurs /> Ours <span className="num">{all.oursCloser}</span> · level{' '}
-            <span className="num">{all.level}</span> · <ShapeBook /> iddaa <span className="num">{all.bookCloser}</span>
+            <span className="num">{all.level}</span> · <ShapeBook /> Book <span className="num">{all.bookCloser}</span>
           </span>
         </div>
         {players.oursMiss != null && players.bookMiss != null && (
           <div className="ic-fig">
             <span className="ic-lab">Mean miss, players</span>
             <span className="ic-split-lab ic-mean">
-              Ours <span className="num">{players.oursMiss.toFixed(2)}</span> · iddaa{' '}
+              Ours <span className="num">{players.oursMiss.toFixed(2)}</span> · Book{' '}
               <span className="num">{players.bookMiss.toFixed(2)}</span>
             </span>
           </div>
@@ -358,9 +404,9 @@ function GapList(p: ListProps) {
     <section className="ic-sec" aria-labelledby="ic-h-list">
       <div className="ic-sec-h">
         <div>
-          <h2 id="ic-h-list">Biggest gaps above iddaa</h2>
+          <h2 id="ic-h-list">Biggest gaps above the book</h2>
           <p className="ic-sub">
-            Gap = Ours − iddaa. Largest first.
+            Gap = Ours − Book. Largest first.
             {settled && ' Each line is judged against the result: ✓ when it lands within the band.'}
           </p>
         </div>
@@ -435,11 +481,11 @@ function GapList(p: ListProps) {
       <ColHead settled={settled} />
       {above.length === 0 ? (
         <p className="ic-none">
-          No line had Ours above iddaa{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
+          No line had Ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
           {most && most.book != null && most.ours != null && (
             <>
               Biggest the other way: <b>{`${most.kind === 'player' ? most.name : most.gameLabel} ${STAT_NAME[most.stat]}`}</b>,
-              iddaa {value(most, 'book')} vs Ours {value(most, 'ours')}.
+              Book {value(most, 'book')} vs Ours {value(most, 'ours')}.
             </>
           )}
         </p>
@@ -466,13 +512,13 @@ function GapList(p: ListProps) {
       <div className="ic-list-foot">
         {hidden > 0 && (
           <button type="button" className="secondary" onClick={p.onShowAll}>
-            Show all {above.length} above iddaa
+            Show all {above.length} above the book
           </button>
         )}
         {rest.length > 0 && (
           <button type="button" className="ic-fold-btn" aria-expanded={p.fold} onClick={p.onFold}>
             <Chevron />
-            Ours level with or below iddaa <span className="num">{rest.length}</span>
+            Ours level with or below the book <span className="num">{rest.length}</span>
           </button>
         )}
         {p.fold && (
@@ -494,7 +540,7 @@ function ColHead({ settled }: { settled: boolean }) {
       <span />
       <span>Line</span>
       <div className="ic-lane">
-        <span className="l">iddaa</span>
+        <span className="l">Book</span>
         <span className="c">Gap</span>
         <span className="r">Ours</span>
       </div>
@@ -502,7 +548,7 @@ function ColHead({ settled }: { settled: boolean }) {
         <>
           <span className="ic-ch-ruler">Band around the result</span>
           <span className="ic-ch-res">Result</span>
-          <span className="ic-ch-marks">Ours iddaa</span>
+          <span className="ic-ch-marks">Ours Book</span>
           <span className="ic-ch-closer">Closer</span>
         </>
       ) : (
@@ -632,7 +678,7 @@ function Row({
                 <Mark line={l} side="ours" i={i} />
               </span>
               <span className="ic-mk-w">
-                <span className="ic-mk-l">iddaa</span>
+                <span className="ic-mk-l">Book</span>
                 <Mark line={l} side="book" i={i} />
               </span>
                 </>
@@ -693,8 +739,8 @@ function Who({ line: l }: { line: Line }) {
   }
   let extra = ''
   if (l.stat === 'WIN' && l.bookTeam && l.bookTeam !== l.team && l.book != null)
-    extra = ` · iddaa favours ${l.bookTeam} ${Math.round((1 - l.book) * 100)}%`
-  if (l.stat === 'MAR' && l.book != null && l.book < 0) extra = ` · iddaa has ${l.other}`
+    extra = ` · the book favours ${l.bookTeam} ${Math.round((1 - l.book) * 100)}%`
+  if (l.stat === 'MAR' && l.book != null && l.book < 0) extra = ` · the book has ${l.other}`
   return (
     <div className="ic-who">
       <div className="ic-nm">{l.gameLabel}</div>
@@ -732,7 +778,7 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
 function Mark({ line: l, side, i }: { line: Line; side: 'ours' | 'book'; i: number }) {
   const ok = side === 'ours' ? l.oursHit : l.bookHit
   if (ok == null) return <span className="ic-mk none" aria-label="No result" />
-  const who = side === 'ours' ? 'Ours' : 'iddaa'
+  const who = side === 'ours' ? 'Ours' : 'Book'
   const v = side === 'ours' ? l.ours : l.book
   const label =
     l.stat === 'WIN'
@@ -763,13 +809,13 @@ function CloserCell({ line: l }: { line: Line }) {
     <div className="ic-closer">
       {l.closer === 'ours' ? <ShapeOurs /> : <ShapeBook />}
       <span>
-        <b>{l.closer === 'ours' ? 'Ours' : 'iddaa'}</b> by <span className="num">{by}</span>
+        <b>{l.closer === 'ours' ? 'Ours' : 'Book'}</b> by <span className="num">{by}</span>
       </span>
     </div>
   )
 }
 
-/** A ruler centred on the result with the band shaded: Ours an open ▽ above, iddaa a solid ▲ below. */
+/** A ruler centred on the result with the band shaded: Ours an open ▽ above, the book a solid ▲ below. */
 function Ruler({ line: l, big = false }: { line: Line; big?: boolean }) {
   if (l.actual == null || l.ours == null || l.book == null) return null
   const W = big ? 420 : 220
@@ -797,7 +843,7 @@ function Ruler({ line: l, big = false }: { line: Line; big?: boolean }) {
     ) : null
   const label = `Result ${num(l.actual)}. Band ${num(l.actual - band)} to ${num(l.actual + band)}. Ours ${num(l.ours)} ${
     l.oursHit ? 'inside' : 'outside'
-  }, iddaa ${num(l.book)} ${l.bookHit ? 'inside' : 'outside'}.`
+  }, book ${num(l.book)} ${l.bookHit ? 'inside' : 'outside'}.`
   return (
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <line className="r-axis" x1={pad - 6} y1={y} x2={W - pad + 6} y2={y} />
@@ -834,7 +880,7 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
     <div className="ic-row-open">
       <div className="ic-ledger">
         <div className="cell">
-          <span className="lab">iddaa</span>
+          <span className="lab">Book</span>
           <span className="big i">{big(l.book)}</span>
         </div>
         <div className="cell">
@@ -859,15 +905,15 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
       <div className="ic-why">
         {settled && l.stat === 'WIN' && l.won && (
           <p>
-            {l.won} won. Ours gave {l.team} <b>{big(l.ours)}</b>, iddaa gave {l.team} <b>{big(l.book)}</b>.{' '}
-            {l.closer === 'tie' ? 'Level.' : l.closer ? <><b>{l.closer === 'ours' ? 'Ours' : 'iddaa'}</b> was closer.</> : null}
+            {l.won} won. Ours gave {l.team} <b>{big(l.ours)}</b>, the book gave {l.team} <b>{big(l.book)}</b>.{' '}
+            {l.closer === 'tie' ? 'Level.' : l.closer ? <><b>{l.closer === 'ours' ? 'Ours' : 'Book'}</b> was closer.</> : null}
           </p>
         )}
         {settled && l.stat !== 'WIN' && l.actual != null && (
           <>
             <p>
-              {l.closer === 'tie' ? 'Level' : <b>{l.closer === 'ours' ? 'Ours' : 'iddaa'} was closer</b>}
-              {l.by != null && l.closer !== 'tie' ? `, by ${num(l.by)}` : ''}. Off by {offO} (Ours) and {offB} (iddaa). A
+              {l.closer === 'tie' ? 'Level' : <b>{l.closer === 'ours' ? 'Ours' : 'Book'} was closer</b>}
+              {l.by != null && l.closer !== 'tie' ? `, by ${num(l.by)}` : ''}. Off by {offO} (Ours) and {offB} (Book). A
               line counts when it lands within ±{num(l.band)} {unit} of the result.
             </p>
             <div className="ic-ruler-big">
@@ -877,7 +923,7 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
         )}
         {!settled && l.gap != null && (
           <p>
-            {l.gap > 0 ? 'Ours is above iddaa' : l.gap < 0 ? 'Ours is below iddaa' : 'Level with iddaa'}
+            {l.gap > 0 ? 'Ours is above the book' : l.gap < 0 ? 'Ours is below the book' : 'Level with the book'}
             {l.stat === 'WIN' ? ` on ${l.team}'s chance` : `, by ${num(Math.abs(l.gap))} ${unit}`}. That is{' '}
             <b>{Math.abs(l.score).toFixed(2)}</b> of a band.
           </p>
@@ -885,9 +931,9 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
         {l.ladder.length > 0 && l.book != null && (
           <>
             <div className="ic-ladder-cap">
-              iddaa's N+ ladder with its margin removed. It crosses 50% at {l.book.toFixed(1)}, its line.
+              The book's N+ ladder with its margin removed. It crosses 50% at {l.book.toFixed(1)}, its line.
             </div>
-            <div className="ic-ladder" aria-label="iddaa ladder">
+            <div className="ic-ladder" aria-label="The book's ladder">
               {l.ladder.map(([n, chance]) => (
                 <LadderRow key={n} n={n} chance={chance} />
               ))}
@@ -964,8 +1010,8 @@ function HowDivided({
       <div className="ic-field-head">
         <span className="lab-h">Stat</span>
         <div className="ax">
-          <span>iddaa higher</span>
-          <span>Seam: iddaa's line</span>
+          <span>Book higher</span>
+          <span>Seam: the book's line</span>
           <span>Ours higher</span>
         </div>
         <span className="notes-h">{settled ? 'Within band' : 'Ours above'}</span>
@@ -986,7 +1032,7 @@ function HowDivided({
             <div className="notes">
               {settled && t.judged ? (
                 <>
-                  Ours <b>{`${t.ours}/${t.judged}`}</b> · iddaa <b>{`${t.book}/${t.judged}`}</b>
+                  Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b>
                   <br />
                   median gap {signed(med, s)}
                 </>
@@ -1136,13 +1182,13 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                     <th scope="col">
                       <span className="sr-only">Market</span>
                     </th>
-                    <th scope="col">iddaa</th>
+                    <th scope="col">Book</th>
                     <th scope="col">Ours</th>
                     {final ? (
                       <>
                         <th scope="col">Result</th>
                         <th scope="col">Ours</th>
-                        <th scope="col">iddaa</th>
+                        <th scope="col">Book</th>
                       </>
                     ) : (
                       <th scope="col" className="hide-xs">
@@ -1182,10 +1228,10 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                 {final ? (
                   <>
                     <span>
-                      Player lines: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · iddaa <b>{`${pl.book}/${pl.judged}`}</b>
+                      Player lines: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · Book <b>{`${pl.book}/${pl.judged}`}</b>
                     </span>
                     <span>
-                      Closer: Ours <b>{pl.oursCloser}</b>, iddaa <b>{pl.bookCloser}</b>
+                      Closer: Ours <b>{pl.oursCloser}</b>, Book <b>{pl.bookCloser}</b>
                     </span>
                   </>
                 ) : (
@@ -1207,7 +1253,7 @@ function Empty({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   return (
     <div className="ic-empty">
       <div className="inner">
-        <h2>{data.day == null ? 'No iddaa lines saved yet' : "iddaa wasn't saved before this night's games"}</h2>
+        <h2>{data.day == null ? 'No sportsbook lines saved yet' : "The sportsbook wasn't saved before this night's games"}</h2>
         <p>
           Lines are read at the last look before each tip-off.
           {data.look.ok === false && ` The last read failed: ${data.look.error ?? 'no answer'}.`}

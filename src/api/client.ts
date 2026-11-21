@@ -294,9 +294,9 @@ export function resolveErrorReport(id: number) {
   return send<{ ok: boolean }>('/api/admin/errors/resolve', { id })
 }
 
-/** Admins only: iddaa's lines beside ours for one night (the latest when no day), judged against the result once final. */
+/** Our estimates beside the sportsbook's lines for one night (the latest when no day), each judged against the result once final. */
 export function fetchBookCompare(day: number | null) {
-  return post<BookCompare>('/api/admin/book-compare', day == null ? {} : { day })
+  return post<BookCompare>('/api/book-compare', day == null ? {} : { day })
 }
 
 /** Admins only: daily visitors, page views and account totals. */
