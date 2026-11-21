@@ -3242,3 +3242,7 @@
     display: none;
   }
 }
+.ic-gt td.cl {
+  white-space: normal;
+  min-width: 44px;
+}
