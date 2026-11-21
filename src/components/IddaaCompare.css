@@ -474,6 +474,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.ic-nm-link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.ic-nm-link:hover {
+  color: var(--accent-text);
+  text-decoration-color: currentColor;
+}
+.ic-card-btn {
+  align-self: flex-start;
+}
 .ic-who .ic-sub {
   font-size: 12.5px;
   color: var(--muted);
