@@ -113,9 +113,9 @@ describe('iddaa vs Ours in plain words', () => {
     const [before] = linesOf(night([player('A One', 'pts', 22, 19.5, null)], 'scheduled'), new Date('2026-11-20T12:00:00Z'))
     expect(plain(before, false)).toBe('we expect 2.5 more points than the book')
     const [after] = linesOf(night([player('A One', 'pts', 22, 19.5, 24)]), new Date())
-    expect(plain(after, true)).toBe('finished with 24 points, we were closer')
+    expect(plain(after, true)).toBe('finished with 24 points, we went higher than the book and were closer')
     const [one] = linesOf(night([player('B Two', 'stl', 0.8, 1.5, 1)]), new Date())
-    expect(plain(one, true)).toBe('finished with 1 steal, we were closer')
+    expect(plain(one, true)).toBe('finished with 1 steal, we went lower than the book and were closer')
   })
 
   it('tells a game as who wins, by how much and the total', () => {
