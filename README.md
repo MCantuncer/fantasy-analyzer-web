@@ -63,6 +63,7 @@ All the modelling happens in [fantasy-analyzer-api](https://github.com/MCantunce
 | 💬 | **League Chat** | The league's moves feed (claims, bids, adds, drops and trades) and chat, with reactions, replies and trade votes for verified managers. |
 | 🔐 | **Accounts** | Email or Google sign-in, Forgot password with a single-use emailed link, followed leagues, and team verification through ESPN. |
 | 🩺 | **Site health** (admins) | A crash screen with Reload instead of a blank page, and for admins a private page with daily visitors, pages opened, new accounts and analyses (counted without cookies or ids) plus server and website errors grouped with a count, to mark fixed. |
+| 📏 | **iddaa vs Ours** (admins) | A night's iddaa lines beside ours, biggest gaps above iddaa first, for players (points, rebounds, assists, steals, blocks, 3PM) and games (winner, margin, total, team points). Once games are final each side gets ✓ or ✗ against the actual result (within a band, e.g. ±5 points), with whose number was closer, a night tally and a field of how divided the two are. Comparison only: iddaa never feeds the model. |
 | 🌗 | **Light and dark themes** | Designed for data-heavy screens on desktop and phone. |
 
 ## Screenshots
