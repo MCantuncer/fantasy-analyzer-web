@@ -290,7 +290,7 @@ function KuponSlip({
 }) {
   const { spec, coupon: c } = slot
   const id = `ic-ku-${spec.kind}`
-  const aim = spec.kind === 'surprise' ? '20' : '4.50'
+  const aim = spec.kind === 'surprise' ? '15' : '4.50'
   if (!c) {
     return (
       <li className="ic-ku-slip quiet">
@@ -492,7 +492,15 @@ function KuponSlip({
               </>
             ) : (
               <>
-                <b className="num">{n}</b> picks · aimed at about {aim}
+                <b className="num">{n}</b> picks ·{' '}
+                {spec.minChance != null ? (
+                  <>
+                    aimed at <span className="num">{spec.aimFrom ?? aim}+</span>,{' '}
+                    <span className="num">{Math.round(spec.minChance * 100)}%+</span> probability
+                  </>
+                ) : (
+                  <>aimed at about {aim}</>
+                )}
               </>
             )}
           </p>
@@ -828,7 +836,7 @@ function Rules() {
   return (
     <div className="ic-ku-rules">
       <p>
-        <b>How we build them:</b> only iddaa's own odds, one pick per game.
+        <b>How we build them:</b> only iddaa's own odds, at most two picks per game that don't move together.
         <button type="button" className="ic-ku-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>
           {more ? 'Less' : 'More'}
         </button>
@@ -838,7 +846,16 @@ function Rules() {
           <li>
             Only lines iddaa prices itself, and never odds of <span className="num">1.33</span> or under.
           </li>
-          <li>At most one pick per game: picks from one game move together.</li>
+          <li>
+            At most two picks from one game, and only ones that barely move together: two different players, or
+            the total beside the winner or handicap. Never a game line with a player from that game. Surprise
+            keeps one pick per game.
+          </li>
+          <li>
+            Surprise aims at total odds of <span className="num">15</span>+ with at least{' '}
+            <span className="num">10%</span> probability, and takes a <span className="num">12</span>-
+            <span className="num">15</span> when it is clearly likelier.
+          </li>
           <li>
             Total odds are the picks' odds multiplied. Probability is the chances on the picks multiplied: how often we
             think every pick wins.
