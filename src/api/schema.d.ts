@@ -3747,6 +3747,17 @@ export interface components {
              * @default false
              */
             gifted: boolean;
+            /**
+             * Interval
+             * @description How a paid plan bills
+             */
+            interval?: ("month" | "year") | null;
+            /**
+             * Payment Due
+             * @description The last renewal failed: Pro holds a few days while the card is retried
+             * @default false
+             */
+            payment_due: boolean;
         };
         /** MoveDay */
         MoveDay: {

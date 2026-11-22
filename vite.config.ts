@@ -2,19 +2,24 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Strict Content Security Policy for production builds: the only third-party script is
-// Google's sign-in button, so injected code can't read the ESPN cookies or the session
+// Strict Content Security Policy for production builds: the only third-party scripts are
+// Google's sign-in button and Paddle's checkout, so injected code can't read the ESPN cookies or the session
 // kept in browser storage. Dev is left alone because Vite's hot reload relies on inline scripts.
 function contentSecurityPolicy(apiUrl: string | undefined): Plugin {
   const google = 'https://accounts.google.com/gsi/'
-  const connect = ["'self'", apiUrl ? new URL(apiUrl).origin : '', google].filter(Boolean).join(' ')
+  // Paddle's checkout (COURT Pro): its script, its overlay frame and the calls the overlay makes.
+  const paddle = 'https://cdn.paddle.com'
+  const paddleFrames = 'https://buy.paddle.com https://sandbox-buy.paddle.com'
+  const connect = ["'self'", apiUrl ? new URL(apiUrl).origin : '', google, 'https://*.paddle.com']
+    .filter(Boolean)
+    .join(' ')
   const policy = [
     "default-src 'self'",
-    `script-src 'self' ${google}client`,
-    `style-src 'self' 'unsafe-inline' ${google}style`,
-    "img-src 'self' data: https://a.espncdn.com",
+    `script-src 'self' ${google}client ${paddle}`,
+    `style-src 'self' 'unsafe-inline' ${google}style ${paddle}`,
+    `img-src 'self' data: https://a.espncdn.com ${paddle}`,
     `connect-src ${connect}`,
-    `frame-src ${google}`,
+    `frame-src ${google} ${paddleFrames}`,
     "base-uri 'none'",
     "form-action 'self'",
     "object-src 'none'",

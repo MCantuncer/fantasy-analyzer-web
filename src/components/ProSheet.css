@@ -1,0 +1,273 @@
+/* The upgrade sheet: centred and 880px wide on desktop, a bottom sheet with a pinned footer on phones. */
+
+.pro-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--scrim);
+}
+
+body.pro-open {
+  overflow: hidden;
+}
+
+.pro-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 880px;
+  max-height: calc(100dvh - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--lift);
+  overflow: hidden;
+}
+
+.pro-sheet-handle {
+  display: none;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--track);
+  margin: 8px auto 0;
+  flex: none;
+}
+
+.pro-sheet-body {
+  padding: 12px 32px 22px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pro-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+}
+
+.pro-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pro-wm {
+  font-weight: 650;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+}
+
+button.icon.pro-sheet-x {
+  border-radius: 50%;
+  border-color: transparent;
+  background: var(--raised);
+}
+
+.pro-sheet-t {
+  font-size: 22px;
+  line-height: 1.22;
+  margin: 6px 0;
+}
+
+.pro-sheet-sub {
+  color: var(--text-2);
+  margin: 0;
+}
+
+.pro-tiles {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pro-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+}
+
+.pro-tile-draw {
+  height: 30px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+}
+
+.pro-tile-draw svg {
+  width: 72px;
+  height: 30px;
+}
+
+.pro-tile-nm {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.2;
+}
+
+.pro-tile-nm svg {
+  color: var(--text-2);
+  flex: none;
+}
+
+.pro-tile-line {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pro-sheet-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+  padding: 20px 32px 24px;
+  border-top: 1px solid var(--divider);
+  background: var(--surface);
+  flex: none;
+}
+
+.pro-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.pro-seg button {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.pro-seg button[aria-checked='true'] {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.pro-seg-off {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.pro-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+}
+
+.pro-price b {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pro-price-per,
+.pro-price-alt {
+  color: var(--text-2);
+}
+
+.pro-price-alt {
+  margin-left: auto;
+  font-size: 13.5px;
+}
+
+button.pro-start {
+  width: 100%;
+  min-height: 52px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+
+.pro-fine {
+  text-align: center;
+  color: var(--text-2);
+  font-size: 13.5px;
+  margin: 8px 0 0;
+}
+
+.pro-fine-s {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 4px;
+}
+
+.pro-error {
+  color: var(--bad);
+}
+
+@media (max-width: 899px) {
+  .pro-backdrop {
+    align-items: flex-end;
+    padding: 24px 0 0;
+  }
+
+  .pro-sheet {
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    border-radius: 24px 24px 0 0;
+    border-bottom: 0;
+  }
+
+  .pro-sheet-handle {
+    display: block;
+  }
+
+  .pro-sheet-body {
+    padding: 4px 16px 16px;
+  }
+
+  .pro-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .pro-tile {
+    padding: 12px;
+  }
+
+  .pro-sheet-foot {
+    display: block;
+    padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .pro-price {
+    margin: 14px 0 12px;
+  }
+}
+
+@media (max-width: 374px) {
+  .pro-tile {
+    padding: 10px;
+  }
+
+  .pro-price b {
+    font-size: 28px;
+  }
+}

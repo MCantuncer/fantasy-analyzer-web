@@ -10997,6 +10997,28 @@
             "title": "Gifted",
             "description": "Pro gifted by an admin rather than paid for",
             "default": false
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "month",
+                  "year"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval",
+            "description": "How a paid plan bills"
+          },
+          "payment_due": {
+            "type": "boolean",
+            "title": "Payment Due",
+            "description": "The last renewal failed: Pro holds a few days while the card is retried",
+            "default": false
           }
         },
         "type": "object",
