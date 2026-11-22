@@ -290,7 +290,7 @@ function KuponSlip({
 }) {
   const { spec, coupon: c } = slot
   const id = `ic-ku-${spec.kind}`
-  const aim = spec.kind === 'surprise' ? '20' : '4.50'
+  const aim = spec.kind === 'surprise' ? '15' : '4.50'
   if (!c) {
     return (
       <li className="ic-ku-slip quiet">
@@ -492,7 +492,14 @@ function KuponSlip({
               </>
             ) : (
               <>
-                <b className="num">{n}</b> picks · aimed at about {aim}
+                <b className="num">{n}</b> picks ·{' '}
+                {spec.minChance != null ? (
+                  <>
+                    highest odds at <span className="num">{Math.round(spec.minChance * 100)}%+</span> probability
+                  </>
+                ) : (
+                  <>aimed at about {aim}</>
+                )}
               </>
             )}
           </p>
@@ -828,7 +835,7 @@ function Rules() {
   return (
     <div className="ic-ku-rules">
       <p>
-        <b>How we build them:</b> only iddaa's own odds, one pick per game.
+        <b>How we build them:</b> only iddaa's own odds, one pick per game (two players on Players Only).
         <button type="button" className="ic-ku-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>
           {more ? 'Less' : 'More'}
         </button>
@@ -838,7 +845,10 @@ function Rules() {
           <li>
             Only lines iddaa prices itself, and never odds of <span className="num">1.33</span> or under.
           </li>
-          <li>At most one pick per game: picks from one game move together.</li>
+          <li>
+            At most one pick per game: picks from one game move together. Players Only may take two different
+            players from one game, so a short night isn't left with two long rungs.
+          </li>
           <li>
             Total odds are the picks' odds multiplied. Probability is the chances on the picks multiplied: how often we
             think every pick wins.
