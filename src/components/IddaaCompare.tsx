@@ -214,6 +214,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
                 setOpen(null)
               }}
             />
+            <GamePicks data={data} lines={lines} game={game} />
             {!betsUp && <EstimatesBoard data={data} game={game} betsUp={false} />}
             <ValueRungs data={data} lines={lines} settled={settled} />
             <RungScorecard data={data} lines={lines} settled={settled} />
@@ -2073,6 +2074,99 @@ function swarm(lines: Line[], width: number) {
     median: pos(median(lines.map((l) => l.score))),
     marks: pts.map((p) => ({ line: p.line, x: p.x, y: height / 2 + p.lv * step })),
   }
+}
+
+const PICK_KINDS: [Stat, string][] = [
+  ['WIN', 'Match result'],
+  ['MAR', 'Handicap'],
+  ['TOT', 'Total points'],
+]
+
+/** Our one bet on each of iddaa's game lines (Can 2026-11-22: "selection for match result, handicap
+ *  result, total points"): the line, the book's own odds and how sure we are; after the game, won or
+ *  lost. A side the book prices at 1.33 or less gets no bet. */
+function GamePicks({ data, lines, game }: { data: BookCompare; lines: Line[]; game: number | null }) {
+  const games = data.games.filter((g) => game == null || g.game_id === game)
+  const of = (g: CompareGame, s: Stat) => lines.find((l) => l.kind === 'game' && l.game.game_id === g.game_id && l.stat === s)
+  const shown = games.filter((g) => PICK_KINDS.some(([s]) => of(g, s)))
+  if (!shown.length) return null
+  return (
+    <section className="ic-sec ic-picks" aria-labelledby="ic-h-picks">
+      <div className="ic-sec-h">
+        <div>
+          <h2 id="ic-h-picks">Our game picks</h2>
+        </div>
+      </div>
+      <p className="ic-explain ic-est-note">
+        One bet on each of iddaa's game lines: the line, its own odds and how sure we are. Settled win or lose
+        after the game.
+      </p>
+      <div className="ic-est-games">
+        {shown.map((g) => {
+          const final = g.status === 'final'
+          const live = !final && (g.status === 'live' || new Date(g.tip) <= new Date())
+          return (
+            <div key={g.game_id} className="ic-est-game ic-pick-game">
+              <div className="ic-est-head">
+                <Pair away={g.away} home={g.home} size={20} />
+                <b>{`${g.away} @ ${g.home}`}</b>
+                <span className="sub">
+                  {final ? (
+                    <>
+                      Final <span className="num">{`${g.away_score ?? ''}-${g.home_score ?? ''}`}</span>
+                    </>
+                  ) : live ? (
+                    <>
+                      <span className="ic-live" aria-hidden="true" />
+                      Live
+                    </>
+                  ) : (
+                    <>
+                      Tip <span className="num">{clock(g.tip)}</span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <ol className="ic-est-list">
+                {PICK_KINDS.map(([s, kind]) => {
+                  const l = of(g, s)
+                  if (!l) return null
+                  return <PickRow key={s} line={l} kind={kind} />
+                })}
+              </ol>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function PickRow({ line: l, kind }: { line: Line; kind: string }) {
+  const b = l.barem
+  const sure = sureOf(b)
+  const done = l.game.status === 'final' && l.oursHit != null
+  return (
+    <li className={`ic-pick${done && l.oursHit ? ' won' : ''}`}>
+      <span className="k">{kind}</span>
+      {b ? (
+        <>
+          <b className="lbl">{b.label}</b>
+          <span className="odd num">{b.odd != null ? odds(b.odd) : ''}</span>
+          {done ? (
+            <span className={`res ${l.oursHit ? 'ok' : 'no'}`}>
+              {l.oursHit ? <CheckIcon /> : <XIcon />}
+              {l.oursHit ? 'Won' : 'Lost'}
+            </span>
+          ) : (
+            <span className="sure">{sure ? <><span className="num">{sure}</span> sure</> : ''}</span>
+          )}
+        </>
+      ) : (
+        <span className="lbl none">{l.ours == null || l.book == null ? 'No line yet' : 'No bet: odds 1.33 or less'}</span>
+      )}
+    </li>
+  )
 }
 
 const EST_COLS = [

@@ -124,6 +124,25 @@ describe('iddaa vs Ours rows', () => {
   })
 })
 
+describe('our game picks', () => {
+  it('takes one priced bet per game line with our chance, and the other team with the points when ours sees less', () => {
+    const data = night([], 'scheduled')
+    const odds2 = (a: number, b: number) => [{ side: 'pick' as const, odd: a }, { side: 'other' as const, odd: b }]
+    data.games[0].markets = [
+      { market: 'winner', team: 'PHI', book_team: 'PHI', won: '', ours: 0.64, book: 0.58, actual: null, gap: 0.06, ours_hit: null, book_hit: null, closer: null, odds: odds2(1.55, 2.45) },
+      { market: 'margin', team: 'PHI', book_team: '', won: '', ours: 2, book: 4.5, actual: null, gap: -2.5, ours_hit: null, book_hit: null, closer: null, odds: odds2(1.87, 1.93) },
+      { market: 'total', team: '', book_team: '', won: '', ours: 230, book: 226.5, actual: null, gap: 3.5, ours_hit: null, book_hit: null, closer: null, odds: [{ side: 'under', odd: 1.9 }, { side: 'over', odd: 1.9 }] },
+    ]
+    const [win, mar, tot] = linesOf(data, new Date('2026-11-20T12:00:00Z'))
+    expect([win.barem?.label, win.barem?.odd, sureOf(win.barem)]).toEqual(['PHI to win', 1.55, '64%'])
+    expect([mar.barem?.label, mar.barem?.odd, mar.barem?.side]).toEqual(['MIL +4.5', 1.93, 'under']) // MIL takes the points
+    expect(sureOf(mar.barem)).toBe('57%') // 1 - Normal(-2.5 / 13.6)
+    expect([tot.barem?.label, tot.barem?.odd, sureOf(tot.barem)]).toEqual(['Over 226.5', 1.9, '58%'])
+    data.games[0].markets[0].odds = odds2(1.3, 3.4)
+    expect(linesOf(data, new Date())[0].barem).toBeNull() // our side at 1.33 or less: no bet
+  })
+})
+
 describe('iddaa vs Ours numbers', () => {
   it('writes numbers and gaps the way the page shows them', () => {
     expect(num(228.5)).toBe('228.5')
