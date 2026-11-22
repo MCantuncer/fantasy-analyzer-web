@@ -1,0 +1,368 @@
+/* A match's card on Our Estimates: our line for every player, in the pre-game box's dress. */
+.mc-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 24px 24px;
+}
+.mc-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(5 8 14 / 0.6);
+  animation: mc-fade 0.18s ease-out;
+}
+.mc-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  max-height: calc(100dvh - 72px);
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.45);
+  transform-origin: 50% 0;
+  transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: mc-rise 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.mc-sheet.mc-under {
+  transform: scale(0.965);
+}
+
+/* Title line: "Our estimates · Thunder at Heat", the tip and countdown, Close. */
+.mc-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "h close"
+    "line close";
+  align-items: center;
+  gap: 2px 12px;
+  padding: 14px 12px 12px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+.mc-title h2 {
+  grid-area: h;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  outline: none;
+}
+.mc-title h2:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.mc-dot {
+  color: var(--muted);
+}
+.mc-game {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.mc-line {
+  grid-area: line;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 7px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.mc-line b {
+  color: var(--text);
+  font-weight: 600;
+}
+.mc-line i {
+  flex: none;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.mc-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.mc-close {
+  grid-area: close;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--text);
+  font-weight: 600;
+}
+.mc-close:hover {
+  background: color-mix(in srgb, var(--raised) 70%, var(--track));
+}
+.mc-close kbd {
+  padding: 3px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font: 600 11px/1 var(--font-ui);
+}
+
+/* Team switch: the two clubs, each underlined in its own colour when picked. */
+.mc-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 12px 20px 4px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.mc-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.mc-tab:hover {
+  color: var(--text);
+}
+.mc-tab[aria-selected="true"] {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow:
+    inset 0 -2px 0 var(--mc-club),
+    0 1px 2px rgb(0 0 0 / 0.12);
+}
+.mc-tab-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-tab-ab {
+  display: none;
+}
+.mc-n {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12.5px;
+}
+
+/* The players. */
+.mc-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 20px 16px;
+}
+.mc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(7, 52px);
+  align-items: center;
+  min-height: 52px;
+  border-bottom: 1px solid var(--divider);
+}
+.mc-list .mc-row:last-child {
+  border-bottom: 0;
+}
+.mc-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  min-height: 36px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.mc-row .c {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+  font-size: 14px;
+}
+.mc-head .c {
+  font-size: 11.5px;
+}
+.mc-row .c.min .num {
+  color: var(--text-2);
+}
+.mc-row .c.pts .num {
+  font-weight: 700;
+}
+.mc-row .c small {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mc-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.mc-face {
+  flex: none;
+  display: inline-flex;
+}
+.mc-nmw {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.mc-nm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14.5px;
+  text-align: left;
+}
+button.mc-nm:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mc-dnp {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+.mc-empty,
+.mc-foot {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+@keyframes mc-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes mc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
+
+/* Phones: a sheet from the bottom; STL and BLK drop, the club names shorten. */
+@media (max-width: 640px) {
+  .mc-layer {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .mc-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 40px);
+    border-radius: var(--radius) var(--radius) 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mc-title {
+    padding: 12px 8px 10px 16px;
+  }
+  .mc-close {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  .mc-close :is(.mc-close-label, kbd) {
+    display: none;
+  }
+  .mc-switch {
+    margin: 10px 16px 2px;
+  }
+  .mc-tab-name {
+    display: none;
+  }
+  .mc-tab-ab {
+    display: inline;
+  }
+  .mc-scroll {
+    padding: 4px 16px 14px;
+  }
+  .mc-row {
+    grid-template-columns: minmax(0, 1fr) repeat(5, 40px);
+    min-height: 50px;
+  }
+  .mc-row .c.wide {
+    display: none;
+  }
+  .mc-row .c {
+    font-size: 13.5px;
+  }
+  .mc-who {
+    gap: 8px;
+  }
+  .mc-nmw {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+  .mc-nm {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .mc-row {
+    grid-template-columns: minmax(0, 1fr) repeat(5, 38px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-backdrop,
+  .mc-sheet {
+    animation: none;
+  }
+  .mc-sheet {
+    transition: none;
+  }
+}

@@ -65,7 +65,7 @@ export interface CompareGame {
   home_score: number | null
   markets: CompareMarket[]
   players: ComparePlayer[]
-  estimates?: CompareEstimate[] // our lines for players the book has no bet on yet
+  estimates?: CompareEstimate[] // our line for every player expected to play 10+ minutes (the match card)
 }
 
 /** Our line for a player before the book posts a bet on him (its player bets mostly come after 19:00
@@ -74,6 +74,7 @@ export interface CompareEstimate {
   name: string
   player_id: number
   team: string
+  priced?: boolean // iddaa has a player bet on him
   minutes: number
   pts: number
   reb: number
