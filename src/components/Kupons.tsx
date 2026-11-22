@@ -110,7 +110,7 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
           </>
         )}
       </div>
-      <ol className="ic-ku-rack">
+      <ol className={`ic-ku-rack${twin ? ' three' : ''}`}>
         {shown.map((s) => (
           <KuponSlip
             key={s.spec.kind}
@@ -341,19 +341,24 @@ function KuponSlip({
     >
       <div className="ic-ku-stub">
         <div className="ic-ku-name">
-          <Ico k={spec.kind} />
-          <h3>
-            {spec.title}
-            {also && (
-              <>
-                <span className="ic-ku-and"> &amp; </span>
-                <span className="ic-ku-also">
-                  <Ico k={also.kind} />
-                  {also.title}
-                </span>
-              </>
-            )}
-          </h3>
+          {also ? (
+            <h3 className="ic-ku-pair">
+              <span className="ic-ku-also">
+                <Ico k={spec.kind} />
+                {spec.title}
+              </span>
+              <span className="sr-only"> and </span>
+              <span className="ic-ku-also">
+                <Ico k={also.kind} />
+                {also.title}
+              </span>
+            </h3>
+          ) : (
+            <>
+              <Ico k={spec.kind} />
+              <h3>{spec.title}</h3>
+            </>
+          )}
           {c.result === 'won' ? (
             <span className="ku-tag ok">
               <Tick />
