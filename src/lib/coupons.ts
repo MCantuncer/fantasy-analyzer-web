@@ -2,7 +2,8 @@
 // iddaa's own priced lines and our chance for each. Comparison only: nothing here feeds the model.
 //
 // Rules: only the book's own lines with odds over MIN_ODD; at most one pick per game (picks from one
-// game move together, so their chances can't simply be multiplied); the coupon's chance is our chances
+// game move together, so their chances can't simply be multiplied; Players Only allows two different
+// players from one game, spec.perGame); the coupon's chance is our chances
 // multiplied. Among the sets whose total odds land in the coupon's range, the engine keeps the one with
 // the highest combined chance.
 import { MIN_ODD, STAT_UNIT } from './iddaaCompare'
@@ -22,12 +23,16 @@ export interface CouponSpec {
   /** Set: the highest total odds in [lo, hi] whose combined chance stays at or above this, instead of
    *  the likeliest set near the target (Surprise, Can 2026-11-22: "at least 10%, lower odds a bit"). */
   minChance?: number
+  /** Picks allowed from one game, never two from one player (default 1). Players Only takes 2 (Can
+   *  2026-11-22: "add a 3rd, 4th or 5th player bet if needed", so a two-game night isn't stuck on two
+   *  long rungs). Their chances still multiply, a fair read for two different players. */
+  perGame?: number
 }
 
 /** Safest to boldest, the order the page shows them in. */
 export const COUPONS: CouponSpec[] = [
   { kind: 'safe', title: 'Highest Confidence', target: 4.5, lo: 4, hi: 5.5, min: 3, max: 4, only: null },
-  { kind: 'players', title: 'Players Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'player' },
+  { kind: 'players', title: 'Players Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'player', perGame: 2 },
   { kind: 'matches', title: 'Matches Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'game' },
   { kind: 'surprise', title: 'Surprise', target: 15, lo: 8, hi: 20, min: 3, max: 7, only: null, minChance: 0.1 },
 ]
@@ -135,9 +140,12 @@ const BUDGET = 400_000 // search steps, a safety net on big nights
  *  the chance and raises the odds, so a branch stops once it can't beat the best or is past hi. */
 export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
   if (spec.minChance != null) return boldestSet(pool, spec, spec.minChance)
-  const byGame = new Map<number, Leg[]>()
-  for (const c of pool) byGame.set(c.gameId, [...(byGame.get(c.gameId) ?? []), c])
-  const games = [...byGame.values()].map(frontier).sort((a, b) => b[0].chance - a[0].chance)
+  const perGame = spec.perGame ?? 1
+  // one group per game, or per player when a game may give more than one pick
+  const groupOf = (c: Leg) => (perGame > 1 ? `${c.gameId}:${c.line.name}` : String(c.gameId))
+  const byGroup = new Map<string, Leg[]>()
+  for (const c of pool) byGroup.set(groupOf(c), [...(byGroup.get(groupOf(c)) ?? []), c])
+  const groups = [...byGroup.values()].map(frontier).sort((a, b) => b[0].chance - a[0].chance)
   const logHi = Math.log(spec.hi)
   const logLo = Math.log(spec.lo)
   const logT = Math.log(spec.target)
@@ -146,6 +154,7 @@ export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
   let bestMiss = Infinity
   let steps = 0
   const pick: Leg[] = []
+  const used = new Map<number, number>() // picks taken from each game
   const walk = (gi: number, logP: number, logO: number) => {
     if (++steps > BUDGET) return
     if (pick.length >= spec.min && logO >= logLo) {
@@ -157,13 +166,17 @@ export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
       }
     }
     if (pick.length >= spec.max) return
-    for (let g = gi; g < games.length; g++) {
-      for (const c of games[g]) {
+    for (let g = gi; g < groups.length; g++) {
+      const game = groups[g][0].gameId
+      if ((used.get(game) ?? 0) >= perGame) continue
+      for (const c of groups[g]) {
         const p = logP + Math.log(c.chance)
         const o = logO + Math.log(c.odd)
         if (o > logHi + 1e-9 || p <= bestP) continue
         pick.push(c)
+        used.set(game, (used.get(game) ?? 0) + 1)
         walk(g + 1, p, o)
+        used.set(game, used.get(game)! - 1)
         pick.pop()
       }
     }

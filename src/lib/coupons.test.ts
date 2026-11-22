@@ -127,6 +127,27 @@ describe('ready-made coupons', () => {
     expect(bestSet(pool, spec)!.map((l) => l.id).sort()).toEqual(['1', '2'])
   })
 
+  it('Players Only: a short night takes more likely rungs, two players from a game if need be', () => {
+    const leg = (id: string, game: number, name: string, odd: number, chance: number) =>
+      ({ id, gameId: game, odd, chance, line: { name } }) as Leg
+    // two games: each has a long rung and a pair of likelier ones
+    const pool = [
+      leg('c10', 1, 'Cade Cunningham', 1.93, 0.45), leg('c8', 1, 'Cade Cunningham', 1.45, 0.72),
+      leg('d20', 1, 'Jalen Duren', 1.5, 0.7),
+      leg('j14', 2, 'Nikola Jokic', 2.1, 0.35), leg('j10', 2, 'Nikola Jokic', 1.42, 0.74),
+      leg('m6', 2, 'Jamal Murray', 1.45, 0.71),
+    ]
+    const players = COUPONS.find((c) => c.kind === 'players')!
+    const one = bestSet(pool, { ...players, perGame: 1 })!
+    const two = bestSet(pool, players)!
+    const p = (s: Leg[]) => s.reduce((a, l) => a * l.chance, 1)
+    expect(one.map((l) => l.id).sort()).toEqual(['c10', 'j14']) // the old rule: two long rungs, ~16%
+    expect(two.length).toBeGreaterThanOrEqual(3)
+    expect(p(two)).toBeGreaterThan(p(one) * 1.4)
+    expect(new Set(two.map((l) => l.line.name)).size).toBe(two.length) // never the same player twice
+    expect(Math.max(...[1, 2].map((g) => two.filter((l) => l.gameId === g).length))).toBeLessThanOrEqual(2)
+  })
+
   it('Surprise: the highest total odds that keeps our chance at 10% or more', () => {
     const leg = (id: number, game: number, odd: number, chance: number) =>
       ({ id: String(id), gameId: game, odd, chance }) as Leg
