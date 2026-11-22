@@ -87,8 +87,15 @@ describe('Scorecard states', () => {
     expect(screen.getByRole('heading', { name: /Scorecard: Who Read It Better/ })).toBeTruthy()
     expect(screen.getAllByLabelText('ours 0.334, lower')).toHaveLength(2) // Blocks and All
     expect(screen.getAllByText('Ours').length).toBeGreaterThan(1)
-    expect(screen.getByText('Why rungs, not the line')).toBeTruthy()
-    expect(screen.getByText('+3.0')).toBeTruthy()
+    expect(screen.getByText('Why score every rung')).toBeTruthy()
+    expect(screen.queryByText(/middle player/)).toBeNull() // blocks only: no lift chips
+  })
+  it('the lift chips come from the night: book line minus ours, middle player', () => {
+    const PTS: CompareTally = { ...BLK, stat: 'pts', compared: 30, median_gap: -2.6 }
+    const AST: CompareTally = { ...BLK, stat: 'ast', compared: 3, median_gap: -0.5 } // too few rows
+    const { container } = show(night(RUNGS, 'final', [BLK, PTS, AST]), '2026-11-22T20:00:00Z')
+    expect(screen.getByText(/middle player/)).toBeTruthy()
+    expect(container.querySelector('.vr-lift')?.textContent).toBe('Points +2.6')
   })
   it('tonight: no results yet, with the rungs waiting', () => {
     show(night(RUNGS, 'scheduled'), '2026-11-21T20:00:00Z')
