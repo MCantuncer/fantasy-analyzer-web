@@ -1,4 +1,5 @@
 import { useDetailsMenu } from '../lib/detailsMenu'
+import { ProPlan } from './ProPlan'
 
 interface Props {
   email: string | null | undefined
@@ -8,7 +9,7 @@ interface Props {
   onSignOut: () => void
 }
 
-/** The person icon at the top right: who is signed in, the admin pages and sign out. */
+/** The person icon at the top right: who is signed in, their plan, the admin pages and sign out. */
 export function AccountMenu({ email, admin, onHealth, onEstimates, onSignOut }: Props) {
   const menu = useDetailsMenu()
   const pick = (then: () => void) => () => {
@@ -32,6 +33,7 @@ export function AccountMenu({ email, admin, onHealth, onEstimates, onSignOut }: 
       <div className="account-pop card stack">
         <span className="small muted">Signed in as</span>
         <strong className="account-email">{email ?? 'Google account'}</strong>
+        <ProPlan onPick={menu.close} />
         {admin && (
           <button type="button" className="secondary" onClick={pick(onHealth)}>
             Site health

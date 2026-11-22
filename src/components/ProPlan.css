@@ -1,0 +1,136 @@
+/* The plan block at the top of the account menu. */
+
+.pro-plan {
+  padding: 2px 0 14px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.pro-plan-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.pro-plan-h b {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.pro-plan-meta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.pro-plan-due svg {
+  color: var(--warn);
+}
+
+.pro-plan-p {
+  color: var(--text-2);
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.pro-plan-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pro-plan-acts > button {
+  flex: 1 1 auto;
+}
+
+.pro-plan-how {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: 10px 0 0;
+}
+
+.pro-plan .pro-error {
+  color: var(--bad);
+}
+
+/* Admin Free preview switch. */
+.pro-plan-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.pro-plan-switch-t {
+  flex: 1;
+  min-width: 0;
+}
+
+.pro-plan-switch-t b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pro-plan-switch-t span {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+button.pro-switch {
+  position: relative;
+  flex: none;
+  width: 48px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--track);
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+button.pro-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text-2);
+  transition: transform 0.2s;
+}
+
+button.pro-switch[aria-checked='true'] {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+button.pro-switch[aria-checked='true']::after {
+  transform: translateX(20px);
+  background: var(--on-accent);
+}
+
+/* 44px target around the 28px switch. */
+button.pro-switch::before {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.pro-switch::after {
+    transition: none;
+  }
+}

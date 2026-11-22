@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError, type Me } from '../api/client'
-import { daysLeft, hasFeature, planState, upgradeRequired } from './plans'
+import { daysLeft, hasFeature, planState, shortDate, upgradeRequired } from './plans'
 
-const base: Me = { id: 1, email: 'fan@example.com', has_google: false, leagues: [], notices: [], plan: 'free', admin: false, gifted: false }
+const base: Me = { id: 1, email: 'fan@example.com', has_google: false, leagues: [], notices: [], plan: 'free', admin: false, gifted: false, payment_due: false }
 
 describe('plans', () => {
   it('opens a spot only when the API serves its feature', () => {
@@ -24,6 +24,12 @@ describe('plans', () => {
     expect(planState({ ...pro, trial_ends: '2026-11-29T00:00:00Z' }).kind).toBe('trial')
     expect(planState({ ...pro, ends_at: '2026-12-22T00:00:00Z' }).kind).toBe('leaving')
     expect(planState({ ...pro, gifted: true, ends_at: '2026-12-22T00:00:00Z' }).kind).toBe('gift')
+    expect(planState({ ...pro, payment_due: true, renews_at: '2026-11-20T00:00:00Z' }).kind).toBe('due')
+    expect(planState({ ...pro, admin: true }).kind).toBe('admin')
+  })
+
+  it('writes plan dates as day and short month', () => {
+    expect(shortDate(new Date('2026-11-26T12:00:00Z'))).toBe('26 Nov')
   })
 
   it('counts days left', () => {

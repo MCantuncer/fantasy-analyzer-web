@@ -21,6 +21,7 @@ import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisPro
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
 import { AccountMenu } from './components/AccountMenu'
+import { ProPreviewPill, ProProvider } from './components/Pro'
 import { Auth } from './components/Auth'
 import { SignInHero } from './components/SignInHero'
 import { ResetPassword } from './components/ResetPassword'
@@ -565,7 +566,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <ProProvider me={me.data} signedIn={signedIn} theme={theme} onNeedAccount={() => setJoining('signup')}>
       <header className="topbar">
         <div className="topbar-inner">
           <button
@@ -655,6 +656,7 @@ export default function App() {
                 </svg>
               </button>
             )}
+            <ProPreviewPill />
             {themeButton}
             {signedIn && me.data && (
               <AccountMenu
@@ -998,6 +1000,6 @@ export default function App() {
           onDismiss={() => setReadyToast(false)}
         />
       )}
-    </>
+    </ProProvider>
   )
 }
