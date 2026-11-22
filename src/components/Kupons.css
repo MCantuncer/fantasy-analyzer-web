@@ -87,8 +87,19 @@
 .ic-ku-name .ku-tag.ok { color: var(--good); font-weight: 650; }
 .ic-ku-name .ku-tag.no { color: var(--text-2); font-weight: 650; }
 .ic-ku-name .cnt { display: none; }
-/* Highest Confidence & Matches Only in one slip before player bets: it takes two columns */
-.ic-ku-slip.wide { grid-column: span 2; }
+/* Highest Confidence & Matches Only in one slip before player bets: two columns wide, only as tall as
+   its picks, and marked in its own blue (never gold, green or red) so it reads as merged for now */
+.ic-ku-slip.wide {
+  --merge: #8db4ff; grid-column: span 2; align-self: start;
+  box-shadow: var(--shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--merge) 45%, transparent);
+}
+:root[data-theme='light'] .ic-ku-slip.wide { --merge: #2f5cb0; }
+.ic-ku-name .ku-tag.merged {
+  padding: 3px 9px 3px 7px; border-radius: 999px; font-weight: 650; font-size: 12.5px;
+  color: var(--merge); background: color-mix(in srgb, var(--merge) 13%, transparent);
+}
+.ic-ku-link { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ic-ku-slip.wide .ic-ku-also .ic-ku-ico { stroke: var(--text-2); }
 .ic-ku-and { color: var(--muted); font-weight: 500; }
 .ic-ku-also { display: inline-flex; align-items: center; gap: 8px; }
 .ic-ku-slip.wide .ic-ku-name h3 { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }
@@ -298,7 +309,14 @@
     background: transparent; cursor: pointer;
   }
   .ic-ku-open:hover { background: var(--accent-soft); }
-  .ic-ku-name .ku-tag:not(.ok):not(.no) { display: none; }
+  .ic-ku-name .ku-tag:not(.ok):not(.no):not(.merged) { display: none; }
+  .ic-ku-name .ku-tag.merged { padding: 2px 7px 2px 6px; font-size: 12px; }
+  /* the merged slip on a phone: the two names get the full line, the tag sits under them */
+  .ic-ku-slip.wide .ic-ku-name { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; row-gap: 6px; }
+  .ic-ku-slip.wide .ic-ku-name > .ic-ku-ico { grid-column: 1; grid-row: 1; }
+  .ic-ku-slip.wide .ic-ku-name h3 { grid-column: 2; grid-row: 1; }
+  .ic-ku-slip.wide .ic-ku-name .cnt { grid-column: 3; grid-row: 1; align-self: start; margin-top: 3px; }
+  .ic-ku-slip.wide .ic-ku-name .ku-tag.merged { grid-column: 2 / 4; grid-row: 2; justify-self: start; margin-left: 0; }
   .ic-ku-name .cnt { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
   .ic-ku-name .ku-tag.ok + .cnt, .ic-ku-name .ku-tag.no + .cnt { margin-left: 10px; font-size: 0; gap: 0; }
   .ic-ku-name .ku-tag.ok + .cnt .ic-ku-chev, .ic-ku-name .ku-tag.no + .cnt .ic-ku-chev { margin-left: 2px; }
