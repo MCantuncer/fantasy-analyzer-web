@@ -290,7 +290,7 @@ function KuponSlip({
 }) {
   const { spec, coupon: c } = slot
   const id = `ic-ku-${spec.kind}`
-  const aim = spec.kind === 'surprise' ? '20' : '4.50'
+  const aim = spec.kind === 'surprise' ? '15' : '4.50'
   if (!c) {
     return (
       <li className="ic-ku-slip quiet">
@@ -492,7 +492,14 @@ function KuponSlip({
               </>
             ) : (
               <>
-                <b className="num">{n}</b> picks · aimed at about {aim}
+                <b className="num">{n}</b> picks ·{' '}
+                {spec.minChance != null ? (
+                  <>
+                    highest odds at <span className="num">{Math.round(spec.minChance * 100)}%+</span> probability
+                  </>
+                ) : (
+                  <>aimed at about {aim}</>
+                )}
               </>
             )}
           </p>

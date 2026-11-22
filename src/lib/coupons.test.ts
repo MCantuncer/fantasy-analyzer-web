@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWords, pays } from './coupons'
+import type { Leg } from './coupons'
 import { linesOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from './iddaaCompare'
 
@@ -109,8 +110,11 @@ describe('ready-made coupons', () => {
       ['safe', null, null],
       ['players', 'waiting', null], // keeps its place: the order never changes (Can 2026-11-22)
       ['matches', null, 'safe'], // the same game picks as Highest Confidence until player bets come in
-      ['surprise', 'short', null], // five game picks can't reach 17
+      ['surprise', null, null], // game picks alone can now make it: lower odds, 10%+ chance
     ])
+    const surprise = slots.find((s) => s.spec.kind === 'surprise')!.coupon!
+    expect(surprise.chance).toBeGreaterThanOrEqual(0.1)
+    expect(surprise.listed).toBeGreaterThanOrEqual(8)
     const two = couponsOf(linesOf(night(noProps.slice(0, 2)), NOW))
     expect(two.find((s) => s.spec.kind === 'safe')!.why).toBe('short') // two games can't make 3 legs
   })
@@ -121,6 +125,34 @@ describe('ready-made coupons', () => {
     const spec = { ...COUPONS[0], min: 2, max: 3 }
     // 1.5 x 1.5 x 2.2 = 4.95 at 0.245 beats 2.2 x 2.1 = 4.62 at 0.25? no: 0.25 > 0.245, so the pair wins
     expect(bestSet(pool, spec)!.map((l) => l.id).sort()).toEqual(['1', '2'])
+  })
+
+  it('Surprise: the highest total odds that keeps our chance at 10% or more', () => {
+    const leg = (id: number, game: number, odd: number, chance: number) =>
+      ({ id: String(id), gameId: game, odd, chance }) as Leg
+    // each game: a safe pick and a long one
+    const pool = [
+      leg(1, 1, 1.5, 0.7), leg(11, 1, 2.6, 0.38),
+      leg(2, 2, 1.6, 0.66), leg(12, 2, 2.4, 0.4),
+      leg(3, 3, 1.7, 0.62), leg(13, 3, 2.2, 0.45),
+      leg(4, 4, 1.8, 0.58),
+    ]
+    const spec = COUPONS.find((c) => c.kind === 'surprise')!
+    const set = bestSet(pool, spec)!
+    const p = set.reduce((a, l) => a * l.chance, 1)
+    const o = set.reduce((a, l) => a * l.odd, 1)
+    expect(p).toBeGreaterThanOrEqual(0.1)
+    // every other one-per-game set at 10%+ pays less
+    const games = [1, 2, 3, 4].map((g) => pool.filter((l) => l.gameId === g))
+    let top = 0
+    const all = (i: number, po: number, pp: number, n: number) => {
+      if (n >= spec.min && po >= spec.lo && po <= spec.hi && pp >= 0.1) top = Math.max(top, po)
+      if (i === games.length) return
+      all(i + 1, po, pp, n)
+      for (const l of games[i]) all(i + 1, po * l.odd, pp * l.chance, n + 1)
+    }
+    all(0, 1, 1, 0)
+    expect(o).toBeCloseTo(top, 9)
   })
 
   it('settles: a lost leg sinks the coupon, a player who sat out counts 1.00', () => {
