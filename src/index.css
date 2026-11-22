@@ -82,6 +82,10 @@
   --seam: #3b332b; /* the centre seam and table spine */
   --close: #3a332c; /* Close call tag fill */
   --scrim: rgb(10 8 6 / 0.66);
+  /* A team's form before a match (the match card's Form view): only the icon, the state word and
+     the last-5 edge, never a fill. Not gold (you/live/focus), not green/coral (outcomes). */
+  --heat: #ff74d0;
+  --ice: #9ccfdf;
   /* Front Office corners: a bit round, never pill-shaped. Cards 18, rows 16, tiles 14, buttons 12, tags 7. */
   --radius: 18px;
   --radius-row: 16px;
@@ -169,6 +173,8 @@
   --scrim: rgb(26 23 20 / 0.45);
 
   color-scheme: light;
+  --heat: #b0177e;
+  --ice: #1f6478;
 }
 
 * {
