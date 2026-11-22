@@ -225,7 +225,11 @@ export function MatchCard({
             aria-labelledby={`${viewsId}-form`}
           >
             {form.data ? (
-              <FormView form={form.data} venueNeutral={form.data.next?.neutral === true} />
+              <FormView
+                form={form.data}
+                venueNeutral={form.data.next?.neutral === true}
+                initialSide={initialSide}
+              />
             ) : form.isError ? (
               <FormError onRetry={() => void form.refetch()} />
             ) : (

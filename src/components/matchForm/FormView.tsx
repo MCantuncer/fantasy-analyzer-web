@@ -1,5 +1,5 @@
 import { Equals, Flame, GlobeSimple, MapPin, Snowflake } from '@phosphor-icons/react'
-import { useId, useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import {
   HEAT_RULE,
@@ -15,6 +15,7 @@ import {
 import type { FormHeat, FormRead, MatchForm, Side, TeamForm } from '../../lib/matchForm'
 import { teamLight } from '../../lib/nbaTeams'
 import { TeamLogo } from '../PlayerHead'
+import { BoxScores } from './BoxScores'
 import './FormView.css'
 
 /** The match card's Form view (Can 2026-11-22, "Scouting Report"): who is heating up or cooling off
@@ -27,9 +28,23 @@ export function HeatIcon({ heat, size = 17 }: { heat: FormHeat; size?: number })
   return <Icon size={size} weight={heat === 'steady' ? 'bold' : 'fill'} aria-hidden="true" />
 }
 
-export function FormView({ form, venueNeutral }: { form: MatchForm; venueNeutral: boolean }) {
+export function FormView({
+  form,
+  venueNeutral,
+  initialSide = 'away',
+}: {
+  form: MatchForm
+  venueNeutral: boolean
+  /** The side the list opens on: the side a Kupon pick backs. */
+  initialSide?: Side
+}) {
   const [venue, setVenue] = useState(false)
+  const [side, setSide] = useState<Side>(initialSide)
   const on = venue && !venueNeutral
+  const shown = useMemo(
+    () => ({ away: inVenue(form.away.games, 'away', on), home: inVenue(form.home.games, 'home', on) }),
+    [form, on],
+  )
   return (
     <div className="mf">
       <section className="mf-read" aria-label="Who is in form">
@@ -45,6 +60,7 @@ export function FormView({ form, venueNeutral }: { form: MatchForm; venueNeutral
           onChange={setVenue}
         />
       </section>
+      <BoxScores away={form.away} home={form.home} side={side} onSide={setSide} shown={shown} venue={on} />
       <p className="mf-rule">{HEAT_RULE}</p>
     </div>
   )

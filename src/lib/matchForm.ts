@@ -71,6 +71,8 @@ export type FormHeat = 'hot' | 'cold' | 'steady'
 
 /** How many recent games the verdict reads. */
 export const FORM_GAMES = 5
+/** How many games the card lists and draws. */
+export const LAST_GAMES = 10
 
 const MINUS = '−'
 
@@ -215,4 +217,12 @@ export function shortDate(iso: string | null): string {
   if (!iso) return ''
   const d = new Date(`${iso}T12:00:00Z`)
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+}
+
+/** "Karl-Anthony Towns" -> "Towns", "Jaren Jackson Jr." -> "Jackson Jr." for the narrow phone column. */
+export function lastName(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length < 2) return name
+  const tail = parts[parts.length - 1]
+  return /^(jr\.?|sr\.?|ii|iii|iv|v)$/i.test(tail) && parts.length > 2 ? parts.slice(-2).join(' ') : tail
 }
