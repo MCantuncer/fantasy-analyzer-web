@@ -3406,7 +3406,20 @@
 .ic-gp-game:first-child { border-top: 0; }
 
 /* the call: our predicted score leads */
-.ic-gp-call { min-width: 0; }
+.ic-gp-call { position: relative; min-width: 0; }
+/* the score side is one big button to the match card: "Player estimates ›" is its label, and its
+   ::after covers the side, lit softly on hover, ringed on keyboard focus */
+.ic-gp-open {
+  position: static; display: flex; align-items: center; justify-content: center; gap: 4px;
+  margin: 10px auto 0; padding: 4px 6px; border: 0; background: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+}
+.ic-gp-open svg { width: 12px; height: 12px; transform: rotate(-90deg); }
+.ic-gp-open::after { content: ''; position: absolute; inset: -10px -12px; border-radius: var(--radius-tile); transition: background-color 120ms ease-out; }
+.ic-gp-open:hover { color: var(--text); }
+.ic-gp-open:hover::after { background: var(--accent-soft); }
+.ic-gp-open:focus-visible { outline: none; color: var(--text); }
+.ic-gp-open:focus-visible::after { box-shadow: 0 0 0 2px var(--focus); }
 .ic-gp-top {
   display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
   font-size: 13px; color: var(--muted);

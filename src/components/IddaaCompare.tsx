@@ -231,7 +231,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
                 setCard(g) // Can 2026-11-22: a match opens its card of player lines
               }}
             />
-            <GamePicks data={data} lines={lines} game={game} />
+            <GamePicks data={data} lines={lines} game={game} onCard={setCard} />
             <ValueRungs data={data} lines={lines} settled={settled} />
             <RungScorecard data={data} lines={lines} settled={settled} />
             <GapList
@@ -2103,7 +2103,17 @@ const PICK_KINDS: [Stat, string][] = [
  *  leads with our called score; then one ticket per game line with the barem and its own odds big and
  *  a confidence ring that explains itself on hover or tap. After the game: the real score over our
  *  call in outline, each ticket Won or Lost with its return. Club colour only as a thin flat bar/dot. */
-function GamePicks({ data, lines, game }: { data: BookCompare; lines: Line[]; game: number | null }) {
+function GamePicks({
+  data,
+  lines,
+  game,
+  onCard,
+}: {
+  data: BookCompare
+  lines: Line[]
+  game: number | null
+  onCard: (game: number) => void
+}) {
   const [open, setOpen] = useState<string | null>(null)
   useEscapeLayer(open != null, () => setOpen(null))
   const games = data.games.filter((g) => game == null || g.game_id === game)
@@ -2168,7 +2178,7 @@ function GamePicks({ data, lines, game }: { data: BookCompare; lines: Line[]; ga
       </div>
       <ol className="ic-gp-games">
         {shown.map((g) => (
-          <PickGame key={g.game_id} g={g} lines={lines} of={of} open={open} onOpen={setOpen} />
+          <PickGame key={g.game_id} g={g} lines={lines} of={of} open={open} onOpen={setOpen} onCard={onCard} />
         ))}
       </ol>
     </section>
@@ -2183,12 +2193,14 @@ function PickGame({
   of,
   open,
   onOpen,
+  onCard,
 }: {
   g: CompareGame
   lines: Line[]
   of: (g: CompareGame, s: Stat) => Line | undefined
   open: string | null
   onOpen: (id: string | null) => void
+  onCard: (game: number) => void
 }) {
   const call = gameCall(g, lines)
   const final = g.status === 'final' && g.away_score != null && g.home_score != null
@@ -2318,6 +2330,20 @@ function PickGame({
               </>
             )}
           </p>
+        )}
+        {/* Can 2026-11-22: the score side opens the match card (our line for every player); the
+            button's ::after stretches over the whole side, so a click anywhere on it works */}
+        {(g.estimates?.length ?? 0) > 0 && (
+          <button
+            type="button"
+            className="ic-gp-open"
+            aria-haspopup="dialog"
+            aria-label={`${g.away} at ${g.home}: player estimates`}
+            onClick={() => onCard(g.game_id)}
+          >
+            Player estimates
+            <Chevron />
+          </button>
         )}
       </div>
       <ol className="ic-gp-slips">
