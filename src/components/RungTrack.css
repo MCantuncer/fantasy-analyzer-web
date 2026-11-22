@@ -1,0 +1,251 @@
+/* The price notch track and the opened ladder (Our Estimates). Ours open, Book solid, the notch is the
+   price (1 ÷ odds) and only ours past the notch is filled: the value. vr- prefix, page-own styles. */
+.vr-so,
+.vr-sb {
+  display: inline-block;
+  flex: none;
+  vertical-align: -1px;
+  overflow: visible;
+}
+.vr-so path {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.vr-sb path {
+  fill: var(--text-2);
+}
+
+.vr-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 26px;
+}
+.vr-track.sm {
+  height: 24px;
+}
+.vr-tk-rail,
+.vr-tk-ours,
+.vr-tk-val {
+  position: absolute;
+  top: 3px;
+  height: 12px;
+}
+.vr-track.sm .vr-tk-rail,
+.vr-track.sm .vr-tk-ours,
+.vr-track.sm .vr-tk-val {
+  top: 4px;
+  height: 10px;
+}
+.vr-tk-rail {
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+  background: var(--track);
+}
+.vr-tk-ours {
+  left: 0;
+  box-sizing: border-box;
+  border: 1.5px solid var(--text);
+  border-radius: 4px;
+}
+.vr-tk-val {
+  background: var(--accent);
+}
+/* The notch stands proud of the track, with a surface halo where it meets the fill. */
+.vr-tk-notch {
+  position: absolute;
+  top: 0;
+  height: 18px;
+  width: 2.5px;
+  margin-left: -1.25px;
+  border-radius: 1px;
+  background: var(--text);
+  box-shadow:
+    -2px 0 0 0 var(--surface),
+    2px 0 0 0 var(--surface);
+}
+.vr-track.sm .vr-tk-notch {
+  height: 18px;
+}
+.vr-tk-book {
+  position: absolute;
+  top: 16px;
+  margin-left: -5px;
+  line-height: 0;
+}
+.vr-track.sm .vr-tk-book {
+  top: 16px;
+  margin-left: -4.5px;
+}
+
+/* The opened row's ladder */
+.vr-ladder {
+  width: 100%;
+  max-width: 560px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.vr-ladder th,
+.vr-ladder td {
+  padding: 3px 4px;
+  text-align: left;
+  vertical-align: middle;
+}
+.vr-ladder thead th {
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-bottom: 6px;
+}
+.vr-ladder thead .vr-sb {
+  vertical-align: 0;
+}
+.vr-ladder tbody .n {
+  font-family: var(--font-num);
+  font-weight: 600;
+  color: var(--text);
+  text-align: right;
+  width: 36px;
+}
+.vr-ladder thead .n {
+  text-align: right;
+}
+.vr-ladder .o {
+  font-family: var(--font-num);
+  color: var(--text-2);
+  width: 44px;
+}
+.vr-ladder td.t {
+  min-width: 96px;
+  padding-left: 8px;
+  padding-right: 10px;
+}
+.vr-ladder .mk {
+  width: 20px;
+  text-align: center;
+}
+.vr-ladder .mk svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+  margin: 0 auto;
+}
+.vr-ladder .mk.ok svg {
+  stroke: var(--good);
+}
+.vr-ladder .mk.no svg {
+  stroke: var(--bad);
+}
+.vr-ladder .v {
+  font-family: var(--font-num);
+  text-align: right;
+  color: var(--text-2);
+  width: 48px;
+}
+.vr-ladder td.v.up {
+  color: var(--text);
+  font-weight: 650;
+}
+.vr-ladder .cl {
+  width: 52px;
+  text-align: center;
+  color: var(--muted);
+}
+.vr-ladder td.cl svg {
+  width: 11px;
+  height: 10px;
+}
+/* "Had 50 ↑": a rule across the ladder where his total fell */
+.vr-had td {
+  padding: 2px 0;
+}
+.vr-had span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text);
+  white-space: nowrap;
+}
+.vr-had span::before,
+.vr-had span::after {
+  content: '';
+  height: 1.5px;
+  background: var(--text-2);
+  flex: 1;
+}
+.vr-had span::before {
+  flex: 0 0 64px;
+}
+
+.vr-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+.vr-note-figs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  margin-top: 2px;
+}
+.vr-note-figs div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vr-note-figs small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.vr-note-figs b {
+  font-family: var(--font-num);
+  font-size: 20px;
+  font-weight: 650;
+  color: var(--text);
+}
+.vr-note-src {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 719px) {
+  .vr-ladder {
+    font-size: 12px;
+  }
+  .vr-ladder th,
+  .vr-ladder td {
+    padding: 3px 2px;
+  }
+  .vr-ladder .o {
+    width: 38px;
+  }
+  .vr-ladder td.t {
+    min-width: 0;
+    padding-left: 4px;
+    padding-right: 6px;
+  }
+  .vr-ladder .v {
+    width: 42px;
+  }
+  .vr-ladder thead .t {
+    white-space: normal;
+  }
+  .vr-ladder .cl {
+    width: 40px;
+  }
+  .vr-had span::before {
+    flex-basis: 24px;
+  }
+}

@@ -27,6 +27,7 @@ import type { BookCompare, CompareEstimate, CompareGame, Line, Stat, Tally } fro
 import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
+import { RungLadder, RungNote } from './RungTrack'
 import './IddaaCompare.css'
 
 interface Props {
@@ -1489,7 +1490,16 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
               ` We are ${sureOf(l.barem)} sure he gets ${l.barem.label.replace('+', '')} or more, from how often players with a line like ours did over five seasons.`}
           </p>
         )}
-        {l.ladder.length > 0 && l.book != null && (
+        {l.rungs.length > 0 ? (
+          <>
+            <div className="ic-ladder-cap">
+              The book's rungs at odds over 1.33, its margin removed. Ours is the open bar, the book the ▲, the notch the
+              price (1 ÷ odds); ours past the notch is filled: the value.
+            </div>
+            <RungLadder line={l} />
+            <RungNote line={l} />
+          </>
+        ) : l.ladder.length > 0 && l.book != null && (
           <>
             <div className="ic-ladder-cap">
               The book's N+ ladder: each rung's chance with its margin removed, then its odds. It crosses 50% at{' '}
