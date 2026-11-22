@@ -125,7 +125,7 @@ export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
       </span>
       <span className="ic-teaser-sub">
         {settled
-          ? `${nightLabel(data.date)}: within band, Ours ${t.ours}/${t.judged} · Book ${t.book}/${t.judged}`
+          ? `${nightLabel(data.date)}: we won ${t.oursCloser} of ${t.judged} · Book won ${t.bookCloser}`
           : 'Every player and game, our number beside the book’s, judged against the result once the games end.'}
       </span>
       {top && !settled && (
@@ -271,9 +271,17 @@ function NightTabs({
   latest: number | undefined
   settled: boolean
 }) {
-  const nights = [...data.nights].reverse()
+  // Oldest on the left, tonight on the right, like a calendar (Can 2026-11-22: past days read
+  // as "after today" when they sat to the right). A long row starts scrolled to the open night.
+  const nights = data.nights
+  const row = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = row.current
+    const on = el?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (el && on) el.scrollLeft = Math.max(0, on.offsetLeft + on.offsetWidth - el.clientWidth + 16)
+  }, [data.day])
   return (
-    <div className="ic-nights" role="tablist" aria-label="Night">
+    <div className="ic-nights" role="tablist" aria-label="Night" ref={row}>
       {nights.map((n) => {
         const live = n.day === latest && !(n.day === data.day && settled)
         return (
@@ -347,13 +355,17 @@ function NightCard({
       {t.judged > 0 && (
         <div className="ic-tally-line">
           <span className="ic-tl-say">
-            {settled ? '' : 'So far: '}We were closer on <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book{' '}
-            <b>{t.bookCloser}</b> · Level <b>{t.level}</b>
+            {settled ? '' : 'So far: '}We won <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book won{' '}
+            <b>{t.bookCloser}</b>
+            {t.level > 0 && (
+              <>
+                {' '}
+                · Level <b>{t.level}</b>
+              </>
+            )}
           </span>
           <Split t={t} />
-          <span className="ic-tl-band">
-            Within band: Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b>
-          </span>
+          <span className="ic-tl-band">Each line settled on one book line, win or lose</span>
         </div>
       )}
       <div className="ic-games" role="group" aria-label="Game">
@@ -395,7 +407,7 @@ function NightCard({
               <span className="ic-chip-f">
                 {g.status === 'final' && gt.judged ? (
                   <>
-                    Closer: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
+                    Won: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
                     <span className="num">{gt.bookCloser}</span>
                   </>
                 ) : (
@@ -438,8 +450,7 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
           <>
             <Split t={t} />
             <span className="ic-tx">
-              We were closer on <b className="g">{t.oursCloser}</b> · Book <b>{t.bookCloser}</b> · Level{' '}
-              <b>{t.level}</b>
+              We won <b className="g">{t.oursCloser}</b> · Book won <b>{t.bookCloser}</b>
             </span>
             <span className="ic-mm">
               {s === 'WIN' ? (
@@ -447,10 +458,13 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
                   Our pick won <span className="num">{t.ours}</span> of <span className="num">{t.judged}</span>
                 </>
               ) : (
-                <>
-                  Within band: Ours <span className="num">{`${t.ours}/${t.judged}`}</span> · Book{' '}
-                  <span className="num">{`${t.book}/${t.judged}`}</span>
-                </>
+                t.oursMiss != null &&
+                t.bookMiss != null && (
+                  <>
+                    Off on average: Ours <span className="num">{num(t.oursMiss)}</span> · Book{' '}
+                    <span className="num">{num(t.bookMiss)}</span>
+                  </>
+                )
               )}
             </span>
           </>
@@ -464,17 +478,17 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
     <section className="ic-sec" aria-labelledby="ic-h-closer">
       <div className="ic-sec-h">
         <div>
-          <h2 id="ic-h-closer">Who was closer, stat by stat</h2>
-          <p className="ic-sub">Each side judged against the actual result: within band when it lands close.</p>
+          <h2 id="ic-h-closer">Who won, stat by stat</h2>
+          <p className="ic-sub">
+            Each line is settled on one of the book's lines: our number takes the over or the under, and the result decides
+            who won. Never both, never level.
+          </p>
         </div>
       </div>
       <div className="ic-t-group">Players</div>
       <ul className="ic-t-list">{PLAYER_STATS.map(row)}</ul>
       <div className="ic-t-group">Games</div>
       <ul className="ic-t-list">{GAME_STATS.map(row)}</ul>
-      <p className="ic-t-note">
-        Steals, blocks and 3PM bands (±1) are loose on lines near 1, so read those rows by who was closer.
-      </p>
     </section>
   )
 }
@@ -666,7 +680,7 @@ function Key({ judged }: { judged: boolean }) {
           <span className="ic-key-ok">
             <CheckIcon />
           </span>
-          within band
+          won on the book's line
         </span>
       )}
     </span>
@@ -869,16 +883,21 @@ function DuelCard({
   )
 }
 
-/** "✓ in band" or "✗ off 6.6" under a duel number: did it land within its band. */
+/** The settled duel in a few words: "11+ won", "Under 11 lost", "Book won"; a winner pick stays right or wrong. */
+function callWord(l: Line, side: 'ours' | 'book', ok: boolean): string {
+  if (l.stat === 'WIN') return ok ? 'right' : 'wrong'
+  if (side === 'book') return ok ? 'Book won' : 'Book lost'
+  return `${l.barem?.label ?? 'Ours'} ${ok ? 'won' : 'lost'}`
+}
+
+/** "✓ Over won" or "✗ Over lost" under ours, "✓ Book won" / "✗ Book lost" under the book's: how a bet settled. */
 function HitWord({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const ok = side === 'ours' ? l.oursHit : l.bookHit
   if (ok == null) return <span className={`hw ${side === 'ours' ? 'ou' : 'bk'}`} />
-  const v = l[side]
-  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
   return (
     <span className={`hw ${side === 'ours' ? 'ou' : 'bk'} ${ok ? 'ok' : 'no'}`}>
       {ok ? <CheckIcon /> : <XIcon />}
-      {l.stat === 'WIN' ? (ok ? 'right' : 'wrong') : ok ? 'in band' : `off ${off}`}
+      {callWord(l, side, ok)}
     </span>
   )
 }
@@ -920,7 +939,7 @@ function StageRuler({ line: l, scale }: { line: Line; scale: { lo: number; hi: n
 /** The duel's footer: the plain sentence before the game, Playing during it, then who was nearer. */
 function DuelSlot({ line: l }: { line: Line }) {
   const g = l.game
-  if (g.status === 'final' && l.closer) {
+  if (g.status === 'final' && (l.closer || l.actual != null)) {
     const say =
       l.kind === 'player' && l.actual != null ? (
         <>
@@ -1020,34 +1039,64 @@ function ResultSlot({ line: l }: { line: Line }) {
   )
 }
 
-/** Who was nearer the result, in words: green for us, calm for the book, muted when level. */
+/** Who won the row's duel, in words: green for us, calm for the book; under it the barem it was
+ *  settled on and the book's odds there ("on 11+ · 1.85"). */
 function Verdict({ line: l }: { line: Line }) {
-  if (!l.closer) return null
-  const by = l.by == null || l.closer === 'tie' ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+  if (!l.closer) {
+    // a final line with no duel: a player whose rungs under ours are all priced 1.33 or less
+    if (l.game.status !== 'final' || l.actual == null || l.barem || l.stat === 'WIN') return null
+    return (
+      <span className="ic-slot-vd none">
+        <b>No call</b>
+        <span>odds 1.33 or less</span>
+      </span>
+    )
+  }
+  const by = l.stat === 'WIN' && l.by != null && l.closer !== 'tie' ? `${Math.round(l.by * 100)}pp` : null
   return (
     <span className={`ic-slot-vd ${l.closer}`}>
-      <b>{l.closer === 'ours' ? 'We were closer' : l.closer === 'book' ? 'Book was closer' : 'Level with the book'}</b>
+      <b>{l.closer === 'ours' ? 'We won' : l.closer === 'book' ? 'Book won' : 'Level with the book'}</b>
       {by && (
         <span>
           by <span className="num">{by}</span>
+        </span>
+      )}
+      {l.barem && (
+        <span>
+          on{' '}
+          {l.barem.floors.length ? (
+            l.barem.floors.map((f, i) => (
+              <span key={f.n} className="num">
+                {i > 0 ? ' · ' : ''}
+                {`${f.n}+ ${odds(f.odd)}`}
+              </span>
+            ))
+          ) : (
+            <>
+              <span className="num">{l.barem.label}</span>
+              {l.barem.odd != null && (
+                <>
+                  {' '}
+                  · <span className="num">{odds(l.barem.odd)}</span>
+                </>
+              )}
+            </>
+          )}
         </span>
       )}
     </span>
   )
 }
 
-/** ✓ or ✗ beside a number: did it land within its band of the result. Nothing else. */
+/** ✓ or ✗ beside a number: how a bet on it settled (our call over or under the book's number). */
 function Hit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const ok = side === 'ours' ? l.oursHit : l.bookHit
   if (ok == null || l.game.status !== 'final') return null
   const who = side === 'ours' ? 'Ours' : 'Book'
-  const v = l[side]
   const label =
     l.stat === 'WIN'
       ? `${who} ${ok ? 'right' : 'wrong'}`
-      : ok
-        ? `${who} within band`
-        : `${who} outside the band${v != null && l.actual != null ? `, off by ${num(Math.abs(l.actual - v))}` : ''}`
+      : `${callWord(l, side, ok)}${l.actual != null && l.barem ? `, result ${num(l.actual)} on ${l.barem.label}` : ''}`
   return (
     <span className={`ic-hit ${ok ? 'ok' : 'no'}`} role="img" aria-label={label}>
       {ok ? <CheckIcon /> : <XIcon />}
@@ -1243,9 +1292,9 @@ function Ruler({ line: l, big = false }: { line: Line; big?: boolean }) {
         d={`M${p.x + (p.x > c ? 4 : -4)} ${top ? y - 13 : y + 6} l${p.x > c ? 3 : -3} 3.5 l${p.x > c ? -3 : 3} 3.5`}
       />
     ) : null
-  const label = `Result ${num(l.actual)}. Band ${num(l.actual - band)} to ${num(l.actual + band)}. Ours ${num(l.ours)} ${
-    l.oursHit ? 'inside' : 'outside'
-  }, book ${num(l.book)} ${l.bookHit ? 'inside' : 'outside'}.`
+  const label = `Result ${num(l.actual)}. Band ${num(l.actual - band)} to ${num(l.actual + band)}. Ours ${num(l.ours)}, book ${num(
+    l.book,
+  )}${l.oursHit == null ? '' : l.oursHit ? ': our call won' : ': the book won'}.`
   return (
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <line className="r-axis" x1={pad - 6} y1={y} x2={W - pad + 6} y2={y} />
@@ -1314,9 +1363,20 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
         {settled && l.stat !== 'WIN' && l.actual != null && (
           <>
             <p>
-              {l.closer === 'tie' ? 'Level' : <b>{l.closer === 'ours' ? 'Ours' : 'Book'} was closer</b>}
-              {l.by != null && l.closer !== 'tie' ? `, by ${num(l.by)}` : ''}. Off by {offO} (Ours) and {offB} (Book). A
-              line counts when it lands within ±{num(l.band)} {unit} of the result.
+              {l.barem && l.closer ? (
+                <>
+                  <b>{l.closer === 'ours' ? 'We won' : 'Book won'}</b> on {l.barem.label}
+                  {l.barem.odd != null ? ` at ${odds(l.barem.odd)}` : ''}:{' '}
+                  {l.barem.floors.length
+                    ? `ours ${num(l.ours ?? 0)} backs at least ${l.barem.floors[0].n}, the book's line, and the result was ${num(l.actual)}.`
+                    : `ours took the ${l.barem.side} on the book's ${num(l.barem.at)} and the result was ${num(l.actual)}.`}
+                  {l.barem.floors
+                    .slice(1)
+                    .map((f) => ` ${f.n}+ at ${odds(f.odd)} ${l.actual != null && l.actual >= f.n ? 'won' : 'lost'}.`)
+                    .join('')}{' '}
+                </>
+              ) : null}
+              Off by {offO} (Ours) and {offB} (Book).
             </p>
             <div className="ic-ruler-big">
               <Ruler line={l} big />
@@ -1449,13 +1509,13 @@ function HowDivided({
           {has((l) => fin(l) && l.closer === 'ours') && (
             <span>
               <i className="lg win" />
-              We were closer
+              We won
             </span>
           )}
           {has((l) => fin(l) && l.closer === 'book') && (
             <span>
               <i className="lg bk" />
-              Book was closer
+              Book won
             </span>
           )}
           {has((l) => fin(l) && l.closer === 'tie') && (
@@ -1522,7 +1582,7 @@ function HowDivided({
               {t.judged ? (
                 <>
                   <i className="lg win" aria-hidden="true" />
-                  We were closer on <b className="g">{t.oursCloser}</b> of {t.judged}
+                  We won <b className="g">{t.oursCloser}</b> of {t.judged}
                 </>
               ) : (
                 <>
@@ -1692,7 +1752,7 @@ function Field({
 }
 
 /** A mark's shape says where the line stands, never its colour alone: ○ to come, ◉ playing,
- *  ● we were closer, ◆ the book was closer, ⊙ level. */
+ *  ● we won, ◆ the book won, ⊙ level. */
 function shapeOf(l: Line): string {
   if (l.game.status === 'final' && l.closer) return l.closer === 'ours' ? 'win' : l.closer === 'book' ? 'bk' : 'lv'
   if (l.game.status === 'final') return 'ring dim'
@@ -1862,16 +1922,14 @@ function MarkCard({
   )
 }
 
-/** "✓ in band" or "✗ off 2.7" under the card's Book and Ours. */
+/** "✓ Over won" or "✗ Book lost" under the card's Book and Ours. */
 function McHit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const hit = side === 'ours' ? l.oursHit : l.bookHit
   if (hit == null || l.game.status !== 'final') return null
-  const v = l[side]
-  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
   return (
     <span className={`ic-mc-hit ${hit ? 'ok' : 'no'}`}>
       {hit ? <CheckIcon /> : <XIcon />}
-      {l.stat === 'WIN' ? (hit ? 'right' : 'wrong') : hit ? 'in band' : `off ${off}`}
+      {callWord(l, side, hit)}
     </span>
   )
 }
@@ -1981,7 +2039,7 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                         {final ? (
                           <>
                             <th scope="col">Result</th>
-                            <th scope="col">Closer</th>
+                            <th scope="col">Won</th>
                           </>
                         ) : (
                           <th scope="col" className="hide-xs">
@@ -2031,11 +2089,8 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                   {final ? (
                     <>
                       <span>
-                        We were closer on <b className="g">{pl.oursCloser}</b> of <b>{pl.judged}</b> player lines · Book{' '}
+                        We won <b className="g">{pl.oursCloser}</b> of <b>{pl.judged}</b> player lines · Book won{' '}
                         <b>{pl.bookCloser}</b>
-                      </span>
-                      <span>
-                        Within band: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · Book <b>{`${pl.book}/${pl.judged}`}</b>
                       </span>
                     </>
                   ) : (

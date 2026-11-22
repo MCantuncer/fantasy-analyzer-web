@@ -3315,3 +3315,9 @@
   white-space: normal;
   min-width: 44px;
 }
+
+/* a settled line with no duel (every book rung under ours is 1.33 or less) */
+.ic-slot-vd.none b {
+  color: var(--text-2);
+  font-weight: 500;
+}
