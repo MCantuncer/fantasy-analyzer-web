@@ -2,6 +2,7 @@ import type { components } from './schema'
 import type { Credentials } from '../lib/credentials'
 import { loadToken } from '../lib/session'
 import type { BookCompare, BookRecord } from '../lib/iddaaCompare'
+import type { MatchForm } from '../lib/matchForm'
 
 export type LeagueSummary = components['schemas']['LeagueSummary']
 export type AnalysisReport = components['schemas']['AnalysisReport']
@@ -297,6 +298,22 @@ export function resolveErrorReport(id: number) {
 /** Our estimates beside the sportsbook's lines for one night (the latest when no day), each judged against the result once final. */
 export function fetchBookCompare(day: number | null) {
   return post<BookCompare>('/api/book-compare', day == null ? {} : { day })
+}
+
+/** Both teams' games this season (newest first, no preseason) with each game's MVP and type, and their
+ *  next meeting: the match card's Form view. A cold server may read a few weeks of days first. */
+export function fetchMatchForm(away: string, home: string) {
+  return post<MatchForm>('/api/match-form', { away, home }, null, SCORES_TIMEOUT_MS)
+}
+
+// Results move once a night: a few minutes keeps reopening the card instant without going stale.
+export function matchFormQuery(away: string, home: string) {
+  return {
+    queryKey: ['match-form', away.toUpperCase(), home.toUpperCase()],
+    queryFn: () => fetchMatchForm(away, home),
+    retry: 1,
+    staleTime: 5 * 60_000,
+  }
 }
 
 /** The running record of the value rungs over the latest saved nights (the server's default, 30, when unset). */
