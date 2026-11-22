@@ -1,4 +1,4 @@
-// Our Estimates: the sportsbook's lines (iddaa, through nesine) beside ours, and once the games are final, what
+// Our Estimates: the sportsbook's lines (iddaa) beside ours, and once the games are final, what
 // happened. Each side is judged against the result, never by which side of iddaa's line it fell
 // (Can 2026-11-21: "we're trying to match the actual score"). The server judges; this file shapes
 // its answer into the page's rows.
@@ -61,6 +61,24 @@ export interface CompareGame {
   home_score: number | null
   markets: CompareMarket[]
   players: ComparePlayer[]
+  estimates?: CompareEstimate[] // our lines for players the book has no bet on yet
+}
+
+/** Our line for a player before the book posts a bet on him (its player bets mostly come after 19:00
+ *  Turkey time), with what he did once the game is final. */
+export interface CompareEstimate {
+  name: string
+  player_id: number
+  team: string
+  minutes: number
+  pts: number
+  reb: number
+  ast: number
+  stl: number
+  blk: number
+  three_pm: number
+  played: boolean | null
+  actual: Record<string, number> | null
 }
 
 export interface CompareTally {
@@ -263,31 +281,36 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
   return out
 }
 
-/** The line a row is settled on (Can 2026-11-22: "select a barem with its oran... a battle, win or
- *  lose, no tie"; "we can give minimum X points, rebs, assists"). A player's is the floor our number
- *  backs: the book's highest priced rung at or under ours (ours 12.3 takes 12+, and 11+ beside it),
- *  won when he reaches it. Odds of 1.33 and under are already gone, so a player whose floors are all
- *  that short makes no call. Game lines take the over or under on the book's number. */
+/** The one bet a row takes, and the line it is settled on (Can 2026-11-22: "select a barem with its
+ *  oran... a battle, win or lose, no tie"; "we can give minimum X points, rebs, assists"; "target 1
+ *  bet for each estimation with confidence score" and "bahsin kendi oranı", the bet's own odds). A
+ *  player's is the floor our number backs: the book's highest priced rung at or under ours (ours 12.3
+ *  takes 12+), won when he reaches it, with our chance he gets there as the confidence. Odds of 1.33
+ *  and under are already gone, so a player whose floors are all that short gets no bet. Game lines
+ *  take the over or under on the book's number. */
 export interface Barem {
   label: string // "12+", "Over 226.5", "PHI over 4.5"
   side: 'over' | 'under'
   at: number // the line itself: 11.5 for a 12+ rung
-  odd: number | null // the book's price on our side, when it prices it
-  floors: { n: number; odd: number }[] // a player's rungs at or under ours, highest first (two at most)
+  odd: number | null // the book's own odds for this bet, when it prices it
+  sure: number | null // our chance the bet wins (a player's rung; none for game lines yet)
 }
 
-export function baremOf(stat: Stat, j: Judged, price: Price | null, team = '', rungs: CompareRung[] = []): Barem | null {
+export function baremOf(
+  stat: Stat,
+  j: Judged,
+  price: Price | null,
+  team = '',
+  rungs: CompareRung[] = [],
+  player = false,
+): Barem | null {
   if (stat === 'WIN' || j.ours == null || j.book == null) return null
-  if (rungs.length) {
+  if (player) {
+    // only the book's own priced rungs: no rung at or under ours, no bet
     const ours = j.ours
-    const floors = rungs
-      .filter((r) => r.n <= ours)
-      .sort((a, b) => b.n - a.n)
-      .slice(0, 2)
-      .map((r) => ({ n: r.n, odd: r.odd }))
-    if (!floors.length) return null
-    const top = floors[0]
-    return { label: `${top.n}+`, side: 'over', at: top.n - 0.5, odd: top.odd, floors }
+    const top = rungs.filter((r) => r.n <= ours).sort((a, b) => b.n - a.n)[0]
+    if (!top) return null
+    return { label: `${top.n}+`, side: 'over', at: top.n - 0.5, odd: top.odd, sure: top.ours }
   }
   const lean = j.ours - j.book
   if (Math.abs(lean) < 0.05) return null
@@ -298,9 +321,12 @@ export function baremOf(stat: Stat, j: Judged, price: Price | null, team = '', r
     side,
     at: j.book,
     odd: price?.odd ?? null,
-    floors: [],
+    sure: null,
   }
 }
+
+/** "64%": our confidence in a bet. */
+export const sureOf = (b: Barem | null) => (b?.sure == null ? null : `${Math.round(b.sure * 100)}%`)
 
 /** The row settled as a duel on its barem: our side wins or the book does, never both and never level.
  *  Winner keeps the server's pick-won mark. */
@@ -330,7 +356,7 @@ function make(
 ): Line {
   const band = bandOf(stat, bands)
   const by = stat === 'WIN' && j.closer && j.ours != null && j.book != null ? Math.abs(j.ours - j.book) : null
-  const barem = baremOf(stat, j, extra.price ?? null, team, extra.rungs ?? [])
+  const barem = baremOf(stat, j, extra.price ?? null, team, extra.rungs ?? [], kind === 'player')
   const settled = duel(stat, j, barem)
   return {
     id,

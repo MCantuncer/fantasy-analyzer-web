@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gameStory, linesOf, marketPrice, num, odds, plain, playerPrice, ranked, signed, tallyOf } from './iddaaCompare'
+import { gameStory, linesOf, marketPrice, num, odds, plain, playerPrice, ranked, signed, sureOf, tallyOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer } from './iddaaCompare'
 
 const BANDS = { pts: 5, reb: 2, ast: 2, stl: 1, blk: 1, three_pm: 1, team_pts: 8, total: 12, margin: 8 }
@@ -30,6 +30,9 @@ function player(name: string, stat: ComparePlayer['stat'], ours: number | null, 
   }
 }
 
+const rungAt = (n: number, odd = 1.9, ours: number | null = null) => ({ n, odd, book: 0.5, ours, value: null, hit: null })
+const withRungs = (p: ComparePlayer, ...ns: number[]) => ({ ...p, rungs: ns.map((n) => rungAt(n)) })
+
 function night(players: ComparePlayer[], status: CompareGame['status'] = 'final'): BookCompare {
   return {
     season: 2027,
@@ -58,20 +61,20 @@ function night(players: ComparePlayer[], status: CompareGame['status'] = 'final'
 }
 
 describe('iddaa vs Ours rows', () => {
-  it('settles a row as a duel on its line: ours below the book took the under, and 2 points won it', () => {
+  it('takes no bet on a player the book prices no rung for at or under ours', () => {
     const [l] = linesOf(night([player('Kelly Oubre Jr.', 'pts', 13.3, 13.5, 2)]), new Date())
-    expect(l.barem).toEqual({ label: 'Under 13.5', side: 'under', at: 13.5, odd: null, floors: [] })
-    expect(l.oursHit).toBe(true)
-    expect(l.bookHit).toBe(false)
-    expect(l.closer).toBe('ours')
+    expect(l.barem).toBeNull() // no "Under 13.5": the book sells only its n+ rungs, each with its own odds
+    expect([l.oursHit, l.bookHit, l.closer]).toEqual([null, null, null])
     expect(l.initials).toBe('KJ')
   })
 
-  it("settles a player on the floor ours backs among the book's rungs: Edey's 8 loses the 11+, Wemby's 19 wins the 12+", () => {
-    const rung = (n: number, odd: number) => ({ n, odd, book: 0.5, ours: null, value: null, hit: null })
-    const edey = { ...player('Zach Edey', 'pts', 11.3, 10.4, 8), rungs: [rung(8, 1.3), rung(10, 1.62), rung(11, 1.85), rung(13, 2.6)] }
+  it("takes one bet, the floor ours backs among the book's rungs: Edey's 8 loses the 11+, Wemby's 19 wins the 12+", () => {
+    const rung = (n: number, odd: number, ours: number | null = null) => ({ n, odd, book: 0.5, ours, value: null, hit: null })
+    const edey = { ...player('Zach Edey', 'pts', 11.3, 10.4, 8), rungs: [rung(8, 1.3), rung(10, 1.62), rung(11, 1.85, 0.58), rung(13, 2.6)] }
     const [l] = linesOf(night([edey]), new Date())
-    expect(l.barem).toEqual({ label: '11+', side: 'over', at: 10.5, odd: 1.85, floors: [{ n: 11, odd: 1.85 }, { n: 10, odd: 1.62 }] })
+    // one bet, with the book's own odds and our confidence (Can 2026-11-22)
+    expect(l.barem).toEqual({ label: '11+', side: 'over', at: 10.5, odd: 1.85, sure: 0.58 })
+    expect(sureOf(l.barem)).toBe('58%')
     expect([l.oursHit, l.bookHit, l.closer]).toEqual([false, true, 'book']) // never both ✓
     const [won] = linesOf(night([{ ...edey, actual: 11 }]), new Date())
     expect(won.closer).toBe('ours') // 11 lands the 11+
@@ -80,7 +83,7 @@ describe('iddaa vs Ours rows', () => {
     expect(past.closer).toBe('ours')
     const wemby = { ...player('Victor Wembanyama', 'reb', 12.3, 11.3, 19), rungs: [rung(9, 1.25), rung(11, 1.75), rung(12, 2.1), rung(14, 3.2)] }
     const [w] = linesOf(night([wemby]), new Date())
-    expect(w.barem?.floors).toEqual([{ n: 12, odd: 2.1 }, { n: 11, odd: 1.75 }]) // only the book's own rungs
+    expect([w.barem?.label, w.barem?.odd]).toEqual(['12+', 2.1]) // only the book's own rungs
     expect([w.oursHit, w.bookHit, w.closer]).toEqual([true, false, 'ours'])
     const [short] = linesOf(night([{ ...wemby, ours: 10.2, gap: -1.1 }]), new Date())
     expect(short.barem).toBeNull() // the only rung under 10.2 is the 1.25: no call
@@ -101,13 +104,17 @@ describe('iddaa vs Ours rows', () => {
 
   it('counts hits, Closer and mean misses only over judged rows', () => {
     const lines = linesOf(
-      night([player('A One', 'pts', 22, 19.5, 24), player('B Two', 'reb', 9, 11.5, 11), player('C Three', 'ast', null, 4.5, 3)]),
+      night([
+        withRungs(player('A One', 'pts', 22, 19.5, 24), 20, 22),
+        withRungs(player('B Two', 'reb', 9, 11.5, 11), 9, 12),
+        player('C Three', 'ast', null, 4.5, 3),
+      ]),
       new Date(),
     )
     const t = tallyOf(lines)
     expect(t.n).toBe(2) // no line of ours: not compared
     expect(t.judged).toBe(2)
-    expect(t.ours).toBe(2) // over 19.5 with 24, under 11.5 with 11
+    expect(t.ours).toBe(2) // 22+ with 24, 9+ with 11
     expect(t.book).toBe(0)
     expect(t.oursCloser).toBe(2)
     expect(t.bookCloser).toBe(0)
@@ -133,10 +140,10 @@ describe('iddaa vs Ours in plain words', () => {
   it('says what we expect against the book, then what happened', () => {
     const [before] = linesOf(night([player('A One', 'pts', 22, 19.5, null)], 'scheduled'), new Date('2026-11-20T12:00:00Z'))
     expect(plain(before, false)).toBe('we expect 2.5 more points than the book')
-    const [after] = linesOf(night([player('A One', 'pts', 22, 19.5, 24)]), new Date())
-    expect(plain(after, true)).toBe('finished with 24 points, Over 19.5 won')
-    const [one] = linesOf(night([player('B Two', 'stl', 0.8, 1.5, 1)]), new Date())
-    expect(plain(one, true)).toBe('finished with 1 steal, Under 1.5 won')
+    const [after] = linesOf(night([withRungs(player('A One', 'pts', 22, 19.5, 24), 20, 22)]), new Date())
+    expect(plain(after, true)).toBe('finished with 24 points, 22+ won')
+    const [one] = linesOf(night([withRungs(player('B Two', 'stl', 1.2, 1.5, 0), 1, 2)]), new Date())
+    expect(plain(one, true)).toBe('finished with 0 steals, 1+ lost')
   })
 
   it('tells a game as who wins, by how much and the total', () => {
