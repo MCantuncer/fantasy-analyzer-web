@@ -7,6 +7,7 @@ import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
 import { teamLight } from '../lib/nbaTeams'
 import { band } from '../lib/ourCall'
+import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './Kupons.css'
 
@@ -518,6 +519,32 @@ function Face({ leg: l }: { leg: Leg }) {
   )
 }
 
+/** A player's name opens his player card, as names do everywhere else on Our Estimates. */
+export function PickName({ line: l }: { line: Line }) {
+  const card = usePlayerCard()
+  const id = l.playerId ?? 0
+  if (!card || id <= 0)
+    return (
+      <span className="nm" aria-hidden="true">
+        {l.name}
+      </span>
+    )
+  const who = { id, name: l.name }
+  return (
+    <button
+      type="button"
+      className="nm ic-ku-nm"
+      aria-haspopup="dialog"
+      aria-label={`${l.name}: player details`}
+      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
+      onPointerDown={() => card.prefetch(who)}
+      onClick={() => card.open(who)}
+    >
+      {l.name}
+    </button>
+  )
+}
+
 function KuponPick({
   leg: l,
   id,
@@ -557,27 +584,33 @@ function KuponPick({
     <li className={`ic-ku-pick${res === 'lost' ? ' broke' : res === 'void' ? ' void' : ''}`}>
       <span className="sr-only">{sr}</span>
       <Face leg={l} />
-      <span className="who" aria-hidden="true">
-        {l.kind === 'player' ? <span className="nm">{l.line.name}</span> : <span className="nm mu">{matchup}</span>}
+      <span className="who">
+        {l.kind === 'player' ? (
+          <PickName line={l.line} />
+        ) : (
+          <span className="nm mu" aria-hidden="true">
+            {matchup}
+          </span>
+        )}
         {res === 'won' ? (
-          <span className="res ok">
+          <span className="res ok" aria-hidden="true">
             <Tick />
             <span className="nw">{got}</span>
           </span>
         ) : res === 'lost' ? (
-          <span className="res no">
+          <span className="res no" aria-hidden="true">
             <Cross />
             <b>Lost</b>
             <span>·</span>
             <span className="nw">{got}</span>
           </span>
         ) : res === 'void' ? (
-          <span className="res vd">
+          <span className="res vd" aria-hidden="true">
             <span className="dash">–</span>
             <span>Sat out</span>
           </span>
         ) : (
-          <span className="sub">
+          <span className="sub" aria-hidden="true">
             {l.kind === 'player' ? matchup : MARKET[l.stat]} · <span className="num">{clock(g.tip)}</span>
           </span>
         )}
