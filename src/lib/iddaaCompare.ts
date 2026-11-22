@@ -32,7 +32,11 @@ export interface ComparePlayer extends Judged {
   stat: 'three_pm' | 'reb' | 'ast' | 'stl' | 'blk' | 'pts'
   played: boolean | null
   ladder: [number, number][]
+  /** The same rungs with odds, our chance and value (absent from servers before the rungs). */
   rungs?: CompareRung[]
+  best_value?: number | null
+  /** Whose rung chances read the result better (Brier score); None until the result. */
+  rung_closer?: Closer | null
 }
 
 /** One of the book's prices for a game market, from our pick's side (pick/other) or the line's
@@ -77,6 +81,16 @@ export interface CompareTally {
   level: number
   ours_miss: number | null
   book_miss: number | null
+  /** Settled player rungs, and each side's Brier score over them (lower is better). */
+  rungs?: number
+  ours_rung_score?: number | null
+  book_rung_score?: number | null
+  ours_rung_closer?: number
+  book_rung_closer?: number
+  /** Settled rungs with value over 0 by our chance, how many landed, and one unit on each: net units. */
+  value_picks?: number
+  value_hits?: number
+  value_return?: number
 }
 
 export interface BookCompare {
@@ -193,6 +207,8 @@ export interface Line {
   other: string // margin: the other team
   ladder: [number, number][]
   rungs: CompareRung[] // the book's priced rungs, odds over MIN_ODD
+  /** Whose rung chances read the result better (rung_closer); null before the result. */
+  rungCloser: Closer | null
   price: Price | null
   barem: Barem | null // the line the row is settled on
   played: boolean | null
@@ -242,6 +258,7 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
       out.push(make(`${g.game_id}-${p.name}-${p.stat}`, 'player', stat, p.name, p.team, g, gameLabel, p, data.bands, tipped, {
         ladder: p.ladder ?? [],
         rungs,
+        rungCloser: p.rung_closer ?? null,
         price: playerPrice(rungs, p.book, p.ours),
         played: p.played,
         playerId: p.player_id,
@@ -356,6 +373,7 @@ function make(
     other: '',
     ladder: [],
     rungs: [],
+    rungCloser: null,
     price: null,
     played: null,
     tipped,
