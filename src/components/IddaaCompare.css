@@ -3499,3 +3499,81 @@ button.ic-est-nm:hover {
 .ic-waiting .ic-list-foot {
   display: none;
 }
+
+/* Our game picks: one bet per game line, its own odds and our confidence; won or lost after. */
+.ic-pick {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr) 44px 84px;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 40px;
+  border-top: 1px solid var(--divider);
+  font-size: 13.5px;
+}
+.ic-pick .k {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.ic-pick .lbl {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-pick .lbl.none {
+  grid-column: 2 / -1;
+  font-weight: 500;
+  color: var(--muted);
+}
+.ic-pick .odd {
+  text-align: right;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.ic-pick .sure {
+  text-align: right;
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.ic-pick .sure .num {
+  font-family: var(--font-num);
+  color: var(--text);
+}
+.ic-pick .res {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.ic-pick .res svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ic-pick .res.ok {
+  color: var(--good);
+}
+.ic-pick .res.no {
+  color: var(--muted);
+}
+.ic-pick-game .ic-est-head .ic-live {
+  margin-right: 4px;
+}
+@media (max-width: 719px) {
+  .ic-pick {
+    grid-template-columns: 76px minmax(0, 1fr) 38px 70px;
+    column-gap: 6px;
+  }
+  .ic-pick .k {
+    font-size: 12px;
+  }
+}
