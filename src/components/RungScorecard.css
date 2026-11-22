@@ -1,0 +1,217 @@
+/* The Scorecard on Our Estimates: who read the rungs better, stat by stat. vr-sc- prefix. Shape and
+   words carry "better" (the lower score is circled), never colour alone; Ours open, Book solid. */
+.vr-sc-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 21px;
+}
+.vr-sc-gloss {
+  margin-top: 8px !important;
+  max-width: 760px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.vr-sc-gloss b {
+  color: var(--text);
+  font-weight: 600;
+}
+.vr-sc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+  align-items: start;
+}
+.vr-sc-card {
+  padding: 16px 18px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.vr-sc-card h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.vr-sc-card h3 small {
+  font-size: 12.5px;
+  font-weight: 450;
+  color: var(--muted);
+}
+.vr-sc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.vr-sc-table th,
+.vr-sc-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+  vertical-align: middle;
+}
+.vr-sc-table thead th {
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.vr-sc-table .n {
+  text-align: center;
+  font-family: var(--font-num);
+  width: 74px;
+}
+.vr-sc-table .rb {
+  text-align: right;
+  width: 78px;
+}
+.vr-sc-table td.rb {
+  color: var(--text);
+  font-weight: 550;
+}
+.vr-sc-table td.rb.tie {
+  color: var(--muted);
+  font-weight: 450;
+}
+.vr-sc-table .sp {
+  text-align: right;
+  width: 120px;
+}
+.vr-sc-table tbody th {
+  font-weight: 550;
+}
+.vr-sc-table tbody th small {
+  display: block;
+  font-size: 12px;
+  font-weight: 450;
+  color: var(--muted);
+}
+.vr-sc-table tr.all th {
+  font-weight: 700;
+}
+.vr-sc-table td.none {
+  text-align: center;
+  color: var(--muted);
+}
+/* the lower score, circled */
+.vr-circ {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1.5px solid var(--text);
+  border-radius: 999px;
+  font-weight: 650;
+}
+.vr-split {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  max-width: 110px;
+  height: 9px;
+  margin-left: auto;
+}
+.vr-split i {
+  display: block;
+  border-radius: 3px;
+  min-width: 4px;
+}
+.vr-split .o {
+  box-sizing: border-box;
+  border: 1.5px solid var(--text);
+}
+.vr-split .l {
+  background: var(--track);
+}
+.vr-split .b {
+  background: var(--text-2);
+}
+.vr-sc-table .sp small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vr-sc-foot {
+  margin-top: 10px !important;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vr-why p {
+  margin-top: 10px !important;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.vr-why p b {
+  color: var(--text);
+  font-weight: 600;
+}
+.vr-lift {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.vr-lift span {
+  padding: 6px 12px;
+  border-radius: var(--radius-tag);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-2);
+}
+.vr-lift b {
+  color: var(--text);
+  font-weight: 650;
+}
+@media (max-width: 980px) {
+  .vr-sc-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 719px) {
+  .vr-sc-title {
+    font-size: 19px;
+  }
+  .vr-sc-card {
+    padding: 14px 10px;
+  }
+  .vr-sc-table {
+    font-size: 13px;
+  }
+  .vr-sc-table th,
+  .vr-sc-table td {
+    padding: 8px 2px;
+  }
+  .vr-sc-table thead th {
+    font-size: 11.5px;
+  }
+  .vr-sc-table tbody th small,
+  .vr-sc-table .sp small {
+    font-size: 11px;
+  }
+  .vr-sc-table .n {
+    width: 54px;
+  }
+  .vr-sc-table .rb {
+    width: 44px;
+  }
+  .vr-sc-table .sp {
+    width: 62px;
+  }
+  .vr-split {
+    max-width: 58px;
+    height: 8px;
+    gap: 2px;
+  }
+  .vr-circ {
+    padding: 2px 5px;
+  }
+}

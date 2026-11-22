@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { MIN_ODD, linesOf } from './iddaaCompare'
-import type { BookCompare, CompareGame, ComparePlayer, CompareRung } from './iddaaCompare'
+import type { BookCompare, CompareGame, ComparePlayer, CompareRung, CompareTally } from './iddaaCompare'
 import {
+  bookLift,
+  LEVEL_GAP,
   bigValueNote,
   brier,
   byChance,
@@ -13,8 +15,10 @@ import {
   nightSum,
   picksOf,
   pipFills,
+  readBetter,
   resultOf,
   saveChoice,
+  scoreRows,
   TAPE_BANDS,
   tapeBands,
   tapeOf,
@@ -377,5 +381,70 @@ describe('the viewer’s choice in this browser', () => {
       Storage.prototype.getItem = get
       Storage.prototype.setItem = set
     }
+  })
+})
+
+describe('the Scorecard: the lower score reads better, gaps under 0.004 are Level', () => {
+  it('the Level rule', () => {
+    expect(LEVEL_GAP).toBe(0.004)
+    expect(readBetter(0.161, 0.168)).toBe('ours')
+    expect(readBetter(0.172, 0.166)).toBe('book')
+    expect(readBetter(0.168, 0.165)).toBe('tie')
+    expect(readBetter(0.1, 0.104)).toBe('ours') // exactly 0.004 is a read, not Level
+    expect(readBetter(0.1, 0.1039)).toBe('tie')
+    expect(readBetter(null, 0.2)).toBeNull()
+  })
+  const tally = (stat: string, rungs: number, ours: number, book: number): CompareTally => ({
+    stat,
+    lines: 0,
+    compared: 0,
+    median_gap: null,
+    ours_above: 0,
+    judged: 0,
+    ours_hits: 0,
+    book_hits: 0,
+    ours_closer: 0,
+    book_closer: 0,
+    level: 0,
+    ours_miss: null,
+    book_miss: null,
+    rungs,
+    ours_rung_score: ours,
+    book_rung_score: book,
+  })
+  it('one row per stat in the site order, and All weighted by rungs', () => {
+    const night = nightOf([
+      ['A Bee', 'pts', 20, [[15, 1.7, 0.66]]],
+      ['C Dee', 'reb', 9, [[10, 2.1, 0.5]]],
+    ])
+    const lines = linesOf(night, new Date('2026-11-22T20:00:00Z')).map((l) =>
+      l.stat === 'PTS' ? { ...l, rungCloser: 'book' as const } : { ...l, rungCloser: 'tie' as const },
+    )
+    const rows = scoreRows([tally('pts', 300, 0.17, 0.16), tally('reb', 100, 0.13, 0.15)], lines)
+    expect(rows.map((r) => r.stat)).toEqual(['REB', 'PTS', 'ALL'])
+    expect(rows[0].read).toBe('ours')
+    expect(rows[1].read).toBe('book')
+    expect(rows[1].split).toEqual({ ours: 0, level: 0, book: 1 })
+    const all = rows[2]
+    expect(all.rungs).toBe(400)
+    expect(all.ours).toBeCloseTo(0.16, 6) // (0.17·300 + 0.13·100) / 400
+    expect(all.book).toBeCloseTo(0.1575, 6)
+    expect(all.read).toBe('tie')
+    expect(all.split).toEqual({ ours: 0, level: 1, book: 1 })
+  })
+  it('tonight: rows with rungs but no settled score, and All has none', () => {
+    const night = nightOf([['A Bee', 'pts', null, [[15, 1.7, 0.66]]]], 'scheduled')
+    const rows = scoreRows([], linesOf(night, new Date('2026-11-21T20:00:00Z')))
+    expect(rows.map((r) => r.stat)).toEqual(['PTS', 'ALL'])
+    expect(rows[0]).toMatchObject({ rungs: 0, ours: null, book: null, read: null })
+    expect(rows[1]).toMatchObject({ rungs: 0, ours: null, read: null })
+  })
+  it('the book’s lift above our lines comes from the night’s tally', () => {
+    const t = (stat: string, compared: number, median_gap: number | null) =>
+      ({ stat, compared, median_gap }) as unknown as CompareTally
+    expect(bookLift([t('pts', 30, -3), t('reb', 2, -1), t('three_pm', 12, 0.4), t('ast', 20, null)])).toEqual([
+      { stat: 'PTS', lift: 3 },
+      { stat: '3PM', lift: -0.4 },
+    ])
   })
 })

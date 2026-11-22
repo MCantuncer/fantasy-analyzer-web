@@ -5,8 +5,8 @@
 // value = ours × odds − 1: what one unit returns on average if our chance is right.
 // A rung beats its price when our chance is above the price, which is the same as value > 0.
 
-import { MIN_ODD, STAT_UNIT, odds } from './iddaaCompare'
-import type { Closer, CompareRung, Line, Stat } from './iddaaCompare'
+import { MIN_ODD, PLAYER_STATS, STAT_UNIT, odds, statOf } from './iddaaCompare'
+import type { Closer, CompareRung, CompareTally, Line, Stat } from './iddaaCompare'
 
 const MINUS = '−'
 
@@ -398,4 +398,79 @@ export function saveChoice(key: string, value: string): void {
   } catch {
     // storage blocked: the choice lasts for this page view
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// The Scorecard: who read the rungs better, stat by stat (Brier scores from the server's tally)
+
+/** Brier gaps under this show as Level: at one night's rung counts the difference is noise. To tune
+ *  once per-rung variance is available. */
+export const LEVEL_GAP = 0.004
+
+/** Which side's chances scored better (lower), or level when the gap is under LEVEL_GAP. */
+export function readBetter(ours: number | null | undefined, book: number | null | undefined): Closer | null {
+  if (ours == null || book == null) return null
+  const gap = Math.round(Math.abs(ours - book) * 1e6) / 1e6
+  if (gap < LEVEL_GAP) return 'tie'
+  return ours < book ? 'ours' : 'book'
+}
+
+export interface ScoreRow {
+  stat: Stat | 'ALL'
+  rungs: number
+  ours: number | null
+  book: number | null
+  read: Closer | null
+  split: { ours: number; level: number; book: number }
+}
+
+/** One row per player stat (the site's order) and an All row weighted by rungs. The split counts the
+ *  player rows by whose rung chances read them better (the same tag the rows carry). */
+export function scoreRows(tally: CompareTally[], lines: Line[]): ScoreRow[] {
+  const rows: ScoreRow[] = []
+  let w = 0
+  let so = 0
+  let sb = 0
+  const all = { ours: 0, level: 0, book: 0 }
+  for (const stat of PLAYER_STATS) {
+    const t = tally.find((x) => statOf(x.stat) === stat)
+    const ls = lines.filter((l) => l.kind === 'player' && l.stat === stat && l.rungs.length > 0)
+    const split = { ours: 0, level: 0, book: 0 }
+    for (const l of ls) {
+      if (l.rungCloser === 'ours') split.ours++
+      else if (l.rungCloser === 'book') split.book++
+      else if (l.rungCloser === 'tie') split.level++
+    }
+    all.ours += split.ours
+    all.level += split.level
+    all.book += split.book
+    const rungs = t?.rungs ?? 0
+    const ours = rungs ? (t?.ours_rung_score ?? null) : null
+    const book = rungs ? (t?.book_rung_score ?? null) : null
+    if (!t && !ls.length) continue
+    if (ours != null && book != null) {
+      w += rungs
+      so += ours * rungs
+      sb += book * rungs
+    }
+    rows.push({ stat, rungs, ours, book, read: readBetter(ours, book), split })
+  }
+  const ours = w ? so / w : null
+  const book = w ? sb / w : null
+  rows.push({ stat: 'ALL', rungs: w, ours, book, read: readBetter(ours, book), split: all })
+  return rows
+}
+
+/** How far the book's line sat above ours on this night, per stat: the median over player rows of
+ *  book minus ours (the tally's median_gap is ours minus book). The book sells overs only, so its
+ *  ladders tend to sit high. Only stats with at least LIFT_MIN compared rows. */
+export const LIFT_MIN = 5
+export function bookLift(tally: CompareTally[]): { stat: Stat; lift: number }[] {
+  const out: { stat: Stat; lift: number }[] = []
+  for (const stat of ['PTS', 'REB', 'AST', '3PM'] as Stat[]) {
+    const t = tally.find((x) => statOf(x.stat) === stat)
+    if (t?.median_gap == null || t.compared < LIFT_MIN) continue
+    out.push({ stat, lift: -t.median_gap })
+  }
+  return out
 }
