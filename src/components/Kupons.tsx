@@ -226,6 +226,12 @@ const Cross = ({ size = 10 }: { size?: number }) => (
     <path d="M8.5 1.5l-7 7" />
   </svg>
 )
+const Link = () => (
+  <svg className="ic-ku-link" viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+    <path d="M6 8a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.6.6" />
+    <path d="M8 6a2.6 2.6 0 0 0-3.7 0l-2 2a2.6 2.6 0 0 0 3.7 3.7l.6-.6" />
+  </svg>
+)
 const Chev = () => (
   <svg className="ic-ku-chev" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
     <path d="M2.5 4.5 6 8l3.5-3.5" />
@@ -358,6 +364,11 @@ function KuponSlip({
               <Cross />
               Lost
             </span>
+          ) : also ? (
+            <span className="ku-tag merged">
+              <Link />
+              Merged for now
+            </span>
           ) : (
             <span className="ku-tag">
               <b className="num">{n}</b> picks
@@ -434,7 +445,7 @@ function KuponSlip({
           <p className="ic-ku-note">
             <Ico k="clock" size={14} />
             <span>
-              No player bets yet, so both are these {n} game picks · they split when player bets come in
+              Same <b className="num">{n}</b> game picks for both until player bets come in, then they split.
             </span>
           </p>
         )}
