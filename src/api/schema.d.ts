@@ -99,6 +99,154 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/news-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin News Log
+         * @description Admins only: the news kept for a later test of news text (app/news/emotion.py), newest first.
+         */
+        post: operations["admin_news_log_api_admin_news_log_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/player-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Player Lines
+         * @description Admins only: each player's next-game lines against what he did (app/linelog.py), biggest
+         *     points swing first.
+         */
+        post: operations["admin_player_lines_api_admin_player_lines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/book-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Book Lines
+         * @description Admins only: iddaa's lines for one NBA day as saved before each tip-off (app/iddaa.py),
+         *     read into plain lines, and how the last look at iddaa went. Comparison only.
+         */
+        post: operations["admin_book_lines_api_admin_book_lines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/book-compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Book Compare
+         * @description Admins: the comparison below, with how the last read of the sportsbook went.
+         */
+        post: operations["admin_book_compare_api_admin_book_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/book-compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * User Book Compare
+         * @description Anyone signed in (the Our Estimates page): the comparison below. A failed read of the sportsbook
+         *     shows as failed, without the error text, which stays with the admins.
+         */
+        post: operations["user_book_compare_api_book_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/book-compare/record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Book Record
+         * @description Anyone signed in (Our Estimates): the latest saved nights as one record of the player rungs:
+         *     the value picks by our chance with their result at the book's odds, and how well each side's
+         *     chances matched what happened (app/bookcompare.py record). Comparison only.
+         */
+        post: operations["book_record_api_book_compare_record_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/book-compare/lost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lost Log
+         * @description Anyone signed in (Our Estimates): the bets the page took on the latest saved nights, every
+         *     lost one with why it lost, and the causes that keep coming back (app/lostlog.py). Built from
+         *     what is saved each night (iddaa's lines and our call, our player lines, the results, the OUT
+         *     tags at tip-off), so a night reads the same whenever it is asked. Comparison only.
+         */
+        post: operations["lost_log_api_book_compare_lost_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/errors/resolve": {
         parameters: {
             query?: never;
@@ -130,6 +278,106 @@ export interface paths {
          * @description Which teammates gain while a player is out, measured from games his team played without him.
          */
         post: operations["injury_impact_api_injury_impact_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/gift-pro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Gift Pro
+         * @description Admins only: give an account Pro for a number of days (friends, testers), or end the gift.
+         */
+        post: operations["gift_pro_api_admin_gift_pro_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Billing Config
+         * @description What the site needs to open Paddle's checkout; nothing secret.
+         */
+        get: operations["billing_config_api_billing_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Billing Checkout
+         * @description A Paddle transaction for Pro, tagged with this account: the site opens the checkout on it.
+         */
+        post: operations["billing_checkout_api_billing_checkout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Billing Sync
+         * @description Right after checkout: read the subscription from Paddle so Pro opens before the webhook lands.
+         */
+        post: operations["billing_sync_api_billing_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Billing Portal
+         * @description Paddle's customer portal for this account: change the card, see invoices, cancel.
+         */
+        post: operations["billing_portal_api_billing_portal_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -774,6 +1022,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores/pregame": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Score Pregame
+         * @description A game before tip-off: Our call piece by piece (what the margin adds up from), every player
+         *     expected to play with his line for this game and its reasons (the player card's line, plus the
+         *     rest of each rotation read for this box), who is out, and how the lines stand against the call.
+         *     Kept a few minutes; lines follow the league's cache (injury tags within about 10 minutes).
+         */
+        post: operations["score_pregame_api_scores_pregame_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scores/sits": {
         parameters: {
             query?: never;
@@ -1017,6 +1288,27 @@ export interface paths {
          *     opens. Built from the Scores page's day boxes, so a finished day costs no new ESPN call.
          */
         post: operations["nba_team_api_nba_team_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/match-form": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Match Form
+         * @description Both teams' games so far (results, each game's MVP, its kind), for the match card on Our Estimates.
+         *     Built from the Scores page's day boxes, read through the public line-log league.
+         */
+        post: operations["match_form_api_match_form_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1350,6 +1642,250 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** BillingConfig */
+        BillingConfig: {
+            /**
+             * Enabled
+             * @description Paddle is set up: checkout can open
+             */
+            enabled: boolean;
+            /** Environment */
+            environment?: ("sandbox" | "production") | null;
+            /**
+             * Client Token
+             * @description Paddle.js client-side token (public)
+             */
+            client_token?: string | null;
+            /**
+             * Prices
+             * @description Paddle price id by billing interval, for localized price previews
+             */
+            prices?: {
+                [key: string]: string;
+            };
+        };
+        /** BillingPortal */
+        BillingPortal: {
+            /**
+             * Url
+             * @description Paddle's customer portal for this account: card, invoices, cancel
+             */
+            url: string;
+        };
+        /** BillingSyncRequest */
+        BillingSyncRequest: {
+            /** Transaction Id */
+            transaction_id: string;
+        };
+        /** BookCompare */
+        BookCompare: {
+            /** Season */
+            season: number;
+            /** Day */
+            day: number | null;
+            /** Date */
+            date: string | null;
+            /**
+             * Days
+             * @description Days with saved iddaa lines
+             */
+            days: number[];
+            /**
+             * Nights
+             * @description The same days with their US date and how many games
+             */
+            nights: components["schemas"]["ScoreDayRef"][];
+            /**
+             * Bands
+             * @description How near the result a number must land to count as right
+             */
+            bands: {
+                [key: string]: number;
+            };
+            look: components["schemas"]["BookLook"];
+            /** Games */
+            games: components["schemas"]["CompareGame"][];
+            /** Tally */
+            tally: components["schemas"]["CompareTally"][];
+        };
+        /** BookCut */
+        BookCut: {
+            /**
+             * Markets
+             * @description By kind of bet, lowest cut first
+             */
+            markets?: components["schemas"]["CutMarket"][];
+            /**
+             * Bands
+             * @description Every settled player rung by odds band
+             */
+            bands?: components["schemas"]["CutBand"][];
+        };
+        /** BookGame */
+        BookGame: {
+            /**
+             * Game Id
+             * @description ESPN game id
+             */
+            game_id: number;
+            /** Away */
+            away: string;
+            /** Home */
+            home: string;
+            /** Tip */
+            tip: string;
+            /**
+             * Checked
+             * @description iddaa's last look before tip-off
+             */
+            checked: string;
+            /**
+             * Home Chance
+             * @description iddaa's chance the home team wins, margin taken out
+             */
+            home_chance: number | null;
+            /**
+             * Margin
+             * @description The home team's handicap: -5.5 = home by 6 or more
+             */
+            margin: number | null;
+            /** Total */
+            total: number | null;
+            /** Home Pts */
+            home_pts: number | null;
+            /** Away Pts */
+            away_pts: number | null;
+            /** @description Our call for the game at the same look */
+            ours?: components["schemas"]["GameCall"] | null;
+            /** Players */
+            players: components["schemas"]["BookPlayer"][];
+        };
+        /** BookLines */
+        BookLines: {
+            /** Season */
+            season: number;
+            /** Day */
+            day: number | null;
+            /**
+             * Days
+             * @description Days with saved iddaa lines
+             */
+            days: number[];
+            look: components["schemas"]["BookLook"];
+            /** Games */
+            games: components["schemas"]["BookGame"][];
+        };
+        /** BookLinesRequest */
+        BookLinesRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Day
+             * @description NBA day (scoring period); the latest saved when unset
+             */
+            day?: number | null;
+        };
+        /** BookLook */
+        BookLook: {
+            /**
+             * Checked
+             * @description The last time the watch read iddaa
+             */
+            checked: string | null;
+            /**
+             * Ok
+             * @description Whether that read worked; None before the first
+             */
+            ok: boolean | null;
+            /** Error */
+            error: string | null;
+            /**
+             * Games
+             * @description NBA games iddaa listed then
+             */
+            games: number;
+            /**
+             * Matched
+             * @description Of those, how many matched an ESPN game
+             */
+            matched: number;
+        };
+        /** BookPlayer */
+        BookPlayer: {
+            /**
+             * Name
+             * @description As iddaa spells it
+             */
+            name: string;
+            /**
+             * Pts
+             * @description iddaa's line: the number he goes past half the time
+             */
+            pts?: number | null;
+            /** Reb */
+            reb?: number | null;
+            /** Ast */
+            ast?: number | null;
+            /** Stl */
+            stl?: number | null;
+            /** Blk */
+            blk?: number | null;
+            /** Three Pm */
+            three_pm?: number | null;
+        };
+        /** BookRecord */
+        BookRecord: {
+            /** Season */
+            season: number;
+            /**
+             * Nights
+             * @description Saved nights read
+             */
+            nights: number;
+            /**
+             * Rungs
+             * @description Settled rungs with both chances
+             */
+            rungs: number;
+            /**
+             * Ours Score
+             * @description Brier score of our rung chances (lower is better)
+             */
+            ours_score: number | null;
+            /**
+             * Book Score
+             * @description Brier score of the book's rung chances, margin taken out
+             */
+            book_score: number | null;
+            /** Picks */
+            picks: components["schemas"]["RecordPicks"][];
+            /** Calibration */
+            calibration: components["schemas"]["RecordBucket"][];
+            /**
+             * Series
+             * @description One line per night, oldest first
+             */
+            series?: components["schemas"]["RecordNight"][];
+            /** @description Where the book takes its cut (comparison only) */
+            cut?: components["schemas"]["BookCut"];
+        };
+        /** BookRecordRequest */
+        BookRecordRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Nights
+             * @description How many of the latest saved nights
+             * @default 30
+             */
+            nights: number;
+        };
         /** CategoryDetail */
         CategoryDetail: {
             /** Category */
@@ -1453,6 +1989,34 @@ export interface components {
              */
             result: string;
         };
+        /** CauseCount */
+        CauseCount: {
+            /** Cause */
+            cause: string;
+            /** Count */
+            count: number;
+        };
+        /** CauseRepeat */
+        CauseRepeat: {
+            /** Cause */
+            cause: string;
+            /** Group */
+            group: string;
+            /** Piece */
+            piece: string | null;
+            /** Count */
+            count: number;
+            /**
+             * Share
+             * @description Of that kind of bet's losses over the nights read
+             */
+            share: number;
+            /**
+             * Candidate
+             * @description Came back often enough to go to the signal search (tested blind first)
+             */
+            candidate: boolean;
+        };
         /** CheckVerdict */
         CheckVerdict: {
             /**
@@ -1472,6 +2036,23 @@ export interface components {
              * @description What the data shows, in a sentence
              */
             evidence: string;
+        };
+        /** CheckoutRequest */
+        CheckoutRequest: {
+            /**
+             * Interval
+             * @default year
+             * @enum {string}
+             */
+            interval: "month" | "year";
+        };
+        /** CheckoutStart */
+        CheckoutStart: {
+            /**
+             * Transaction Id
+             * @description Open Paddle's checkout on this transaction (Paddle.Checkout.open)
+             */
+            transaction_id: string;
         };
         /**
          * ClientError
@@ -1513,6 +2094,371 @@ export interface components {
              */
             build: string;
         };
+        /**
+         * CompareEstimate
+         * @description Our line for a player in a game (app/bookcompare.py compare_day): the match card's rows.
+         */
+        CompareEstimate: {
+            /** Name */
+            name: string;
+            /** Player Id */
+            player_id: number;
+            /**
+             * Team
+             * @description NBA team abbreviation
+             */
+            team: string;
+            /**
+             * Priced
+             * @description iddaa has a player bet on him
+             * @default false
+             */
+            priced: boolean;
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Three Pm */
+            three_pm: number;
+            /**
+             * Played
+             * @description False when his team played without him; None before the result
+             */
+            played: boolean | null;
+            /**
+             * Actual
+             * @description What he did, by stat, once his game is final
+             */
+            actual: {
+                [key: string]: number;
+            } | null;
+        };
+        /** CompareGame */
+        CompareGame: {
+            /** Game Id */
+            game_id: number;
+            /** Away */
+            away: string;
+            /** Home */
+            home: string;
+            /** Tip */
+            tip: string;
+            /**
+             * Checked
+             * @description The last look before tip-off
+             */
+            checked: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "scheduled" | "live" | "final";
+            /** Away Score */
+            away_score: number | null;
+            /** Home Score */
+            home_score: number | null;
+            /** Markets */
+            markets: components["schemas"]["CompareMarket"][];
+            /** Players */
+            players: components["schemas"]["ComparePlayer"][];
+            /**
+             * Estimates
+             * @description Our line for every player expected to play 10+ minutes, most points first
+             */
+            estimates?: components["schemas"]["CompareEstimate"][];
+        };
+        /** CompareMarket */
+        CompareMarket: {
+            /**
+             * Ours
+             * @description Our number, as it stood before tip-off
+             */
+            ours: number | null;
+            /**
+             * Book
+             * @description iddaa's line, margin taken out
+             */
+            book: number | null;
+            /**
+             * Actual
+             * @description What happened; None until the game is final
+             */
+            actual: number | null;
+            /**
+             * Gap
+             * @description Ours less iddaa's: + when we expect more
+             */
+            gap: number | null;
+            /** Ours Hit */
+            ours_hit: boolean | null;
+            /** Book Hit */
+            book_hit: boolean | null;
+            /**
+             * Closer
+             * @description Whose number was nearer the result
+             */
+            closer: ("ours" | "book" | "tie") | null;
+            /**
+             * Market
+             * @description winner: chances for our pick; margin: points by our pick; total; team_pts: one side's points
+             * @enum {string}
+             */
+            market: "winner" | "margin" | "total" | "team_pts";
+            /**
+             * Team
+             * @description Our pick (winner, margin) or the side (team_pts); empty for total
+             */
+            team: string;
+            /**
+             * Book Team
+             * @description winner only: iddaa's favourite
+             * @default
+             */
+            book_team: string;
+            /**
+             * Won
+             * @description winner only: who won, once final
+             * @default
+             */
+            won: string;
+            /**
+             * Odds
+             * @description The book's prices for this market at the last look; offered sides only
+             */
+            odds?: components["schemas"]["CompareOdd"][];
+            /** @description Once final: why the result landed where it did */
+            why?: components["schemas"]["LossReason"] | null;
+        };
+        /**
+         * CompareOdd
+         * @description One of the book's prices for a game market (app/bookcompare.py _odds_of).
+         */
+        CompareOdd: {
+            /**
+             * Side
+             * @description winner, margin: our pick's side or the other team's; total, team_pts: over or under the line
+             * @enum {string}
+             */
+            side: "pick" | "other" | "over" | "under";
+            /**
+             * Odd
+             * @description The book's decimal odds
+             */
+            odd: number;
+        };
+        /** ComparePlayer */
+        ComparePlayer: {
+            /**
+             * Ours
+             * @description Our number, as it stood before tip-off
+             */
+            ours: number | null;
+            /**
+             * Book
+             * @description iddaa's line, margin taken out
+             */
+            book: number | null;
+            /**
+             * Actual
+             * @description What happened; None until the game is final
+             */
+            actual: number | null;
+            /**
+             * Gap
+             * @description Ours less iddaa's: + when we expect more
+             */
+            gap: number | null;
+            /** Ours Hit */
+            ours_hit: boolean | null;
+            /** Book Hit */
+            book_hit: boolean | null;
+            /**
+             * Closer
+             * @description Whose number was nearer the result
+             */
+            closer: ("ours" | "book" | "tie") | null;
+            /** Name */
+            name: string;
+            /**
+             * Player Id
+             * @description ESPN id; None when iddaa's name matched nobody
+             */
+            player_id: number | null;
+            /**
+             * Team
+             * @description NBA team abbreviation; empty when unknown
+             */
+            team: string;
+            /**
+             * Stat
+             * @enum {string}
+             */
+            stat: "three_pm" | "reb" | "ast" | "stl" | "blk" | "pts";
+            /**
+             * Played
+             * @description False when his team played without him; None before the result
+             */
+            played: boolean | null;
+            /**
+             * Ladder
+             * @description iddaa's "n+" rungs: n and the chance he gets there, margin taken out
+             */
+            ladder?: [
+                number,
+                number
+            ][];
+            /**
+             * Rungs
+             * @description The same rungs with odds, our chance and value
+             */
+            rungs?: components["schemas"]["CompareRung"][];
+            /**
+             * Best Value
+             * @description The highest value among the rungs (+: worth a look)
+             */
+            best_value?: number | null;
+            /**
+             * Rung Closer
+             * @description Whose chances read the result better over the rungs (Brier score)
+             */
+            rung_closer?: ("ours" | "book" | "tie") | null;
+            /** @description Once final: why the result landed where it did */
+            why?: components["schemas"]["LossReason"] | null;
+        };
+        /**
+         * CompareRung
+         * @description One of the book's "n+" rungs with both chances (app/bookcompare.py ladder_rungs).
+         */
+        CompareRung: {
+            /** N */
+            n: number;
+            /**
+             * Odd
+             * @description The book's decimal odds
+             */
+            odd: number;
+            /**
+             * Book
+             * @description The book's chance, its game margin taken out
+             */
+            book: number;
+            /**
+             * Ours
+             * @description Our chance from our line (five replayed seasons); None without a line
+             */
+            ours: number | null;
+            /**
+             * Value
+             * @description Average return of one unit at these odds if our chance is right: ours x odd - 1
+             */
+            value: number | null;
+            /**
+             * Hit
+             * @description He got there; None until the result, or when he didn't play
+             */
+            hit: boolean | null;
+        };
+        /** CompareTally */
+        CompareTally: {
+            /**
+             * Stat
+             * @description three_pm, reb, ast, stl, blk, pts, winner, margin, total, team_pts
+             */
+            stat: string;
+            /** Lines */
+            lines: number;
+            /**
+             * Compared
+             * @description Rows with both numbers
+             */
+            compared: number;
+            /** Median Gap */
+            median_gap: number | null;
+            /** Ours Above */
+            ours_above: number;
+            /**
+             * Judged
+             * @description Rows with a result
+             */
+            judged: number;
+            /** Ours Hits */
+            ours_hits: number;
+            /** Book Hits */
+            book_hits: number;
+            /** Ours Closer */
+            ours_closer: number;
+            /** Book Closer */
+            book_closer: number;
+            /**
+             * Level
+             * @description Results both missed by the same (within 0.1)
+             */
+            level: number;
+            /**
+             * Ours Miss
+             * @description Average distance of ours from the result
+             */
+            ours_miss: number | null;
+            /**
+             * Book Miss
+             * @description Average distance of iddaa's from the result
+             */
+            book_miss: number | null;
+            /**
+             * Rungs
+             * @description Settled player rungs
+             * @default 0
+             */
+            rungs: number;
+            /**
+             * Ours Rung Score
+             * @description Brier score of our rung chances (lower is better)
+             */
+            ours_rung_score?: number | null;
+            /**
+             * Book Rung Score
+             * @description Brier score of the book's rung chances
+             */
+            book_rung_score?: number | null;
+            /**
+             * Ours Rung Closer
+             * @description Player rows where our rung chances read the result better
+             * @default 0
+             */
+            ours_rung_closer: number;
+            /**
+             * Book Rung Closer
+             * @description Player rows where the book's rung chances did
+             * @default 0
+             */
+            book_rung_closer: number;
+            /**
+             * Value Picks
+             * @description Settled rungs with value over 0 by our chance
+             * @default 0
+             */
+            value_picks: number;
+            /**
+             * Value Hits
+             * @description Of those, how many he reached
+             * @default 0
+             */
+            value_hits: number;
+            /**
+             * Value Return
+             * @description One unit on each value pick at the book's odds: net units
+             * @default 0
+             */
+            value_return: number;
+        };
         /** CrowdedDay */
         CrowdedDay: {
             /**
@@ -1535,6 +2481,64 @@ export interface components {
              * @description Players with a game who don't make the best lineup
              */
             sit: components["schemas"]["BenchedPlayer"][];
+        };
+        /** CutBand */
+        CutBand: {
+            /**
+             * Odds From
+             * @description Odds over this
+             */
+            odds_from: number;
+            /**
+             * Odds To
+             * @description Up to and including this; None: and up
+             */
+            odds_to: number | null;
+            /**
+             * Rungs
+             * @description Settled player rungs (iddaa nights)
+             */
+            rungs: number;
+            /** Hits */
+            hits: number;
+            /**
+             * Ours
+             * @description Our average chance on them
+             */
+            ours: number | null;
+            /**
+             * Implied
+             * @description The price's average chance, 1/odds with the margin in
+             */
+            implied: number;
+            /**
+             * Net
+             * @description One unit on every rung at the book's odds: net units
+             */
+            net: number;
+        };
+        /** CutMarket */
+        CutMarket: {
+            /**
+             * Family
+             * @description two_way, three_way, combo (winner + total), margin_bands, half_full, top_quarter, total_ranges or many
+             */
+            family: string;
+            /**
+             * Markets
+             * @description Fully priced markets of this kind on the saved boards
+             */
+            markets: number;
+            /**
+             * Overround
+             * @description Median sum of 1/odds over a market's outcomes
+             */
+            overround: number;
+            /**
+             * Payback
+             * @description 1 / overround: what the book pays back of a fairly priced stake
+             */
+            payback: number;
         };
         /** DayLineup */
         DayLineup: {
@@ -1817,6 +2821,92 @@ export interface components {
             /** Email */
             email: string;
         };
+        /** FormGame */
+        FormGame: {
+            /** Game Id */
+            game_id: number;
+            /**
+             * Date
+             * @description US game date, YYYY-MM-DD
+             */
+            date: string | null;
+            /** Start */
+            start: string;
+            /** Home */
+            home: boolean;
+            /**
+             * Neutral
+             * @description Played at a neutral site (e.g. the Mexico City game)
+             */
+            neutral: boolean;
+            /**
+             * Kind
+             * @description "regular", "cup", "play_in" or "playoff"; null when ESPN could not say
+             */
+            kind: string | null;
+            /**
+             * Note
+             * @description ESPN's note: "NBA Cup - Group Play", "NBA Mexico City Game"
+             */
+            note: string | null;
+            /** Opponent */
+            opponent: string;
+            /** Opponent Name */
+            opponent_name: string;
+            /** Points */
+            points: number;
+            /** Opponent Points */
+            opponent_points: number;
+            /** Won */
+            won: boolean;
+            /** @description The game's MVP: best Game Score on the winning side */
+            mvp: components["schemas"]["FormStar"] | null;
+            /** @description This team's best Game Score (the MVP after a win) */
+            best: components["schemas"]["FormStar"] | null;
+            /** @description The opponent's best Game Score (the MVP after a loss) */
+            opp_best: components["schemas"]["FormStar"] | null;
+        };
+        /** FormStar */
+        FormStar: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Team
+             * @description His team's abbreviation
+             */
+            team: string;
+            /**
+             * Game Score
+             * @description Hollinger Game Score from the fantasy line (no fouls, blended rebounds)
+             */
+            game_score: number;
+            /** Minutes */
+            minutes: number;
+            /** Pts */
+            pts: number;
+            /** Reb */
+            reb: number;
+            /** Ast */
+            ast: number;
+            /** Stl */
+            stl: number;
+            /** Blk */
+            blk: number;
+            /** Tpm */
+            tpm: number;
+            /** To */
+            to: number;
+            /** Fgm */
+            fgm: number;
+            /** Fga */
+            fga: number;
+            /** Ftm */
+            ftm: number;
+            /** Fta */
+            fta: number;
+        };
         /** Game */
         Game: {
             /** Id */
@@ -1843,7 +2933,7 @@ export interface components {
              * @description Everyone who played, most minutes first
              */
             lines: components["schemas"]["GameLine"][];
-            /** @description Our call for the score; None before the box is built */
+            /** @description Our call for the score; None before the box is built. Pro */
             call?: components["schemas"]["GameCall"] | null;
         };
         /**
@@ -1979,6 +3069,26 @@ export interface components {
             ftm: number;
             /** Fta */
             fta: number;
+        };
+        /** GiftProRequest */
+        GiftProRequest: {
+            /** Email */
+            email: string;
+            /**
+             * Days
+             * @description Days of Pro from now; 0 ends a gift
+             */
+            days: number;
+        };
+        /** GiftProResult */
+        GiftProResult: {
+            /** User Id */
+            user_id: number;
+            /**
+             * Until
+             * @description When the gift ends, UTC ISO 8601; None: no gift
+             */
+            until: string | null;
         };
         /** GoogleSignIn */
         GoogleSignIn: {
@@ -2347,6 +3457,8 @@ export interface components {
              * @description Days of this Monday-to-Sunday week (see DayLineup.week) his NBA team plays
              */
             week_games?: number[];
+            /** @description His chance to play that day's game, for an injury tag and a game not yet started */
+            play?: components["schemas"]["PlayChance"] | null;
         };
         /** LinkedTeam */
         LinkedTeam: {
@@ -2358,6 +3470,177 @@ export interface components {
             team_id: number;
             /** Team Name */
             team_name: string;
+        };
+        /**
+         * LossReason
+         * @description Why a settled number landed where it did against ours (app/lostlog.py): the biggest piece of
+         *     the miss that points the way the miss went.
+         */
+        LossReason: {
+            /**
+             * Cause
+             * @description luck: threes, free throws, shot-making; pace; minutes; late_news: ruled out after our call; other: twos, turnovers, boards, shots taken, a player far off his line
+             * @enum {string}
+             */
+            cause: "luck" | "pace" | "minutes" | "late_news" | "other";
+            /**
+             * Piece
+             * @description three, free_throws, pace, late_news, other, minutes, shots, shooting, rate
+             */
+            piece: string;
+            /**
+             * Points
+             * @description Its size, in the row's own unit (points, rebounds...), signed like the miss
+             */
+            points: number;
+            /**
+             * Text
+             * @description One line for the page, e.g. "NO made 8 of 35 threes (we expected 36%)"
+             */
+            text: string;
+        };
+        /** LostBet */
+        LostBet: {
+            /**
+             * Game
+             * @description "NO @ SA"
+             */
+            game: string;
+            /**
+             * Group
+             * @description winner, margin, total, team_pts, or the player stat
+             */
+            group: string;
+            /**
+             * Bet
+             * @description The bet as the page writes it: "Over 227.5", "MEM +5.5", "Cam Spencer 2+ threes"
+             */
+            bet: string;
+            /** Odd */
+            odd: number;
+            /**
+             * Chance
+             * @description Our chance it would win, as stated before tip-off
+             */
+            chance: number | null;
+            /** Ours */
+            ours: number | null;
+            /** Book */
+            book: number | null;
+            /** Actual */
+            actual: number | null;
+            /**
+             * Cause
+             * @description None when no piece explains it
+             */
+            cause: ("luck" | "pace" | "minutes" | "late_news" | "other") | null;
+            /** Piece */
+            piece: string | null;
+            /** Points */
+            points: number | null;
+            /** Text */
+            text: string;
+        };
+        /** LostLog */
+        LostLog: {
+            /** Season */
+            season: number;
+            /**
+             * Nights
+             * @description Newest first
+             */
+            nights: components["schemas"]["LostNight"][];
+            /** Lost */
+            lost: number;
+            /** Causes */
+            causes: components["schemas"]["CauseCount"][];
+            /**
+             * Repeats
+             * @description Causes that are not luck, most frequent first
+             */
+            repeats: components["schemas"]["CauseRepeat"][];
+        };
+        /** LostLogRequest */
+        LostLogRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Nights
+             * @description How many of the latest saved nights
+             * @default 14
+             */
+            nights: number;
+        };
+        /** LostNight */
+        LostNight: {
+            /** Day */
+            day: number;
+            /** Date */
+            date: string | null;
+            /**
+             * Bets
+             * @description Settled bets the page took (odds over 1.33)
+             */
+            bets: number;
+            /** Won */
+            won: number;
+            /**
+             * Expected
+             * @description Wins our chances added up to
+             */
+            expected: number;
+            /** Lost */
+            lost: components["schemas"]["LostBet"][];
+        };
+        /**
+         * MatchForm
+         * @description Both teams' season so far, for the match card's Form view.
+         */
+        MatchForm: {
+            away: components["schemas"]["TeamForm"];
+            home: components["schemas"]["TeamForm"];
+            /** @description Their next game with this away and home, if scheduled */
+            next?: components["schemas"]["MatchNext"] | null;
+        };
+        /** MatchFormRequest */
+        MatchFormRequest: {
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Away
+             * @description Visiting team abbreviation as ESPN writes it
+             */
+            away: string;
+            /**
+             * Home
+             * @description Home team abbreviation
+             */
+            home: string;
+        };
+        /**
+         * MatchNext
+         * @description Their next meeting with the away team visiting (tonight's game on Our Estimates).
+         */
+        MatchNext: {
+            /** Game Id */
+            game_id: number;
+            /** Start */
+            start: string;
+            /** Neutral */
+            neutral: boolean;
+            /**
+             * Kind
+             * @description "regular", "cup", "play_in" or "playoff"; null when ESPN could not say
+             */
+            kind: string | null;
+            /** Note */
+            note: string | null;
         };
         /** MatchupProjection */
         MatchupProjection: {
@@ -2431,6 +3714,39 @@ export interface components {
              * @default false
              */
             admin: boolean;
+            /**
+             * Plan
+             * @description The account's plan (app/plans.py)
+             * @default free
+             * @enum {string}
+             */
+            plan: "free" | "pro";
+            /**
+             * Features
+             * @description Pro features the API serves this account now. Every feature while plans are not enforced; the site locks a spot from this list only
+             */
+            features?: ("next_game" | "game_calls" | "pregame" | "estimates" | "sportsbook" | "match_form")[];
+            /**
+             * Trial Ends
+             * @description End of a free trial, UTC ISO 8601
+             */
+            trial_ends?: string | null;
+            /**
+             * Renews At
+             * @description Next charge of a renewing subscription, UTC ISO 8601
+             */
+            renews_at?: string | null;
+            /**
+             * Ends At
+             * @description When Pro stops: cancelled at period end, or a gift's last moment; UTC ISO 8601
+             */
+            ends_at?: string | null;
+            /**
+             * Gifted
+             * @description Pro gifted by an admin rather than paid for
+             * @default false
+             */
+            gifted: boolean;
         };
         /** MoveDay */
         MoveDay: {
@@ -2594,6 +3910,57 @@ export interface components {
              * @description Before this time a new check is not started (the news is already this fresh), UTC
              */
             next_check_at?: string | null;
+        };
+        /** NewsLog */
+        NewsLog: {
+            /** Rows */
+            rows: components["schemas"]["NewsLogRow"][];
+        };
+        /** NewsLogRequest */
+        NewsLogRequest: {
+            /**
+             * Days
+             * @description How many days back, by when an item was published
+             * @default 7
+             */
+            days: number;
+            /**
+             * Tagged
+             * @description Only items with at least one emotion tag
+             * @default false
+             */
+            tagged: boolean;
+            /**
+             * Limit
+             * @description At most this many, newest first
+             * @default 2000
+             */
+            limit: number;
+        };
+        /** NewsLogRow */
+        NewsLogRow: {
+            /** Id */
+            id: string;
+            /** Source Id */
+            source_id: string;
+            /** Published */
+            published: string;
+            /** Title */
+            title: string;
+            /** Summary */
+            summary: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "injury" | "return" | "trade" | "rumor" | "signing" | "waive" | "role" | "other";
+            /** Player Ids */
+            player_ids: number[];
+            /**
+             * Tags
+             * @description Emotion tags from the item's words (app/news/emotion.py)
+             */
+            tags: string[];
         };
         /** NewsPage */
         NewsPage: {
@@ -2851,7 +4218,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "opponent" | "form" | "teammates_out" | "back_from_absence" | "heavy_minutes" | "recent_minutes" | "starter_switch" | "home" | "away" | "favored" | "underdog" | "back_to_back";
+            kind: "opponent" | "form" | "teammates_out" | "teammates_back" | "back_from_absence" | "heavy_minutes" | "recent_minutes" | "starter_switch" | "coach_decision" | "home" | "away" | "favored" | "underdog" | "back_to_back" | "new_team" | "season_end" | "lopsided_games" | "blowout" | "overtime" | "rotation";
             /**
              * Text
              * @description What it is, in a few words: 'Against PHX', 'James out'
@@ -3317,6 +4684,53 @@ export interface components {
              */
             per_game?: number | null;
         };
+        /**
+         * PlayChance
+         * @description How likely a player with an injury tag is to play his game that day (app/playchance.py).
+         */
+        PlayChance: {
+            /**
+             * Chance
+             * @description 0 to 1: share of past players in his spot who played
+             */
+            chance: number;
+            /**
+             * Tag
+             * @description The NBA report's tag: "Probable", "Questionable", "Doubtful", "Available", "Out", or "Day-to-day" when ESPN has no word yet on which
+             */
+            tag: string;
+            /**
+             * Basis
+             * @description What the number comes from, in words
+             */
+            basis: string;
+            /**
+             * News
+             * @description ESPN's latest one-line injury note
+             */
+            news?: string | null;
+            /**
+             * News At
+             * @description When ESPN dated that note, UTC ISO 8601
+             */
+            news_at?: string | null;
+            /**
+             * Return Date
+             * @description ESPN's expected return date, YYYY-MM-DD
+             */
+            return_date?: string | null;
+            /**
+             * Upgraded
+             * @description Listed out by ESPN, but the latest news has him in play
+             * @default false
+             */
+            upgraded: boolean;
+            /**
+             * Missed In A Row
+             * @description Team games he has missed in a row, when out
+             */
+            missed_in_a_row?: number | null;
+        };
         /** PlayerBadge */
         PlayerBadge: {
             /**
@@ -3409,7 +4823,7 @@ export interface components {
             games?: {
                 [key: string]: components["schemas"]["GameNote"];
             };
-            /** @description His line for his next game, as FA Targets shows it; none while he is out or when this league doesn't list him */
+            /** @description His line for his next game, as FA Targets shows it; none while he is out or when this league doesn't list him. Pro */
             next_game?: components["schemas"]["NextGameLine"] | null;
         };
         /** PlayerCardRequest */
@@ -3482,6 +4896,67 @@ export interface components {
             season: number;
             /** Players */
             players: components["schemas"]["IndexedPlayer"][];
+        };
+        /** PlayerLineSummary */
+        PlayerLineSummary: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Team
+             * @description NBA team id in his last saved game
+             */
+            team: number;
+            /** Team Abbrev */
+            team_abbrev: string;
+            /**
+             * Games
+             * @description Games he played with a saved line
+             */
+            games: number;
+            /**
+             * Dnp
+             * @description Nights he had a line but his team played without him
+             */
+            dnp: number;
+            /**
+             * Stats
+             * @description minutes, pts, reb, ast, stl, blk, three_pm, to
+             */
+            stats: {
+                [key: string]: components["schemas"]["StatMiss"];
+            };
+        };
+        /** PlayerLines */
+        PlayerLines: {
+            /**
+             * Days
+             * @description Settled days read
+             */
+            days: number;
+            /** Players */
+            players: components["schemas"]["PlayerLineSummary"][];
+        };
+        /** PlayerLinesRequest */
+        PlayerLinesRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Last
+             * @description Only the last N settled days; 0 for the whole season
+             * @default 0
+             */
+            last: number;
+            /**
+             * Min Games
+             * @description Only players with at least this many games
+             * @default 1
+             */
+            min_games: number;
         };
         /** PlayerMove */
         PlayerMove: {
@@ -3667,7 +5142,7 @@ export interface components {
             out_report?: string | null;
             /** @description Set when his last 15 days run well above his usual */
             hot_run?: components["schemas"]["HotRun"] | null;
-            /** @description His line for his next game; none while he is out */
+            /** @description His line for his next game; none while he is out. Pro */
             next_game?: components["schemas"]["NextGameLine"] | null;
         };
         /** PlayerSeasonLine */
@@ -3740,6 +5215,238 @@ export interface components {
              * @description None = chat
              */
             target?: string | null;
+        };
+        /** PregameBox */
+        PregameBox: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Day */
+            day: number;
+            /** Game Id */
+            game_id: number;
+            /**
+             * Start
+             * @description Tip-off, UTC ISO 8601
+             */
+            start: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "scheduled" | "live" | "final";
+            /**
+             * Chance
+             * @description How sure Our call is of its winner, 0.5-1
+             */
+            chance: number;
+            /**
+             * Pick
+             * @enum {string}
+             */
+            pick: "away" | "home";
+            /**
+             * Margin
+             * @description The called margin in whole points, from the picked side
+             */
+            margin: number;
+            /** Margin Raw */
+            margin_raw: number;
+            /**
+             * Terms
+             * @description What the margin adds up from, in whole points
+             */
+            terms: components["schemas"]["PregameTerm"][];
+            away: components["schemas"]["PregameSide"];
+            home: components["schemas"]["PregameSide"];
+        };
+        /**
+         * PregameCallPart
+         * @description One side's expected points, piece by piece (analysis/gamescore.py): they add up to ``call_raw``.
+         */
+        PregameCallPart: {
+            /**
+             * Ratings
+             * @description Possessions x its points a trip x the opponent's allowed / the league's
+             */
+            ratings: number;
+            /** Level */
+            level: number;
+            /**
+             * Home
+             * @description + at home, - on the road
+             */
+            home: number;
+            /**
+             * Opp Three Luck
+             * @description The opponent's three-point defense luck that shouldn't last
+             */
+            opp_three_luck: number;
+            /**
+             * Own Three Luck
+             * @description Its own three-point shooting luck that shouldn't last
+             */
+            own_three_luck: number;
+            /** Back To Back */
+            back_to_back: number;
+            /**
+             * Lineup
+             * @description Tonight's lineup's talent against the call (analysis/lineupcall.py)
+             * @default 0
+             */
+            lineup: number;
+            /**
+             * Absences
+             * @description Regulars missing tonight (-) or playing more than usual (+) against how often they play
+             * @default 0
+             */
+            absences: number;
+            /**
+             * Possessions
+             * @description Trips each this game: its pace x the opponent's / the league's
+             */
+            possessions: number;
+            /**
+             * Offense
+             * @description Its points a trip so far (recent games count most)
+             */
+            offense: number;
+            /**
+             * Defense Allowed
+             * @description Points a trip the opponent allows
+             */
+            defense_allowed: number;
+            /**
+             * League
+             * @description The league's points a trip
+             */
+            league: number;
+            /**
+             * Points A Game
+             * @description Its points a game so far (recent games count most)
+             */
+            points_a_game: number;
+        };
+        /** PregameOut */
+        PregameOut: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Injury Status */
+            injury_status: string;
+            /** Owner Team Id */
+            owner_team_id?: number | null;
+        };
+        /** PregamePlayer */
+        PregamePlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Injury Status */
+            injury_status: string;
+            /**
+             * Owner Team Id
+             * @description His fantasy team in this league; None: free agent
+             */
+            owner_team_id?: number | null;
+            /**
+             * In Pool
+             * @description The league's own list (rosters and the free agents it reads). False: a rotation player read for this box only
+             */
+            in_pool: boolean;
+            line: components["schemas"]["NextGameLine"];
+        };
+        /** PregameRequest */
+        PregameRequest: {
+            /** League Id */
+            league_id: number;
+            /**
+             * Season
+             * @description ESPN season year, e.g. 2027 for 2026-27
+             */
+            season?: number | null;
+            /**
+             * Game Id
+             * @description The game's id, as /api/scores lists it
+             */
+            game_id: number;
+            /**
+             * Day
+             * @description Its day, when known (saves a search)
+             */
+            day?: number | null;
+        };
+        /** PregameSide */
+        PregameSide: {
+            /** Pro Team Id */
+            pro_team_id: number;
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /** Call */
+            call: number;
+            /** Call Raw */
+            call_raw: number;
+            parts: components["schemas"]["PregameCallPart"];
+            /**
+             * Players
+             * @description Everyone expected to play, most minutes first
+             */
+            players: components["schemas"]["PregamePlayer"][];
+            /**
+             * Out
+             * @description Ruled out tonight
+             */
+            out: components["schemas"]["PregameOut"][];
+            team_line: components["schemas"]["PregameTeamLine"];
+        };
+        /**
+         * PregameTeamLine
+         * @description How the players' lines stand against the team's call (report.team_sum_gap's view).
+         */
+        PregameTeamLine: {
+            /**
+             * Shown
+             * @description The listed players' points lines, added up
+             */
+            shown: number;
+            /**
+             * Rest
+             * @description The rest of the team: its points a game less the listed players' season points
+             */
+            rest: number;
+            /** Total */
+            total: number;
+            /**
+             * Call
+             * @description The team's expected points before rounding
+             */
+            call: number;
+            /**
+             * Gap
+             * @description total - call: + the lines run over Our call, - under it
+             */
+            gap: number;
+        };
+        /** PregameTerm */
+        PregameTerm: {
+            /**
+             * Kind
+             * @description matchup: pace, offense and defense, and who plays tonight; home_court; three_point_luck: three-point shooting on both ends that shouldn't last; back_to_back
+             * @enum {string}
+             */
+            kind: "matchup" | "home_court" | "three_point_luck" | "back_to_back";
+            /**
+             * Points
+             * @description Points of the called margin, from the picked side; the terms add up to it
+             */
+            points: number;
+            /** Raw */
+            raw: number;
         };
         /** ProjectedCategory */
         ProjectedCategory: {
@@ -4147,6 +5854,105 @@ export interface components {
             start?: string | null;
             /** End */
             end?: string | null;
+        };
+        /** RecordBucket */
+        RecordBucket: {
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "ours" | "book";
+            /** Chance From */
+            chance_from: number;
+            /** Chance To */
+            chance_to: number;
+            /** Rungs */
+            rungs: number;
+            /**
+             * Said
+             * @description The side's average chance in this bucket
+             */
+            said: number;
+            /**
+             * Happened
+             * @description How often he reached the rung
+             */
+            happened: number;
+        };
+        /** RecordNight */
+        RecordNight: {
+            /**
+             * Day
+             * @description NBA day (scoring period)
+             */
+            day: number | null;
+            /**
+             * Settled
+             * @description The night has results; False before tip-off
+             */
+            settled: boolean;
+            /**
+             * Picks
+             * @description Settled rungs with value over 0 by our chance
+             */
+            picks: number;
+            /** Hits */
+            hits: number;
+            /**
+             * Net
+             * @description One unit on each at the book's odds: net units
+             */
+            net: number;
+            /**
+             * Marked
+             * @description Sum of the picks' value: what our chances expected them to make
+             */
+            marked: number;
+            /**
+             * Players
+             * @description How many players the picks spread over
+             */
+            players: number;
+            /**
+             * Top Hit
+             * @description Odds of the biggest pick that landed
+             */
+            top_hit: number | null;
+        };
+        /** RecordPicks */
+        RecordPicks: {
+            /**
+             * Stat
+             * @description three_pm, reb, ast, stl, blk, pts or all
+             */
+            stat: string;
+            /** Odds From */
+            odds_from: number;
+            /**
+             * Odds To
+             * @description None: and up
+             */
+            odds_to: number | null;
+            /**
+             * Picks
+             * @description Settled rungs with value over 0 by our chance
+             */
+            picks: number;
+            /**
+             * Hits
+             * @description Of those, how many he reached
+             */
+            hits: number;
+            /**
+             * Said
+             * @description Our average chance on those picks
+             */
+            said: number;
+            /**
+             * Net
+             * @description One unit on each at the book's odds: net units (+ = they paid)
+             */
+            net: number;
         };
         /** RepliesPage */
         RepliesPage: {
@@ -4698,6 +6504,29 @@ export interface components {
             /** Team Id */
             team_id: number;
         };
+        /** StatMiss */
+        StatMiss: {
+            /**
+             * Line
+             * @description His average line
+             */
+            line: number;
+            /**
+             * Actual
+             * @description What he averaged
+             */
+            actual: number;
+            /**
+             * Miss
+             * @description Average of result less line: + he beat his line
+             */
+            miss: number;
+            /**
+             * Swing
+             * @description Typical size of a miss either way (root mean square)
+             */
+            swing: number;
+        };
         /** TargetFit */
         TargetFit: {
             /**
@@ -4954,6 +6783,22 @@ export interface components {
             weak: string[];
             /** Expected Cats Won */
             expected_cats_won: number;
+        };
+        /** TeamForm */
+        TeamForm: {
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /** Wins */
+            wins: number;
+            /** Losses */
+            losses: number;
+            /**
+             * Games
+             * @description Every game this season, most recent first (no preseason)
+             */
+            games: components["schemas"]["FormGame"][];
         };
         /** TeamLinkChallenge */
         TeamLinkChallenge: {
@@ -6007,6 +7852,341 @@ export interface operations {
             };
         };
     };
+    admin_news_log_api_admin_news_log_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewsLogRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewsLog"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_player_lines_api_admin_player_lines_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayerLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerLines"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_book_lines_api_admin_book_lines_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookLines"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_book_compare_api_admin_book_compare_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookCompare"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_book_compare_api_book_compare_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookCompare"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    book_record_api_book_compare_record_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookRecord"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lost_log_api_book_compare_lost_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LostLogRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LostLog"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     resolve_error_api_admin_errors_resolve_post: {
         parameters: {
             query?: never;
@@ -6104,6 +8284,288 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gift_pro_api_admin_gift_pro_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GiftProRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GiftProResult"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    billing_config_api_billing_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingConfig"];
+                };
+            };
+        };
+    };
+    billing_checkout_api_billing_checkout_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutStart"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    billing_sync_api_billing_sync_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingSyncRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    billing_portal_api_billing_portal_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingPortal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
@@ -7713,6 +10175,79 @@ export interface operations {
             };
         };
     };
+    score_pregame_api_scores_pregame_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PregameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PregameBox"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     score_sits_api_scores_sits_post: {
         parameters: {
             query?: never;
@@ -8199,6 +10734,68 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    match_form_api_match_form_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatchFormRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchForm"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
                 headers: {
                     [name: string]: unknown;
                 };

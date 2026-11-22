@@ -28,6 +28,9 @@ export type Reactions = components['schemas']['Reactions']
 export type RepliesPage = components['schemas']['RepliesPage']
 export type ReactionsOut = components['schemas']['ReactionsOut']
 export type Me = components['schemas']['Me']
+export type PlanFeature = NonNullable<Me['features']>[number]
+export type BillingConfig = components['schemas']['BillingConfig']
+export type BillingInterval = components['schemas']['CheckoutRequest']['interval']
 export type Keepers = components['schemas']['Keepers']
 export type MyLeague = components['schemas']['MyLeague']
 export type Notice = components['schemas']['Notice']
@@ -57,26 +60,16 @@ export type RecapSide = components['schemas']['RecapSide']
 export type RecapMatchup = components['schemas']['RecapMatchup']
 export type WeekTotals = components['schemas']['WeekTotals']
 export type WeekSits = components['schemas']['WeekSits']
-export type DayLineup = components['schemas']['DayLineup']
 /**
  * His chance to play his next game (``spot.play``): null for a healthy player or once his game has
  * started. ``chance`` is the share of past players in his spot who played (NBA injury reports,
- * 2021-22 to 2025-26). Local until the schema ships it.
+ * 2021-22 to 2025-26). The API types ``tag`` as text; these are the words it sends.
  */
-export interface PlayChance {
-  chance: number
+export type PlayChance = Omit<components['schemas']['PlayChance'], 'tag'> & {
   tag: 'Probable' | 'Questionable' | 'Doubtful' | 'Available' | 'Out' | 'Day-to-day'
-  basis: string
-  news: string | null
-  news_at: string | null
-  /** ESPN's guess, untested. */
-  return_date: string | null
-  /** ESPN still says OUT but the news has him questionable, probable or available. */
-  upgraded: boolean
-  /** Out players: team games missed in a row. */
-  missed_in_a_row: number | null
 }
-export type LineupSpot = components['schemas']['LineupSpot'] & { play?: PlayChance | null }
+export type LineupSpot = Omit<components['schemas']['LineupSpot'], 'play'> & { play?: PlayChance | null }
+export type DayLineup = Omit<components['schemas']['DayLineup'], 'spots'> & { spots: LineupSpot[] }
 export type SeasonAverage = components['schemas']['SeasonAverage']
 export type NextGame = components['schemas']['NextGame']
 export type LineupDay = components['schemas']['LineupDay']
@@ -122,11 +115,14 @@ const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 export class ApiError extends Error {
   status: number
   code: string
+  /** The Pro feature a Free account asked for (402 ``upgrade_required``). */
+  feature: PlanFeature | null
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, feature: PlanFeature | null = null) {
     super(message)
     this.status = status
     this.code = code
+    this.feature = feature
   }
 }
 
@@ -199,7 +195,7 @@ async function requestOnce<T>(
     const data = await res.json().catch(() => null)
     const detail = data?.detail
     if (detail && typeof detail === 'object' && 'code' in detail) {
-      throw new ApiError(res.status, detail.code, detail.message)
+      throw new ApiError(res.status, detail.code, detail.message, detail.feature ?? null)
     }
     throw new ApiError(res.status, 'http_error', `Request failed (HTTP ${res.status}).`)
   }
@@ -232,7 +228,7 @@ async function publicGet<T>(path: string): Promise<T> {
       if (!res.ok) {
         const detail = (await res.json().catch(() => null))?.detail
         if (detail && typeof detail === 'object' && 'code' in detail) {
-          throw new ApiError(res.status, detail.code, detail.message)
+          throw new ApiError(res.status, detail.code, detail.message, detail.feature ?? null)
         }
         throw new ApiError(res.status, 'http_error', `Request failed (HTTP ${res.status}).`)
       }
@@ -333,6 +329,31 @@ export function countPageView(page: string) {
 
 export function fetchMe() {
   return post<Me>('/api/me', {})
+}
+
+/** What the site needs to open Paddle's checkout (public; ``enabled`` false until Paddle is set up). */
+export function fetchBillingConfig() {
+  return publicGet<BillingConfig>('/api/billing/config')
+}
+
+/** A Paddle transaction for this account and interval: open Paddle's checkout on its id. */
+export function startCheckout(interval: BillingInterval) {
+  return send<components['schemas']['CheckoutStart']>('/api/billing/checkout', { interval })
+}
+
+/** Right after checkout: the server reads the payment from Paddle, so Pro opens before the webhook lands. */
+export function syncBilling(transactionId: string) {
+  return send<Me>('/api/billing/sync', { transaction_id: transactionId })
+}
+
+/** Paddle's customer portal for this account: card, invoices, cancel. */
+export function openBillingPortal() {
+  return send<components['schemas']['BillingPortal']>('/api/billing/portal', {})
+}
+
+/** Admin: give an account Pro for ``days`` from now (0 ends the gift). */
+export function giftPro(email: string, days: number) {
+  return send<components['schemas']['GiftProResult']>('/api/admin/gift-pro', { email, days })
 }
 
 export function clearNotices() {
