@@ -1177,27 +1177,6 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
   )
 }
 
-function Mark({ line: l, side, i }: { line: Line; side: 'ours' | 'book'; i: number }) {
-  const ok = side === 'ours' ? l.oursHit : l.bookHit
-  if (ok == null) return <span className="ic-mk none" aria-label="No result" />
-  const who = side === 'ours' ? 'Ours' : 'Book'
-  const v = side === 'ours' ? l.ours : l.book
-  const label =
-    l.stat === 'WIN'
-      ? `${who} ${ok ? 'right' : 'wrong'}`
-      : `${who} ${ok ? 'within' : 'outside'} ${num(l.band)}, off by ${v != null && l.actual != null ? num(Math.abs(l.actual - v)) : '?'}`
-  return (
-    <span
-      className={`ic-mk ${side === 'ours' ? 'o' : 'd'} ${ok ? 'ok' : 'no'}`}
-      role="img"
-      aria-label={label}
-      style={{ '--i': i } as CSSProperties}
-    >
-      {ok ? <CheckIcon /> : <XIcon />}
-    </span>
-  )
-}
-
 /** A ruler centred on the result with the band shaded: Ours an open ▽ above, the book a solid ▲ below. */
 function Ruler({ line: l, big = false }: { line: Line; big?: boolean }) {
   if (l.actual == null || l.ours == null || l.book == null) return null
@@ -1893,122 +1872,143 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
         </div>
       </div>
       <div className="ic-gboxes">
-        {data.games.map((g) => {
-          const ls = lines.filter((l) => l.game.game_id === g.game_id)
-          const get = (s: Stat, team?: string) => ls.find((l) => l.stat === s && (!team || l.team === team))
-          const rows: [string, Line | undefined][] = [
-            ['Winner', get('WIN')],
-            ['Margin', get('MAR')],
-            ['Total', get('TOT')],
-            [`${g.away} pts`, get('TEAM', g.away)],
-            [`${g.home} pts`, get('TEAM', g.home)],
-          ]
-          const final = g.status === 'final'
-          const pl = tallyOf(ls.filter((l) => l.kind === 'player'))
-          return (
-            <div className={`ic-gbox${!settled && g.status !== 'scheduled' ? ' tipped' : ''}`} key={g.game_id}>
-              <div className="ic-gb-h">
-                <Pair away={g.away} home={g.home} size={26} />
-                <span className="t">
-                  {final ? (
-                    <>
-                      {g.away} <span className="num">{g.away_score}</span> @ {g.home}{' '}
-                      <span className="num">{g.home_score}</span>
-                    </>
-                  ) : (
-                    `${g.away} @ ${g.home}`
-                  )}
-                </span>
-                <span className="meta2">
-                  {final ? (
-                    'Final'
-                  ) : (
-                    <>
-                      Tip <span className="num">{clock(g.tip)}</span>
-                      <br />
-                      read <span className="num">{clock(g.checked)}</span>
-                    </>
-                  )}
-                </span>
-              </div>
-              {gameStory(ls, final) && <p className="ic-gb-say">{gameStory(ls, final)}</p>}
-              <details className="ic-gt-fold" open={!phone}>
-                <summary>
-                  Winner, margin, total and team points
-                  <Chevron />
-                </summary>
-                <table className="ic-gt">
-                  <thead>
-                    <tr>
-                      <th scope="col">
-                        <span className="sr-only">Market</span>
-                      </th>
-                      <th scope="col">Book</th>
-                      <th scope="col">Ours</th>
-                      {final ? (
-                        <>
-                          <th scope="col">Result</th>
-                          <th scope="col">Ours</th>
-                          <th scope="col">Book</th>
-                        </>
-                      ) : (
-                        <th scope="col" className="hide-xs">
-                          Gap
+        {[...data.games]
+          .sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.tip.localeCompare(b.tip))
+          .map((g) => {
+            const ls = lines.filter((l) => l.game.game_id === g.game_id)
+            const get = (s: Stat, team?: string) => ls.find((l) => l.stat === s && (!team || l.team === team))
+            const rows: [string, Line | undefined][] = [
+              ['Winner', get('WIN')],
+              ['Margin', get('MAR')],
+              ['Total', get('TOT')],
+              [`${g.away} pts`, get('TEAM', g.away)],
+              [`${g.home} pts`, get('TEAM', g.home)],
+            ]
+            const final = g.status === 'final'
+            const pl = tallyOf(ls.filter((l) => l.kind === 'player'))
+            return (
+              <div className={`ic-gbox${!settled && g.status !== 'scheduled' ? ' tipped' : ''}`} key={g.game_id}>
+                <div className="ic-gb-h">
+                  <Pair away={g.away} home={g.home} size={26} />
+                  <span className="t">
+                    {final ? (
+                      <>
+                        {g.away} <span className="num">{g.away_score}</span> @ {g.home}{' '}
+                        <span className="num">{g.home_score}</span>
+                      </>
+                    ) : (
+                      `${g.away} @ ${g.home}`
+                    )}
+                  </span>
+                  <span className="meta2">
+                    {final ? (
+                      'Final'
+                    ) : (
+                      <>
+                        Tip <span className="num">{clock(g.tip)}</span>
+                        <br />
+                        read <span className="num">{clock(g.checked)}</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+                {gameStory(ls, final) && <p className="ic-gb-say">{gameStory(ls, final)}</p>}
+                <details className="ic-gt-fold" open={!phone}>
+                  <summary>
+                    Winner, margin, total and team points
+                    <Chevron />
+                  </summary>
+                  <table className="ic-gt">
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          <span className="sr-only">Market</span>
                         </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map(([label, l]) => (
-                      <tr key={label}>
-                        <td>
-                          {label.endsWith(' pts') && <TeamLogo abbrev={label.slice(0, -4)} size={16} />} {label}
-                        </td>
-                        <td>
-                          <span className="num">{l ? value(l, 'book') : '–'}</span>
-                        </td>
-                        <td className="o">
-                          <span className="num">{l ? value(l, 'ours') : '–'}</span>
-                        </td>
+                        <th scope="col">Book</th>
+                        <th scope="col">Ours</th>
                         {final ? (
                           <>
-                            <td>
-                              <span className="num">{l ? resultValue(l) : ''}</span>
-                            </td>
-                            <td className="mkc">{l && <Mark line={l} side="ours" i={0} />}</td>
-                            <td className="mkc">{l && <Mark line={l} side="book" i={0} />}</td>
+                            <th scope="col">Result</th>
+                            <th scope="col">Closer</th>
                           </>
                         ) : (
-                          <td className="hide-xs">
-                            <span className="num">{l && l.gap != null ? signed(l.gap, l.stat) : ''}</span>
-                          </td>
+                          <th scope="col" className="hide-xs">
+                            Gap
+                          </th>
                         )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </details>
-              <div className="ic-gb-f">
-                {final ? (
-                  <>
+                    </thead>
+                    <tbody>
+                      {rows.map(([label, l]) => (
+                        <tr key={label}>
+                          <td>
+                            {label.endsWith(' pts') && <TeamLogo abbrev={label.slice(0, -4)} size={16} />} {label}
+                          </td>
+                          <td>
+                            {l && <Hit line={l} side="book" />}
+                            <span className="num">{l ? value(l, 'book') : '–'}</span>
+                          </td>
+                          <td className="o">
+                            {l && <Hit line={l} side="ours" />}
+                            <span className="num">{l ? value(l, 'ours') : '–'}</span>
+                          </td>
+                          {final ? (
+                            <>
+                              <td>
+                                <span className="num">{l ? resultValue(l) : ''}</span>
+                              </td>
+                              <td className="cl">{l && <CloserCell line={l} />}</td>
+                            </>
+                          ) : (
+                            <td className="hide-xs">
+                              <span className="num">{l && l.gap != null ? signed(l.gap, l.stat) : ''}</span>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </details>
+                <div className="ic-gb-f">
+                  {final ? (
+                    <>
+                      <span>
+                        We were closer on <b className="g">{pl.oursCloser}</b> of <b>{pl.judged}</b> player lines · Book{' '}
+                        <b>{pl.bookCloser}</b>
+                      </span>
+                      <span>
+                        Within band: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · Book <b>{`${pl.book}/${pl.judged}`}</b>
+                      </span>
+                    </>
+                  ) : (
                     <span>
-                      Player lines: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · Book <b>{`${pl.book}/${pl.judged}`}</b>
+                      Player lines <b>{pl.n}</b> · Ours above <b>{pl.above}</b>
                     </span>
-                    <span>
-                      Closer: Ours <b>{pl.oursCloser}</b>, Book <b>{pl.bookCloser}</b>
-                    </span>
-                  </>
-                ) : (
-                  <span>
-                    Player lines <b>{pl.n}</b> · Ours above <b>{pl.above}</b>
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
       </div>
     </section>
+  )
+}
+
+/** Who was nearer in a game table, in words: "Ours · 6pp", "Book · 2" or "Level". */
+function CloserCell({ line: l }: { line: Line }) {
+  if (!l.closer) return null
+  if (l.closer === 'tie') return <span className="ic-cl tie">Level</span>
+  const by = l.by == null ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+  return (
+    <span className={`ic-cl ${l.closer}`}>
+      {l.closer === 'ours' ? 'Ours' : 'Book'}
+      {by && (
+        <span className="by">
+          {' '}
+          · <span className="num">{by}</span>
+        </span>
+      )}
+    </span>
   )
 }
 

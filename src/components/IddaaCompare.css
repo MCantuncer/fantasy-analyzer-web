@@ -661,43 +661,6 @@
   margin-right: 3px;
 }
 
-.ic-mk {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.ic-mk svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.ic-mk.ok {
-  color: var(--good);
-}
-.ic-mk.no {
-  color: var(--bad);
-}
-.ic-mk.o.ok {
-  background: var(--good-soft);
-}
-.ic-mk.o.no {
-  background: var(--bad-soft);
-}
-.ic-mk.d {
-  box-shadow: inset 0 0 0 1.5px currentColor;
-}
-.ic-mk.d svg {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2;
-}
 
 
 .ic-list-foot {
@@ -1124,19 +1087,6 @@
   color: var(--text);
   font-weight: 600;
 }
-.ic-gt td.mkc {
-  width: 28px;
-  padding: 3px 2px;
-}
-.ic-gt .ic-mk {
-  width: 22px;
-  height: 22px;
-  margin-left: auto;
-}
-.ic-gt .ic-mk svg {
-  width: 12px;
-  height: 12px;
-}
 .ic-gb-f {
   margin-top: 10px;
   font-size: 12.5px;
@@ -1243,17 +1193,6 @@
     width: 0;
   }
 }
-.ic-sheet.motion .ic-mk path {
-  stroke-dasharray: 24;
-  stroke-dashoffset: 24;
-  animation: ic-draw 260ms ease-out forwards;
-  animation-delay: calc(var(--i, 0) * 24ms + 160ms);
-}
-@keyframes ic-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 @keyframes ic-lift {
   from {
     transform: translateY(2px);
@@ -1262,11 +1201,9 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ic-sheet.motion .ic-band,
-  .ic-sheet.motion .ic-mk path,
   .ic-row.is-open,
   .ic-sk {
     animation: none !important;
-    stroke-dashoffset: 0;
   }
 }
 
@@ -3240,4 +3177,72 @@
   margin: -6px 0 0 -6px;
   font-size: 7.5px;
   line-height: 12px;
+}
+
+/* Game by game (Across the Seam, PR 6): ✓/✗ beside the numbers and who was closer in words. */
+.ic-gt td .ic-hit {
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+.ic-gt td.cl {
+  padding-left: 10px;
+}
+.ic-cl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-cl .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.ic-cl.ours {
+  color: var(--good);
+}
+.ic-cl.tie {
+  color: var(--muted);
+  font-weight: 500;
+}
+.ic-gb-f b.g {
+  color: var(--good);
+}
+@media (max-width: 719px) {
+  .ic-gt td.cl {
+    padding-left: 6px;
+  }
+  .ic-gt td .ic-hit {
+    margin-right: 1px;
+  }
+  .ic-cl .by {
+    display: none;
+  }
+}
+@media (max-width: 374px) {
+  .ic-gt {
+    font-size: 11.5px;
+  }
+  .ic-gt th,
+  .ic-gt td {
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+  .ic-gt td.cl {
+    padding-left: 4px;
+  }
+  .ic-gt td .ic-hit {
+    width: 12px;
+    margin-right: 0;
+  }
+  .ic-gt td .ic-hit svg {
+    width: 11px;
+    height: 11px;
+  }
+  .ic-gt td .team-logo {
+    display: none;
+  }
+}
+.ic-gt td.cl {
+  white-space: normal;
+  min-width: 44px;
 }
