@@ -134,6 +134,227 @@
   color: var(--muted);
 }
 
+/* Section heads inside the view. */
+.mf-blk-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 20px 0 12px;
+}
+.mf-blk-h h3 {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 650;
+}
+.mf-blk-h p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Game type: Regular Season quiet text, NBA Cup an outline tag with a trophy, Play-In/Playoff ink. */
+.mf-gt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+.mf-gt.quiet {
+  color: var(--muted);
+}
+.mf-gt.cup,
+.mf-gt.post {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-tag);
+  font-weight: 600;
+}
+.mf-gt.cup {
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+.mf-gt.cup svg {
+  color: var(--text);
+}
+.mf-gt.post {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Last 10: team tabs (club-underlined) and one 64px row per game. */
+.mf-log {
+  margin-top: 4px;
+}
+.mf-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.mf-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 600;
+}
+.mf-tab:hover {
+  color: var(--text);
+}
+.mf-tab[aria-selected='true'] {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow:
+    inset 0 -2px 0 var(--tl),
+    0 1px 2px rgb(0 0 0 / 0.12);
+}
+.mf-tab .num {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12.5px;
+}
+.mf-rows {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mf-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 52px minmax(0, 1fr) 112px 132px minmax(0, 1.4fr);
+  grid-template-areas: 'wl dt opp sc ty mvp';
+  align-items: center;
+  column-gap: 14px;
+  min-height: 64px;
+  padding: 8px 12px 8px 10px;
+  border-radius: var(--radius-row);
+}
+.mf-row + .mf-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--divider);
+}
+.mf-wl {
+  grid-area: wl;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font: 700 13.5px/1 var(--font-ui);
+}
+.mf-wl.w {
+  color: var(--good);
+  background: var(--good-soft);
+}
+.mf-wl.l {
+  color: var(--bad);
+  background: var(--bad-soft);
+}
+.mf-r-dt {
+  grid-area: dt;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mf-r-opp {
+  grid-area: opp;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14.5px;
+}
+.mf-r-opp b {
+  font-weight: 650;
+}
+.mf-r-opp .va {
+  display: inline-flex;
+  justify-content: center;
+  width: 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.mf-r-sc {
+  grid-area: sc;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.mf-r-sc .mg {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.mf-r-ty {
+  grid-area: ty;
+  min-width: 0;
+}
+.mf-r-mvp {
+  grid-area: mvp;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.mf-r-mvp .t {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+.mf-r-mvp .t b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.mf-r-mvp .t > span {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mf-r-mvp .t .num {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.mf-r-opp .sc2,
+.mf-r-dt .ph,
+.mf-r-mvp .ln {
+  display: none;
+}
+.mf-dash {
+  color: var(--muted);
+}
+.mf-none {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 /* Loading and error. */
 .mf-sk {
   display: block;
@@ -214,5 +435,77 @@
   }
   .mf-venue-note {
     text-align: left;
+  }
+  /* Rows go two lines: where, score and margin; then date and type. The MVP keeps the right. */
+  .mf-row {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'wl opp mvp'
+      'wl dt mvp';
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 9px 6px;
+  }
+  .mf-wl {
+    width: 28px;
+    height: 28px;
+  }
+  .mf-r-sc,
+  .mf-r-ty {
+    display: none;
+  }
+  .mf-r-opp {
+    gap: 6px;
+    font-size: 14px;
+  }
+  .mf-r-opp .va {
+    width: auto;
+    font-size: 12.5px;
+  }
+  .mf-r-opp .sc2 {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-left: 2px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .mf-r-opp .sc2 .mg {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .mf-r-dt .ph {
+    display: inline-flex;
+    min-width: 0;
+  }
+  .mf-r-dt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12.5px;
+  }
+  .mf-r-dt .mf-gt {
+    font-size: 12px;
+  }
+  .mf-r-dt .mf-gt.cup,
+  .mf-r-dt .mf-gt.post {
+    height: 21px;
+    padding: 0 6px;
+  }
+  .mf-r-mvp {
+    gap: 8px;
+    width: 112px;
+  }
+  .mf-r-mvp .fn {
+    display: none;
+  }
+  .mf-r-mvp .ln {
+    display: inline;
+  }
+  .mf-r-mvp .t b {
+    font-size: 13px;
   }
 }
