@@ -67,7 +67,7 @@
 /* ---------- the rack: one slip per Kupon ---------- */
 .ic-ku-rack {
   list-style: none; margin: 16px 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: stretch;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch;
 }
 .ic-ku-rack.two { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
 .ic-ku-slip {
@@ -88,9 +88,8 @@
 .ic-ku-name .ku-tag.no { color: var(--text-2); font-weight: 650; }
 .ic-ku-name .cnt { display: none; }
 /* Highest Confidence & Matches Only in one slip before player bets: one column like the rest (the
-   rack drops to three), the two names under each other, only as tall as its picks, and marked in its
+   rack keeps two a row), the two names under each other, only as tall as its picks, and marked in its
    own blue (never gold, green or red) so it reads as merged for now */
-.ic-ku-rack.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ic-ku-slip.wide {
   --merge: #8db4ff; align-self: start;
   box-shadow: var(--shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--merge) 45%, transparent);
@@ -133,7 +132,7 @@
 .ic-ku-note b { color: var(--text-2); }
 .ic-ku-open { display: none; }
 
-/* the picks, behind the tear line */
+/* the picks, behind the tear line (two slips a row on a computer, so each pick has room to breathe) */
 .ic-ku-picks {
   position: relative; list-style: none; margin: 0; padding: 4px 0 2px;
   border-top: 1.5px dashed var(--seam); container: ku-picks / inline-size;
@@ -147,13 +146,13 @@
 .ic-ku-foot b { color: var(--text-2); font-weight: 600; }
 
 .ic-ku-pick {
-  position: relative; display: grid; align-items: center; column-gap: 10px;
+  position: relative; display: grid; align-items: center; column-gap: 14px;
   grid-template-columns: 32px minmax(0, 1fr) auto auto auto;
   grid-template-areas: 'face who bet odds ring';
-  padding: 9px 10px 9px 14px;
+  padding: 11px 14px 11px 16px;
 }
 .ic-ku-pick + .ic-ku-pick::before {
-  content: ''; position: absolute; top: 0; left: 14px; right: 12px; height: 1px; background: var(--divider);
+  content: ''; position: absolute; top: 0; left: 16px; right: 14px; height: 1px; background: var(--divider);
 }
 .ic-ku-pick > .ic-ku-face { grid-area: face; }
 .ic-ku-pick > .who { grid-area: who; }
@@ -188,7 +187,7 @@
 .ic-ku-pick .lab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tl); margin-right: 5px; vertical-align: 0; }
 .ic-ku-pick .hero { font-size: 22px; font-weight: 700; line-height: 1.12; color: var(--text); white-space: nowrap; }
 .ic-ku-pick .hero.txt { font-size: 20px; letter-spacing: -0.005em; }
-.ic-ku-pick .odds { padding-left: 10px; border-left: 1.5px dashed var(--seam); align-self: stretch; justify-content: center; }
+.ic-ku-pick .odds { padding-left: 14px; border-left: 1.5px dashed var(--seam); align-self: stretch; justify-content: center; }
 .ic-ku-pick .odd { font-size: 19px; font-weight: 700; line-height: 1.15; color: var(--text); }
 
 /* the pick that broke it: a plate, an ink edge, "✕ Lost" in words; digits dim like Score Slip */
@@ -222,7 +221,7 @@
 .ic-ku-ring .arc { stroke: var(--band); stroke-linecap: round; }
 
 /* two-tier pick when the slip is narrow (desktop rack columns, 360px phones) */
-@container ku-picks (max-width: 319px) {
+@container ku-picks (max-width: 379px) {
   .ic-ku-pick {
     grid-template-columns: 32px minmax(0, 1fr) auto 36px;
     grid-template-areas: 'face who who who' 'bet bet odds ring';
@@ -294,15 +293,12 @@
 .ic-ku-rules ul[hidden] { display: none; }
 
 /* ---------- widths ---------- */
-@media (max-width: 1099px) {
-  .ic-ku-rack, .ic-ku-rack.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 719px) {
   .ic-ku-sheet { padding: 18px 12px 14px; }
   .ic-ku-head { padding: 0 4px; }
   .ic-ku-night { gap: 4px 16px; padding: 0 4px 12px; }
   .ic-ku-night .r { margin-left: 0; }
-  .ic-ku-rack, .ic-ku-rack.two, .ic-ku-rack.three { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+  .ic-ku-rack, .ic-ku-rack.two { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 12px; }
   .ic-ku-rules { padding: 0 4px; }
   .ic-ku-stub { padding: 12px 14px 12px; }
   .ic-ku-heroes { margin-top: 6px; }
