@@ -70,7 +70,10 @@ const NY = team('NY', 'New York Knicks', [
 ])
 const FORM: MatchForm = { away: IND, home: NY, next: null }
 
-const rows = () => within(screen.getByRole('tabpanel')).getAllByRole('listitem')
+const rows = () =>
+  within(screen.getByRole('tabpanel'))
+    .getAllByRole('listitem')
+    .map((li) => li.querySelector('button') as HTMLButtonElement)
 
 describe('Last 10', () => {
   it('lists the backed side’s last ten games, newest first, with type and Game Ball', () => {

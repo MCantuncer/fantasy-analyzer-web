@@ -186,6 +186,280 @@
   color: var(--on-accent);
 }
 
+/* Game Ball: the face is the hero. */
+.mf-gb {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  grid-template-areas:
+    'face top'
+    'face id'
+    'face score'
+    'face stats'
+    'face other';
+  grid-template-rows: auto auto auto auto 1fr;
+  column-gap: 26px;
+  margin-top: 4px;
+  padding: 18px 0 22px;
+  border-bottom: 1px solid var(--divider);
+}
+.mf-gb-top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.mf-gb-kick {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.mf-gb-kick svg {
+  flex: none;
+  color: var(--text);
+}
+.mf-gb-nav {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.mf-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.mf-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.mf-nav:not(:disabled):hover {
+  background: color-mix(in srgb, var(--raised) 70%, var(--track));
+}
+.mf-gb-nav-ph {
+  display: none;
+}
+.mf-gb-body {
+  display: contents;
+}
+.mf-gb-face {
+  grid-area: face;
+  position: relative;
+  align-self: start;
+  width: 184px;
+  height: 184px;
+  margin-top: 22px;
+  border-radius: var(--radius-tile);
+  background:
+    radial-gradient(95% 80% at 50% 115%, color-mix(in oklab, var(--tc) 46%, transparent) 0%, transparent 74%),
+    radial-gradient(70% 55% at 50% 0%, rgb(255 255 255 / 0.045), transparent 80%),
+    var(--raised);
+  box-shadow: inset 0 -3px 0 var(--tc);
+}
+:root[data-theme='light'] .mf-gb-face {
+  background:
+    radial-gradient(95% 80% at 50% 115%, color-mix(in oklab, var(--tc) 40%, transparent) 0%, transparent 74%),
+    radial-gradient(70% 55% at 50% 0%, rgb(255 255 255 / 0.7), transparent 80%),
+    var(--raised);
+}
+/* The cutout's head rises about 12px above the tile; the bottom keeps the tile's corners. */
+.mf-gb-face img,
+.mf-gb-face .sil {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  transform: translateX(-50%);
+  clip-path: inset(-40px 0 0 0 round 0 0 var(--radius-tile) var(--radius-tile));
+}
+.mf-gb-face img {
+  width: 142%;
+  max-width: none;
+  height: auto;
+}
+.mf-gb-face .sil {
+  width: 100%;
+  height: calc(100% + 12px);
+  fill: #4a423a;
+}
+:root[data-theme='light'] .mf-gb-face .sil {
+  fill: #c9bfb0;
+}
+.mf-gb-face .lg {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.mf-gb-id {
+  grid-area: id;
+  min-width: 0;
+}
+.mf-gb-name {
+  margin: 4px 0 2px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.mf-gb-who {
+  font-size: 13px;
+  color: var(--muted);
+}
+.mf-gb-who b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.mf-gb-score {
+  grid-area: score;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.mf-gb-score .sc {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 18px;
+  color: var(--text-2);
+}
+.mf-gb-score .ab {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.mf-gb-score .w {
+  color: var(--text);
+  font-weight: 700;
+}
+.mf-gb-score .at {
+  font-size: 14px;
+  color: var(--muted);
+}
+.mf-stats {
+  grid-area: stats;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr) minmax(0, 1.55fr) repeat(6, minmax(0, 1fr)) minmax(56px, 1.3fr);
+  align-items: start;
+  margin: 18px 0 0;
+}
+.mf-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+.mf-stat dt {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+.mf-stat dd {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.mf-stat dd small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.mf-stat.pts {
+  justify-items: end;
+}
+.mf-stat.pts dd {
+  margin-top: -4px;
+  font-size: 38px;
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.mf-gb-other {
+  grid-area: other;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+.mf-gb-other:empty {
+  display: none;
+}
+.mf-gb-other .ot {
+  min-width: 0;
+}
+.mf-gb-other .nw {
+  white-space: nowrap;
+}
+.mf-gb-other b,
+.mf-gb-other .num {
+  color: var(--text);
+  font-weight: 650;
+}
+.mf-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.mf-back:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mf-gb-face img,
+  .mf-gb-face .sil,
+  .mf-gb-name {
+    animation: mf-rise 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+@keyframes mf-rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
 /* Last 10: team tabs (club-underlined) and one 64px row per game. */
 .mf-log {
   margin-top: 4px;
@@ -234,9 +508,34 @@
   padding: 0;
   list-style: none;
 }
+.mf-rows li {
+  position: relative;
+}
+.mf-rows li + li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--divider);
+}
+.mf-rows li.sel::before,
+.mf-rows li.sel + li::before,
+.mf-rows li:hover::before,
+.mf-rows li:hover + li::before {
+  opacity: 0;
+}
 .mf-row {
   position: relative;
   display: grid;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   grid-template-columns: 30px 52px minmax(0, 1fr) 112px 132px minmax(0, 1.4fr);
   grid-template-areas: 'wl dt opp sc ty mvp';
   align-items: center;
@@ -245,14 +544,11 @@
   padding: 8px 12px 8px 10px;
   border-radius: var(--radius-row);
 }
-.mf-row + .mf-row::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 12px;
-  right: 12px;
-  height: 1px;
-  background: var(--divider);
+.mf-row:hover {
+  background: var(--accent-soft);
+}
+.mf-row[aria-pressed='true'] {
+  background: var(--raised);
 }
 .mf-wl {
   grid-area: wl;
@@ -435,6 +731,80 @@
   }
   .mf-venue-note {
     text-align: left;
+  }
+  /* Game Ball: kicker, then the 112px face with the name beside it; the stat line goes 5 x 2. */
+  .mf-gb {
+    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-areas:
+      'top top'
+      'face id'
+      'score score'
+      'stats stats'
+      'other other'
+      'navp navp';
+    grid-template-rows: none;
+    column-gap: 16px;
+    padding: 14px 0 18px;
+  }
+  .mf-gb-nav {
+    display: none;
+  }
+  .mf-gb-face {
+    width: 112px;
+    height: 112px;
+    margin-top: 12px;
+  }
+  .mf-gb-face .lg {
+    right: -8px;
+    bottom: -8px;
+    width: 36px;
+    height: 36px;
+  }
+  .mf-gb-face .lg img {
+    width: 30px;
+    height: 30px;
+  }
+  .mf-gb-id {
+    align-self: center;
+    padding-top: 12px;
+  }
+  .mf-gb-name {
+    font-size: 25px;
+  }
+  .mf-gb-score {
+    margin-top: 14px;
+  }
+  .mf-gb-score .sc {
+    font-size: 17px;
+  }
+  .mf-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 14px;
+    margin-top: 14px;
+  }
+  .mf-stat dd {
+    font-size: 19px;
+  }
+  .mf-stat.pts dd {
+    margin-top: -2px;
+    font-size: 30px;
+  }
+  .mf-gb-other {
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .mf-gb-other .ot {
+    flex: 1 1 200px;
+  }
+  .mf-back {
+    margin-left: 0;
+  }
+  .mf-gb-nav-ph {
+    grid-area: navp;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
   }
   /* Rows go two lines: where, score and margin; then date and type. The MVP keeps the right. */
   .mf-row {

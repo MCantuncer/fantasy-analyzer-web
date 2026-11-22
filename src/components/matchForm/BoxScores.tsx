@@ -15,6 +15,8 @@ export function BoxScores({
   onSide,
   shown,
   venue,
+  picked,
+  onPick,
 }: {
   away: TeamForm
   home: TeamForm
@@ -23,6 +25,9 @@ export function BoxScores({
   /** Each side's games in view (all, or tonight's venue), newest first. */
   shown: Record<Side, FormGame[]>
   venue: boolean
+  /** The game on the Game Ball, and how a row puts its game there. */
+  picked: number | null
+  onPick: (side: Side, gameId: number) => void
 }) {
   const tabsId = useId()
   const team = side === 'away' ? away : home
@@ -32,7 +37,7 @@ export function BoxScores({
     <section className="mf-log" aria-labelledby={`${tabsId}-h`}>
       <div className="mf-blk-h">
         <h3 id={`${tabsId}-h`}>Last {LAST_GAMES}</h3>
-        <p>Newest first. Game Ball: the best Game Score on the winning side.</p>
+        <p>Newest first. Tap a game for its Game Ball.</p>
       </div>
       <div
         className="mf-tabs"
@@ -73,7 +78,13 @@ export function BoxScores({
       {games.length ? (
         <ol id={`${tabsId}-list`} className="mf-rows" role="tabpanel" aria-label={`${team.name}, last ${games.length}${where}`}>
           {games.map((g) => (
-            <Row key={g.game_id} g={g} team={team.abbrev} />
+            <Row
+              key={g.game_id}
+              g={g}
+              team={team.abbrev}
+              picked={g.game_id === picked}
+              onPick={() => onPick(side, g.game_id)}
+            />
           ))}
         </ol>
       ) : (
@@ -85,7 +96,7 @@ export function BoxScores({
   )
 }
 
-function Row({ g, team }: { g: FormGame; team: string }) {
+function Row({ g, team, picked, onPick }: { g: FormGame; team: string; picked: boolean; onPick: () => void }) {
   const tag = typeTag(g.kind, g.note)
   const m = g.mvp
   const va = g.neutral ? 'at' : g.home ? 'vs' : '@'
@@ -99,7 +110,8 @@ function Row({ g, team }: { g: FormGame; team: string }) {
     .filter(Boolean)
     .join(', ')
   return (
-    <li className="mf-row" aria-label={label}>
+    <li className={picked ? 'sel' : undefined}>
+      <button type="button" className="mf-row" aria-label={label} aria-pressed={picked} onClick={onPick}>
       <span className={`mf-wl ${g.won ? 'w' : 'l'}`} aria-hidden="true">
         {g.won ? 'W' : 'L'}
       </span>
@@ -148,6 +160,7 @@ function Row({ g, team }: { g: FormGame; team: string }) {
           <span className="mf-dash">–</span>
         )}
       </span>
+      </button>
     </li>
   )
 }
