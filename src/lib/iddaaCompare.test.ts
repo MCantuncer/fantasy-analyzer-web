@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { gameStory, linesOf, marketPrice, num, odds, plain, playerPrice, ranked, signed, sureOf, tallyOf } from './iddaaCompare'
+import {
+  betFace,
+  gameCall,
+  gameStory,
+  implied,
+  linesOf,
+  marketPrice,
+  num,
+  odds,
+  oursLine,
+  picksNight,
+  plain,
+  playerPrice,
+  ranked,
+  signed,
+  slipReturn,
+  sureOf,
+  tallyOf,
+} from './iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer } from './iddaaCompare'
 
 const BANDS = { pts: 5, reb: 2, ast: 2, stl: 1, blk: 1, three_pm: 1, team_pts: 8, total: 12, margin: 8 }
@@ -140,6 +158,46 @@ describe('our game picks', () => {
     expect([tot.barem?.label, tot.barem?.odd, sureOf(tot.barem)]).toEqual(['Over 226.5', 1.9, '58%'])
     data.games[0].markets[0].odds = odds2(1.3, 3.4)
     expect(linesOf(data, new Date())[0].barem).toBeNull() // our side at 1.33 or less: no bet
+  })
+
+  it('reads the slip faces, our called score and the night tally', () => {
+    const data = night([], 'scheduled')
+    const odds2 = (a: number, b: number) => [{ side: 'pick' as const, odd: a }, { side: 'other' as const, odd: b }]
+    const mk = (market: 'winner' | 'margin' | 'total', team: string, ours: number, book: number, odds: { side: 'pick' | 'other' | 'over' | 'under'; odd: number }[]) => ({
+      market, team, book_team: team, won: '', ours, book, actual: null, gap: ours - book, ours_hit: null, book_hit: null, closer: null, odds,
+    })
+    data.games[0].markets = [
+      mk('winner', 'PHI', 0.71, 0.66, odds2(1.45, 2.7)),
+      mk('margin', 'PHI', 7.5, 4.5, odds2(1.87, 1.93)),
+      mk('total', '', 228, 226.5, [{ side: 'under', odd: 1.9 }, { side: 'over', odd: 1.9 }]),
+    ]
+    const lines = linesOf(data, new Date('2026-11-20T12:00:00Z'))
+    const [win, mar, tot] = lines
+    expect(betFace(win)).toEqual({ q: 'To win', hero: 'PHI', num: false, dot: null })
+    expect(betFace(mar)).toEqual({ q: 'PHI', hero: '−4.5', num: true, dot: 'PHI' })
+    expect(betFace(tot)).toEqual({ q: 'Over', hero: '226.5', num: true, dot: null })
+    // no team lines: the score comes from our total and margin
+    const call = gameCall(data.games[0], lines)
+    expect(call && [call.away, call.home, call.pick, call.chance]).toEqual([110.25, 117.75, 'PHI', 0.71])
+    expect([oursLine(win, call), oursLine(mar, call), oursLine(tot, call)]).toEqual(['Ours PHI −8', 'Ours PHI −7.5', 'Ours +228'])
+    expect(implied(1.87)).toBe(53)
+    const n = picksNight(data.games, lines)
+    expect([n.games, n.bets, n.none, n.settled]).toEqual([1, 3, 0, 0])
+  })
+
+  it('settles each slip at one unit a bet', () => {
+    const data = night([], 'final') // MIL 104, PHI 119
+    const odds2 = (a: number, b: number) => [{ side: 'pick' as const, odd: a }, { side: 'other' as const, odd: b }]
+    data.games[0].markets = [
+      { market: 'winner', team: 'PHI', book_team: 'PHI', won: 'PHI', ours: 0.71, book: 0.66, actual: 1, gap: 0.05, ours_hit: true, book_hit: true, closer: null, odds: odds2(1.45, 2.7) },
+      { market: 'total', team: '', book_team: '', won: '', ours: 228, book: 226.5, actual: 223, gap: 1.5, ours_hit: null, book_hit: null, closer: null, odds: [{ side: 'under', odd: 1.9 }, { side: 'over', odd: 1.9 }] },
+    ]
+    const lines = linesOf(data, new Date('2026-11-21T12:00:00Z'))
+    const [win, tot] = lines
+    expect([win.oursHit, slipReturn(win)?.toFixed(2)]).toEqual([true, '0.45'])
+    expect([tot.oursHit, slipReturn(tot)]).toEqual([false, -1]) // over 226.5, the game made 223
+    const n = picksNight(data.games, lines)
+    expect([n.settled, n.won, n.net.toFixed(2), n.winners, n.called]).toEqual([2, 1, '-0.55', 1, 1])
   })
 })
 
