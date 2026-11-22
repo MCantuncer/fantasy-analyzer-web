@@ -110,11 +110,8 @@ describe('ready-made coupons', () => {
       ['safe', null, null],
       ['players', 'waiting', null], // keeps its place: the order never changes (Can 2026-11-22)
       ['matches', null, 'safe'], // the same game picks as Highest Confidence until player bets come in
-      ['surprise', null, null], // game picks alone can now make it: lower odds, 10%+ chance
+      ['surprise', 'short', null], // five game picks can't reach 12 at 10% or more
     ])
-    const surprise = slots.find((s) => s.spec.kind === 'surprise')!.coupon!
-    expect(surprise.chance).toBeGreaterThanOrEqual(0.1)
-    expect(surprise.listed).toBeGreaterThanOrEqual(8)
     const two = couponsOf(linesOf(night(noProps.slice(0, 2)), NOW))
     expect(two.find((s) => s.spec.kind === 'safe')!.why).toBe('short') // two games can't make 3 legs
   })
@@ -129,7 +126,7 @@ describe('ready-made coupons', () => {
 
   it('Players Only: a short night takes more likely rungs, two players from a game if need be', () => {
     const leg = (id: string, game: number, name: string, odd: number, chance: number) =>
-      ({ id, gameId: game, odd, chance, line: { name } }) as Leg
+      ({ id, gameId: game, odd, chance, kind: 'player', line: { name } }) as Leg
     // two games: each has a long rung and a pair of likelier ones
     const pool = [
       leg('c10', 1, 'Cade Cunningham', 1.93, 0.45), leg('c8', 1, 'Cade Cunningham', 1.45, 0.72),
@@ -148,32 +145,37 @@ describe('ready-made coupons', () => {
     expect(Math.max(...[1, 2].map((g) => two.filter((l) => l.gameId === g).length))).toBeLessThanOrEqual(2)
   })
 
-  it('Surprise: the highest total odds that keeps our chance at 10% or more', () => {
-    const leg = (id: number, game: number, odd: number, chance: number) =>
-      ({ id: String(id), gameId: game, odd, chance }) as Leg
-    // each game: a safe pick and a long one
+  it('Surprise: 15+ at 10%+, unless a 12-15 is clearly likelier (12 at 13% beats 15 at 10%)', () => {
+    const leg = (id: number, odd: number, chance: number) => ({ id: String(id), gameId: id, odd, chance }) as Leg
+    const surprise = COUPONS.find((c) => c.kind === 'surprise')!
+    const ids = (s: Leg[] | null) => s!.map((l) => l.id).sort()
+    // {1,2,3} = 15.0 at 10.4%; {1,3,4} = 12.0 at 16.1%
+    const likelier12 = [leg(1, 3.0, 0.4), leg(2, 2.5, 0.4), leg(3, 2.0, 0.65), leg(4, 2.0, 0.62)]
+    expect(ids(bestSet(likelier12, surprise))).toEqual(['1', '3', '4'])
+    // the same 12 at only 10.9%: not enough to give up the 15
+    const barely = [leg(1, 3.0, 0.4), leg(2, 2.5, 0.4), leg(3, 2.0, 0.65), leg(4, 2.0, 0.42)]
+    expect(ids(bestSet(barely, surprise))).toEqual(['1', '2', '3'])
+    // nothing at 10% or more: no Surprise tonight
+    expect(bestSet([leg(1, 3.0, 0.3), leg(2, 2.5, 0.3), leg(3, 2.0, 0.5)], surprise)).toBeNull()
+  })
+
+  it('a second pick from one game only when it barely moves with the first', () => {
+    const g = (id: string, game: number, kind: 'player' | 'game', stat: string, name: string, odd: number, chance: number) =>
+      ({ id, gameId: game, kind, stat, odd, chance, line: { name } }) as Leg
+    const safe = COUPONS.find((c) => c.kind === 'safe')!
+    // one game only: winner, handicap, total and its star's points
     const pool = [
-      leg(1, 1, 1.5, 0.7), leg(11, 1, 2.6, 0.38),
-      leg(2, 2, 1.6, 0.66), leg(12, 2, 2.4, 0.4),
-      leg(3, 3, 1.7, 0.62), leg(13, 3, 2.2, 0.45),
-      leg(4, 4, 1.8, 0.58),
+      g('win', 1, 'game', 'WIN', 'DEN', 1.45, 0.75),
+      g('mar', 1, 'game', 'MAR', 'DEN', 1.6, 0.66),
+      g('tot', 1, 'game', 'TOT', 'DEN-CHI', 1.5, 0.62),
+      g('jok', 1, 'player', 'pts', 'Nikola Jokic', 1.5, 0.7),
+      g('x', 2, 'game', 'WIN', 'BOS', 2.0, 0.7),
     ]
-    const spec = COUPONS.find((c) => c.kind === 'surprise')!
-    const set = bestSet(pool, spec)!
-    const p = set.reduce((a, l) => a * l.chance, 1)
-    const o = set.reduce((a, l) => a * l.odd, 1)
-    expect(p).toBeGreaterThanOrEqual(0.1)
-    // every other one-per-game set at 10%+ pays less
-    const games = [1, 2, 3, 4].map((g) => pool.filter((l) => l.gameId === g))
-    let top = 0
-    const all = (i: number, po: number, pp: number, n: number) => {
-      if (n >= spec.min && po >= spec.lo && po <= spec.hi && pp >= 0.1) top = Math.max(top, po)
-      if (i === games.length) return
-      all(i + 1, po, pp, n)
-      for (const l of games[i]) all(i + 1, po * l.odd, pp * l.chance, n + 1)
-    }
-    all(0, 1, 1, 0)
-    expect(o).toBeCloseTo(top, 9)
+    const set = bestSet(pool, { ...safe, min: 3 })!
+    const inGame1 = set.filter((l) => l.gameId === 1).map((l) => l.id).sort()
+    expect(inGame1).toEqual(['tot', 'win']) // the total beside the winner is fine
+    expect(inGame1).not.toEqual(['mar', 'win']) // never winner with handicap
+    expect(inGame1.some((id) => id === 'jok') && inGame1.length === 2).toBe(false) // never a line with its player
   })
 
   it('settles: a lost leg sinks the coupon, a player who sat out counts 1.00', () => {
