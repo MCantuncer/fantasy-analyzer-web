@@ -110,7 +110,7 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
           </>
         )}
       </div>
-      <ol className="ic-ku-rack">
+      <ol className={`ic-ku-rack${twin ? ' three' : ''}`}>
         {shown.map((s) => (
           <KuponSlip
             key={s.spec.kind}
