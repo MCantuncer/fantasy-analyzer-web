@@ -30,11 +30,12 @@ import {
   sureOf,
   tallyOf,
 } from '../lib/iddaaCompare'
-import type { BookCompare, CompareEstimate, CompareGame, GameCallView, Line, Stat, Tally } from '../lib/iddaaCompare'
+import type { BookCompare, CompareGame, GameCallView, Line, Stat, Tally } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { teamLight } from '../lib/nbaTeams'
 import { band } from '../lib/ourCall'
 import { usePlayerCard } from '../lib/playerCard'
+import { MatchCard } from './MatchCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
 import { RecordRibbon, RungRecord } from './RungRecord'
@@ -170,6 +171,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const [open, setOpen] = useState<string | null>(null)
   const [motion, setMotion] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
+  const [card, setCard] = useState<number | null>(null)
   const first = useRef(true)
   useEffect(() => {
     if (first.current) first.current = false
@@ -177,10 +179,10 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   }, [group, stat, game])
 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
-  const betsUp = lines.some((l) => l.kind === 'player') // iddaa's player bets are posted
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const latest = data.days[data.days.length - 1]
   const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
+  const cardGame = card == null ? null : (data.games.find((g) => g.game_id === card) ?? null)
 
   /** "See in game" on a mark card: filter to that game, bring the line forward and ring it. */
   const see = (l: Line) => {
@@ -224,10 +226,10 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               onGame={(g) => {
                 setGame(g)
                 setOpen(null)
+                setCard(g) // Can 2026-11-22: a match opens its card of player lines
               }}
             />
             <GamePicks data={data} lines={lines} game={game} />
-            {!betsUp && <EstimatesBoard data={data} game={game} betsUp={false} />}
             <ValueRungs data={data} lines={lines} settled={settled} />
             <RungScorecard data={data} lines={lines} settled={settled} />
             <GapList
@@ -253,10 +255,10 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               onFold={() => setFold((f) => !f)}
               onOpen={(id) => setOpen((o) => (o === id ? null : id))}
             />
-            {betsUp && <EstimatesBoard data={data} game={game} betsUp />}
             <StatCloser lines={lines} game={game} />
             <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
             <GameBoxes data={data} lines={lines} settled={settled} />
+            {cardGame && <MatchCard game={cardGame} onClose={() => setCard(null)} />}
             <p className="ic-bands">
               Bands: points ±{data.bands.pts}, rebounds and assists ±{data.bands.reb}, 3PM, steals and blocks ±
               {data.bands.stl}, team points ±{data.bands.team_pts}, game total ±{data.bands.total}, margin ±
@@ -2642,118 +2644,6 @@ function ClockIcon() {
       <circle cx="8" cy="8" r="6.2" />
       <path d="M8 4.6V8l2.3 1.5" />
     </svg>
-  )
-}
-
-const EST_COLS = [
-  ['MIN', 'minutes'],
-  ['PTS', 'pts'],
-  ['REB', 'reb'],
-  ['AST', 'ast'],
-  ['3PM', 'three_pm'],
-] as const
-const EST_PAGE = 6
-
-/** Our estimates for the players the book has no bet on yet (Can 2026-11-22: iddaa's player bets
- *  mostly come after 19:00 Turkey time; until then the night shows our numbers). Each game is a
- *  small table; once a game is final, what he did sits under each number. */
-function EstimatesBoard({ data, game, betsUp }: { data: BookCompare; game: number | null; betsUp: boolean }) {
-  const [all, setAll] = useState<Record<number, boolean>>({})
-  const games = data.games.filter((g) => (game == null || g.game_id === game) && (g.estimates?.length ?? 0) > 0)
-  if (!games.length) return null
-  return (
-    <section className="ic-sec ic-est" aria-labelledby="ic-h-est">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-est">{betsUp ? 'No bet yet: our estimates' : 'Our estimates for the night'}</h2>
-        </div>
-      </div>
-      <p className="ic-explain ic-est-note">
-        {betsUp
-          ? 'Players the book has no bet on yet. Each moves up to his bet once iddaa prices him.'
-          : "iddaa's player bets usually come after 19:00 Turkey time. Until then, these are our numbers for each player."}
-      </p>
-      <div className="ic-est-games">
-        {games.map((g) => {
-          const rows = g.estimates ?? []
-          const open = all[g.game_id]
-          const final = g.status === 'final'
-          return (
-            <div key={g.game_id} className="ic-est-game">
-              <div className="ic-est-head">
-                <Pair away={g.away} home={g.home} size={20} />
-                <b>{`${g.away} @ ${g.home}`}</b>
-                <span className="sub">
-                  {final ? (
-                    'Final'
-                  ) : (
-                    <>
-                      Tip <span className="num">{clock(g.tip)}</span>
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="ic-est-row ic-est-ch" aria-hidden="true">
-                <span>Player</span>
-                {EST_COLS.map(([h]) => (
-                  <span key={h} className={`c${h === 'MIN' ? ' min' : ''}`}>
-                    {h}
-                  </span>
-                ))}
-              </div>
-              <ol className="ic-est-list">
-                {rows.slice(0, open ? undefined : EST_PAGE).map((e) => (
-                  <EstimateRow key={e.player_id} e={e} final={final} />
-                ))}
-              </ol>
-              {rows.length > EST_PAGE && !open && (
-                <button type="button" className="ic-fold-btn" onClick={() => setAll((a) => ({ ...a, [g.game_id]: true }))}>
-                  <Chevron />
-                  All {rows.length} players
-                </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-function EstimateRow({ e, final }: { e: CompareEstimate; final: boolean }) {
-  const card = usePlayerCard()
-  const who = { id: e.player_id, name: e.name }
-  const got = e.actual
-  return (
-    <li className="ic-est-row">
-      <span className="ic-est-who">
-        <span className="ic-face head" aria-hidden="true">
-          <PlayerHead player={who} team={e.team} size={28} />
-        </span>
-        {card ? (
-          <button
-            type="button"
-            className="ic-est-nm"
-            onPointerEnter={(ev) => ev.pointerType === 'mouse' && card.prefetch(who)}
-            onClick={() => card.open(who)}
-          >
-            {e.name}
-          </button>
-        ) : (
-          <span className="ic-est-nm">{e.name}</span>
-        )}
-        {final && !got && <span className="ic-est-dnp">DNP</span>}
-      </span>
-      {EST_COLS.map(([h, k]) => {
-        const res = k === 'minutes' ? null : got?.[k]
-        return (
-          <span key={h} className={`c${h === 'MIN' ? ' min' : ''}`} aria-label={`${h} ours ${e[k].toFixed(1)}${res != null ? `, result ${res}` : ''}`}>
-            <span className="num">{e[k].toFixed(1)}</span>
-            {res != null && <small className="num">{num(res)}</small>}
-          </span>
-        )
-      })}
-    </li>
   )
 }
 
