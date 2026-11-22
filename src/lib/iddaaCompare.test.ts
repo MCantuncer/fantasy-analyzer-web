@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gameStory, linesOf, num, plain, ranked, signed, tallyOf } from './iddaaCompare'
+import { gameStory, linesOf, marketPrice, num, odds, plain, playerPrice, ranked, signed, tallyOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer } from './iddaaCompare'
 
 const BANDS = { pts: 5, reb: 2, ast: 2, stl: 1, blk: 1, three_pm: 1, team_pts: 8, total: 12, margin: 8 }
@@ -129,5 +129,28 @@ describe('iddaa vs Ours in plain words', () => {
     expect(gameStory(lines, false)).toBe(
       'We give PHI 89% to win, the book 80%. We see PHI by 14, the book by 10.5. We expect 230 points in all, the book 229.5.',
     )
+  })
+})
+
+describe('the book price beside its number', () => {
+  const rung = (n: number, odd: number) => ({ n, odd, book: 0.5, ours: null, value: null, hit: null })
+  it('takes the rung nearest the line, or the top rung when ours is past it', () => {
+    const rungs = [rung(5, 1.45), rung(8, 2.1)]
+    expect(playerPrice(rungs, 5.6, 7)).toEqual({ label: '5+', odd: 1.45, top: false })
+    expect(playerPrice(rungs, 6.4, 7)).toEqual({ label: '8+', odd: 2.1, top: false })
+    expect(playerPrice(rungs, 6.4, 9.9)).toEqual({ label: '8+', odd: 2.1, top: true }) // Can's 9.9 vs 8+
+    expect(playerPrice(rungs, 6.4, 8.2)).toEqual({ label: '8+', odd: 2.1, top: false }) // inside the rung
+    expect(playerPrice([], 6.4, 9.9)).toBeNull()
+  })
+  it('shows a game market on the side we lean to and drops prices of 1.33 and under', () => {
+    const m = {
+      market: 'total' as const, team: '', book_team: '', won: '', ours: 230, book: 226.5, actual: null, gap: 3.5,
+      ours_hit: null, book_hit: null, closer: null,
+      odds: [{ side: 'under' as const, odd: 1.9 }, { side: 'over' as const, odd: 1.9 }],
+    }
+    expect(marketPrice(m)).toEqual({ label: 'Over', odd: 1.9, top: false })
+    expect(marketPrice({ ...m, gap: -2 })).toEqual({ label: 'Under', odd: 1.9, top: false })
+    expect(marketPrice({ ...m, market: 'winner', team: 'PHI', odds: [{ side: 'pick', odd: 1.33 }] })).toBeNull()
+    expect(odds(2)).toBe('2.00')
   })
 })
