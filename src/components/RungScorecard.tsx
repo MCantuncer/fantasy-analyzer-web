@@ -1,6 +1,6 @@
-import { STAT_NAME, nightLabel } from '../lib/iddaaCompare'
+import { STAT_NAME, nightLabel, signed } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
-import { BOOK_LIFT, LEVEL_GAP, scoreRows } from '../lib/valueRungs'
+import { LEVEL_GAP, bookLift, scoreRows } from '../lib/valueRungs'
 import type { ScoreRow } from '../lib/valueRungs'
 import './RungScorecard.css'
 
@@ -74,7 +74,7 @@ export function RungScorecard({ data, lines, settled }: { data: BookCompare; lin
               solid is the book.
             </p>
           </div>
-          <Why />
+          <Why data={data} />
         </div>
       )}
     </section>
@@ -133,25 +133,27 @@ function Row({ row: r }: { row: ScoreRow }) {
   )
 }
 
-function Why() {
+function Why({ data }: { data: BookCompare }) {
+  const lift = bookLift(data.tally)
   return (
     <div className="vr-sc-card vr-why">
-      <h3>Why rungs, not the line</h3>
-      <p>The book sells overs only, so it sets every rung high. On 21 Nov its rungs sat above our lines by about:</p>
-      <div className="vr-lift">
-        {BOOK_LIFT.map((x) => (
-          <span key={x.stat}>
-            {STAT_NAME[x.stat]} <b className="num">{x.lift}</b>
-          </span>
-        ))}
-      </div>
+      <h3>Why score every rung</h3>
       <p>
-        So the book's single line, where its ladder crosses 50%, carries that lift, and "whose line was closer" leaned
-        toward whoever guessed low. Scoring the chance on every rung asks one fair question of both sides.
+        The book sells overs only, so it tends to set its rungs high
+        {lift.length > 0 ? <>. On {nightLabel(data.date)}, its line minus ours, middle player:</> : '.'}
       </p>
+      {lift.length > 0 && (
+        <div className="vr-lift">
+          {lift.map((x) => (
+            <span key={x.stat}>
+              {STAT_NAME[x.stat]} <b className="num">{signed(x.lift, x.stat)}</b>
+            </span>
+          ))}
+        </div>
+      )}
       <p>
-        Player rows now say <b>Ours read it better</b> or <b>Book read it better</b> by rung score, in place of the
-        line-distance Closer.
+        A single line, where the ladder crosses 50%, carries that lift. Scoring the chance on every rung asks one fair
+        question of both sides, from the short odds to the long shots.
       </p>
     </div>
   )

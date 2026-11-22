@@ -20,9 +20,10 @@ import {
   plain,
   ranked,
   signed,
+  sureOf,
   tallyOf,
 } from '../lib/iddaaCompare'
-import type { BookCompare, CompareGame, Line, Stat, Tally } from '../lib/iddaaCompare'
+import type { BookCompare, CompareEstimate, CompareGame, Line, Stat, Tally } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
@@ -129,7 +130,7 @@ export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
       </span>
       <span className="ic-teaser-sub">
         {settled
-          ? `${nightLabel(data.date)}: within band, Ours ${t.ours}/${t.judged} · Book ${t.book}/${t.judged}`
+          ? `${nightLabel(data.date)}: we won ${t.oursCloser} of ${t.judged} · Book won ${t.bookCloser}`
           : 'Every player and game, our number beside the book’s, judged against the result once the games end.'}
       </span>
       {top && !settled && (
@@ -167,6 +168,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   }, [group, stat, game])
 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
+  const betsUp = lines.some((l) => l.kind === 'player') // iddaa's player bets are posted
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const latest = data.days[data.days.length - 1]
   const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
@@ -215,6 +217,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
                 setOpen(null)
               }}
             />
+            {!betsUp && <EstimatesBoard data={data} game={game} betsUp={false} />}
             <ValueRungs data={data} lines={lines} settled={settled} />
             <RungScorecard data={data} lines={lines} settled={settled} />
             <GapList
@@ -240,6 +243,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               onFold={() => setFold((f) => !f)}
               onOpen={(id) => setOpen((o) => (o === id ? null : id))}
             />
+            {betsUp && <EstimatesBoard data={data} game={game} betsUp />}
             <StatCloser lines={lines} game={game} />
             <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
             <GameBoxes data={data} lines={lines} settled={settled} />
@@ -276,9 +280,17 @@ function NightTabs({
   latest: number | undefined
   settled: boolean
 }) {
-  const nights = [...data.nights].reverse()
+  // Oldest on the left, tonight on the right, like a calendar (Can 2026-11-22: past days read
+  // as "after today" when they sat to the right). A long row starts scrolled to the open night.
+  const nights = data.nights
+  const row = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = row.current
+    const on = el?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (el && on) el.scrollLeft = Math.max(0, on.offsetLeft + on.offsetWidth - el.clientWidth + 16)
+  }, [data.day])
   return (
-    <div className="ic-nights" role="tablist" aria-label="Night">
+    <div className="ic-nights" role="tablist" aria-label="Night" ref={row}>
       {nights.map((n) => {
         const live = n.day === latest && !(n.day === data.day && settled)
         return (
@@ -352,13 +364,17 @@ function NightCard({
       {t.judged > 0 && (
         <div className="ic-tally-line">
           <span className="ic-tl-say">
-            {settled ? '' : 'So far: '}We were closer on <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book{' '}
-            <b>{t.bookCloser}</b> · Level <b>{t.level}</b>
+            {settled ? '' : 'So far: '}We won <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book won{' '}
+            <b>{t.bookCloser}</b>
+            {t.level > 0 && (
+              <>
+                {' '}
+                · Level <b>{t.level}</b>
+              </>
+            )}
           </span>
           <Split t={t} />
-          <span className="ic-tl-band">
-            Within band: Ours <b>{`${t.ours}/${t.judged}`}</b> · Book <b>{`${t.book}/${t.judged}`}</b>
-          </span>
+          <span className="ic-tl-band">Each line settled on one book line, win or lose</span>
         </div>
       )}
       <div className="ic-games" role="group" aria-label="Game">
@@ -400,7 +416,7 @@ function NightCard({
               <span className="ic-chip-f">
                 {g.status === 'final' && gt.judged ? (
                   <>
-                    Closer: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
+                    Won: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
                     <span className="num">{gt.bookCloser}</span>
                   </>
                 ) : (
@@ -443,8 +459,7 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
           <>
             <Split t={t} />
             <span className="ic-tx">
-              We were closer on <b className="g">{t.oursCloser}</b> · Book <b>{t.bookCloser}</b> · Level{' '}
-              <b>{t.level}</b>
+              We won <b className="g">{t.oursCloser}</b> · Book won <b>{t.bookCloser}</b>
             </span>
             <span className="ic-mm">
               {s === 'WIN' ? (
@@ -452,10 +467,13 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
                   Our pick won <span className="num">{t.ours}</span> of <span className="num">{t.judged}</span>
                 </>
               ) : (
-                <>
-                  Within band: Ours <span className="num">{`${t.ours}/${t.judged}`}</span> · Book{' '}
-                  <span className="num">{`${t.book}/${t.judged}`}</span>
-                </>
+                t.oursMiss != null &&
+                t.bookMiss != null && (
+                  <>
+                    Off on average: Ours <span className="num">{num(t.oursMiss)}</span> · Book{' '}
+                    <span className="num">{num(t.bookMiss)}</span>
+                  </>
+                )
               )}
             </span>
           </>
@@ -469,17 +487,17 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
     <section className="ic-sec" aria-labelledby="ic-h-closer">
       <div className="ic-sec-h">
         <div>
-          <h2 id="ic-h-closer">Who was closer, stat by stat</h2>
-          <p className="ic-sub">Each side judged against the actual result: within band when it lands close.</p>
+          <h2 id="ic-h-closer">Who won, stat by stat</h2>
+          <p className="ic-sub">
+            Each line is settled on one of the book's lines: our number takes the over or the under, and the result decides
+            who won. Never both, never level.
+          </p>
         </div>
       </div>
       <div className="ic-t-group">Players</div>
       <ul className="ic-t-list">{PLAYER_STATS.map(row)}</ul>
       <div className="ic-t-group">Games</div>
       <ul className="ic-t-list">{GAME_STATS.map(row)}</ul>
-      <p className="ic-t-note">
-        Steals, blocks and 3PM bands (±1) are loose on lines near 1, so read those rows by who was closer.
-      </p>
     </section>
   )
 }
@@ -517,8 +535,9 @@ function GapList(p: ListProps) {
   const list = above.slice(3)
   const hidden = Math.max(0, list.length - limit)
   const most = rest[0]
+  const waiting = group === 'players' && pool.length === 0 && !settled
   return (
-    <section className="ic-sec" aria-labelledby="ic-h-list">
+    <section className={`ic-sec${waiting ? ' ic-waiting' : ''}`} aria-labelledby="ic-h-list">
       <div className="ic-controls">
         <div className="ic-ctrl-top">
           <div className="ic-seg" role="group" aria-label="Lines">
@@ -582,6 +601,12 @@ function GapList(p: ListProps) {
         </p>
         <Key judged={lines.some((l) => l.oursHit != null)} />
       </div>
+      {waiting && (
+        <p className="ic-none">
+          No player bets from iddaa yet. Once it prices a player, he gets one bet here: the line, its own odds and how
+          sure we are.
+        </p>
+      )}
       {top.length > 0 && <DuelStage lines={top} flash={p.flash} />}
       {list.length > 0 && (
         <>
@@ -590,7 +615,7 @@ function GapList(p: ListProps) {
         </>
       )}
       {above.length === 0 ? (
-        <p className="ic-none">
+        pool.length > 0 && <p className="ic-none">
           No line had Ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
           {most && most.book != null && most.ours != null && (
             <>
@@ -671,7 +696,7 @@ function Key({ judged }: { judged: boolean }) {
           <span className="ic-key-ok">
             <CheckIcon />
           </span>
-          within band
+          won on the book's line
         </span>
       )}
     </span>
@@ -874,16 +899,21 @@ function DuelCard({
   )
 }
 
-/** "✓ in band" or "✗ off 6.6" under a duel number: did it land within its band. */
+/** The settled duel in a few words: "11+ won", "Under 11 lost", "Book won"; a winner pick stays right or wrong. */
+function callWord(l: Line, side: 'ours' | 'book', ok: boolean): string {
+  if (l.stat === 'WIN') return ok ? 'right' : 'wrong'
+  if (side === 'book') return ok ? 'Book won' : 'Book lost'
+  return `${l.barem?.label ?? 'Ours'} ${ok ? 'won' : 'lost'}`
+}
+
+/** "✓ Over won" or "✗ Over lost" under ours, "✓ Book won" / "✗ Book lost" under the book's: how a bet settled. */
 function HitWord({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const ok = side === 'ours' ? l.oursHit : l.bookHit
   if (ok == null) return <span className={`hw ${side === 'ours' ? 'ou' : 'bk'}`} />
-  const v = l[side]
-  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
   return (
     <span className={`hw ${side === 'ours' ? 'ou' : 'bk'} ${ok ? 'ok' : 'no'}`}>
       {ok ? <CheckIcon /> : <XIcon />}
-      {l.stat === 'WIN' ? (ok ? 'right' : 'wrong') : ok ? 'in band' : `off ${off}`}
+      {callWord(l, side, ok)}
     </span>
   )
 }
@@ -925,7 +955,7 @@ function StageRuler({ line: l, scale }: { line: Line; scale: { lo: number; hi: n
 /** The duel's footer: the plain sentence before the game, Playing during it, then who was nearer. */
 function DuelSlot({ line: l }: { line: Line }) {
   const g = l.game
-  if (g.status === 'final' && l.closer) {
+  if (g.status === 'final' && (l.closer || l.actual != null)) {
     const say =
       l.kind === 'player' && l.actual != null ? (
         <>
@@ -949,10 +979,45 @@ function DuelSlot({ line: l }: { line: Line }) {
           Playing now
         </span>
         <span className="sub">
-          kept as read at <span className="num">{clock(g.checked)}</span>
+          {l.barem ? (
+            <>
+              on <span className="num">{l.barem.label}</span>
+              {l.barem.odd != null && (
+                <>
+                  {' at '}
+                  <span className="num">{odds(l.barem.odd)}</span>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              kept as read at <span className="num">{clock(g.checked)}</span>
+            </>
+          )}
         </span>
       </div>
     )
+  if (l.barem) {
+    const sure = sureOf(l.barem)
+    return (
+      <div className="ic-dslot pre bet">
+        <span>
+          Our bet <b>{l.barem.label}</b>
+          {l.barem.odd != null && (
+            <>
+              {' at '}
+              <b>{odds(l.barem.odd)}</b>
+            </>
+          )}
+        </span>
+        {sure && (
+          <span className="sub">
+            <span className="num">{sure}</span> sure
+          </span>
+        )}
+      </div>
+    )
+  }
   return (
     <div className="ic-dslot pre">
       <span>{cap(plain(l, false))}.</span>
@@ -1012,7 +1077,31 @@ function ResultSlot({ line: l }: { line: Line }) {
         <span className="ic-live" aria-hidden="true" />
         Playing
         <span className="sub">
-          kept at <span className="num">{clock(g.checked)}</span>
+          {l.barem ? (
+            <>
+              on <span className="num">{l.barem.label}</span>
+              {l.barem.odd != null && (
+                <>
+                  {' · '}
+                  <span className="num">{odds(l.barem.odd)}</span>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              kept at <span className="num">{clock(g.checked)}</span>
+            </>
+          )}
+        </span>
+      </div>
+    )
+  if (l.barem) return <BetSlot line={l} />
+  if (l.kind === 'player' && l.book != null)
+    return (
+      <div className="ic-slot wait bet none">
+        <span className="ic-slot-vd none">
+          <b>No bet</b>
+          <span>odds 1.33 or less</span>
         </span>
       </div>
     )
@@ -1025,34 +1114,85 @@ function ResultSlot({ line: l }: { line: Line }) {
   )
 }
 
-/** Who was nearer the result, in words: green for us, calm for the book, muted when level. */
+/** Before tip-off, the one bet we take on the line (Can 2026-11-22): the barem, its own odds and our
+ *  confidence that it wins. */
+function BetSlot({ line: l }: { line: Line }) {
+  const b = l.barem
+  if (!b) return null
+  const sure = sureOf(b)
+  return (
+    <div
+      className="ic-slot wait bet"
+      title={`Our bet: ${b.label}${b.odd != null ? ` at ${odds(b.odd)}` : ''}${sure ? `, ${sure} sure` : ''}. Tip ${clock(l.game.tip)}`}
+    >
+      <span className="ic-slot-res">
+        <span className="lab">Bet</span>
+        <b>{b.label}</b>
+      </span>
+      <span className="ic-slot-vd">
+        {b.odd != null && <b className="num">{odds(b.odd)}</b>}
+        {sure && (
+          <span>
+            <span className="num">{sure}</span> sure
+          </span>
+        )}
+      </span>
+    </div>
+  )
+}
+
+/** Who won the row's duel, in words: green for us, calm for the book; under it the barem it was
+ *  settled on and the book's odds there ("on 11+ · 1.85"). */
 function Verdict({ line: l }: { line: Line }) {
-  if (!l.closer) return null
-  const by = l.by == null || l.closer === 'tie' ? null : l.stat === 'WIN' ? `${Math.round(l.by * 100)}pp` : num(l.by)
+  if (!l.closer) {
+    // a final line with no duel: a player whose rungs under ours are all priced 1.33 or less
+    if (l.game.status !== 'final' || l.actual == null || l.barem || l.stat === 'WIN') return null
+    return (
+      <span className="ic-slot-vd none">
+        <b>No call</b>
+        <span>odds 1.33 or less</span>
+      </span>
+    )
+  }
+  const by = l.stat === 'WIN' && l.by != null && l.closer !== 'tie' ? `${Math.round(l.by * 100)}pp` : null
   return (
     <span className={`ic-slot-vd ${l.closer}`}>
-      <b>{l.closer === 'ours' ? 'We were closer' : l.closer === 'book' ? 'Book was closer' : 'Level with the book'}</b>
+      <b>{l.closer === 'ours' ? 'We won' : l.closer === 'book' ? 'Book won' : 'Level with the book'}</b>
       {by && (
         <span>
           by <span className="num">{by}</span>
+        </span>
+      )}
+      {l.barem && (
+        <span>
+          on <span className="num">{l.barem.label}</span>
+          {l.barem.odd != null && (
+            <>
+              {' · '}
+              <span className="num">{odds(l.barem.odd)}</span>
+            </>
+          )}
+          {sureOf(l.barem) && (
+            <>
+              {' · '}
+              <span className="num">{sureOf(l.barem)}</span>
+            </>
+          )}
         </span>
       )}
     </span>
   )
 }
 
-/** ✓ or ✗ beside a number: did it land within its band of the result. Nothing else. */
+/** ✓ or ✗ beside a number: how a bet on it settled (our call over or under the book's number). */
 function Hit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const ok = side === 'ours' ? l.oursHit : l.bookHit
   if (ok == null || l.game.status !== 'final') return null
   const who = side === 'ours' ? 'Ours' : 'Book'
-  const v = l[side]
   const label =
     l.stat === 'WIN'
       ? `${who} ${ok ? 'right' : 'wrong'}`
-      : ok
-        ? `${who} within band`
-        : `${who} outside the band${v != null && l.actual != null ? `, off by ${num(Math.abs(l.actual - v))}` : ''}`
+      : `${callWord(l, side, ok)}${l.actual != null && l.barem ? `, result ${num(l.actual)} on ${l.barem.label}` : ''}`
   return (
     <span className={`ic-hit ${ok ? 'ok' : 'no'}`} role="img" aria-label={label}>
       {ok ? <CheckIcon /> : <XIcon />}
@@ -1163,7 +1303,7 @@ function Lane({ line: l, i }: { line: Line; i: number }) {
   return (
     <div className={`ic-lane${gap < 0 ? ' dn' : gap > 0 ? ' up' : ''}`} style={style}>
       <span className="pg pg-l" aria-hidden="true">
-        {l.price?.top ? 'Book · top line' : 'Book'}
+        Book
       </span>
       <div className="l">
         <Hit line={l} side="book" />
@@ -1248,9 +1388,9 @@ function Ruler({ line: l, big = false }: { line: Line; big?: boolean }) {
         d={`M${p.x + (p.x > c ? 4 : -4)} ${top ? y - 13 : y + 6} l${p.x > c ? 3 : -3} 3.5 l${p.x > c ? -3 : 3} 3.5`}
       />
     ) : null
-  const label = `Result ${num(l.actual)}. Band ${num(l.actual - band)} to ${num(l.actual + band)}. Ours ${num(l.ours)} ${
-    l.oursHit ? 'inside' : 'outside'
-  }, book ${num(l.book)} ${l.bookHit ? 'inside' : 'outside'}.`
+  const label = `Result ${num(l.actual)}. Band ${num(l.actual - band)} to ${num(l.actual + band)}. Ours ${num(l.ours)}, book ${num(
+    l.book,
+  )}${l.oursHit == null ? '' : l.oursHit ? ': our call won' : ': the book won'}.`
   return (
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <line className="r-axis" x1={pad - 6} y1={y} x2={W - pad + 6} y2={y} />
@@ -1319,9 +1459,17 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
         {settled && l.stat !== 'WIN' && l.actual != null && (
           <>
             <p>
-              {l.closer === 'tie' ? 'Level' : <b>{l.closer === 'ours' ? 'Ours' : 'Book'} was closer</b>}
-              {l.by != null && l.closer !== 'tie' ? `, by ${num(l.by)}` : ''}. Off by {offO} (Ours) and {offB} (Book). A
-              line counts when it lands within ±{num(l.band)} {unit} of the result.
+              {l.barem && l.closer ? (
+                <>
+                  <b>{l.closer === 'ours' ? 'We won' : 'Book won'}</b> on {l.barem.label}
+                  {l.barem.odd != null ? ` at ${odds(l.barem.odd)}` : ''}
+                  {sureOf(l.barem) ? ` (${sureOf(l.barem)} sure)` : ''}:{' '}
+                  {l.kind === 'player'
+                    ? `ours ${num(l.ours ?? 0)} backs at least ${l.barem.label.replace('+', '')}, the book's line, and the result was ${num(l.actual)}.`
+                    : `ours took the ${l.barem.side} on the book's ${num(l.barem.at)} and the result was ${num(l.actual)}.`}{' '}
+                </>
+              ) : null}
+              Off by {offO} (Ours) and {offB} (Book).
             </p>
             <div className="ic-ruler-big">
               <Ruler line={l} big />
@@ -1333,6 +1481,20 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
             {l.gap > 0 ? 'Ours is above the book' : l.gap < 0 ? 'Ours is below the book' : 'Level with the book'}
             {l.stat === 'WIN' ? ` on ${l.team}'s chance` : `, by ${num(Math.abs(l.gap))} ${unit}`}. That is{' '}
             <b>{Math.abs(l.score).toFixed(2)}</b> of a band.
+          </p>
+        )}
+        {!settled && l.barem && (
+          <p>
+            Our bet: <b>{l.barem.label}</b>
+            {l.barem.odd != null && (
+              <>
+                {' '}
+                at <b className="num">{odds(l.barem.odd)}</b>, the book's own odds
+              </>
+            )}
+            .
+            {sureOf(l.barem) &&
+              ` We are ${sureOf(l.barem)} sure he gets ${l.barem.label.replace('+', '')} or more, from how often players with a line like ours did over five seasons.`}
           </p>
         )}
         {l.rungs.length > 0 ? (
@@ -1454,13 +1616,13 @@ function HowDivided({
           {has((l) => fin(l) && l.closer === 'ours') && (
             <span>
               <i className="lg win" />
-              We were closer
+              We won
             </span>
           )}
           {has((l) => fin(l) && l.closer === 'book') && (
             <span>
               <i className="lg bk" />
-              Book was closer
+              Book won
             </span>
           )}
           {has((l) => fin(l) && l.closer === 'tie') && (
@@ -1527,7 +1689,7 @@ function HowDivided({
               {t.judged ? (
                 <>
                   <i className="lg win" aria-hidden="true" />
-                  We were closer on <b className="g">{t.oursCloser}</b> of {t.judged}
+                  We won <b className="g">{t.oursCloser}</b> of {t.judged}
                 </>
               ) : (
                 <>
@@ -1697,7 +1859,7 @@ function Field({
 }
 
 /** A mark's shape says where the line stands, never its colour alone: ○ to come, ◉ playing,
- *  ● we were closer, ◆ the book was closer, ⊙ level. */
+ *  ● we won, ◆ the book won, ⊙ level. */
 function shapeOf(l: Line): string {
   if (l.game.status === 'final' && l.closer) return l.closer === 'ours' ? 'win' : l.closer === 'book' ? 'bk' : 'lv'
   if (l.game.status === 'final') return 'ring dim'
@@ -1867,16 +2029,14 @@ function MarkCard({
   )
 }
 
-/** "✓ in band" or "✗ off 2.7" under the card's Book and Ours. */
+/** "✓ Over won" or "✗ Book lost" under the card's Book and Ours. */
 function McHit({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
   const hit = side === 'ours' ? l.oursHit : l.bookHit
   if (hit == null || l.game.status !== 'final') return null
-  const v = l[side]
-  const off = l.stat !== 'WIN' && v != null && l.actual != null ? num(Math.abs(l.actual - v)) : null
   return (
     <span className={`ic-mc-hit ${hit ? 'ok' : 'no'}`}>
       {hit ? <CheckIcon /> : <XIcon />}
-      {l.stat === 'WIN' ? (hit ? 'right' : 'wrong') : hit ? 'in band' : `off ${off}`}
+      {callWord(l, side, hit)}
     </span>
   )
 }
@@ -1916,6 +2076,118 @@ function swarm(lines: Line[], width: number) {
     median: pos(median(lines.map((l) => l.score))),
     marks: pts.map((p) => ({ line: p.line, x: p.x, y: height / 2 + p.lv * step })),
   }
+}
+
+const EST_COLS = [
+  ['MIN', 'minutes'],
+  ['PTS', 'pts'],
+  ['REB', 'reb'],
+  ['AST', 'ast'],
+  ['3PM', 'three_pm'],
+] as const
+const EST_PAGE = 6
+
+/** Our estimates for the players the book has no bet on yet (Can 2026-11-22: iddaa's player bets
+ *  mostly come after 19:00 Turkey time; until then the night shows our numbers). Each game is a
+ *  small table; once a game is final, what he did sits under each number. */
+function EstimatesBoard({ data, game, betsUp }: { data: BookCompare; game: number | null; betsUp: boolean }) {
+  const [all, setAll] = useState<Record<number, boolean>>({})
+  const games = data.games.filter((g) => (game == null || g.game_id === game) && (g.estimates?.length ?? 0) > 0)
+  if (!games.length) return null
+  return (
+    <section className="ic-sec ic-est" aria-labelledby="ic-h-est">
+      <div className="ic-sec-h">
+        <div>
+          <h2 id="ic-h-est">{betsUp ? 'No bet yet: our estimates' : 'Our estimates for the night'}</h2>
+        </div>
+      </div>
+      <p className="ic-explain ic-est-note">
+        {betsUp
+          ? 'Players the book has no bet on yet. Each moves up to his bet once iddaa prices him.'
+          : "iddaa's player bets usually come after 19:00 Turkey time. Until then, these are our numbers for each player."}
+      </p>
+      <div className="ic-est-games">
+        {games.map((g) => {
+          const rows = g.estimates ?? []
+          const open = all[g.game_id]
+          const final = g.status === 'final'
+          return (
+            <div key={g.game_id} className="ic-est-game">
+              <div className="ic-est-head">
+                <Pair away={g.away} home={g.home} size={20} />
+                <b>{`${g.away} @ ${g.home}`}</b>
+                <span className="sub">
+                  {final ? (
+                    'Final'
+                  ) : (
+                    <>
+                      Tip <span className="num">{clock(g.tip)}</span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <div className="ic-est-row ic-est-ch" aria-hidden="true">
+                <span>Player</span>
+                {EST_COLS.map(([h]) => (
+                  <span key={h} className={`c${h === 'MIN' ? ' min' : ''}`}>
+                    {h}
+                  </span>
+                ))}
+              </div>
+              <ol className="ic-est-list">
+                {rows.slice(0, open ? undefined : EST_PAGE).map((e) => (
+                  <EstimateRow key={e.player_id} e={e} final={final} />
+                ))}
+              </ol>
+              {rows.length > EST_PAGE && !open && (
+                <button type="button" className="ic-fold-btn" onClick={() => setAll((a) => ({ ...a, [g.game_id]: true }))}>
+                  <Chevron />
+                  All {rows.length} players
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function EstimateRow({ e, final }: { e: CompareEstimate; final: boolean }) {
+  const card = usePlayerCard()
+  const who = { id: e.player_id, name: e.name }
+  const got = e.actual
+  return (
+    <li className="ic-est-row">
+      <span className="ic-est-who">
+        <span className="ic-face head" aria-hidden="true">
+          <PlayerHead player={who} team={e.team} size={28} />
+        </span>
+        {card ? (
+          <button
+            type="button"
+            className="ic-est-nm"
+            onPointerEnter={(ev) => ev.pointerType === 'mouse' && card.prefetch(who)}
+            onClick={() => card.open(who)}
+          >
+            {e.name}
+          </button>
+        ) : (
+          <span className="ic-est-nm">{e.name}</span>
+        )}
+        {final && !got && <span className="ic-est-dnp">DNP</span>}
+      </span>
+      {EST_COLS.map(([h, k]) => {
+        const res = k === 'minutes' ? null : got?.[k]
+        return (
+          <span key={h} className={`c${h === 'MIN' ? ' min' : ''}`} aria-label={`${h} ours ${e[k].toFixed(1)}${res != null ? `, result ${res}` : ''}`}>
+            <span className="num">{e[k].toFixed(1)}</span>
+            {res != null && <small className="num">{num(res)}</small>}
+          </span>
+        )
+      })}
+    </li>
+  )
 }
 
 function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[]; settled: boolean }) {
@@ -1986,7 +2258,7 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                         {final ? (
                           <>
                             <th scope="col">Result</th>
-                            <th scope="col">Closer</th>
+                            <th scope="col">Won</th>
                           </>
                         ) : (
                           <th scope="col" className="hide-xs">
@@ -2036,11 +2308,8 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                   {final ? (
                     <>
                       <span>
-                        We were closer on <b className="g">{pl.oursCloser}</b> of <b>{pl.judged}</b> player lines · Book{' '}
+                        We won <b className="g">{pl.oursCloser}</b> of <b>{pl.judged}</b> player lines · Book won{' '}
                         <b>{pl.bookCloser}</b>
-                      </span>
-                      <span>
-                        Within band: Ours <b>{`${pl.ours}/${pl.judged}`}</b> · Book <b>{`${pl.book}/${pl.judged}`}</b>
                       </span>
                     </>
                   ) : (

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MIN_ODD, linesOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer, CompareRung, CompareTally } from './iddaaCompare'
 import {
-  BOOK_LIFT,
+  bookLift,
   LEVEL_GAP,
   bigValueNote,
   brier,
@@ -439,7 +439,12 @@ describe('the Scorecard: the lower score reads better, gaps under 0.004 are Leve
     expect(rows[0]).toMatchObject({ rungs: 0, ours: null, book: null, read: null })
     expect(rows[1]).toMatchObject({ rungs: 0, ours: null, read: null })
   })
-  it('the book’s lift above our lines, from 21 Nov', () => {
-    expect(BOOK_LIFT.map((x) => `${x.stat} ${x.lift}`)).toEqual(['PTS +3.0', 'REB +1.1', 'AST +0.65', '3PM +0.8'])
+  it('the book’s lift above our lines comes from the night’s tally', () => {
+    const t = (stat: string, compared: number, median_gap: number | null) =>
+      ({ stat, compared, median_gap }) as unknown as CompareTally
+    expect(bookLift([t('pts', 30, -3), t('reb', 2, -1), t('three_pm', 12, 0.4), t('ast', 20, null)])).toEqual([
+      { stat: 'PTS', lift: 3 },
+      { stat: '3PM', lift: -0.4 },
+    ])
   })
 })
