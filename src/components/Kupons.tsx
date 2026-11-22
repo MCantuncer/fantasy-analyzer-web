@@ -320,7 +320,7 @@ function KuponSlip({
   const gameOnly = waiting && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
   const openLabel = done
     ? `${spec.title}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
-    : `${spec.title}: total odds ${fmtOdds(c.listed)}, our chance it wins about ${pctOf(c.chance)}%. Show the ${n} picks`
+    : `${spec.title}: total odds ${fmtOdds(c.listed)}, probability about ${pctOf(c.chance)}%. Show the ${n} picks`
   return (
     <li
       className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}`}
@@ -381,7 +381,7 @@ function KuponSlip({
             )
           ) : (
             <div className="pay chance">
-              <span className="lab">{done ? 'Our chance was' : 'Our chance it wins'}</span>
+              <span className="lab">{done ? 'Probability was' : 'Probability'}</span>
               <b className="num big">
                 <small className="approx">~</small>
                 {pctOf(c.chance)}%
@@ -392,7 +392,7 @@ function KuponSlip({
         {c.result === 'lost' && (
           <p className="ic-ku-odds">
             <span>
-              Our chance was <b className="num">{pctOf(c.chance)}%</b>
+              Probability was <b className="num">{pctOf(c.chance)}%</b>
             </span>
           </p>
         )}
@@ -715,7 +715,7 @@ function Rules() {
           </li>
           <li>At most one pick per game: picks from one game move together.</li>
           <li>
-            Total odds are the picks' odds multiplied. Our chance is the chances on the picks multiplied: how often we
+            Total odds are the picks' odds multiplied. Probability is the chances on the picks multiplied: how often we
             think every pick wins.
           </li>
           <li>A player pick can be any rung iddaa prices (18+ instead of our usual 22+), with our chance for that rung.</li>
