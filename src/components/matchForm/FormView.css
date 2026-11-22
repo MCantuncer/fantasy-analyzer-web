@@ -186,6 +186,258 @@
   color: var(--on-accent);
 }
 
+/* The Tape: a 128px lane head, ten game columns, then one Tonight column shared by both lanes. */
+.mf-tape-s {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--divider);
+}
+.mf-tape {
+  --z: 58px;
+  --bmax: 42px;
+  --foot: 44px;
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) 76px;
+  column-gap: 12px;
+}
+.mf-lane-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-bottom: var(--foot);
+}
+.mf-lane-h .t {
+  display: grid;
+  min-width: 0;
+}
+.mf-lane-h .t b {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.mf-lane-h .t > span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.mf-lane-h .t .num {
+  color: var(--text-2);
+}
+.mf-bars {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  padding: 8px 0 26px;
+}
+.mf-bars::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(8px + var(--z) - 1px);
+  height: 2px;
+  border-radius: 2px;
+  background: var(--track);
+}
+.mf-col {
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--z) var(--z) var(--foot);
+  justify-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.mf-col:hover {
+  background: var(--accent-soft);
+}
+.mf-col[aria-pressed='true'] {
+  background: var(--raised);
+}
+.mf-col[aria-pressed='true'] .ml {
+  color: var(--text);
+  font-weight: 700;
+}
+.mf-col.old > * {
+  opacity: 0.55;
+}
+.mf-col .up,
+.mf-col .dn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.mf-col .up {
+  justify-content: flex-end;
+}
+.mf-col .dn {
+  justify-content: flex-start;
+}
+.mf-col .ml {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-2);
+}
+.mf-col .bar {
+  display: block;
+  width: 14px;
+  height: max(3px, calc(var(--bmax) * var(--r)));
+}
+.mf-col .up .bar {
+  border-radius: 4px 4px 1px 1px;
+  background: var(--good);
+}
+.mf-col .dn .bar {
+  border-radius: 1px 1px 4px 4px;
+  background: var(--bad);
+}
+.mf-col .up .bar.cap {
+  border-radius: 0 0 1px 1px;
+  clip-path: polygon(0 7px, 50% 0, 100% 7px, 100% 100%, 0 100%);
+}
+.mf-col .dn .bar.cap {
+  border-radius: 1px 1px 0 0;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), 50% 100%, 0 calc(100% - 7px));
+}
+.mf-col .foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding-top: 4px;
+}
+.mf-col .vm {
+  display: inline-flex;
+  align-items: center;
+  height: 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted);
+}
+.mf-col.gap {
+  cursor: default;
+}
+.mf-col.gap:hover {
+  background: transparent;
+}
+.mf-col.gap .dot {
+  width: 5px;
+  height: 5px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--track);
+}
+/* The last five: a 3px edge in the verdict's colour, steady in quiet ink. */
+.mf-edge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 5px;
+  pointer-events: none;
+}
+.mf-edge i {
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-2) 35%, transparent);
+}
+.mf-edge.hot i {
+  background: var(--heat);
+}
+.mf-edge.cold i {
+  background: var(--ice);
+}
+.mf-edge span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mf-edge.hot svg {
+  color: var(--heat);
+}
+.mf-edge.cold svg {
+  color: var(--ice);
+}
+.mf-tonight {
+  display: grid;
+  grid-template-rows: var(--z) var(--z) var(--foot);
+  justify-items: center;
+  padding-top: 8px;
+  background: var(--surface-2);
+}
+.mf-tonight.away {
+  border-radius: var(--radius-tile) var(--radius-tile) 0 0;
+  box-shadow:
+    inset 1px 0 0 var(--border),
+    inset -1px 0 0 var(--border),
+    inset 0 1px 0 var(--border);
+}
+.mf-tonight.home {
+  border-radius: 0 0 var(--radius-tile) var(--radius-tile);
+  box-shadow:
+    inset 1px 0 0 var(--border),
+    inset -1px 0 0 var(--border),
+    inset 0 -1px 0 var(--border);
+}
+.mf-tonight .tn {
+  grid-row: 1;
+  align-self: start;
+  display: grid;
+  justify-items: center;
+  font-size: 11.5px;
+  line-height: 1.25;
+  color: var(--muted);
+}
+.mf-tonight .tn b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.mf-tonight .me {
+  grid-row: 1 / 3;
+  align-self: center;
+  display: inline-grid;
+}
+.mf-tonight.away .me {
+  grid-row: 2;
+  align-self: start;
+}
+.mf-tonight.home .me {
+  grid-row: 1;
+  align-self: end;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mf-col .bar {
+    animation: mf-grow 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i) * 22ms);
+  }
+  .mf-col .up .bar {
+    transform-origin: 50% 100%;
+  }
+  .mf-col .dn .bar {
+    transform-origin: 50% 0;
+  }
+}
+@keyframes mf-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
 /* Game Ball: the face is the hero. */
 .mf-gb {
   display: grid;
@@ -731,6 +983,62 @@
   }
   .mf-venue-note {
     text-align: left;
+  }
+  /* The Tape: a header row per lane, ten narrow columns and a 46px Tonight cell. */
+  .mf-tape {
+    --z: 48px;
+    --bmax: 34px;
+    --foot: 42px;
+    grid-template-columns: minmax(0, 1fr) 46px;
+    column-gap: 4px;
+  }
+  .mf-lane-h {
+    grid-column: 1 / -1;
+    padding: 0 0 6px;
+  }
+  .mf-bars + .mf-tonight + .mf-lane-h {
+    margin-top: 10px;
+  }
+  .mf-lane-h .t {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .mf-col {
+    border-radius: 8px;
+  }
+  .mf-col .bar {
+    width: 11px;
+  }
+  .mf-col .ml {
+    font-size: 11px;
+  }
+  .mf-col .foot {
+    gap: 2px;
+  }
+  .mf-col .foot img,
+  .mf-col .foot .team-logo-ab {
+    width: 18px;
+    height: 18px;
+  }
+  .mf-tonight.away,
+  .mf-tonight.home {
+    border-radius: var(--radius-tile);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .mf-tonight .tn {
+    font-size: 10.5px;
+  }
+  .mf-tonight .tn b {
+    font-size: 12.5px;
+  }
+  .mf-tonight .me {
+    grid-row: 1 / 3 !important;
+    align-self: center !important;
+  }
+  .mf-tonight.away .tn + .me {
+    grid-row: 2 !important;
+    align-self: start !important;
   }
   /* Game Ball: kicker, then the 112px face with the name beside it; the stat line goes 5 x 2. */
   .mf-gb {

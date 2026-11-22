@@ -19,6 +19,7 @@ import { teamLight } from '../../lib/nbaTeams'
 import { TeamLogo } from '../PlayerHead'
 import { BoxScores } from './BoxScores'
 import { GameBall } from './GameBall'
+import { Tape } from './Tape'
 import './FormView.css'
 
 /** The match card's Form view (Can 2026-11-22, "Scouting Report"): who is heating up or cooling off
@@ -35,11 +36,14 @@ export function FormView({
   form,
   venueNeutral,
   initialSide = 'away',
+  tip = '',
 }: {
   form: MatchForm
   venueNeutral: boolean
   /** The side the list opens on: the side a Kupon pick backs. */
   initialSide?: Side
+  /** Tonight's tip-off, for the Tape's Tonight column. */
+  tip?: string
 }) {
   const [venue, setVenue] = useState(false)
   const [side, setSide] = useState<Side>(initialSide)
@@ -54,6 +58,11 @@ export function FormView({
   const list = shown[side].slice(0, LAST_GAMES)
   const at = hero ? list.findIndex((g) => g.game_id === hero.game.game_id) : -1
   const step = (i: number) => (i >= 0 && i < list.length ? () => setPick({ side, game_id: list[i].game_id }) : null)
+  // A bar puts its game on the Game Ball and turns the list to that team.
+  const pickBar = (s: Side, id: number) => {
+    setPick({ side: s, game_id: id })
+    setSide(s)
+  }
   const changeVenue = (v: boolean) => {
     setVenue(v)
     setPick(null)
@@ -73,6 +82,15 @@ export function FormView({
           onChange={changeVenue}
         />
       </section>
+      <Tape
+        away={form.away}
+        home={form.home}
+        shown={shown}
+        venue={on}
+        tip={tip}
+        picked={hero?.game.game_id ?? null}
+        onPick={pickBar}
+      />
       {hero && (
         <GameBall
           team={(hero.side === 'away' ? form.away : form.home).abbrev}

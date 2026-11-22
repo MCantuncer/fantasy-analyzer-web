@@ -229,6 +229,7 @@ export function MatchCard({
                 form={form.data}
                 venueNeutral={form.data.next?.neutral === true}
                 initialSide={initialSide}
+                tip={game.tip}
               />
             ) : form.isError ? (
               <FormError onRetry={() => void form.refetch()} />

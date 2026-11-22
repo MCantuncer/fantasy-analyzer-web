@@ -84,10 +84,10 @@ describe('Game Ball', () => {
     expect([...stats].map((d) => d.textContent)).toEqual(['MIN', 'FG', 'FT', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
     expect(ball().querySelector('.mf-stat.pts dd')?.textContent).toBe('33')
     expect(ball().textContent).toContain("Knicks' best: NY Lead 3")
-    // The meeting row is lit in the Knicks list too: same game.
-    const row = screen.getAllByRole('button', { pressed: true })
-    expect(row).toHaveLength(1)
-    expect(row[0].getAttribute('aria-label')).toContain('Nov 13')
+    // The meeting is lit in the Knicks list and in both lanes of the Tape: the same game.
+    const lit = screen.getAllByRole('button', { pressed: true })
+    expect(lit.map((b) => b.className)).toEqual(['mf-col', 'mf-col', 'mf-row'])
+    expect(lit.every((b) => b.getAttribute('aria-label')?.includes('Nov 13'))).toBe(true)
     expect(screen.queryByRole('button', { name: /Back To/ })).toBeNull()
   })
 
