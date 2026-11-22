@@ -58,13 +58,33 @@ function night(players: ComparePlayer[], status: CompareGame['status'] = 'final'
 }
 
 describe('iddaa vs Ours rows', () => {
-  it("judges against the result, so 13.3 is wrong when he scored 2 (Can's case)", () => {
+  it('settles a row as a duel on its line: ours below the book took the under, and 2 points won it', () => {
     const [l] = linesOf(night([player('Kelly Oubre Jr.', 'pts', 13.3, 13.5, 2)]), new Date())
-    expect(l.oursHit).toBe(false)
+    expect(l.barem).toEqual({ label: 'Under 13.5', side: 'under', at: 13.5, odd: null, floors: [] })
+    expect(l.oursHit).toBe(true)
     expect(l.bookHit).toBe(false)
     expect(l.closer).toBe('ours')
-    expect(l.by).toBeCloseTo(0.2)
     expect(l.initials).toBe('KJ')
+  })
+
+  it("settles a player on the floor ours backs among the book's rungs: Edey's 8 loses the 11+, Wemby's 19 wins the 12+", () => {
+    const rung = (n: number, odd: number) => ({ n, odd, book: 0.5, ours: null, value: null, hit: null })
+    const edey = { ...player('Zach Edey', 'pts', 11.3, 10.4, 8), rungs: [rung(8, 1.3), rung(10, 1.62), rung(11, 1.85), rung(13, 2.6)] }
+    const [l] = linesOf(night([edey]), new Date())
+    expect(l.barem).toEqual({ label: '11+', side: 'over', at: 10.5, odd: 1.85, floors: [{ n: 11, odd: 1.85 }, { n: 10, odd: 1.62 }] })
+    expect([l.oursHit, l.bookHit, l.closer]).toEqual([false, true, 'book']) // never both ✓
+    const [won] = linesOf(night([{ ...edey, actual: 11 }]), new Date())
+    expect(won.closer).toBe('ours') // 11 lands the 11+
+    const [past] = linesOf(night([{ ...edey, ours: 14.2, gap: 3.8, actual: 13 }]), new Date())
+    expect(past.barem?.label).toBe('13+') // ours past the top rung: settled on the top one
+    expect(past.closer).toBe('ours')
+    const wemby = { ...player('Victor Wembanyama', 'reb', 12.3, 11.3, 19), rungs: [rung(9, 1.25), rung(11, 1.75), rung(12, 2.1), rung(14, 3.2)] }
+    const [w] = linesOf(night([wemby]), new Date())
+    expect(w.barem?.floors).toEqual([{ n: 12, odd: 2.1 }, { n: 11, odd: 1.75 }]) // only the book's own rungs
+    expect([w.oursHit, w.bookHit, w.closer]).toEqual([true, false, 'ours'])
+    const [short] = linesOf(night([{ ...wemby, ours: 10.2, gap: -1.1 }]), new Date())
+    expect(short.barem).toBeNull() // the only rung under 10.2 is the 1.25: no call
+    expect(short.closer).toBeNull()
   })
 
   it('ranks All by gap in bands and a single stat by the raw gap', () => {
@@ -87,10 +107,11 @@ describe('iddaa vs Ours rows', () => {
     const t = tallyOf(lines)
     expect(t.n).toBe(2) // no line of ours: not compared
     expect(t.judged).toBe(2)
-    expect(t.ours).toBe(2) // 22 vs 24 within 5, 9 vs 11 within 2
-    expect(t.book).toBe(2)
-    expect(t.oursCloser).toBe(1)
-    expect(t.bookCloser).toBe(1)
+    expect(t.ours).toBe(2) // over 19.5 with 24, under 11.5 with 11
+    expect(t.book).toBe(0)
+    expect(t.oursCloser).toBe(2)
+    expect(t.bookCloser).toBe(0)
+    expect(t.level).toBe(0)
     expect(t.oursMiss).toBeCloseTo(2)
     expect(t.bookMiss).toBeCloseTo(2.5)
   })
@@ -113,9 +134,9 @@ describe('iddaa vs Ours in plain words', () => {
     const [before] = linesOf(night([player('A One', 'pts', 22, 19.5, null)], 'scheduled'), new Date('2026-11-20T12:00:00Z'))
     expect(plain(before, false)).toBe('we expect 2.5 more points than the book')
     const [after] = linesOf(night([player('A One', 'pts', 22, 19.5, 24)]), new Date())
-    expect(plain(after, true)).toBe('finished with 24 points, we went higher than the book and were closer')
+    expect(plain(after, true)).toBe('finished with 24 points, Over 19.5 won')
     const [one] = linesOf(night([player('B Two', 'stl', 0.8, 1.5, 1)]), new Date())
-    expect(plain(one, true)).toBe('finished with 1 steal, we went lower than the book and were closer')
+    expect(plain(one, true)).toBe('finished with 1 steal, Under 1.5 won')
   })
 
   it('tells a game as who wins, by how much and the total', () => {
@@ -136,10 +157,10 @@ describe('the book price beside its number', () => {
   const rung = (n: number, odd: number) => ({ n, odd, book: 0.5, ours: null, value: null, hit: null })
   it('takes the rung nearest the line, or the top rung when ours is past it', () => {
     const rungs = [rung(5, 1.45), rung(8, 2.1)]
-    expect(playerPrice(rungs, 5.6, 7)).toEqual({ label: '5+', odd: 1.45, top: false })
-    expect(playerPrice(rungs, 6.4, 7)).toEqual({ label: '8+', odd: 2.1, top: false })
-    expect(playerPrice(rungs, 6.4, 9.9)).toEqual({ label: '8+', odd: 2.1, top: true }) // Can's 9.9 vs 8+
-    expect(playerPrice(rungs, 6.4, 8.2)).toEqual({ label: '8+', odd: 2.1, top: false }) // inside the rung
+    expect(playerPrice(rungs, 5.6, 7)).toEqual({ label: '5+', odd: 1.45, top: false, n: 5 })
+    expect(playerPrice(rungs, 6.4, 7)).toEqual({ label: '8+', odd: 2.1, top: false, n: 8 })
+    expect(playerPrice(rungs, 6.4, 9.9)).toEqual({ label: '8+', odd: 2.1, top: true, n: 8 }) // Can's 9.9 vs 8+
+    expect(playerPrice(rungs, 6.4, 8.2)).toEqual({ label: '8+', odd: 2.1, top: false, n: 8 }) // inside the rung
     expect(playerPrice([], 6.4, 9.9)).toBeNull()
   })
   it('shows a game market on the side we lean to and drops prices of 1.33 and under', () => {

@@ -151,6 +151,7 @@ export interface Price {
   label: string
   odd: number
   top: boolean // a player's highest priced rung, and our number is past it
+  n?: number // a player's rung
 }
 
 /** Winner gaps are chances: 20 points of chance count as one band when ranking. */
@@ -193,6 +194,7 @@ export interface Line {
   ladder: [number, number][]
   rungs: CompareRung[] // the book's priced rungs, odds over MIN_ODD
   price: Price | null
+  barem: Barem | null // the line the row is settled on
   played: boolean | null
   tipped: boolean
 }
@@ -203,10 +205,10 @@ export function playerPrice(rungs: CompareRung[], book: number | null, ours: num
   if (!rungs.length) return null
   const top = rungs.reduce((a, r) => (r.n > a.n ? r : a))
   // past it: at least half a unit beyond the top rung (Can's case: ours 9.9, the book's top 8+)
-  if (ours != null && ours >= top.n + 0.5) return { label: `${top.n}+`, odd: top.odd, top: true }
+  if (ours != null && ours >= top.n + 0.5) return { label: `${top.n}+`, odd: top.odd, top: true, n: top.n }
   if (book == null) return null
   const near = rungs.reduce((a, r) => (Math.abs(r.n - 0.5 - book) < Math.abs(a.n - 0.5 - book) ? r : a))
-  return { label: `${near.n}+`, odd: near.odd, top: false }
+  return { label: `${near.n}+`, odd: near.odd, top: false, n: near.n }
 }
 
 /** A game market's price on the side we lean to: our pick for winner and margin; over or under for
@@ -261,6 +263,58 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
   return out
 }
 
+/** The line a row is settled on (Can 2026-11-22: "select a barem with its oran... a battle, win or
+ *  lose, no tie"; "we can give minimum X points, rebs, assists"). A player's is the floor our number
+ *  backs: the book's highest priced rung at or under ours (ours 12.3 takes 12+, and 11+ beside it),
+ *  won when he reaches it. Odds of 1.33 and under are already gone, so a player whose floors are all
+ *  that short makes no call. Game lines take the over or under on the book's number. */
+export interface Barem {
+  label: string // "12+", "Over 226.5", "PHI over 4.5"
+  side: 'over' | 'under'
+  at: number // the line itself: 11.5 for a 12+ rung
+  odd: number | null // the book's price on our side, when it prices it
+  floors: { n: number; odd: number }[] // a player's rungs at or under ours, highest first (two at most)
+}
+
+export function baremOf(stat: Stat, j: Judged, price: Price | null, team = '', rungs: CompareRung[] = []): Barem | null {
+  if (stat === 'WIN' || j.ours == null || j.book == null) return null
+  if (rungs.length) {
+    const ours = j.ours
+    const floors = rungs
+      .filter((r) => r.n <= ours)
+      .sort((a, b) => b.n - a.n)
+      .slice(0, 2)
+      .map((r) => ({ n: r.n, odd: r.odd }))
+    if (!floors.length) return null
+    const top = floors[0]
+    return { label: `${top.n}+`, side: 'over', at: top.n - 0.5, odd: top.odd, floors }
+  }
+  const lean = j.ours - j.book
+  if (Math.abs(lean) < 0.05) return null
+  const side = lean > 0 ? 'over' : 'under'
+  const word = side === 'over' ? 'Over' : 'Under'
+  return {
+    label: stat === 'MAR' ? `${team} ${word.toLowerCase()} ${num(j.book)}` : `${word} ${num(j.book)}`,
+    side,
+    at: j.book,
+    odd: price?.odd ?? null,
+    floors: [],
+  }
+}
+
+/** The row settled as a duel on its barem: our side wins or the book does, never both and never level.
+ *  Winner keeps the server's pick-won mark. */
+export function duel(
+  stat: Stat,
+  j: Judged,
+  barem: Barem | null,
+): { oursHit: boolean | null; bookHit: boolean | null; closer: Closer | null } {
+  if (stat === 'WIN') return { oursHit: j.ours_hit, bookHit: j.book_hit, closer: j.closer }
+  if (!barem || j.actual == null || j.actual === barem.at) return { oursHit: null, bookHit: null, closer: null }
+  const won = barem.side === 'over' ? j.actual > barem.at : j.actual < barem.at
+  return { oursHit: won, bookHit: !won, closer: won ? 'ours' : 'book' }
+}
+
 function make(
   id: string,
   kind: 'player' | 'game',
@@ -275,12 +329,9 @@ function make(
   extra: Partial<Line>,
 ): Line {
   const band = bandOf(stat, bands)
-  let by: number | null = null
-  if (j.closer && j.closer !== 'tie') {
-    if (stat === 'WIN') by = j.ours != null && j.book != null ? Math.abs(j.ours - j.book) : null
-    else if (j.actual != null && j.ours != null && j.book != null)
-      by = Math.abs(Math.abs(j.actual - j.ours) - Math.abs(j.actual - j.book))
-  }
+  const by = stat === 'WIN' && j.closer && j.ours != null && j.book != null ? Math.abs(j.ours - j.book) : null
+  const barem = baremOf(stat, j, extra.price ?? null, team, extra.rungs ?? [])
+  const settled = duel(stat, j, barem)
   return {
     id,
     kind,
@@ -296,10 +347,9 @@ function make(
     actual: j.actual,
     gap: j.gap,
     score: j.gap == null ? 0 : j.gap / band,
-    oursHit: j.ours_hit,
-    bookHit: j.book_hit,
-    closer: j.closer,
+    ...settled,
     by,
+    barem,
     band,
     bookTeam: '',
     won: '',
@@ -318,9 +368,11 @@ function make(
 export function ranked(lines: Line[], byBands: boolean): { above: Line[]; rest: Line[] } {
   const both = lines.filter((l) => l.gap != null)
   const key = (l: Line) => (byBands ? l.score : (l.gap ?? 0))
+  // lines with a book line to back come first (Can 2026-11-22: only the book's own lines above 1.33 count)
+  const callable = (l: Line) => (l.stat === 'WIN' || l.barem ? 0 : 1)
   return {
-    above: both.filter((l) => (l.gap ?? 0) > 0).sort((a, b) => key(b) - key(a)),
-    rest: both.filter((l) => (l.gap ?? 0) <= 0).sort((a, b) => key(a) - key(b)),
+    above: both.filter((l) => (l.gap ?? 0) > 0).sort((a, b) => callable(a) - callable(b) || key(b) - key(a)),
+    rest: both.filter((l) => (l.gap ?? 0) <= 0).sort((a, b) => callable(a) - callable(b) || key(a) - key(b)),
   }
 }
 
@@ -415,14 +467,13 @@ export function nightTab(date: string | null | undefined): string {
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`
-const CLOSER: Record<Closer, string> = { ours: 'we were closer', book: 'the book was closer', tie: 'both as close' }
+const CLOSER: Record<Closer, string> = { ours: 'we won', book: 'the book won', tie: 'both as close' }
 
 /** Who was nearer the result, saying which way we leaned when it was us (Can 2026-11-21: "we gave
  *  higher inputs, we should mention that"). Margins skip the lean: "higher" has no plain side there. */
 function nearer(l: Line): string {
   if (!l.closer) return ''
-  if (l.closer === 'ours' && l.stat !== 'MAR' && l.gap != null && Math.abs(l.gap) >= 0.05)
-    return `we went ${l.gap > 0 ? 'higher' : 'lower'} than the book and were closer`
+  if (l.barem && l.closer !== 'tie') return `${l.barem.label} ${l.closer === 'ours' ? 'won' : 'lost'}`
   return CLOSER[l.closer]
 }
 
