@@ -301,15 +301,31 @@ export function playerPrice(rungs: CompareRung[], book: number | null, ours: num
   return { label: `${near.n}+`, odd: near.odd, top: false, n: near.n }
 }
 
-/** A game market's price on the side we lean to: our pick for winner and margin; over or under for
- *  totals, by which way our number sits from the book's. */
-export function marketPrice(m: CompareMarket): Price | null {
+/** A game market's price on the side we lean to: our pick for winner; for the handicap our pick when
+ *  ours sees him winning by more than the book, else the other team with the points; over or under
+ *  for totals, by which way our number sits from the book's. */
+export function marketPrice(m: CompareMarket, other = ''): Price | null {
   const odds = (m.odds ?? []).filter((o) => o.odd > MIN_ODD)
-  const want = m.market === 'winner' || m.market === 'margin' ? 'pick' : (m.gap ?? 0) < 0 ? 'under' : 'over'
+  const down = (m.gap ?? 0) < 0
+  const want = m.market === 'winner' ? 'pick' : m.market === 'margin' ? (down ? 'other' : 'pick') : down ? 'under' : 'over'
   const o = odds.find((x) => x.side === want)
   if (!o) return null
-  const label = want === 'pick' ? m.team : want === 'over' ? 'Over' : 'Under'
+  const label = want === 'pick' ? m.team : want === 'other' ? other : want === 'over' ? 'Over' : 'Under'
   return { label, odd: o.odd, top: false }
+}
+
+/** How far a game's result lands from our call, one standard deviation, for the chance a game bet
+ *  wins: P = Normal-CDF(distance from the book's line / spread). Margin: 13.6, final margin against
+ *  the called margin over 5,225 games (2021-22 to 2025-26, the shipped call). Total and team points:
+ *  the shipped call's average misses over 28 seasons (about 14 and 8.7) read as a normal spread
+ *  (x 1.25). The winner keeps its own chance (Normal-CDF(margin / 12.2), calibrated every season). */
+export const GAME_SPREAD: Partial<Record<Stat, number>> = { MAR: 13.6, TOT: 17.5, TEAM: 10.9 }
+
+/** Normal CDF (Abramowitz-Stegun 7.1.26, good to 1e-7). */
+export function normal(z: number): number {
+  const t = 1 / (1 + 0.3275911 * (Math.abs(z) / Math.SQRT2))
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-(z * z) / 2)
+  return z >= 0 ? (1 + y) / 2 : (1 - y) / 2
 }
 
 /** "1.95": decimal odds as the book prints them. */
@@ -346,7 +362,7 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
           bookTeam: m.book_team,
           won: m.won,
           other,
-          price: marketPrice(m),
+          price: marketPrice(m, other),
         }),
       )
     }
@@ -360,13 +376,15 @@ export function linesOf(data: BookCompare, now: Date): Line[] {
  *  player's is the floor our number backs: the book's highest priced rung at or under ours (ours 12.3
  *  takes 12+), won when he reaches it, with our chance he gets there as the confidence. Odds of 1.33
  *  and under are already gone, so a player whose floors are all that short gets no bet. Game lines
- *  take the over or under on the book's number. */
+ *  take the side ours leans to on the book's own line (winner: our pick; handicap: our pick giving the
+ *  points or the other team taking them; totals: over or under), only when the book prices that side
+ *  over 1.33, with our chance it wins from GAME_SPREAD. */
 export interface Barem {
-  label: string // "12+", "Over 226.5", "PHI over 4.5"
+  label: string // "12+", "Over 226.5", "PHI −4.5", "PHI to win"
   side: 'over' | 'under'
   at: number // the line itself: 11.5 for a 12+ rung
-  odd: number | null // the book's own odds for this bet, when it prices it
-  sure: number | null // our chance the bet wins (a player's rung; none for game lines yet)
+  odd: number | null // the book's own odds for this bet
+  sure: number | null // our chance the bet wins
 }
 
 export function baremOf(
@@ -376,8 +394,14 @@ export function baremOf(
   team = '',
   rungs: CompareRung[] = [],
   player = false,
+  other = '',
 ): Barem | null {
-  if (stat === 'WIN' || j.ours == null || j.book == null) return null
+  if (j.ours == null || j.book == null) return null
+  if (stat === 'WIN') {
+    // our pick to win, at the book's odds for him; settled by the server's pick-won mark
+    if (!price) return null
+    return { label: `${team} to win`, side: 'over', at: 0, odd: price.odd, sure: j.ours }
+  }
   if (player) {
     // only the book's own priced rungs: no rung at or under ours, no bet
     const ours = j.ours
@@ -386,16 +410,21 @@ export function baremOf(
     return { label: `${top.n}+`, side: 'over', at: top.n - 0.5, odd: top.odd, sure: top.ours }
   }
   const lean = j.ours - j.book
-  if (Math.abs(lean) < 0.05) return null
+  if (Math.abs(lean) < 0.05 || !price) return null
   const side = lean > 0 ? 'over' : 'under'
   const word = side === 'over' ? 'Over' : 'Under'
-  return {
-    label: stat === 'MAR' ? `${team} ${word.toLowerCase()} ${num(j.book)}` : `${word} ${num(j.book)}`,
-    side,
-    at: j.book,
-    odd: price?.odd ?? null,
-    sure: null,
-  }
+  const pts = (v: number) => (v > 0 ? `+${num(v)}` : v < 0 ? num(v) : '0')
+  const label =
+    stat === 'MAR'
+      ? side === 'over'
+        ? `${team} ${pts(-j.book)}` // he covers: wins by more than the book's margin
+        : `${other} ${pts(j.book)}` // the other team with the points
+      : stat === 'TEAM'
+        ? `${team} ${word.toLowerCase()} ${num(j.book)}`
+        : `${word} ${num(j.book)}`
+  const spread = GAME_SPREAD[stat]
+  const up = spread ? normal(lean / spread) : null
+  return { label, side, at: j.book, odd: price.odd, sure: up == null ? null : side === 'over' ? up : 1 - up }
 }
 
 /** "64%": our confidence in a bet. */
@@ -429,7 +458,7 @@ function make(
 ): Line {
   const band = bandOf(stat, bands)
   const by = stat === 'WIN' && j.closer && j.ours != null && j.book != null ? Math.abs(j.ours - j.book) : null
-  const barem = baremOf(stat, j, extra.price ?? null, team, extra.rungs ?? [], kind === 'player')
+  const barem = baremOf(stat, j, extra.price ?? null, team, extra.rungs ?? [], kind === 'player', extra.other ?? '')
   const settled = duel(stat, j, barem)
   return {
     id,
