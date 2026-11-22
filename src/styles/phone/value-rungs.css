@@ -1,0 +1,148 @@
+/* Our Estimates, Value Rungs on phones: the first value rung on the first screen. A two-line summary
+   replaces the tiles at the top (the tiles follow the list), a short legend, a shorter Tape, each
+   find as a stacked card and the margin notes under their group. */
+@media (max-width: 719px) {
+  .vr-hide-s {
+    display: none;
+  }
+  .vr-ph-in {
+    display: inline;
+  }
+  .vr-h h2 {
+    font-size: 19px;
+  }
+  .vr-gloss {
+    font-size: 13.5px;
+  }
+  .vr-ph-sum {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 4px 0 10px;
+  }
+  .vr .vr-ph-sum + .vr-tiles.top {
+    display: none;
+  }
+  .vr-ph-sum .t {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text-2);
+  }
+  .vr-ph-sum .t b {
+    color: var(--text);
+    font-weight: 650;
+  }
+  .vr-ph-sum .t b.good {
+    color: var(--good);
+  }
+  .vr-ph-sum .t b.bad {
+    color: var(--bad);
+  }
+  .vr-ph-sum .vr-outline {
+    font-size: 40px;
+  }
+  .vr-tiles.top {
+    display: none;
+  }
+  .vr-tiles.after {
+    display: grid;
+    margin-top: 22px;
+  }
+  .vr-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vr-tile.first,
+  .vr-tile.note {
+    grid-column: 1 / -1;
+  }
+  .vr-tile .big {
+    font-size: 22px;
+  }
+  .vr-tape {
+    padding: 12px 12px 10px;
+  }
+  .vr-bands {
+    height: 34px;
+  }
+  .vr-band {
+    font-size: 10.5px;
+    padding-left: 4px;
+  }
+  .vr-keys {
+    display: none;
+  }
+  .vr-finds-h {
+    margin-top: 18px;
+  }
+  .vr-finds-h h3 {
+    display: none;
+  }
+  .vr-seg {
+    display: flex;
+    width: 100%;
+  }
+  .vr-seg button {
+    flex: 1;
+    padding: 0 8px;
+  }
+  .vr-legend {
+    gap: 6px 14px;
+    flex-wrap: nowrap;
+    font-size: 12px;
+  }
+  .vr-legend svg {
+    width: 22px;
+  }
+  .vr-group,
+  .vr-group.no-note {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vr-group.no-note .vr-g-main {
+    max-width: none;
+  }
+  .vr-g-notes {
+    margin-top: 12px;
+  }
+  .vr-row {
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'stamp rung res'
+      'chance chance chance'
+      'pips pips pips';
+    gap: 10px 12px;
+    padding: 14px 0;
+  }
+  .vr-stamp b {
+    font-size: 16px;
+  }
+  .vr-rung b {
+    font-size: 15px;
+  }
+  .vr-res {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .vr-res > span {
+    align-items: flex-end;
+  }
+  .vr-pips {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .vr-tape-line {
+    padding: 2px 12px;
+  }
+}
+@media (max-width: 380px) {
+  .vr-legend {
+    gap: 6px 10px;
+    font-size: 11.5px;
+  }
+  .vr-legend svg {
+    width: 18px;
+  }
+  .vr-ct {
+    gap: 2px 10px;
+  }
+}

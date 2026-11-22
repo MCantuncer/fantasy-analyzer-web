@@ -28,6 +28,7 @@ import { useEscapeLayer } from '../lib/escapeStack'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
+import { ValueRungs } from './ValueRungs'
 import './IddaaCompare.css'
 
 interface Props {
@@ -213,6 +214,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               }}
             />
             {!betsUp && <EstimatesBoard data={data} game={game} betsUp={false} />}
+            <ValueRungs data={data} lines={lines} settled={settled} />
             <GapList
               lines={lines}
               settled={settled}
