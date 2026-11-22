@@ -38,6 +38,7 @@ import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
 import { RecordRibbon, RungRecord } from './RungRecord'
+import { Kupons } from './Kupons'
 import { RungScorecard } from './RungScorecard'
 import { ValueRungs } from './ValueRungs'
 import './IddaaCompare.css'
@@ -210,6 +211,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
 
   return (
     <>
+      <Kupons data={data} lines={lines} />
       <NightTabs data={data} onDay={onDay} latest={latest} settled={settled} />
       <div className={`ic-sheet${motion ? ' motion' : ''}`}>
         {data.games.length === 0 ? (

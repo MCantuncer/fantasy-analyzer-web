@@ -1,0 +1,326 @@
+/* Tonight's Kupons (Can 2026-11-22): four ready-made iddaa bet slips above the night, safest to
+   boldest. Design: /mnt/project-files/estimates-bets/coupons-design/final/ (built on the "Ticket Rack"
+   concept). Club colour only as the 2px face edge and the handicap dot; won is a flat green edge, a lost
+   pick ink and dimmed; gold only on the Tonight dot and focus. */
+.ic-ku {
+  --plate: color-mix(in srgb, var(--text) 5%, transparent);
+  --conf-sure: var(--good);
+  --conf-likely: color-mix(in oklab, var(--good) 50%, var(--muted));
+  --conf-lean: color-mix(in oklab, var(--warn) 70%, var(--text-2));
+  --conf-flip: var(--text-2);
+}
+:root[data-theme='light'] .ic-ku {
+  --plate: color-mix(in srgb, var(--text) 4.5%, transparent);
+  --conf-likely: color-mix(in oklab, var(--good) 62%, var(--muted));
+}
+.ic-ku-sheet {
+  position: relative;
+  padding: 22px 24px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.ic-ku i.ku { font-style: italic; }
+.ic-ku-gold { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); margin-right: 7px; vertical-align: 1px; }
+.ic-ku-tick { fill: none; stroke: var(--good); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ic-ku-cross { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; flex: none; }
+.ic-ku-name .ku-tag.no .ic-ku-cross, .ic-ku-pick .res.no .ic-ku-cross { stroke: var(--text-2); }
+.ic-ku-wait .nw { white-space: nowrap; }
+
+/* ---------- the section ---------- */
+.ic-ku-head { position: relative; }
+.ic-ku-head h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; }
+.ic-ku-head > p { margin: 4px 0 0; font-size: 14px; color: var(--text-2); max-width: 72ch; }
+
+/* the word itself: italic, dotted underline, a 44px target that explains it */
+.ic-ku-term {
+  position: relative; display: inline-flex; align-items: center; gap: 5px; vertical-align: baseline;
+  min-height: 44px; margin: -12px -6px; padding: 0 6px; border: 0; border-radius: 10px;
+  background: transparent; cursor: help; font: inherit; color: inherit; letter-spacing: inherit;
+}
+.ic-ku-term i {
+  font-style: italic; text-decoration: underline dotted 1.5px; text-decoration-color: var(--faint);
+  text-underline-offset: 5px;
+}
+.ic-ku-term:hover, .ic-ku-term[aria-expanded='true'] { background: var(--accent-soft); }
+.ic-ku-info { flex: none; fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-linecap: round; }
+.ic-ku-hint {
+  position: absolute; z-index: 35; top: 34px; left: 0; width: min(360px, 100%);
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-tile);
+  background: var(--raised); box-shadow: var(--lift); font-size: 14px; line-height: 1.45; color: var(--text-2);
+}
+.ic-ku-hint { font-weight: 400; letter-spacing: 0; }
+.ic-ku-hint i.ku { color: var(--text); font-weight: 650; }
+.ic-ku-hint[hidden] { display: none; }
+
+.ic-ku-night {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px;
+  margin: 16px 0 0; padding-bottom: 14px; border-bottom: 1px solid var(--divider);
+  font-size: 14px; color: var(--text-2);
+}
+.ic-ku-night b { color: var(--text); font-weight: 650; }
+.ic-ku-night .num { font-size: 15.5px; }
+.ic-ku-night .up b { color: var(--good); }
+.ic-ku-night .r { margin-left: auto; }
+
+/* ---------- the rack: one slip per Kupon ---------- */
+.ic-ku-rack {
+  list-style: none; margin: 16px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: stretch;
+}
+.ic-ku-rack.two { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.ic-ku-slip {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  background: var(--slip); border-radius: var(--radius-tile); box-shadow: var(--shadow);
+}
+/* won: a flat 3px green edge, never a wash */
+.ic-ku-slip.won .ic-ku-stub::before {
+  content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 2px 2px 0; background: var(--good);
+}
+.ic-ku-stub { position: relative; padding: 14px 16px 14px; }
+.ic-ku-name { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+.ic-ku-name h3 { margin: 0; font-size: 15.5px; font-weight: 650; letter-spacing: -0.005em; white-space: nowrap; }
+.ic-ku-ico { flex: none; fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ic-ku-name .ku-tag { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ic-ku-name .ku-tag b { color: var(--text-2); font-weight: 600; }
+.ic-ku-name .ku-tag.ok { color: var(--good); font-weight: 650; }
+.ic-ku-name .ku-tag.no { color: var(--text-2); font-weight: 650; }
+.ic-ku-name .cnt { display: none; }
+.ic-ku-chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease-out; }
+
+.ic-ku-heroes { display: grid; grid-template-columns: auto minmax(0, 1fr); margin-top: 10px; }
+.ic-ku-heroes > div { display: flex; flex-direction: column; min-width: 0; }
+.ic-ku-heroes .pay { padding-left: 14px; border-left: 1px solid var(--divider); }
+.ic-ku-heroes .tot { padding-right: 14px; }
+.ic-ku-heroes .chance { align-items: flex-end; text-align: right; border-left: 0; padding-left: 8px; }
+.ic-ku-heroes .chance .approx { margin: 0 1px 0 0; font-family: var(--font-num); font-size: 0.7em; font-weight: 600; color: var(--muted); }
+.ic-ku-heroes .lab { font-size: 12.5px; color: var(--muted); line-height: 1.2; }
+.ic-ku-heroes .big { font-size: 34px; font-weight: 700; line-height: 1.12; color: var(--text); white-space: nowrap; }
+.ic-ku-heroes .big small { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.ic-ku-slip.lost .tot .big { color: var(--text-2); font-weight: 600; }
+.ic-ku-heroes .broke .who1 { margin-top: 3px; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.ic-ku-heroes .broke .who2 { margin-top: 2px; font-size: 15.5px; font-weight: 700; line-height: 1.25; }
+.ic-ku-heroes .broke .lab b { color: var(--text-2); }
+.ic-ku-heroes .broke .got { font-size: 13px; color: var(--text-2); margin-top: 1px; }
+.ic-ku-odds { margin: 8px 0 0; font-size: 13px; color: var(--text-2); }
+.ic-ku-odds b { color: var(--text); font-weight: 650; }
+.ic-ku-odds > span { white-space: nowrap; }
+.ic-ku-note { display: flex; align-items: flex-start; gap: 6px; margin: 6px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.ic-ku-note .ic-ku-ico { stroke: var(--muted); margin-top: 1px; }
+.ic-ku-note b { color: var(--text-2); }
+.ic-ku-open { display: none; }
+
+/* the picks, behind the tear line */
+.ic-ku-picks {
+  position: relative; list-style: none; margin: 0; padding: 4px 0 2px;
+  border-top: 1.5px dashed var(--seam); container: ku-picks / inline-size;
+}
+.ic-ku-picks::before, .ic-ku-picks::after {
+  content: ''; position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface);
+}
+.ic-ku-picks::before { left: -7px; }
+.ic-ku-picks::after { right: -7px; }
+.ic-ku-foot { margin: auto 0 0; padding: 6px 16px 12px; font-size: 12.5px; color: var(--muted); }
+.ic-ku-foot b { color: var(--text-2); font-weight: 600; }
+
+.ic-ku-pick {
+  position: relative; display: grid; align-items: center; column-gap: 10px;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto auto;
+  grid-template-areas: 'face who bet odds ring';
+  padding: 9px 10px 9px 14px;
+}
+.ic-ku-pick + .ic-ku-pick::before {
+  content: ''; position: absolute; top: 0; left: 14px; right: 12px; height: 1px; background: var(--divider);
+}
+.ic-ku-pick > .ic-ku-face { grid-area: face; }
+.ic-ku-pick > .who { grid-area: who; }
+.ic-ku-pick > .bet { grid-area: bet; }
+.ic-ku-pick > .odds { grid-area: odds; }
+.ic-ku-pick > .ic-ku-conf { grid-area: ring; }
+
+/* face: PlayerHead without its under-light (2px team edge only); logos are TeamLogo */
+.ic-ku-face { position: relative; width: 32px; height: 32px; display: grid; place-items: center; }
+.ic-ku-face .head { --head-glow: 0%; }
+.ic-ku-face.pair > * { position: absolute; }
+.ic-ku-face.pair > :first-child { left: -4px; top: -2px; }
+.ic-ku-face.pair > :last-child { right: -4px; bottom: -2px; }
+
+.ic-ku-pick .who { display: flex; flex-direction: column; min-width: 0; }
+.ic-ku-pick .nm { font-size: 14.5px; font-weight: 650; line-height: 1.25; overflow-wrap: anywhere; }
+.ic-ku-pick .nm.mu { font-weight: 500; color: var(--text-2); }
+.ic-ku-pick .nm.mu b { color: var(--text); font-weight: 700; }
+.ic-ku-pick .sub { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.ic-ku-pick .sub b { color: var(--text-2); font-weight: 600; }
+.ic-ku-pick .sub span:not(.num) { color: inherit; }
+.ic-ku-pick .res { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; line-height: 1.3; color: var(--text-2); }
+.ic-ku-pick .res b { color: var(--text); font-weight: 650; }
+.ic-ku-pick .res.no { color: var(--text); }
+.ic-ku-pick .res { flex-wrap: wrap; column-gap: 5px; row-gap: 0; }
+.ic-ku-pick .res .nw { white-space: nowrap; }
+.ic-ku-pick .res.vd .dash { color: var(--muted); }
+
+.ic-ku-pick .bet, .ic-ku-pick .odds { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.ic-ku-pick .bet { align-items: flex-end; text-align: right; }
+.ic-ku-pick .lab { font-size: 11.5px; color: var(--muted); line-height: 1.2; white-space: nowrap; }
+.ic-ku-pick .lab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tl); margin-right: 5px; vertical-align: 0; }
+.ic-ku-pick .hero { font-size: 22px; font-weight: 700; line-height: 1.12; color: var(--text); white-space: nowrap; }
+.ic-ku-pick .hero.txt { font-size: 20px; letter-spacing: -0.005em; }
+.ic-ku-pick .odds { padding-left: 10px; border-left: 1.5px dashed var(--seam); align-self: stretch; justify-content: center; }
+.ic-ku-pick .odd { font-size: 19px; font-weight: 700; line-height: 1.15; color: var(--text); }
+
+/* the pick that broke it: a plate, an ink edge, "✕ Lost" in words; digits dim like Score Slip */
+.ic-ku-pick.broke { background: var(--plate); border-radius: 10px; margin: 2px 6px; padding-left: 8px; padding-right: 4px; }
+.ic-ku-pick.broke::after {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 2px 2px 0; background: var(--text-2);
+}
+.ic-ku-pick.broke::before, .ic-ku-pick.broke + .ic-ku-pick::before { display: none; }
+.ic-ku-pick.broke .hero, .ic-ku-pick.broke .odd { color: var(--text-2); }
+.ic-ku-pick.broke .ic-ku-conf .arc, .ic-ku-pick.void .ic-ku-conf .arc { opacity: 0.55; }
+.ic-ku-pick.void .hero, .ic-ku-pick.void .odd, .ic-ku-pick.void .nm { color: var(--muted); }
+
+/* our chance: Score Slip's ring at 32px, % inside, a 44px target */
+.ic-ku-conf {
+  position: relative; flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; cursor: pointer;
+}
+.ic-ku-conf::before { content: ''; position: absolute; inset: -4px; }
+.ic-ku-conf > * { grid-area: 1 / 1; }
+.ic-ku-conf .pct { font-size: 11px; font-weight: 650; color: var(--text); line-height: 1; }
+.ic-ku-conf .pct small { font-size: 7.5px; font-weight: 600; color: var(--muted); margin-left: 0.5px; }
+.ic-ku-conf:hover { background: var(--accent-soft); }
+.ic-ku-conf[aria-expanded='true'] { background: var(--accent-soft); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--band) 60%, transparent); }
+.ic-ku [data-band] { --band: var(--conf-flip); }
+.ic-ku [data-band='sure'] { --band: var(--conf-sure); }
+.ic-ku [data-band='likely'] { --band: var(--conf-likely); }
+.ic-ku [data-band='lean'] { --band: var(--conf-lean); }
+.ic-ku-ring { flex: none; }
+.ic-ku-ring circle { fill: none; }
+.ic-ku-ring .trk { stroke: var(--track); }
+.ic-ku-ring .arc { stroke: var(--band); stroke-linecap: round; }
+
+/* two-tier pick when the slip is narrow (desktop rack columns, 360px phones) */
+@container ku-picks (max-width: 319px) {
+  .ic-ku-pick {
+    grid-template-columns: 32px minmax(0, 1fr) auto 36px;
+    grid-template-areas: 'face who who who' 'bet bet odds ring';
+    row-gap: 4px; align-items: center;
+  }
+  .ic-ku-pick .bet { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 6px; padding-left: 2px; }
+  .ic-ku-pick .odds { flex-direction: row; align-items: baseline; gap: 5px; padding-left: 9px; align-self: center; }
+  .ic-ku-pick .hero { font-size: 21px; }
+  .ic-ku-pick .hero.txt { font-size: 19px; }
+  .ic-ku-pick .odd { font-size: 18px; }
+}
+
+/* the popover: what the ring means (Score Slip's ConfPop) */
+.ic-ku-pop {
+  position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: 300px;
+  padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--radius-tile);
+  background: var(--raised); box-shadow: var(--lift); font-size: 14px;
+}
+.ic-ku-slip:first-child .ic-ku-pop { right: auto; left: 0; }
+.ic-ku-pop[hidden] { display: none; }
+.ic-ku-pop-h { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: start; }
+.ic-ku-pop-h .mk { grid-column: 1; font-size: 12.5px; color: var(--muted); }
+.ic-ku-pop-h b { grid-column: 1; font-size: 16px; font-weight: 650; }
+.ic-ku-x {
+  grid-column: 2; grid-row: 1 / span 2; display: grid; place-items: center; width: 32px; height: 32px;
+  margin: -6px -8px 0 0; border: 0; border-radius: 9px; background: transparent; cursor: pointer; color: var(--text-2);
+}
+.ic-ku-x:hover { background: var(--accent-soft); }
+.ic-ku-pop-lead { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.ic-ku-pop-lead p { margin: 0; font-size: 14.5px; line-height: 1.4; }
+.ic-ku-pop-lead .num { font-size: 16px; font-weight: 650; }
+.ic-ku-bars { display: grid; grid-template-columns: 42px minmax(0, 1fr) 38px; align-items: center; gap: 7px 10px; }
+.ic-ku-bars .who { font-size: 12.5px; color: var(--muted); }
+.ic-ku-bars .bar { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.ic-ku-bars .bar i { display: block; height: 100%; border-radius: 4px; background: var(--band); }
+.ic-ku-bars .bar.book i { background: var(--faint); }
+.ic-ku-bars .v { text-align: right; font-size: 14px; font-weight: 650; }
+.ic-ku-pop .fine { margin: 12px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.45; }
+.ic-ku-pop .fine b { color: var(--text); }
+.ic-ku-pop .res { display: flex; gap: 7px; align-items: baseline; margin: 10px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.45; }
+.ic-ku-pop .res b { color: var(--text); }
+.ic-ku-pop .res.ok b { color: var(--good); }
+.ic-ku-pop .key { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--divider); font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.ic-ku-pop .key .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--band); margin-right: 6px; }
+.ic-ku-scrim { display: none; }
+
+/* quiet slips: Players Only waiting, a night too small; outlined like Score Slip's "No bet" */
+.ic-ku-slip.quiet { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border); align-self: start; }
+.ic-ku-slip.same { align-self: start; }
+.ic-ku-wait .nw { white-space: nowrap; }
+.ic-ku-wait { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 0; }
+.ic-ku-wait .clk { stroke: var(--text-2); margin-top: 1px; }
+.ic-ku-wait > span { display: flex; flex-direction: column; gap: 2px; }
+.ic-ku-wait b { font-size: 15px; font-weight: 650; color: var(--text); }
+.ic-ku-wait .aim { font-size: 13px; color: var(--text-2); }
+.ic-ku-wait .aim b { font-size: 13px; }
+.ic-ku-slip.same .ic-ku-note { color: var(--text-2); }
+
+/* how we build them: one line and More */
+.ic-ku-rules { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.ic-ku-rules p { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.ic-ku-rules p b { color: var(--text-2); font-weight: 650; }
+.ic-ku-more {
+  min-height: 44px; margin: -12px 0; padding: 0 8px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.ic-ku-more:hover { background: var(--accent-soft); }
+.ic-ku-rules ul { margin: 8px 0 0; padding-left: 18px; color: var(--text-2); line-height: 1.5; }
+.ic-ku-rules ul[hidden] { display: none; }
+
+/* ---------- widths ---------- */
+@media (max-width: 1099px) {
+  .ic-ku-rack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 719px) {
+  .ic-ku-sheet { padding: 18px 12px 14px; }
+  .ic-ku-head { padding: 0 4px; }
+  .ic-ku-night { gap: 4px 16px; padding: 0 4px 12px; }
+  .ic-ku-night .r { margin-left: 0; }
+  .ic-ku-rack, .ic-ku-rack.two { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+  .ic-ku-rules { padding: 0 4px; }
+  .ic-ku-stub { padding: 12px 14px 12px; }
+  .ic-ku-heroes { margin-top: 6px; }
+  .ic-ku-heroes .big { font-size: 32px; }
+  /* a phone stacks the slips: the first is open, the rest show their stub; the whole stub opens it */
+  .ic-ku-open {
+    display: block; position: absolute; inset: 0; width: 100%; padding: 0; border: 0; border-radius: var(--radius-tile);
+    background: transparent; cursor: pointer;
+  }
+  .ic-ku-open:hover { background: var(--accent-soft); }
+  .ic-ku-name .ku-tag:not(.ok):not(.no) { display: none; }
+  .ic-ku-name .cnt { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .ic-ku-name .ku-tag.ok + .cnt, .ic-ku-name .ku-tag.no + .cnt { margin-left: 10px; font-size: 0; gap: 0; }
+  .ic-ku-name .ku-tag.ok + .cnt .ic-ku-chev, .ic-ku-name .ku-tag.no + .cnt .ic-ku-chev { margin-left: 2px; }
+  .ic-ku-slip.open .ic-ku-chev { transform: rotate(180deg); }
+  .ic-ku-slip:not(.open) .ic-ku-picks, .ic-ku-slip:not(.open) .ic-ku-foot { display: none; }
+  .ic-ku-pick { padding-left: 12px; padding-right: 8px; column-gap: 9px; }
+  .ic-ku-pick.broke { margin: 2px 4px; padding-left: 8px; padding-right: 4px; }
+  .ic-ku-foot { padding: 6px 14px 12px; }
+  /* on a phone the ring's card becomes a bottom sheet */
+  .ic-ku-pop, .ic-ku-slip:first-child .ic-ku-pop {
+    position: fixed; z-index: 50; top: auto; left: 0; right: 0; bottom: 0; width: auto;
+    padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; border-bottom: 0;
+  }
+  .ic-ku-pop::before {
+    content: ''; position: absolute; top: 8px; left: 50%; width: 36px; height: 4px; margin-left: -18px;
+    border-radius: 2px; background: var(--border);
+  }
+  .ic-ku-x { width: 40px; height: 40px; margin: -8px -4px 0 0; }
+  .ic-ku-scrim { display: block; position: fixed; inset: 0; z-index: 45; background: var(--scrim); }
+  .ic-ku-hint { top: 34px; width: 100%; }
+}
+@media (max-width: 380px) {
+  .ic-ku-heroes .big { font-size: 30px; }
+  .ic-ku-night { gap: 4px 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ic-ku-pop, .ic-ku-hint:not([hidden]) { animation: ic-ku-in 160ms ease-out; }
+  @media (max-width: 719px) { .ic-ku-pop { animation: ic-ku-up 220ms cubic-bezier(0.2, 0.9, 0.3, 1); } }
+}
+@media (prefers-reduced-motion: reduce) { .ic-ku-chev { transition: none; } }
+@keyframes ic-ku-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes ic-ku-up { from { transform: translateY(100%); } }
