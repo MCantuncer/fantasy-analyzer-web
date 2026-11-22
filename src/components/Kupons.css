@@ -89,11 +89,11 @@
 .ic-ku-name .cnt { display: none; }
 .ic-ku-chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease-out; }
 
-.ic-ku-heroes { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 10px; }
+.ic-ku-heroes { display: grid; grid-template-columns: auto minmax(0, 1fr); margin-top: 10px; }
+.ic-ku-heroes .chance .approx { margin: 0 1px 0 0; font-family: var(--font-num); font-size: 0.7em; font-weight: 600; color: var(--muted); }
 .ic-ku-heroes > div { display: flex; flex-direction: column; min-width: 0; }
 .ic-ku-heroes .pay { padding-left: 14px; border-left: 1px solid var(--divider); }
 .ic-ku-heroes .tot { padding-right: 14px; }
-.ic-ku-slip.lost .ic-ku-heroes { grid-template-columns: auto minmax(0, 1fr); }
 .ic-ku-heroes .lab { font-size: 12.5px; color: var(--muted); line-height: 1.2; }
 .ic-ku-heroes .big { font-size: 34px; font-weight: 700; line-height: 1.12; color: var(--text); white-space: nowrap; }
 .ic-ku-heroes .big small { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 4px; }

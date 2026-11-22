@@ -320,7 +320,7 @@ function KuponSlip({
   const gameOnly = waiting && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
   const openLabel = done
     ? `${spec.title}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
-    : `${spec.title}: total odds ${fmtOdds(c.listed)}. Show the ${n} picks`
+    : `${spec.title}: total odds ${fmtOdds(c.listed)}, our chance it wins about ${pctOf(c.chance)}%. Show the ${n} picks`
   return (
     <li
       className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}`}
@@ -379,17 +379,23 @@ function KuponSlip({
                 {c.broke.length > 2 && <span className="got">+{c.broke.length - 2}</span>}
               </div>
             )
-          ) : null}
+          ) : (
+            <div className="pay chance">
+              <span className="lab">{done ? 'Our chance was' : 'Our chance it wins'}</span>
+              <b className="num big">
+                <small className="approx">~</small>
+                {pctOf(c.chance)}%
+              </b>
+            </div>
+          )}
         </div>
-        <p className="ic-ku-odds">
-          <span>
-            Our chance {done ? 'was ' : ''}
-            <b className="num">{pctOf(c.chance)}%</b> ·
-          </span>{' '}
-          <span>
-            Odds {done ? 'implied' : 'imply'} <b className="num">{pctOf(c.implied)}%</b>
-          </span>
-        </p>
+        {c.result === 'lost' && (
+          <p className="ic-ku-odds">
+            <span>
+              Our chance was <b className="num">{pctOf(c.chance)}%</b>
+            </span>
+          </p>
+        )}
         {c.voided.length > 0 && (
           <p className="ic-ku-note">
             <span>
@@ -709,8 +715,8 @@ function Rules() {
           </li>
           <li>At most one pick per game: picks from one game move together.</li>
           <li>
-            Total odds are the picks' odds multiplied. Our chance is our chances multiplied; odds imply is 1 ÷ total
-            odds.
+            Total odds are the picks' odds multiplied. Our chance is the chances on the picks multiplied: how often we
+            think every pick wins.
           </li>
           <li>A player pick can be any rung iddaa prices (18+ instead of our usual 22+), with our chance for that rung.</li>
           <li>
