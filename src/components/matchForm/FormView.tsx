@@ -4,7 +4,9 @@ import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react'
 import {
   HEAT_RULE,
   HEAT_WORDS,
+  LAST_GAMES,
   formRead,
+  heroGame,
   inVenue,
   marginOf,
   nick,
@@ -12,10 +14,11 @@ import {
   signedMargin,
   verdictReason,
 } from '../../lib/matchForm'
-import type { FormHeat, FormRead, MatchForm, Side, TeamForm } from '../../lib/matchForm'
+import type { FormHeat, FormRead, MatchForm, Pick, Side, TeamForm } from '../../lib/matchForm'
 import { teamLight } from '../../lib/nbaTeams'
 import { TeamLogo } from '../PlayerHead'
 import { BoxScores } from './BoxScores'
+import { GameBall } from './GameBall'
 import './FormView.css'
 
 /** The match card's Form view (Can 2026-11-22, "Scouting Report"): who is heating up or cooling off
@@ -40,11 +43,21 @@ export function FormView({
 }) {
   const [venue, setVenue] = useState(false)
   const [side, setSide] = useState<Side>(initialSide)
+  const [pick, setPick] = useState<Pick | null>(null)
   const on = venue && !venueNeutral
   const shown = useMemo(
     () => ({ away: inVenue(form.away.games, 'away', on), home: inVenue(form.home.games, 'home', on) }),
     [form, on],
   )
+  const hero = heroGame(form, shown, pick, on, side)
+  // Earlier / Later walk the list on screen, newest first.
+  const list = shown[side].slice(0, LAST_GAMES)
+  const at = hero ? list.findIndex((g) => g.game_id === hero.game.game_id) : -1
+  const step = (i: number) => (i >= 0 && i < list.length ? () => setPick({ side, game_id: list[i].game_id }) : null)
+  const changeVenue = (v: boolean) => {
+    setVenue(v)
+    setPick(null)
+  }
   return (
     <div className="mf">
       <section className="mf-read" aria-label="Who is in form">
@@ -57,11 +70,32 @@ export function FormView({
           neutral={venueNeutral}
           away={form.away.abbrev}
           home={form.home.abbrev}
-          onChange={setVenue}
+          onChange={changeVenue}
         />
       </section>
-      <BoxScores away={form.away} home={form.home} side={side} onSide={setSide} shown={shown} venue={on} />
-      <p className="mf-rule">{HEAT_RULE}</p>
+      {hero && (
+        <GameBall
+          team={(hero.side === 'away' ? form.away : form.home).abbrev}
+          other={(hero.side === 'away' ? form.home : form.away).abbrev}
+          game={hero.game}
+          picked={hero.picked}
+          backLabel={on ? 'Back To Latest' : 'Back To Last Meeting'}
+          onBack={() => setPick(null)}
+          onEarlier={at < 0 ? step(0) : step(at + 1)}
+          onLater={at > 0 ? step(at - 1) : null}
+        />
+      )}
+      <BoxScores
+        away={form.away}
+        home={form.home}
+        side={side}
+        onSide={setSide}
+        shown={shown}
+        venue={on}
+        picked={hero?.game.game_id ?? null}
+        onPick={(s, id) => setPick({ side: s, game_id: id })}
+      />
+      <p className="mf-rule">{HEAT_RULE} Game Ball: the best Game Score on the winning side.</p>
     </div>
   )
 }

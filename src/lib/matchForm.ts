@@ -226,3 +226,46 @@ export function lastName(name: string): string {
   const tail = parts[parts.length - 1]
   return /^(jr\.?|sr\.?|ii|iii|iv|v)$/i.test(tail) && parts.length > 2 ? parts.slice(-2).join(' ') : tail
 }
+
+/** "Fri Nov 20" from a US game date (YYYY-MM-DD). */
+export function dayDate(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(`${iso}T12:00:00Z`)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })} ${shortDate(iso)}`
+}
+
+/** ".520" from 13 of 25; a dash with no attempts. */
+export function shootingPct(made: number, tried: number): string {
+  return tried ? (made / tried).toFixed(3).replace(/^0/, '') : '–'
+}
+
+/** Clubs whose light colour is gold get a lifted navy on the big Game Ball face, so a large gold glow
+ *  never reads as the house gold. Small faces keep the usual team light. */
+export const HERO_LIGHT: Record<string, string> = { IND: '#4F7FD6', DEN: '#5A86C9', NO: '#4C6FA8' }
+
+/** The game on the Game Ball: the picked one, else the last meeting (all games), else the latest at
+ *  tonight's venue for the side the list shows. */
+export interface Pick {
+  side: Side
+  game_id: number
+}
+
+export function heroGame(
+  form: MatchForm,
+  shown: Record<Side, FormGame[]>,
+  pick: Pick | null,
+  venue: boolean,
+  listSide: Side,
+): { side: Side; game: FormGame; picked: boolean } | null {
+  if (pick) {
+    const g = shown[pick.side].find((x) => x.game_id === pick.game_id)
+    if (g) return { side: pick.side, game: g, picked: true }
+  }
+  if (!venue) {
+    const g = defaultGame(shown.away, form.home.abbrev)
+    return g ? { side: 'away', game: g, picked: false } : null
+  }
+  const g = shown[listSide][0]
+  return g ? { side: listSide, game: g, picked: false } : null
+}
