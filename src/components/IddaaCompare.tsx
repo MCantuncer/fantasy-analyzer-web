@@ -172,7 +172,12 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const [open, setOpen] = useState<string | null>(null)
   const [motion, setMotion] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
-  const [card, setCard] = useState<number | null>(null)
+  // The open match card: Our Estimates from a match chip or a game's score; Form from a Kupon pick.
+  const [card, setCardState] = useState<{ id: number; view: 'form' | 'estimates'; side: 'away' | 'home' } | null>(
+    null,
+  )
+  const setCard = (id: number | null) => setCardState(id == null ? null : { id, view: 'estimates', side: 'away' })
+  const openForm = (id: number, side: 'away' | 'home') => setCardState({ id, view: 'form', side })
   const first = useRef(true)
   useEffect(() => {
     if (first.current) first.current = false
@@ -183,7 +188,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const latest = data.days[data.days.length - 1]
   const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
-  const cardGame = card == null ? null : (data.games.find((g) => g.game_id === card) ?? null)
+  const cardGame = card == null ? null : (data.games.find((g) => g.game_id === card.id) ?? null)
 
   /** "See in game" on a mark card: filter to that game, bring the line forward and ring it. */
   const see = (l: Line) => {
@@ -213,7 +218,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
 
   return (
     <>
-      <Kupons data={data} lines={lines} />
+      <Kupons data={data} lines={lines} onMatch={openForm} />
       <NightTabs data={data} onDay={onDay} latest={latest} settled={settled} />
       <div className={`ic-sheet${motion ? ' motion' : ''}`}>
         {data.games.length === 0 ? (
@@ -260,7 +265,15 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
             <StatCloser lines={lines} game={game} />
             <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
             <GameBoxes data={data} lines={lines} settled={settled} />
-            {cardGame && <MatchCard game={cardGame} onClose={() => setCard(null)} />}
+            {cardGame && card && (
+              <MatchCard
+                key={`${card.id}-${card.view}-${card.side}`}
+                game={cardGame}
+                initialView={card.view}
+                initialSide={card.side}
+                onClose={() => setCard(null)}
+              />
+            )}
             <p className="ic-bands">
               Bands: points ±{data.bands.pts}, rebounds and assists ±{data.bands.reb}, 3PM, steals and blocks ±
               {data.bands.stl}, team points ±{data.bands.team_pts}, game total ±{data.bands.total}, margin ±

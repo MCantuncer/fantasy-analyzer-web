@@ -1,3 +1,4 @@
+import { CaretRight } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { couponsOf, fmtOdds } from '../lib/coupons'
@@ -15,7 +16,10 @@ import './Kupons.css'
  *  safest to boldest, built from iddaa's own odds and our chance for each pick (lib/coupons). "Kupon"
  *  is iddaa's own word, kept in Turkish on purpose and always set in italics with a hint, so it never
  *  reads as a slip in translation. Comparison only: nothing here feeds the model. */
-export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
+/** Opens a game's match card on its Form view, on the side the pick backs. */
+export type OpenMatch = (gameId: number, side: 'away' | 'home') => void
+
+export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Line[]; onMatch?: OpenMatch }) {
   const slots = useMemo(() => couponsOf(lines), [lines])
   // Before player bets, Matches Only is the same picks as Highest Confidence: one wide slip holds both
   // (Can 2026-11-22), so Surprise still ends the row.
@@ -123,6 +127,7 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
             onToggle={() => toggle(s.spec.kind)}
             pop={pop}
             onPop={setPop}
+            onMatch={onMatch}
           />
         ))}
       </ol>
@@ -270,6 +275,7 @@ function KuponSlip({
   onToggle,
   pop,
   onPop,
+  onMatch,
 }: {
   slot: CouponSlot
   waiting: boolean
@@ -280,6 +286,7 @@ function KuponSlip({
   onToggle: () => void
   pop: string | null
   onPop: (id: string | null) => void
+  onMatch?: OpenMatch
 }) {
   const { spec, coupon: c } = slot
   const id = `ic-ku-${spec.kind}`
@@ -475,7 +482,7 @@ function KuponSlip({
         <>
           <ol className="ic-ku-picks" id={`${id}-picks`} aria-label={`${spec.title} picks`}>
             {c.legs.map((l, i) => (
-              <KuponPick key={l.id} leg={l} id={`${id}-${i}`} pop={pop} onPop={onPop} />
+              <KuponPick key={l.id} leg={l} id={`${id}-${i}`} pop={pop} onPop={onPop} onMatch={onMatch} />
             ))}
           </ol>
           <p className="ic-ku-foot">
@@ -557,16 +564,19 @@ function KuponPick({
   id,
   pop,
   onPop,
+  onMatch,
 }: {
   leg: Leg
   id: string
   pop: string | null
   onPop: (id: string | null) => void
+  onMatch?: OpenMatch
 }) {
   const g = l.line.game
   const p = pctOf(l.chance)
   const face = l.kind === 'game' ? betFace(l.line) : null
   const side = face?.dot ?? (l.kind === 'player' ? l.line.team : l.line.team)
+  const sideOf: 'away' | 'home' = side === g.home ? 'home' : 'away'
   const matchup = (
     <>
       {g.away === side ? <b>{g.away}</b> : <span>{g.away}</span>} @{' '}
@@ -587,41 +597,82 @@ function KuponPick({
   ]
     .filter(Boolean)
     .join(', ')
+  // A player pick's matchup opens the match card too (his name opens his player card).
+  const matchLink =
+    l.kind === 'player' && onMatch ? (
+      <button
+        type="button"
+        className="ic-ku-mu"
+        aria-haspopup="dialog"
+        aria-label={`${g.away} @ ${g.home}: open the match form`}
+        onClick={() => onMatch(g.game_id, sideOf)}
+      >
+        {matchup}
+      </button>
+    ) : (
+      matchup
+    )
+  const status =
+    res === 'won' ? (
+      <span className="res ok" aria-hidden="true">
+        <Tick />
+        <span className="nw">{got}</span>
+      </span>
+    ) : res === 'lost' ? (
+      <span className="res no" aria-hidden="true">
+        <Cross />
+        <b>Lost</b>
+        <span>·</span>
+        <span className="nw">{got}</span>
+      </span>
+    ) : res === 'void' ? (
+      <span className="res vd" aria-hidden="true">
+        <span className="dash">–</span>
+        <span>Sat out</span>
+      </span>
+    ) : l.kind === 'player' ? (
+      <span className="sub" aria-hidden={onMatch ? undefined : true}>
+        {matchLink}
+        <span aria-hidden="true">
+          {' '}
+          · <span className="num">{clock(g.tip)}</span>
+        </span>
+      </span>
+    ) : (
+      <span className="sub" aria-hidden="true">
+        {MARKET[l.stat]} · <span className="num">{clock(g.tip)}</span>
+      </span>
+    )
   return (
     <li className={`ic-ku-pick${res === 'lost' ? ' broke' : res === 'void' ? ' void' : ''}`}>
       <span className="sr-only">{sr}</span>
       <Face leg={l} />
-      <span className="who">
-        {l.kind === 'player' ? (
-          <PickName line={l.line} />
-        ) : (
+      {l.kind === 'game' && onMatch ? (
+        <button
+          type="button"
+          className="who ic-ku-match"
+          aria-haspopup="dialog"
+          aria-label={`${g.away} @ ${g.home}, ${MARKET[l.stat]}: open the match form`}
+          onClick={() => onMatch(g.game_id, sideOf)}
+        >
           <span className="nm mu" aria-hidden="true">
             {matchup}
+            <CaretRight className="ic-ku-caret" size={13} weight="bold" aria-hidden="true" />
           </span>
-        )}
-        {res === 'won' ? (
-          <span className="res ok" aria-hidden="true">
-            <Tick />
-            <span className="nw">{got}</span>
-          </span>
-        ) : res === 'lost' ? (
-          <span className="res no" aria-hidden="true">
-            <Cross />
-            <b>Lost</b>
-            <span>·</span>
-            <span className="nw">{got}</span>
-          </span>
-        ) : res === 'void' ? (
-          <span className="res vd" aria-hidden="true">
-            <span className="dash">–</span>
-            <span>Sat out</span>
-          </span>
-        ) : (
-          <span className="sub" aria-hidden="true">
-            {l.kind === 'player' ? matchup : MARKET[l.stat]} · <span className="num">{clock(g.tip)}</span>
-          </span>
-        )}
-      </span>
+          {status}
+        </button>
+      ) : (
+        <span className="who">
+          {l.kind === 'player' ? (
+            <PickName line={l.line} />
+          ) : (
+            <span className="nm mu" aria-hidden="true">
+              {matchup}
+            </span>
+          )}
+          {status}
+        </span>
+      )}
       <span className="bet" aria-hidden="true">
         <span className="lab">
           {l.kind === 'player' ? (
