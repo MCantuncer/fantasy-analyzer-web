@@ -514,7 +514,7 @@
   align-self: start;
   width: 184px;
   height: 184px;
-  margin-top: 22px;
+  margin-top: 10px;
   border-radius: var(--radius-tile);
   background:
     radial-gradient(95% 80% at 50% 115%, color-mix(in oklab, var(--tc) 46%, transparent) 0%, transparent 74%),
@@ -528,23 +528,29 @@
     radial-gradient(70% 55% at 50% 0%, rgb(255 255 255 / 0.7), transparent 80%),
     var(--raised);
 }
-/* The cutout's head rises about 12px above the tile; the bottom keeps the tile's corners. */
+/* The photo sits inside the tile: clipped to its corners and kept above the 3px team edge. */
+.mf-gb-face .ph {
+  position: absolute;
+  inset: 0 0 3px;
+  overflow: hidden;
+  border-radius: var(--radius-tile) var(--radius-tile) 0 0;
+}
 .mf-gb-face img,
 .mf-gb-face .sil {
   position: absolute;
   left: 50%;
-  bottom: 3px;
+  bottom: 0;
   transform: translateX(-50%);
-  clip-path: inset(-40px 0 0 0 round 0 0 var(--radius-tile) var(--radius-tile));
 }
+/* ESPN headshots are landscape (about 1.37:1): at 132% of the tile the head clears the top edge. */
 .mf-gb-face img {
-  width: 142%;
+  width: 132%;
   max-width: none;
   height: auto;
 }
 .mf-gb-face .sil {
   width: 100%;
-  height: calc(100% + 12px);
+  height: 100%;
   fill: #4a423a;
 }
 :root[data-theme='light'] .mf-gb-face .sil {
@@ -552,12 +558,12 @@
 }
 .mf-gb-face .lg {
   position: absolute;
-  right: -10px;
-  bottom: -10px;
+  right: -8px;
+  bottom: -8px;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--surface);
 }
@@ -1060,17 +1066,17 @@
   .mf-gb-face {
     width: 112px;
     height: 112px;
-    margin-top: 12px;
+    margin-top: 4px;
   }
   .mf-gb-face .lg {
-    right: -8px;
-    bottom: -8px;
-    width: 36px;
-    height: 36px;
-  }
-  .mf-gb-face .lg img {
+    right: -6px;
+    bottom: -6px;
     width: 30px;
     height: 30px;
+  }
+  .mf-gb-face .lg img {
+    width: 24px;
+    height: 24px;
   }
   .mf-gb-id {
     align-self: center;

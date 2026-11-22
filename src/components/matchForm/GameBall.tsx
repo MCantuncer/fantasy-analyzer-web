@@ -119,14 +119,15 @@ export function GameBall({
   )
 }
 
-/** The 184px face (112px on phones). ESPN's full headshots are cutouts, so the head rises above the
- *  tile; the club logo sits on its corner. */
+/** The 184px face (112px on phones). The photo is clipped to the tile, above its 3px team edge;
+ *  the club logo sits on the corner. */
 function HeroFace({ star }: { star: FormStar }) {
   const [failed, setFailed] = useState(false)
   const light = HERO_LIGHT[star.team] ?? teamLight(star.team) ?? 'var(--track)'
   return (
     <span className="mf-gb-face" style={{ '--tc': light } as CSSProperties} aria-hidden="true">
-      {star.player_id > 0 && !failed ? (
+      <span className="ph">
+        {star.player_id > 0 && !failed ? (
         <img
           src={headshotUrl(star.player_id)}
           alt=""
@@ -139,9 +140,10 @@ function HeroFace({ star }: { star: FormStar }) {
           <circle cx="20" cy="14.6" r="7.6" />
           <path d="M4.2 41c0-8.8 7-14.2 15.8-14.2S35.8 32.2 35.8 41z" />
         </svg>
-      )}
+        )}
+      </span>
       <span className="lg">
-        <TeamLogo abbrev={star.team} size={40} fallback />
+        <TeamLogo abbrev={star.team} size={30} fallback />
       </span>
     </span>
   )
