@@ -105,6 +105,10 @@
 .ic-ku-name h3.ic-ku-pair { display: flex; flex-direction: column; gap: 4px; min-width: 0; white-space: normal; }
 .ic-ku-also { display: flex; align-items: center; gap: 8px; }
 .ic-ku-slip.wide .ic-ku-name .ku-tag.merged { margin-top: 1px; }
+/* under the two names, above Total odds: the one line that says why they share a slip */
+.ic-ku-note.ic-ku-until { margin: 8px 0 14px; color: var(--text-2); }
+.ic-ku-until .ic-ku-ico { stroke: var(--text-2); }
+.ic-ku-until + .ic-ku-heroes { margin-top: 0; }
 .ic-ku-chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease-out; }
 
 .ic-ku-heroes { display: grid; grid-template-columns: auto minmax(0, 1fr); margin-top: 10px; }
