@@ -386,6 +386,12 @@ function KuponSlip({
             </span>
           )}
         </div>
+        {also && !done && (
+          <p className="ic-ku-note ic-ku-until">
+            <Ico k="clock" size={14} />
+            <span>Same picks until player bets come in</span>
+          </p>
+        )}
         <div className="ic-ku-heroes">
           <div className="tot">
             <span className="lab">Total odds</span>
@@ -444,14 +450,6 @@ function KuponSlip({
           <p className="ic-ku-note">
             <Ico k="clock" size={14} />
             <span>Game lines only for now · may change when player bets come in</span>
-          </p>
-        )}
-        {also && !done && (
-          <p className="ic-ku-note">
-            <Ico k="clock" size={14} />
-            <span>
-              Same <b className="num">{n}</b> game picks for both until player bets come in, then they split.
-            </span>
           </p>
         )}
         {sameAs && (
