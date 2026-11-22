@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { couponsOf, fmtOdds, pays } from '../lib/coupons'
+import { couponsOf, fmtOdds } from '../lib/coupons'
 import type { CouponKind, CouponSlot, Leg } from '../lib/coupons'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
@@ -46,7 +46,6 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
     }
   }
   const won = settled.filter((s) => s.coupon!.result === 'won')
-  const back = won.reduce((a, s) => a + pays(10, s.coupon!.odds), 0)
   return (
     <section className="ic-ku ic-ku-sheet" aria-labelledby="ic-ku-h">
       <div className="ic-ku-head">
@@ -78,12 +77,6 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
             <span>
               <b className="num">{won.length}</b> of <b className="num">{settled.length}</b> <K s="Kupons" /> won
             </span>
-            <span>
-              <b className="num">{settled.length * 10}</b> TL in
-            </span>
-            <span className={back > settled.length * 10 ? 'up' : undefined}>
-              <b className="num">{back}</b> TL back
-            </span>
           </>
         ) : (
           <>
@@ -95,13 +88,9 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
               <b className="num">{built.length}</b> <K s={built.length === 1 ? 'Kupon' : 'Kupons'} />
               {waiting ? ' ready' : ''}
             </span>
-            {waiting ? (
+            {waiting && (
               <span>
                 Players Only after <b className="num">19:00</b>
-              </span>
-            ) : (
-              <span>
-                Stake <b className="num">10</b> TL each
               </span>
             )}
             {checked && (
@@ -307,10 +296,7 @@ function KuponSlip({
                   </b>
                   <span className="aim">
                     <span className="nw">
-                      Aiming for ~<b className="num">{aim}</b> ·
-                    </span>{' '}
-                    <span className="nw">
-                      10 TL pays ~<b className="num">{Math.round(spec.target * 10)}</b> TL
+                      Aiming for total odds of about <b className="num">{aim}</b>
                     </span>
                   </span>
                 </>
@@ -334,7 +320,7 @@ function KuponSlip({
   const gameOnly = waiting && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
   const openLabel = done
     ? `${spec.title}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
-    : `${spec.title}: total odds ${fmtOdds(c.listed)}, 10 TL pays ${pays(10, c.listed)} TL. Show the ${n} picks`
+    : `${spec.title}: total odds ${fmtOdds(c.listed)}. Show the ${n} picks`
   return (
     <li
       className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}`}
@@ -393,15 +379,7 @@ function KuponSlip({
                 {c.broke.length > 2 && <span className="got">+{c.broke.length - 2}</span>}
               </div>
             )
-          ) : (
-            <div className="pay">
-              <span className="lab">10 TL {c.result === 'won' ? 'paid' : 'pays'}</span>
-              <b className="num big">
-                {pays(10, c.result === 'won' ? c.odds : c.listed)}
-                <small>TL</small>
-              </b>
-            </div>
-          )}
+          ) : null}
         </div>
         <p className="ic-ku-odds">
           <span>

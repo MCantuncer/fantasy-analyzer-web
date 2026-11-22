@@ -89,7 +89,7 @@
 .ic-ku-name .cnt { display: none; }
 .ic-ku-chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease-out; }
 
-.ic-ku-heroes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 10px; }
+.ic-ku-heroes { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 10px; }
 .ic-ku-heroes > div { display: flex; flex-direction: column; min-width: 0; }
 .ic-ku-heroes .pay { padding-left: 14px; border-left: 1px solid var(--divider); }
 .ic-ku-heroes .tot { padding-right: 14px; }
