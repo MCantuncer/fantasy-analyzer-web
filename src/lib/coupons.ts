@@ -197,7 +197,8 @@ export interface CouponSlot {
   same: CouponKind | null
 }
 
-/** The night's four coupons, safest to boldest; ones the night can't fill go last, with why. */
+/** The night's four coupons, always in the same order (Can 2026-11-22: Surprise stays 4th); one the
+ *  night can't fill keeps its place, with why. */
 export function couponsOf(lines: Line[]): CouponSlot[] {
   const pool = candidates(lines)
   const players = pool.some((c) => c.kind === 'player')
@@ -212,7 +213,7 @@ export function couponsOf(lines: Line[]): CouponSlot[] {
     const twin = slot.coupon && out.slice(0, i).find((o) => o.coupon && key(o.coupon) === key(slot.coupon!))
     if (twin) slot.same = twin.spec.kind
   })
-  return [...out.filter((o) => o.coupon), ...out.filter((o) => !o.coupon)]
+  return out
 }
 
 /** Total odds as iddaa prints them: two decimals. */

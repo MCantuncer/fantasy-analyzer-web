@@ -102,13 +102,13 @@ describe('ready-made coupons', () => {
     expect(matches.coupon!.legs.every((l) => l.kind === 'game')).toBe(true)
   })
 
-  it('waits for player bets, and says when the night is too short for a coupon', () => {
+  it('waits for player bets, says when the night is too short, and keeps the order', () => {
     const noProps = SIX().map((g) => ({ ...g, players: [] }))
     const slots = couponsOf(linesOf(night(noProps), NOW))
     expect(slots.map((s) => [s.spec.kind, s.why, s.same])).toEqual([
       ['safe', null, null],
+      ['players', 'waiting', null], // keeps its place: the order never changes (Can 2026-11-22)
       ['matches', null, 'safe'], // the same game picks as Highest Confidence until player bets come in
-      ['players', 'waiting', null],
       ['surprise', 'short', null], // five game picks can't reach 17
     ])
     const two = couponsOf(linesOf(night(noProps.slice(0, 2)), NOW))
