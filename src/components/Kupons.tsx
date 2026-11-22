@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { couponsOf, fmtOdds } from '../lib/coupons'
-import type { CouponKind, CouponSlot, Leg } from '../lib/coupons'
+import type { CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
@@ -16,6 +16,10 @@ import './Kupons.css'
  *  reads as a slip in translation. Comparison only: nothing here feeds the model. */
 export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
   const slots = useMemo(() => couponsOf(lines), [lines])
+  // Before player bets, Matches Only is the same picks as Highest Confidence: one wide slip holds both
+  // (Can 2026-11-22), so Surprise still ends the row.
+  const twin = slots.find((s) => s.spec.kind === 'matches' && s.same === 'safe') ?? null
+  const shown = twin ? slots.filter((s) => s !== twin) : slots
   const built = slots.filter((s) => s.coupon)
   const [open, setOpen] = useState<CouponKind | null>(() => remembered() ?? built[0]?.spec.kind ?? null)
   const [pop, setPop] = useState<string | null>(null)
@@ -107,11 +111,12 @@ export function Kupons({ data, lines }: { data: BookCompare; lines: Line[] }) {
         )}
       </div>
       <ol className="ic-ku-rack">
-        {slots.map((s) => (
+        {shown.map((s) => (
           <KuponSlip
             key={s.spec.kind}
             slot={s}
             waiting={waiting}
+            also={s.spec.kind === 'safe' && twin ? twin.spec : null}
             sameAs={s.same ? slots.find((o) => o.spec.kind === s.same)!.spec.title : null}
             open={open === s.spec.kind}
             onToggle={() => toggle(s.spec.kind)}
@@ -252,6 +257,7 @@ function wordsOf(l: Leg): string {
 function KuponSlip({
   slot,
   waiting,
+  also = null,
   sameAs,
   open,
   onToggle,
@@ -260,6 +266,8 @@ function KuponSlip({
 }: {
   slot: CouponSlot
   waiting: boolean
+  /** A second Kupon with exactly these picks, shown in the same slip (Matches Only before player bets). */
+  also?: CouponSpec | null
   sameAs: string | null
   open: boolean
   onToggle: () => void
@@ -317,18 +325,29 @@ function KuponSlip({
   const n = c.legs.length
   const done = c.result != null
   const wonN = c.legs.filter((l) => l.result === 'won').length
-  const gameOnly = waiting && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
+  const gameOnly = waiting && !also && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
   const openLabel = done
-    ? `${spec.title}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
-    : `${spec.title}: total odds ${fmtOdds(c.listed)}, probability about ${pctOf(c.chance)}%. Show the ${n} picks`
+    ? `${spec.title}${also ? ` and ${also.title}` : ''}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
+    : `${spec.title}${also ? ` and ${also.title}` : ''}: total odds ${fmtOdds(c.listed)}, probability about ${pctOf(c.chance)}%. Show the ${n} picks`
   return (
     <li
-      className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}`}
+      className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}${also ? ' wide' : ''}`}
     >
       <div className="ic-ku-stub">
         <div className="ic-ku-name">
           <Ico k={spec.kind} />
-          <h3>{spec.title}</h3>
+          <h3>
+            {spec.title}
+            {also && (
+              <>
+                <span className="ic-ku-and"> &amp; </span>
+                <span className="ic-ku-also">
+                  <Ico k={also.kind} />
+                  {also.title}
+                </span>
+              </>
+            )}
+          </h3>
           {c.result === 'won' ? (
             <span className="ku-tag ok">
               <Tick />
@@ -409,6 +428,14 @@ function KuponSlip({
           <p className="ic-ku-note">
             <Ico k="clock" size={14} />
             <span>Game lines only for now · may change when player bets come in</span>
+          </p>
+        )}
+        {also && !done && (
+          <p className="ic-ku-note">
+            <Ico k="clock" size={14} />
+            <span>
+              No player bets yet, so both are these {n} game picks · they split when player bets come in
+            </span>
           </p>
         )}
         {sameAs && (
