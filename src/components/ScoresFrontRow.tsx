@@ -229,6 +229,15 @@ function TabJoin({
     const p = panel.current
     const el = svg.current
     if (!s || !c || !p || !el) return
+    if (hidden) {
+      // Closing: the join fades with the card's ring and stays gone. The box shrinking fires the resize
+      // redraw every frame, which must not bring the lines back while the rest folds away.
+      el.classList.add('let-go')
+      p.style.setProperty('--rl', 'var(--radius)')
+      p.style.setProperty('--rr', 'var(--radius)')
+      lastX.current = null
+      return
+    }
     const sr = s.getBoundingClientRect()
     const cr = c.getBoundingClientRect()
     const gap = parseFloat(getComputedStyle(s).getPropertyValue('--sc-gap')) || 12
@@ -295,6 +304,11 @@ function TabJoin({
   useLayoutEffect(() => {
     draw.current(true)
   }, [gameId, ca, cb])
+
+  // Closing starts: let go at once, in step with the card's ring.
+  useLayoutEffect(() => {
+    if (hidden) draw.current()
+  }, [hidden])
 
   // Resizes (the grid changing columns, the box growing) redraw it in place.
   useEffect(() => {
