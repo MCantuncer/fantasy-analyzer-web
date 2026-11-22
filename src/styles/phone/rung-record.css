@@ -1,0 +1,54 @@
+/* Our Estimates, the Running Record on phones: the ribbon stacks its figures, the tiles go two by
+   two, a shorter chart, and the said-vs-happened rows narrow their printed column. */
+@media (max-width: 719px) {
+  .vr-ribbon {
+    gap: 10px;
+    padding: 6px 12px;
+    min-height: 56px;
+  }
+  .vr-ribbon-figs {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    font-size: 13px;
+  }
+  .vr-rec {
+    margin-top: 20px;
+    padding: 18px 14px;
+  }
+  .vr-rec-title {
+    font-size: 19px;
+  }
+  .vr-rec-gloss {
+    font-size: 13.5px;
+  }
+  .vr-rec-top {
+    gap: 12px 24px;
+  }
+  .vr-rec-bal b {
+    font-size: 40px;
+  }
+  .vr-rec-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .vr-rec-tile:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+  .vr-rec-tile .big {
+    font-size: 22px;
+  }
+  .vr-rec-card {
+    padding: 14px 12px;
+  }
+  .vr-rec-table th,
+  .vr-rec-table td {
+    padding: 8px 4px;
+  }
+  .vr-cal {
+    grid-template-columns: 52px minmax(0, 1fr) 64px;
+    gap: 6px 8px;
+  }
+  .vr-early {
+    flex-wrap: wrap;
+  }
+}
