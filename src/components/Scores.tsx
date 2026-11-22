@@ -61,6 +61,8 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const [root, setRoot] = useState<HTMLDivElement | null>(null)
   const pinned = usePinnedDays(root)
   const [lens, setLens] = useState<Lens>('all')
+  // While a game's box score is open the summary line steps aside (Can, 2026-11-22).
+  const [boxOpen, setBoxOpen] = useState(false)
   const qc = useQueryClient()
   const key = [leagueId, season, day, teamId, creds?.swid ?? null] as const
   // The games come first, straight from the NBA calendar; scores, box scores and who sits fill in after.
@@ -197,7 +199,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
             all={data.games.length}
             mine={pending ? null : mineGames.length}
           />
-          <p className="sl-summary sl-short">
+          <p className={`sl-summary sl-short${boxOpen ? ' sl-away' : ''}`} aria-hidden={boxOpen || undefined}>
             {pending ? (
               'Counting your players'
             ) : players ? (
@@ -210,7 +212,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           </p>
         </div>
       </div>
-      <p className="sl-summary sl-long">
+      <p className={`sl-summary sl-long${boxOpen ? ' sl-away' : ''}`} aria-hidden={boxOpen || undefined}>
         {pending ? (
           'Counting your players'
         ) : (
@@ -265,6 +267,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
             pending={pending}
             failed={failed}
             onRetry={() => scores.refetch()}
+            onOpenChange={setBoxOpen}
           />
         </>
       )}
@@ -358,6 +361,7 @@ function GameBoard({
   pending,
   failed,
   onRetry,
+  onOpenChange,
 }: {
   leagueId: number
   season: number
@@ -373,6 +377,8 @@ function GameBoard({
   pending: boolean
   failed: boolean
   onRetry: () => void
+  /** True while a box is open; false as soon as it starts to close, so the summary fades back in step. */
+  onOpenChange?: (open: boolean) => void
 }) {
   const grid = useRef<HTMLDivElement>(null)
   const cols = useGridColumns(grid)
@@ -392,6 +398,10 @@ function GameBoard({
       setClosing(false)
     }
   }, [picked, open])
+  const showing = open != null && !closing
+  useEffect(() => onOpenChange?.(showing), [showing, onOpenChange])
+  // A new day (or an empty Mine list) drops the board: nothing is open any more.
+  useEffect(() => () => onOpenChange?.(false), [onOpenChange])
 
   const rowEnd = open && !strip ? rowEndOf(ids, open.id, cols) : null
   const openable = games.filter(canOpen).map((g) => g.id)
