@@ -280,3 +280,24 @@ export function legWhy(l: Leg): string | null {
   if (l.kind === 'player' && (l.line.actual == null || l.line.ours == null || l.line.actual >= l.line.ours)) return null
   return l.line.why.text
 }
+
+/** "Why not" (Can 2026-11-22): single long shots worth a try, where our chance is clearly above the
+ *  chance the odds need (1 / odds). Kept to ones we can stand behind: player rungs only (our rung
+ *  chances matched what happened on the settled nights), at least a 1-in-5 chance, odds of 2.50 or
+ *  more, and at least 5 points over what the odds need. One per player (his best value), the best
+ *  WHY_NOT_MAX by value, so one player's night is never four picks. */
+export const WHY_NOT = { minOdd: 2.5, minChance: 0.2, minEdge: 0.05 }
+export const WHY_NOT_MAX = 4
+
+export function whyNot(lines: Line[]): Leg[] {
+  const value = (l: Leg) => l.chance * l.odd - 1
+  const best = new Map<string, Leg>()
+  for (const c of candidates(lines)) {
+    if (c.kind !== 'player' || c.odd < WHY_NOT.minOdd - 1e-9 || c.chance < WHY_NOT.minChance) continue
+    if (c.chance - 1 / c.odd < WHY_NOT.minEdge - 1e-9) continue
+    const who = c.line.playerId ? `id:${c.line.playerId}` : `n:${c.line.name}`
+    const had = best.get(who)
+    if (!had || value(c) > value(had) + 1e-9 || (Math.abs(value(c) - value(had)) <= 1e-9 && c.chance > had.chance)) best.set(who, c)
+  }
+  return [...best.values()].sort((a, b) => value(b) - value(a)).slice(0, WHY_NOT_MAX)
+}

@@ -1,7 +1,7 @@
 import { CaretRight } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { couponsOf, fmtOdds, legWhy } from '../lib/coupons'
+import { WHY_NOT, couponsOf, fmtOdds, legWhy, whyNot } from '../lib/coupons'
 import type { CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
@@ -21,6 +21,7 @@ export type OpenMatch = (gameId: number, side: 'away' | 'home') => void
 
 export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Line[]; onMatch?: OpenMatch }) {
   const slots = useMemo(() => couponsOf(lines), [lines])
+  const shots = useMemo(() => whyNot(lines), [lines])
   // Before player bets, Matches Only is the same picks as Highest Confidence: one wide slip holds both
   // (Can 2026-11-22), so Surprise still ends the row.
   const twin = slots.find((s) => s.spec.kind === 'matches' && s.same === 'safe') ?? null
@@ -131,6 +132,7 @@ export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Lin
           />
         ))}
       </ol>
+      {shots.length > 0 && <WhyNot legs={shots} pop={pop} onPop={setPop} onMatch={onMatch} />}
       <Rules />
     </section>
   )
@@ -839,6 +841,74 @@ function ChancePop({ leg: l, id, onPop }: { leg: Leg; id: string; onPop: (id: st
 }
 
 /** How we build them: one line, and More for the rules. */
+/** Why not (Can 2026-11-22): single long shots where our chance beats what the odds need, each in
+ *  its own slip like a one-pick Kupon, with the two chances side by side. */
+function WhyNot({
+  legs,
+  pop,
+  onPop,
+  onMatch,
+}: {
+  legs: Leg[]
+  pop: string | null
+  onPop: (id: string | null) => void
+  onMatch?: OpenMatch
+}) {
+  return (
+    <section className="ic-ku-wn" aria-labelledby="ic-ku-wn-h">
+      <div className="ic-ku-wn-head">
+        <h3 id="ic-ku-wn-h">
+          <svg className="ic-ku-ico" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+            <circle cx="10" cy="10" r="7" />
+            <circle cx="10" cy="10" r="3.2" />
+            <path d="M10 1.8v3M10 15.2v3M1.8 10h3M15.2 10h3" />
+          </svg>
+          Why not
+        </h3>
+        <p>
+          Single bets at <span className="num">{fmtOdds(WHY_NOT.minOdd)}</span>+ where our chance is clearly above
+          what the odds need.
+        </p>
+      </div>
+      <ol className="ic-ku-rack">
+        {legs.map((l, i) => {
+          const id = `ic-ku-wn-${i}`
+          const ours = pctOf(l.chance)
+          const need = pctOf(1 / l.odd)
+          const done = l.result != null && l.result !== 'void'
+          return (
+            <li
+              key={l.id}
+              className={`ic-ku-slip wn${l.result === 'won' ? ' won' : ''}${l.result === 'lost' ? ' lost' : ''}`}
+            >
+              <ol className="ic-ku-picks" aria-label="Why not pick">
+                <KuponPick leg={l} id={id} pop={pop} onPop={onPop} onMatch={onMatch} />
+              </ol>
+              <div
+                className="ic-ku-wn-bars"
+                role="img"
+                aria-label={`The odds need ${need}%, our chance is ${ours}%`}
+                style={{ '--need': `${need}%`, '--ours': `${ours}%` } as CSSProperties}
+              >
+                <span className="who">Odds need</span>
+                <span className="bar need">
+                  <i />
+                </span>
+                <b className="num v">{need}%</b>
+                <span className="who">{done ? 'Ours was' : 'Ours'}</span>
+                <span className="bar ours">
+                  <i />
+                </span>
+                <b className="num v">{ours}%</b>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
 function Rules() {
   const [more, setMore] = useState(false)
   return (
@@ -871,6 +941,11 @@ function Rules() {
           <li>A player pick can be any rung iddaa prices (18+ instead of our usual 22+), with our chance for that rung.</li>
           <li>
             If a player sits out, iddaa counts that pick at <span className="num">1.00</span>.
+          </li>
+          <li>
+            Why not: single player bets at odds of <span className="num">2.50</span>+ where our chance is at least{' '}
+            <span className="num">20%</span> and <span className="num">5</span> points over what the odds need (
+            <span className="num">1</span> ÷ odds). One per player, at most <span className="num">4</span>.
           </li>
         </ul>
       )}

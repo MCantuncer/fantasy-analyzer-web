@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWhy, legWords, pays } from './coupons'
+import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWhy, legWords, pays, whyNot } from './coupons'
 import type { Leg } from './coupons'
 import { linesOf } from './iddaaCompare'
-import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from './iddaaCompare'
+import type { BookCompare, CompareGame, CompareMarket, ComparePlayer, Line } from './iddaaCompare'
 
 const BANDS = { pts: 5, reb: 2, ast: 2, stl: 1, blk: 1, three_pm: 1, team_pts: 8, total: 12, margin: 8 }
 const NOW = new Date('2026-11-22T12:00:00Z')
@@ -212,5 +212,29 @@ describe('why a lost leg lost', () => {
     expect(legWhy(leg('player', 'lost', 24, 17))).toBe(why.text)
     // a lost rung while he beat our number: the reason explains a different miss, so say nothing
     expect(legWhy(leg('player', 'lost', 24, 26))).toBeNull()
+  })
+
+  it('Why not: one rung per player, 2.50+, 20%+ and 5 points over what the odds need, best value first', () => {
+    const rung = (n: number, odd: number, ours: number) => ({ n, odd, ours, book: 1 / odd, value: ours * odd - 1, hit: null })
+    const player = (name: string, game: number, rungs: ReturnType<typeof rung>[]) =>
+      ({
+        kind: 'player',
+        stat: 'AST',
+        name,
+        playerId: game * 10,
+        game: { game_id: game, status: 'scheduled', tip: '2026-11-23T01:30:00Z' },
+        rungs,
+        played: null,
+        actual: null,
+      }) as unknown as Line
+    const lines = [
+      // Pritchard: 9+ is the best value but under 20%, so 8+ (24% vs 17% needed) is his one pick
+      player('Payton Pritchard', 1, [rung(6, 2.3, 0.5), rung(7, 3.56, 0.36), rung(8, 5.99, 0.24), rung(9, 10.85, 0.14)]),
+      player('Long Shot', 2, [rung(3, 30, 0.05)]), // a 1-in-20 never counts
+      player('Short Price', 3, [rung(2, 2.0, 0.6)]), // under 2.50
+      player('Thin Edge', 4, [rung(4, 3.0, 0.36)]), // 36% vs 33% needed: not clear enough
+    ]
+    const picks = whyNot(lines)
+    expect(picks.map((l) => [l.line.name, l.bet, l.odd])).toEqual([['Payton Pritchard', '8+', 5.99]])
   })
 })
