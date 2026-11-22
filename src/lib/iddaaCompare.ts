@@ -710,14 +710,17 @@ export function betFace(l: Line): { q: string; hero: string; num: boolean; dot: 
   }
 }
 
-/** "PHI by 6.5": a margin from a line's pick side, said from whoever it favours. */
+/** "PHI −6.5": a margin written the way a handicap barem is (Can 2026-11-22: "by" is too much). */
+const lead = (team: string, by: number) => (by === 0 ? 'Level' : `${team} ${num(-by)}`)
+
+/** "PHI −6.5": a margin from a line's pick side, said from whoever it favours. */
 function byWords(l: Line, v: number): string {
-  return `${v >= 0 ? l.team : l.other} by ${num(Math.abs(Math.round(v * 10) / 10))}`
+  return lead(v >= 0 ? l.team : l.other, Math.abs(Math.round(v * 10) / 10))
 }
 
 /** Our number on the ticket before the game: "Ours PHI by 6.5", "Ours 229.3". */
 export function oursLine(l: Line, call: GameCallView | null): string | null {
-  if (l.stat === 'WIN') return call ? `Ours ${call.pick} by ${num(Math.round(call.margin))}` : null
+  if (l.stat === 'WIN') return call ? `Ours ${lead(call.pick, Math.round(call.margin))}` : null
   if (l.ours == null) return null
   if (l.stat === 'MAR') return `Ours ${byWords(l, l.ours)}`
   return `Ours ${num(Math.round(l.ours * 10) / 10)}`
@@ -730,7 +733,7 @@ export function gotLine(l: Line): string | null {
   if (l.stat === 'WIN') {
     if (g.away_score == null || g.home_score == null) return null
     const homeWon = g.home_score > g.away_score
-    return `Got ${homeWon ? g.home : g.away} by ${Math.abs(g.home_score - g.away_score)}`
+    return `Got ${lead(homeWon ? g.home : g.away, Math.abs(g.home_score - g.away_score))}`
   }
   if (l.actual == null) return null
   if (l.stat === 'MAR') return `Got ${byWords(l, l.actual)}`
