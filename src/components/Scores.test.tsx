@@ -385,6 +385,27 @@ describe('Scores', () => {
     expect(hasBox()).toBe(false)
   })
 
+  it('hides the games summary line while a box score is open', async () => {
+    mockApi()
+    renderScores()
+    await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
+    const summary = screen.getByText(/All 2 games · 1 of your players in action/)
+    const hou = screen.getByRole('button', { name: /HOU/ })
+    expect(summary).not.toHaveClass('sl-away')
+
+    fireEvent.click(hou)
+    expect(summary).toHaveClass('sl-away')
+    expect(summary).toHaveAttribute('aria-hidden', 'true')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(summary).not.toHaveClass('sl-away')
+    expect(summary).not.toHaveAttribute('aria-hidden')
+
+    fireEvent.click(hou)
+    expect(summary).toHaveClass('sl-away')
+    fireEvent.click(screen.getByRole('button', { name: 'Close box score' }))
+    expect(summary).not.toHaveClass('sl-away')
+  })
+
   it('closes a player card opened from the box score first, and the box score on the next Esc', async () => {
     const never = () => new Promise(() => {})
     mockApi({ '/api/player-card': never, '/api/player-card/extras': never })
