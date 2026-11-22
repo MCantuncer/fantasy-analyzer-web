@@ -1,9 +1,9 @@
 // Ready-made iddaa coupons for a night (Can 2026-11-22): a few picks whose odds multiply, built from
 // iddaa's own priced lines and our chance for each. Comparison only: nothing here feeds the model.
 //
-// Rules: only the book's own lines with odds over MIN_ODD; at most one pick per game (picks from one
-// game move together, so their chances can't simply be multiplied; Players Only allows two different
-// players from one game, spec.perGame); the coupon's chance is our chances
+// Rules: only the book's own lines with odds over MIN_ODD; at most two picks per game, and only ones
+// that barely move together (spec.perGame; Surprise keeps one), so their chances can be multiplied;
+// the coupon's chance is our chances
 // multiplied. Among the sets whose total odds land in the coupon's range, the engine keeps the one with
 // the highest combined chance.
 import { MIN_ODD, STAT_UNIT } from './iddaaCompare'
@@ -20,21 +20,25 @@ export interface CouponSpec {
   min: number // legs
   max: number
   only: 'player' | 'game' | null
-  /** Set: the highest total odds in [lo, hi] whose combined chance stays at or above this, instead of
-   *  the likeliest set near the target (Surprise, Can 2026-11-22: "at least 10%, lower odds a bit"). */
+  /** A floor on our combined chance: no set under it is shown. */
   minChance?: number
-  /** Picks allowed from one game, never two from one player (default 1). Players Only takes 2 (Can
-   *  2026-11-22: "add a 3rd, 4th or 5th player bet if needed", so a two-game night isn't stuck on two
-   *  long rungs). Their chances still multiply, a fair read for two different players. */
+  /** Total odds the set should reach when it can (Surprise: 15). Below it, down to lo, a set only wins
+   *  when our chance times its odds is higher, so a 12 has to be clearly likelier than a 15. */
+  aimFrom?: number
+  /** Picks allowed from one game (default 1). Can 2026-11-22: "add a 3rd, 4th or 5th bet if needed" on
+   *  every Kupon but Surprise. A second pick from a game is only one that barely moves with the first,
+   *  so multiplying the chances stays honest: two different players, or the total beside a winner or
+   *  handicap pick. Never a game line with a player from that game, never winner with handicap. */
   perGame?: number
 }
 
 /** Safest to boldest, the order the page shows them in. */
 export const COUPONS: CouponSpec[] = [
-  { kind: 'safe', title: 'Highest Confidence', target: 4.5, lo: 4, hi: 5.5, min: 3, max: 4, only: null },
+  { kind: 'safe', title: 'Highest Confidence', target: 4.5, lo: 4, hi: 5.5, min: 3, max: 5, only: null, perGame: 2 },
   { kind: 'players', title: 'Players Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'player', perGame: 2 },
-  { kind: 'matches', title: 'Matches Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'game' },
-  { kind: 'surprise', title: 'Surprise', target: 15, lo: 8, hi: 20, min: 3, max: 7, only: null, minChance: 0.1 },
+  { kind: 'matches', title: 'Matches Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'game', perGame: 2 },
+  // Surprise: 15+ at 10%+ when it can, a likelier 12-15 when that is the better bet (Can 2026-11-22)
+  { kind: 'surprise', title: 'Surprise', target: 15, lo: 12, hi: 20, min: 3, max: 7, only: null, minChance: 0.1, aimFrom: 15 },
 ]
 
 /** One pick on a coupon. */
@@ -135,14 +139,37 @@ function frontier(cs: Leg[]): Leg[] {
 }
 const BUDGET = 400_000 // search steps, a safety net on big nights
 
-/** The set of legs (one per game) with the highest combined chance whose total odds sit in
+/** The set of legs (one per game unless spec.perGame) with the highest combined chance whose total odds sit in
  *  [lo, hi]; ties go to the total nearer the target. Branch and bound: adding a leg only ever lowers
  *  the chance and raises the odds, so a branch stops once it can't beat the best or is past hi. */
 export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
-  if (spec.minChance != null) return boldestSet(pool, spec, spec.minChance)
+  if (spec.aimFrom != null && spec.aimFrom > spec.lo) {
+    // the likeliest set from aimFrom up and the likeliest just under it; the balance leans a little to
+    // probability (odds count at the power 0.8), so 12 at 13% beats 15 at 10% (Can 2026-11-22) while
+    // 12 at 11% does not
+    const up = floored(likeliest(pool, { ...spec, lo: spec.aimFrom }), spec)
+    const under = floored(likeliest(pool, { ...spec, hi: spec.aimFrom - 1e-6 }), spec)
+    const score = (s: Leg[] | null) => (s ? product(s.map((l) => l.chance * l.odd ** BALANCE)) : -1)
+    return under && score(under) > score(up) + 1e-12 ? under : up
+  }
+  return floored(likeliest(pool, spec), spec)
+}
+
+const BALANCE = 0.8
+
+const floored = (set: Leg[] | null, spec: CouponSpec) =>
+  set && spec.minChance != null && product(set.map((l) => l.chance)) < spec.minChance - 1e-9 ? null : set
+
+/** What a pick is about inside its game: a player, the side (winner and handicap), or the total. */
+const subject = (c: Leg) => (c.kind === 'player' ? `p:${c.line.name}` : c.stat === 'TOT' ? 'total' : 'side')
+
+/** A second pick from a game only when it barely moves with the first (see perGame). */
+const fits = (c: Leg, taken: Leg[]) => taken.every((t) => t.kind === c.kind && subject(t) !== subject(c))
+
+function likeliest(pool: Leg[], spec: CouponSpec): Leg[] | null {
   const perGame = spec.perGame ?? 1
-  // one group per game, or per player when a game may give more than one pick
-  const groupOf = (c: Leg) => (perGame > 1 ? `${c.gameId}:${c.line.name}` : String(c.gameId))
+  // one group per game, or per subject when a game may give more than one pick
+  const groupOf = (c: Leg) => (perGame > 1 ? `${c.gameId}:${subject(c)}` : String(c.gameId))
   const byGroup = new Map<string, Leg[]>()
   for (const c of pool) byGroup.set(groupOf(c), [...(byGroup.get(groupOf(c)) ?? []), c])
   const groups = [...byGroup.values()].map(frontier).sort((a, b) => b[0].chance - a[0].chance)
@@ -154,10 +181,10 @@ export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
   let bestMiss = Infinity
   let steps = 0
   const pick: Leg[] = []
-  const used = new Map<number, number>() // picks taken from each game
+  const used = new Map<number, Leg[]>() // picks taken from each game
   const walk = (gi: number, logP: number, logO: number) => {
     if (++steps > BUDGET) return
-    if (pick.length >= spec.min && logO >= logLo) {
+    if (pick.length >= spec.min && logO >= logLo - 1e-9) {
       const miss = Math.abs(logO - logT)
       if (logP > bestP + 1e-9 || (Math.abs(logP - bestP) <= 1e-9 && miss < bestMiss)) {
         best = [...pick]
@@ -168,56 +195,16 @@ export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
     if (pick.length >= spec.max) return
     for (let g = gi; g < groups.length; g++) {
       const game = groups[g][0].gameId
-      if ((used.get(game) ?? 0) >= perGame) continue
+      const taken = used.get(game) ?? []
+      if (taken.length >= perGame) continue
       for (const c of groups[g]) {
         const p = logP + Math.log(c.chance)
         const o = logO + Math.log(c.odd)
-        if (o > logHi + 1e-9 || p <= bestP) continue
+        if (o > logHi + 1e-9 || p <= bestP || !fits(c, taken)) continue
         pick.push(c)
-        used.set(game, (used.get(game) ?? 0) + 1)
+        used.set(game, [...taken, c])
         walk(g + 1, p, o)
-        used.set(game, used.get(game)! - 1)
-        pick.pop()
-      }
-    }
-  }
-  walk(0, 0, 0)
-  return best
-}
-
-/** The set (one leg per game) with the highest total odds in [lo, hi] whose combined chance is still at
- *  least `floor`; ties go to the likelier set. Adding a leg only lowers the chance and raises the odds,
- *  so a branch stops once its chance falls under the floor or its odds pass hi. */
-function boldestSet(pool: Leg[], spec: CouponSpec, floor: number): Leg[] | null {
-  const byGame = new Map<number, Leg[]>()
-  for (const c of pool) byGame.set(c.gameId, [...(byGame.get(c.gameId) ?? []), c])
-  // every pick, not just each game's frontier: a long price with a fair chance is what this one wants
-  const games = [...byGame.values()].map((cs) => [...cs].sort((a, b) => b.odd - a.odd))
-  const logHi = Math.log(spec.hi)
-  const logLo = Math.log(spec.lo)
-  const logF = Math.log(floor)
-  let best: Leg[] | null = null
-  let bestO = -Infinity
-  let bestP = -Infinity
-  let steps = 0
-  const pick: Leg[] = []
-  const walk = (gi: number, logP: number, logO: number) => {
-    if (++steps > BUDGET) return
-    if (pick.length >= spec.min && logO >= logLo) {
-      if (logO > bestO + 1e-9 || (Math.abs(logO - bestO) <= 1e-9 && logP > bestP)) {
-        best = [...pick]
-        bestO = logO
-        bestP = logP
-      }
-    }
-    if (pick.length >= spec.max) return
-    for (let g = gi; g < games.length; g++) {
-      for (const c of games[g]) {
-        const p = logP + Math.log(c.chance)
-        const o = logO + Math.log(c.odd)
-        if (o > logHi + 1e-9 || p < logF - 1e-9) continue
-        pick.push(c)
-        walk(g + 1, p, o)
+        used.set(game, taken)
         pick.pop()
       }
     }
