@@ -267,9 +267,17 @@ function NightTabs({
   latest: number | undefined
   settled: boolean
 }) {
-  const nights = [...data.nights].reverse()
+  // Oldest on the left, tonight on the right, like a calendar (Can 2026-11-22: past days read
+  // as "after today" when they sat to the right). A long row starts scrolled to the open night.
+  const nights = data.nights
+  const row = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = row.current
+    const on = el?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (el && on) el.scrollLeft = Math.max(0, on.offsetLeft + on.offsetWidth - el.clientWidth + 16)
+  }, [data.day])
   return (
-    <div className="ic-nights" role="tablist" aria-label="Night">
+    <div className="ic-nights" role="tablist" aria-label="Night" ref={row}>
       {nights.map((n) => {
         const live = n.day === latest && !(n.day === data.day && settled)
         return (
