@@ -21,11 +21,12 @@ export interface CouponSpec {
   only: 'player' | 'game' | null
 }
 
+/** Safest to boldest, the order the page shows them in. */
 export const COUPONS: CouponSpec[] = [
-  { kind: 'safe', title: 'Highest confidence', target: 4.5, lo: 4, hi: 5.5, min: 3, max: 4, only: null },
+  { kind: 'safe', title: 'Highest Confidence', target: 4.5, lo: 4, hi: 5.5, min: 3, max: 4, only: null },
+  { kind: 'players', title: 'Players Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'player' },
+  { kind: 'matches', title: 'Matches Only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'game' },
   { kind: 'surprise', title: 'Surprise', target: 20, lo: 17, hi: 25, min: 3, max: 7, only: null },
-  { kind: 'players', title: 'Players only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'player' },
-  { kind: 'matches', title: 'Matches only', target: 4.5, lo: 4, hi: 5.5, min: 2, max: 5, only: 'game' },
 ]
 
 /** One pick on a coupon. */
@@ -47,12 +48,15 @@ export interface Leg {
 
 export interface Coupon {
   spec: CouponSpec
-  legs: Leg[]
-  odds: number // total odds (void legs count 1.00 once settled)
-  chance: number // ours, all legs multiplied
-  implied: number // what the total odds read as: 1 / odds
+  legs: Leg[] // in tip-off order
+  listed: number // total odds as built: every leg's odds multiplied
+  odds: number // what it pays on: void legs count 1.00 once settled
+  chance: number // ours as built, every leg's chance multiplied
+  implied: number // what the listed odds read as: 1 / listed
   /** won once every leg is in, lost at the first leg that loses, null while any is open. */
   result: 'won' | 'lost' | null
+  broke: Leg[] // the legs that lost it, in tip-off order
+  voided: Leg[] // players who sat out
 }
 
 const GAME_PICKS: Stat[] = ['WIN', 'MAR', 'TOT']
@@ -111,7 +115,16 @@ export function candidates(lines: Line[]): Leg[] {
   return out
 }
 
-const PER_GAME = 6 // the best few picks a game keeps for the search
+const PER_GAME = 8 // the most picks a game keeps for the search
+
+/** A game's picks worth searching: those no other pick beats on both chance and odds (any set using a
+ *  beaten pick does at least as well with the one that beats it), likeliest first. */
+function frontier(cs: Leg[]): Leg[] {
+  const sorted = [...cs].sort((a, b) => b.chance - a.chance || b.odd - a.odd)
+  const out: Leg[] = []
+  for (const c of sorted) if (!out.some((o) => o.odd >= c.odd && o.chance >= c.chance)) out.push(c)
+  return out.slice(0, PER_GAME)
+}
 const BUDGET = 400_000 // search steps, a safety net on big nights
 
 /** The set of legs (one per game) with the highest combined chance whose total odds sit in
@@ -120,9 +133,7 @@ const BUDGET = 400_000 // search steps, a safety net on big nights
 export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
   const byGame = new Map<number, Leg[]>()
   for (const c of pool) byGame.set(c.gameId, [...(byGame.get(c.gameId) ?? []), c])
-  const games = [...byGame.values()]
-    .map((cs) => cs.sort((a, b) => b.chance - a.chance || b.odd - a.odd).slice(0, PER_GAME))
-    .sort((a, b) => b[0].chance - a[0].chance)
+  const games = [...byGame.values()].map(frontier).sort((a, b) => b[0].chance - a[0].chance)
   const logHi = Math.log(spec.hi)
   const logLo = Math.log(spec.lo)
   const logT = Math.log(spec.target)
@@ -160,32 +171,52 @@ export function bestSet(pool: Leg[], spec: CouponSpec): Leg[] | null {
 const product = (xs: number[]) => xs.reduce((a, x) => a * x, 1)
 
 export function couponOf(spec: CouponSpec, legs: Leg[]): Coupon {
-  const sorted = [...legs].sort((a, b) => b.chance - a.chance)
-  const odds = product(sorted.map((l) => (l.result === 'void' ? 1 : l.odd)))
+  const sorted = [...legs].sort((a, b) => a.line.game.tip.localeCompare(b.line.game.tip) || b.chance - a.chance)
+  const listed = product(sorted.map((l) => l.odd))
   const open = sorted.some((l) => l.result == null)
-  const lost = sorted.some((l) => l.result === 'lost')
+  const broke = sorted.filter((l) => l.result === 'lost')
   return {
     spec,
     legs: sorted,
-    odds,
-    chance: product(sorted.filter((l) => l.result !== 'void').map((l) => l.chance)),
-    implied: 1 / odds,
-    result: lost ? 'lost' : open ? null : 'won',
+    listed,
+    odds: product(sorted.map((l) => (l.result === 'void' ? 1 : l.odd))),
+    chance: product(sorted.map((l) => l.chance)),
+    implied: 1 / listed,
+    result: broke.length ? 'lost' : open ? null : 'won',
+    broke,
+    voided: sorted.filter((l) => l.result === 'void'),
   }
 }
 
-/** The night's four coupons. A coupon the night can't fill (too few games, or no player bets yet)
- *  comes back with why. */
-export function couponsOf(lines: Line[]): { spec: CouponSpec; coupon: Coupon | null; why: string | null }[] {
+export interface CouponSlot {
+  spec: CouponSpec
+  coupon: Coupon | null
+  /** waiting: no player bets posted yet; short: the night can't fill it. */
+  why: 'waiting' | 'short' | null
+  /** The kind of an earlier coupon with exactly the same picks (Matches Only before player bets). */
+  same: CouponKind | null
+}
+
+/** The night's four coupons, safest to boldest; ones the night can't fill go last, with why. */
+export function couponsOf(lines: Line[]): CouponSlot[] {
   const pool = candidates(lines)
   const players = pool.some((c) => c.kind === 'player')
-  return COUPONS.map((spec) => {
+  const out: CouponSlot[] = COUPONS.map((spec) => {
     const mine = spec.only ? pool.filter((c) => c.kind === spec.only) : pool
-    if (spec.only === 'player' && !players) return { spec, coupon: null, why: 'waiting' }
+    if (spec.only === 'player' && !players) return { spec, coupon: null, why: 'waiting', same: null }
     const set = bestSet(mine, spec)
-    return set ? { spec, coupon: couponOf(spec, set), why: null } : { spec, coupon: null, why: 'short' }
+    return { spec, coupon: set ? couponOf(spec, set) : null, why: set ? null : 'short', same: null }
   })
+  const key = (c: Coupon) => c.legs.map((l) => l.id).join('|')
+  out.forEach((slot, i) => {
+    const twin = slot.coupon && out.slice(0, i).find((o) => o.coupon && key(o.coupon) === key(slot.coupon!))
+    if (twin) slot.same = twin.spec.kind
+  })
+  return [...out.filter((o) => o.coupon), ...out.filter((o) => !o.coupon)]
 }
+
+/** Total odds as iddaa prints them: two decimals. */
+export const fmtOdds = (x: number) => (Math.round(x * 100) / 100).toFixed(2)
 
 /** What a stake pays if the coupon wins: 10 TL at 4.62 pays 46 TL. */
 export const pays = (stake: number, odds: number) => Math.round(stake * odds)

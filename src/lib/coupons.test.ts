@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COUPONS, bestSet, candidates, couponsOf, legWords, pays } from './coupons'
+import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWords, pays } from './coupons'
 import { linesOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from './iddaaCompare'
 
@@ -84,7 +84,7 @@ describe('ready-made coupons', () => {
   })
 
   it('builds Highest confidence near 4.50 from the likeliest picks, one per game', () => {
-    const [safe, , players, matches] = couponsOf(linesOf(night(SIX()), NOW))
+    const [safe, players, matches] = couponsOf(linesOf(night(SIX()), NOW))
     const c = safe.coupon!
     expect(c.legs.length).toBeGreaterThanOrEqual(3)
     expect(c.legs.length).toBeLessThanOrEqual(4)
@@ -93,20 +93,26 @@ describe('ready-made coupons', () => {
     expect(c.odds).toBeLessThanOrEqual(5.5)
     // three legs at 1.47 x 1.55 x 1.8 = 4.10 and 33% beat the four likeliest (Jokic, Embiid, Brunson,
     // HOU: 4.97 at 31%): fewer legs keep more of the chance
-    expect(c.legs.map(legWords)).toEqual(['Jalen Brunson 22+ points', 'PHI to win', 'BOS to win'])
+    expect(c.legs.map(legWords).sort()).toEqual(['BOS to win', 'Jalen Brunson 22+ points', 'PHI to win'])
     expect(c.chance).toBeCloseTo(0.76 * 0.74 * 0.58, 6)
     expect(c.implied).toBeCloseTo(1 / c.odds, 9)
     expect(pays(10, c.odds)).toBe(41)
+    expect(fmtOdds(1.55 * 1.47 * 1.45 * 1.4)).toBe('4.63')
     expect(players.why).toBeNull()
     expect(matches.coupon!.legs.every((l) => l.kind === 'game')).toBe(true)
   })
 
   it('waits for player bets, and says when the night is too short for a coupon', () => {
     const noProps = SIX().map((g) => ({ ...g, players: [] }))
-    const [, , players] = couponsOf(linesOf(night(noProps), NOW))
-    expect(players.why).toBe('waiting')
-    const [safe] = couponsOf(linesOf(night(noProps.slice(0, 2)), NOW))
-    expect(safe.why).toBe('short') // two games can't make 3 legs
+    const slots = couponsOf(linesOf(night(noProps), NOW))
+    expect(slots.map((s) => [s.spec.kind, s.why, s.same])).toEqual([
+      ['safe', null, null],
+      ['matches', null, 'safe'], // the same game picks as Highest Confidence until player bets come in
+      ['players', 'waiting', null],
+      ['surprise', 'short', null], // five game picks can't reach 17
+    ])
+    const two = couponsOf(linesOf(night(noProps.slice(0, 2)), NOW))
+    expect(two.find((s) => s.spec.kind === 'safe')!.why).toBe('short') // two games can't make 3 legs
   })
 
   it('takes the highest combined chance that lands in range, nearer the target on a tie', () => {
@@ -127,5 +133,11 @@ describe('ready-made coupons', () => {
     expect([of('Joel Embiid-pts-20'), of('Nikola Jokic-pts-22'), of('Jalen Brunson-pts-22')]).toEqual(['void', 'won', 'lost'])
     const [safe] = couponsOf(linesOf(night(games), NOW))
     expect(safe.coupon!.result).toBe('lost')
+    expect(safe.coupon!.broke.map(legWords)).toEqual(['Jalen Brunson 22+ points'])
+    // a sat-out leg pays at 1.00 while the listed odds and our chance stay as built
+    const legs = pool.filter((c) => /Embiid-pts-20|Jokic-pts-22/.test(c.id))
+    const c = couponOf(COUPONS[1], legs)
+    expect([fmtOdds(c.listed), fmtOdds(c.odds), c.result, c.voided.length]).toEqual(['1.99', '1.42', 'won', 1])
+    expect(c.chance).toBeCloseTo(0.8 * 0.81, 9)
   })
 })
