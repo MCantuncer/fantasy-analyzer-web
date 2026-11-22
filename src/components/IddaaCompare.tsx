@@ -29,6 +29,7 @@ import {
   slipReturn,
   sureOf,
   tallyOf,
+  lostWhy,
 } from '../lib/iddaaCompare'
 import type { BookCompare, CompareGame, GameCallView, Line, Stat, Tally } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
@@ -1078,6 +1079,11 @@ function Row({
         <Lane line={l} i={i} />
         <ResultSlot line={l} />
       </button>
+      {lostWhy(l) && (
+        <p className="ic-row-why">
+          <b>Why</b> {lostWhy(l)}
+        </p>
+      )}
       {open && <RowOpen line={l} settled={settled} />}
     </li>
   )
@@ -2446,6 +2452,7 @@ function PickSlip({
               {l.oursHit ? 'Won' : 'Lost'}
             </span>
             {got && <span className="us">{got}</span>}
+            {lostWhy(l) && <span className="why">{lostWhy(l)}</span>}
           </>
         ) : (
           ours && (
@@ -2670,6 +2677,7 @@ function ConfPop({
             {gotLine(l) ? ` · ${gotLine(l)}` : ''}
           </p>
         )}
+        {lostWhy(l) && <p className="fine why">Why: {lostWhy(l)}.</p>}
         <p className="key">
           <span className="sw" data-band={band(pct)} />
           {pct}% is {BAND_WORDS[band(pct)]}.

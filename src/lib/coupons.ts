@@ -272,3 +272,11 @@ export function legWords(l: Leg): string {
   if (l.kind === 'game') return l.bet
   return `${l.line.name} ${l.bet} ${STAT_UNIT[l.stat]}`
 }
+
+/** Why a lost leg lost, in one line (the server's reason for its row), or null. A player rung above
+ *  our line can lose while he beat our line: the row's reason explains the other way, so it stays out. */
+export function legWhy(l: Leg): string | null {
+  if (l.result !== 'lost' || !l.line.why) return null
+  if (l.kind === 'player' && (l.line.actual == null || l.line.ours == null || l.line.actual >= l.line.ours)) return null
+  return l.line.why.text
+}

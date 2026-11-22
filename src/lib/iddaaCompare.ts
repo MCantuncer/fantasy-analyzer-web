@@ -5,6 +5,15 @@
 
 export type Closer = 'ours' | 'book' | 'tie'
 
+/** Why a settled number landed where it did against ours (the server's app/lostlog.py, Can
+ *  2026-11-22: "understand why we couldn't estimate it"): the biggest piece of the miss. */
+export interface LossReason {
+  cause: 'luck' | 'pace' | 'minutes' | 'late_news' | 'other'
+  piece: string
+  points: number
+  text: string // "NO made 8 of 35 threes (we expected 36%)"
+}
+
 interface Judged {
   ours: number | null
   book: number | null
@@ -13,6 +22,7 @@ interface Judged {
   ours_hit: boolean | null
   book_hit: boolean | null
   closer: Closer | null
+  why?: LossReason | null
 }
 
 /** One of the book's "n+" rungs: its decimal odds and the chance they read as (margin taken out). */
@@ -288,6 +298,8 @@ export interface Line {
   barem: Barem | null // the line the row is settled on
   played: boolean | null
   tipped: boolean
+  /** Once final: why the result landed where it did (shown when our bet lost). */
+  why: LossReason | null
 }
 
 /** A player's price: the rung whose threshold (n - 0.5) sits nearest the book's line, or the top
@@ -490,8 +502,15 @@ function make(
     price: null,
     played: null,
     tipped,
+    why: j.why ?? null,
     ...extra,
   }
+}
+
+/** The one line that says why our bet on a row lost ("NO made 8 of 35 threes (we expected 36%)"),
+ *  or null: not final, not lost, or nothing explains it. */
+export function lostWhy(l: Line): string | null {
+  return l.game.status === 'final' && l.oursHit === false && l.why ? l.why.text : null
 }
 
 /** Rows with both numbers, split into Ours above iddaa (biggest first) and the rest (biggest the
