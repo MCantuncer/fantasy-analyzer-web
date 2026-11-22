@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Ticket } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
@@ -37,6 +38,10 @@ import { teamLight } from '../lib/nbaTeams'
 import { band } from '../lib/ourCall'
 import { usePlayerCard } from '../lib/playerCard'
 import { MatchCard } from './MatchCard'
+import { ProMark } from './Pro'
+import { ProInside } from './ProInside'
+import { upgradeRequired } from '../lib/plans'
+import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
 import { RecordRibbon, RungRecord } from './RungRecord'
@@ -76,13 +81,23 @@ function usePhone() {
  *  first, and once the games are final each side judged against what happened. Comparison only:
  *  the book never feeds our model. */
 export function IddaaCompare({ onBack, onHealth }: Props) {
+  const allowed = useFeature('estimates')
+  const qc = useQueryClient()
   const [day, setDay] = useState<number | null>(null)
   const q = useQuery({
     queryKey: ['book-compare', day],
     queryFn: () => fetchBookCompare(day),
+    enabled: allowed,
+    retry: (n, err) => !upgradeRequired(err) && n < 3,
     refetchInterval: (query) => (isTonight(query.state.data) ? 5 * 60_000 : false),
   })
+  // Pro ran out while the page was open: the plan is read again once, and the page locks.
+  const ended = !!upgradeRequired(q.error)
+  useEffect(() => {
+    if (ended) qc.invalidateQueries({ queryKey: ['me'] })
+  }, [ended, qc])
   const data = q.data
+  if (!allowed || ended) return <ProInside ended={ended} onBack={onBack} onHealth={onHealth} />
   return (
     <div className="ic stack">
       <div className="ic-head">
@@ -120,12 +135,36 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
 /** The way in from My leagues: tonight's biggest gap above the book, or last night's tally once
  *  it is settled, on a card that opens the page. */
 export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
-  const q = useQuery({ queryKey: ['book-compare', null], queryFn: () => fetchBookCompare(null), retry: false })
+  const allowed = useFeature('estimates')
+  const q = useQuery({
+    queryKey: ['book-compare', null],
+    queryFn: () => fetchBookCompare(null),
+    retry: false,
+    enabled: allowed,
+  })
   const data = q.data
   const lines = useMemo(() => (data ? linesOf(data, new Date()) : []), [data])
   const settled = !!data && data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const top = ranked(lines.filter((l) => !l.tipped || settled), true).above[0]
   const t = tallyOf(lines)
+  if (!allowed)
+    return (
+      <button type="button" className="ic-teaser" aria-label="Our Estimates, Pro feature. Picks and Sportsbook vs" onClick={onOpen}>
+        <span className="ic-teaser-h">
+          <span className="ic-teaser-t pro-teaser-t">
+            <Ticket size={18} aria-hidden="true" />
+            Our Estimates
+            <ProMark label={false} />
+          </span>
+          <span className="ic-teaser-go">
+            <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 6 6 6-6 6" />
+            </svg>
+          </span>
+        </span>
+        <span className="ic-teaser-sub">Picks and Sportsbook vs</span>
+      </button>
+    )
   return (
     <button type="button" className="ic-teaser" onClick={onOpen}>
       <span className="ic-teaser-h">

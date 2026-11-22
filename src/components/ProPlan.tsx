@@ -65,7 +65,7 @@ function PlanBlock({ me, onPick }: { me: Me; onPick: () => void }) {
       )
       body = 'Every league tool, always: League, My Team, Moves, Trade Park, Scores and the rest.'
       acts = (
-        <button type="button" aria-haspopup="dialog" onClick={goPro}>
+        <button type="button" className="pro-go" aria-haspopup="dialog" onClick={goPro}>
           Go <ProMark label={false} />
         </button>
       )

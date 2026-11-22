@@ -30,8 +30,8 @@
   letter-spacing: 0.18em;
 }
 
-/* On an ink button the tag flips, so it still reads. */
-button:not(.secondary, .ghost, .link, .icon, .pro-lock, .pro-call) .pro {
+/* On the ink "Go PRO" button the tag flips, so it still reads. */
+button.pro-go .pro {
   background: var(--on-accent);
   color: var(--accent);
 }
@@ -89,6 +89,11 @@ button.pro-call {
   font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* In the card foot: pushed right, its 44px target kept without making the foot taller. */
+.game-foot button.pro-call {
+  margin: -12px -6px -12px auto;
 }
 
 button.pro-call:hover {
@@ -166,4 +171,95 @@ button.icon.pro-toast-x {
     bottom: calc(80px + env(safe-area-inset-bottom));
     width: calc(100vw - 32px);
   }
+}
+
+/* Our Estimates for Free: what's inside, then one way to Pro. */
+.pro-inside-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pro-inside-ended {
+  color: var(--text-2);
+  margin: 0;
+}
+
+.pro-inside {
+  border-radius: var(--radius-row);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+}
+
+.pro-inside h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin: 0;
+  padding: 10px 0 4px;
+}
+
+.pro-inside ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.pro-inside li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  border-top: 1px solid var(--divider);
+}
+
+.pro-inside li:first-child {
+  border-top: 0;
+}
+
+.pro-inside li svg {
+  color: var(--text-2);
+  flex: none;
+}
+
+.pro-inside li b {
+  display: block;
+  font-weight: 600;
+}
+
+.pro-inside li span span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pro-inside-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.pro-inside-cta p {
+  color: var(--text-2);
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .pro-inside ul {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+
+  .pro-inside li:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+/* The Our Estimates entry on My leagues, for Free. */
+.pro-teaser-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
