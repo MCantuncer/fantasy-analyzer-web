@@ -2407,7 +2407,7 @@ function PickSlip({
         ) : (
           ours && (
             <span className="us ours" data-band={b.sure != null ? band(Math.round(b.sure * 100)) : undefined}>
-              Ours <b className="est">{ours.replace(/^Ours /, '')}</b>
+              Ours <b className="est">{estPill(ours.replace(/^Ours /, ''))}</b>
             </span>
           )
         )}
@@ -2422,6 +2422,20 @@ function PickSlip({
       </div>
       {isOpen && b.sure != null && <ConfPop id={id} line={l} kind={kind} call={call} onOpen={onOpen} />}
     </li>
+  )
+}
+
+/** Our number in its pill; a leading + or − (over or under iddaa's total) gets its own weight. */
+function estPill(v: string) {
+  const sign = /^[+−]\d/.test(v) ? v[0] : null
+  if (!sign) return v
+  return (
+    <>
+      <span className="sg" aria-label={sign === '+' ? 'over' : 'under'}>
+        {sign}
+      </span>
+      {v.slice(1)}
+    </>
   )
 }
 

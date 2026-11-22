@@ -179,7 +179,7 @@ describe('our game picks', () => {
     // no team lines: the score comes from our total and margin
     const call = gameCall(data.games[0], lines)
     expect(call && [call.away, call.home, call.pick, call.chance]).toEqual([110.25, 117.75, 'PHI', 0.71])
-    expect([oursLine(win, call), oursLine(mar, call), oursLine(tot, call)]).toEqual(['Ours PHI −8', 'Ours PHI −7.5', 'Ours 228'])
+    expect([oursLine(win, call), oursLine(mar, call), oursLine(tot, call)]).toEqual(['Ours PHI −8', 'Ours PHI −7.5', 'Ours +228'])
     expect(implied(1.87)).toBe(53)
     const n = picksNight(data.games, lines)
     expect([n.games, n.bets, n.none, n.settled]).toEqual([1, 3, 0, 0])

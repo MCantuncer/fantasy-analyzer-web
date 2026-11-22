@@ -3671,6 +3671,7 @@ button.ic-est-nm:hover {
   content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 2px 2px 0; background: var(--good);
 }
 .ic-gp-slip .us b { white-space: nowrap; }
+.ic-gp-slip .us.ours .est .sg { margin-right: 1px; font-weight: 800; }
 /* our number on the ticket sits in a small pill tinted with the ring's colour, so it reads as ours */
 .ic-gp-slip .us.ours { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; margin-top: 8px; }
 .ic-gp-slip .us.ours .est {
