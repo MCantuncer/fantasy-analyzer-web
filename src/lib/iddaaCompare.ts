@@ -340,12 +340,13 @@ export function baremOf(
   player = false,
   other = '',
 ): Barem | null {
-  if (j.ours == null || j.book == null) return null
   if (stat === 'WIN') {
-    // our pick to win, at the book's odds for him; settled by the server's pick-won mark
-    if (!price) return null
+    // our pick to win, at the book's odds for him (whatever its chance reads); settled by the
+    // server's pick-won mark
+    if (j.ours == null || !price) return null
     return { label: `${team} to win`, side: 'over', at: 0, odd: price.odd, sure: j.ours }
   }
+  if (j.ours == null || j.book == null) return null
   if (player) {
     // only the book's own priced rungs: no rung at or under ours, no bet
     const ours = j.ours
@@ -593,4 +594,117 @@ export function gameStory(lines: Line[], settled: boolean): string {
   const say = (l: Line | undefined) => (l ? plain(l, settled) : '')
   const parts = [say(get('WIN')), say(get('MAR')), say(get('TOT'))].filter(Boolean)
   return parts.map((p) => p[0].toUpperCase() + p.slice(1) + '.').join(' ')
+}
+
+// ---- Score Slip: the game picks as our called score and one ticket per game line ----
+
+/** Our called score for a game, from its team-points lines (or its total and margin when those are
+ *  missing), with our winner pick and our chance for him. */
+export interface GameCallView {
+  away: number
+  home: number
+  pick: string // the team we pick to win
+  chance: number | null // our chance for him, 0-1
+  margin: number // our pick by
+  total: number
+}
+
+export function gameCall(g: CompareGame, lines: Line[]): GameCallView | null {
+  const mine = lines.filter((l) => l.kind === 'game' && l.game.game_id === g.game_id)
+  const get = (s: Stat, team?: string) => mine.find((l) => l.stat === s && (team == null || l.team === team))
+  const win = get('WIN')
+  let away = get('TEAM', g.away)?.ours ?? null
+  let home = get('TEAM', g.home)?.ours ?? null
+  const mar = get('MAR')
+  const tot = get('TOT')
+  if ((away == null || home == null) && mar?.ours != null && tot?.ours != null) {
+    const homeBy = mar.team === g.home ? mar.ours : -mar.ours
+    home = (tot.ours + homeBy) / 2
+    away = (tot.ours - homeBy) / 2
+  }
+  if (away == null || home == null) return null
+  const pick = win?.team || (home >= away ? g.home : g.away)
+  return {
+    away,
+    home,
+    pick,
+    chance: win?.ours ?? null,
+    margin: Math.abs(home - away),
+    total: away + home,
+  }
+}
+
+/** A ticket's face: the small question ("To win", "PHI", "Over") and the big barem ("PHI", "−4.5",
+ *  "226.5"), read from the line's fields rather than its label. dot: the team whose club colour marks it. */
+export function betFace(l: Line): { q: string; hero: string; num: boolean; dot: string | null } | null {
+  const b = l.barem
+  if (!b) return null
+  const pts = (v: number) => (v > 0 ? `+${num(v)}` : v < 0 ? num(v) : '0')
+  switch (l.stat) {
+    case 'WIN':
+      return { q: 'To win', hero: l.team, num: false, dot: null }
+    case 'MAR':
+      return b.side === 'over'
+        ? { q: l.team, hero: pts(-(l.book ?? 0)), num: true, dot: l.team }
+        : { q: l.other, hero: pts(l.book ?? 0), num: true, dot: l.other }
+    case 'TEAM':
+      return { q: `${l.team} ${b.side === 'over' ? 'over' : 'under'}`, hero: num(l.book ?? 0), num: true, dot: l.team }
+    default:
+      return { q: b.side === 'over' ? 'Over' : 'Under', hero: num(l.book ?? 0), num: true, dot: null }
+  }
+}
+
+/** "PHI by 6.5": a margin from a line's pick side, said from whoever it favours. */
+function byWords(l: Line, v: number): string {
+  return `${v >= 0 ? l.team : l.other} by ${num(Math.abs(Math.round(v * 10) / 10))}`
+}
+
+/** Our number on the ticket before the game: "Ours PHI by 6.5", "Ours 229.3". */
+export function oursLine(l: Line, call: GameCallView | null): string | null {
+  if (l.stat === 'WIN') return call ? `Ours ${call.pick} by ${num(Math.round(call.margin))}` : null
+  if (l.ours == null) return null
+  if (l.stat === 'MAR') return `Ours ${byWords(l, l.ours)}`
+  return `Ours ${num(Math.round(l.ours * 10) / 10)}`
+}
+
+/** What the game gave the ticket: "Got PHI by 13", "Got 229". */
+export function gotLine(l: Line): string | null {
+  const g = l.game
+  if (g.status !== 'final') return null
+  if (l.stat === 'WIN') {
+    if (g.away_score == null || g.home_score == null) return null
+    const homeWon = g.home_score > g.away_score
+    return `Got ${homeWon ? g.home : g.away} by ${Math.abs(g.home_score - g.away_score)}`
+  }
+  if (l.actual == null) return null
+  if (l.stat === 'MAR') return `Got ${byWords(l, l.actual)}`
+  return `Got ${num(l.actual)}`
+}
+
+/** One unit on the ticket: what it returned once settled (+0.87, −1.00); null before. */
+export function slipReturn(l: Line): number | null {
+  if (!l.barem?.odd || l.oursHit == null) return null
+  return l.oursHit ? l.barem.odd - 1 : -1
+}
+
+/** The chance the book's odds read as, in whole percent (its own cut left in). */
+export const implied = (odd: number) => Math.round(100 / odd)
+
+/** The night over the game picks: bets, no-bets, and once settled, winners called, bets won, net. */
+export function picksNight(games: CompareGame[], lines: Line[]) {
+  const picks = lines.filter((l) => l.kind === 'game' && (l.stat === 'WIN' || l.stat === 'MAR' || l.stat === 'TOT'))
+  const mine = picks.filter((l) => games.some((g) => g.game_id === l.game.game_id))
+  const bets = mine.filter((l) => l.barem)
+  const settled = bets.filter((l) => l.oursHit != null)
+  const wins = mine.filter((l) => l.stat === 'WIN' && l.game.status === 'final' && l.oursHit != null)
+  return {
+    games: games.length,
+    bets: bets.length,
+    none: mine.length - bets.length,
+    settled: settled.length,
+    won: settled.filter((l) => l.oursHit).length,
+    net: settled.reduce((a, l) => a + (slipReturn(l) ?? 0), 0),
+    winners: wins.length,
+    called: wins.filter((l) => l.oursHit).length,
+  }
 }

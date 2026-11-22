@@ -20,11 +20,20 @@ import {
   plain,
   ranked,
   signed,
+  betFace,
+  gameCall,
+  gotLine,
+  implied,
+  oursLine,
+  picksNight,
+  slipReturn,
   sureOf,
   tallyOf,
 } from '../lib/iddaaCompare'
-import type { BookCompare, CompareEstimate, CompareGame, Line, Stat, Tally } from '../lib/iddaaCompare'
+import type { BookCompare, CompareEstimate, CompareGame, GameCallView, Line, Stat, Tally } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { teamLight } from '../lib/nbaTeams'
+import { band } from '../lib/ourCall'
 import { usePlayerCard } from '../lib/playerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
@@ -2082,90 +2091,540 @@ const PICK_KINDS: [Stat, string][] = [
   ['TOT', 'Total points'],
 ]
 
-/** Our one bet on each of iddaa's game lines (Can 2026-11-22: "selection for match result, handicap
- *  result, total points"): the line, the book's own odds and how sure we are; after the game, won or
- *  lost. A side the book prices at 1.33 or less gets no bet. */
+/** Our game picks as Score Slip (Can 2026-11-22: "bring life... no result predictions", "oran ve
+ *  handikaplar more highlighted, not outrageous", "'sure' looking very bad, have icon"). Each game
+ *  leads with our called score; then one ticket per game line with the barem and its own odds big and
+ *  a confidence ring that explains itself on hover or tap. After the game: the real score over our
+ *  call in outline, each ticket Won or Lost with its return. Club colour only as a thin flat bar/dot. */
 function GamePicks({ data, lines, game }: { data: BookCompare; lines: Line[]; game: number | null }) {
+  const [open, setOpen] = useState<string | null>(null)
+  useEscapeLayer(open != null, () => setOpen(null))
   const games = data.games.filter((g) => game == null || g.game_id === game)
   const of = (g: CompareGame, s: Stat) => lines.find((l) => l.kind === 'game' && l.game.game_id === g.game_id && l.stat === s)
   const shown = games.filter((g) => PICK_KINDS.some(([s]) => of(g, s)))
   if (!shown.length) return null
+  const n = picksNight(shown, lines)
+  const done = shown.every((g) => g.status === 'final')
+  const tonight = shown.some((g) => g.status !== 'final')
+  const firstTip = shown.filter((g) => g.status === 'scheduled').map((g) => g.tip).sort()[0]
   return (
-    <section className="ic-sec ic-picks" aria-labelledby="ic-h-picks">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-picks">Our game picks</h2>
-        </div>
+    <section className="ic-sec ic-gp" aria-labelledby="ic-h-picks">
+      <div className="ic-gp-head">
+        <h2 id="ic-h-picks">Our game picks</h2>
+        <p>
+          {done
+            ? 'Solid is the final score. Outline is our call, locked at tip-off.'
+            : "Our score for each game first. Then one bet on each of iddaa's lines, with its own odds. The ring is how sure we are: hover or tap it to see what it means."}
+        </p>
       </div>
-      <p className="ic-explain ic-est-note">
-        One bet on each of iddaa's game lines: the line, its own odds and how sure we are. Settled win or lose
-        after the game.
-      </p>
-      <div className="ic-est-games">
-        {shown.map((g) => {
-          const final = g.status === 'final'
-          const live = !final && (g.status === 'live' || new Date(g.tip) <= new Date())
-          return (
-            <div key={g.game_id} className="ic-est-game ic-pick-game">
-              <div className="ic-est-head">
-                <Pair away={g.away} home={g.home} size={20} />
-                <b>{`${g.away} @ ${g.home}`}</b>
-                <span className="sub">
-                  {final ? (
-                    <>
-                      Final <span className="num">{`${g.away_score ?? ''}-${g.home_score ?? ''}`}</span>
-                    </>
-                  ) : live ? (
-                    <>
-                      <span className="ic-live" aria-hidden="true" />
-                      Live
-                    </>
-                  ) : (
-                    <>
-                      Tip <span className="num">{clock(g.tip)}</span>
-                    </>
-                  )}
-                </span>
-              </div>
-              <ol className="ic-est-list">
-                {PICK_KINDS.map(([s, kind]) => {
-                  const l = of(g, s)
-                  if (!l) return null
-                  return <PickRow key={s} line={l} kind={kind} />
-                })}
-              </ol>
-            </div>
-          )
-        })}
+      <div className="ic-gp-night">
+        {tonight && !done && (
+          <span>
+            <i className="ic-gp-gold" aria-hidden="true" />
+            <b>Tonight</b>
+          </span>
+        )}
+        <span>
+          <b className="num">{n.games}</b> {n.games === 1 ? 'game' : 'games'}
+        </span>
+        {n.settled > 0 ? (
+          <>
+            {n.winners > 0 && (
+              <span>
+                Winners called <b className="num">{n.called}</b> of <b className="num">{n.winners}</b>
+              </span>
+            )}
+            <span>
+              Bets won <b className="num">{n.won}</b> of <b className="num">{n.settled}</b>
+            </span>
+            <span>
+              <b className={`num${n.net > 0 ? ' up' : ''}`}>{signedUnits(n.net)}</b> at 1 a bet
+            </span>
+          </>
+        ) : (
+          <>
+            <span>
+              <b className="num">{n.bets}</b> {n.bets === 1 ? 'bet' : 'bets'}
+            </span>
+            {n.none > 0 && (
+              <span>
+                <b className="num">{n.none}</b> no bet
+              </span>
+            )}
+          </>
+        )}
+        {firstTip && (
+          <span className="r">
+            First tip <b className="num">{clock(firstTip)}</b>
+          </span>
+        )}
       </div>
+      <ol className="ic-gp-games">
+        {shown.map((g) => (
+          <PickGame key={g.game_id} g={g} lines={lines} of={of} open={open} onOpen={setOpen} />
+        ))}
+      </ol>
     </section>
   )
 }
 
-function PickRow({ line: l, kind }: { line: Line; kind: string }) {
-  const b = l.barem
-  const sure = sureOf(b)
-  const done = l.game.status === 'final' && l.oursHit != null
+const signedUnits = (v: number) => (v > 0 ? `+${v.toFixed(2)}` : v < 0 ? `−${Math.abs(v).toFixed(2)}` : '0.00')
+
+function PickGame({
+  g,
+  lines,
+  of,
+  open,
+  onOpen,
+}: {
+  g: CompareGame
+  lines: Line[]
+  of: (g: CompareGame, s: Stat) => Line | undefined
+  open: string | null
+  onOpen: (id: string | null) => void
+}) {
+  const call = gameCall(g, lines)
+  const final = g.status === 'final' && g.away_score != null && g.home_score != null
+  const live = !final && (g.status === 'live' || new Date(g.tip) <= new Date())
+  const slips = PICK_KINDS.map(([s, kind]) => [of(g, s), kind] as const)
+  const settled = slips.filter(([l]) => l?.barem && l.oursHit != null)
+  const r = (v: number) => Math.round(v)
+  const pctOf = call?.chance != null ? Math.round(call.chance * 100) : null
+  // whole numbers on the board; one decimal when rounding would tie or flip our pick
+  const shows = (v: number, other: number) => (call && r(v) === r(other) ? v.toFixed(1) : String(r(v)))
+  const vd =
+    final && call
+      ? {
+          called: Math.sign(call.home - call.away) === Math.sign((g.home_score ?? 0) - (g.away_score ?? 0)),
+          off: Math.max(Math.abs((g.away_score ?? 0) - r(call.away)), Math.abs((g.home_score ?? 0) - r(call.home))),
+        }
+      : null
+  const pickHome = call ? call.pick === g.home : false
+  const sideEl = (team: string, side: 'a' | 'h') => (
+    <span className={`side ${side}`}>
+      <TeamLogo abbrev={team} size={36} fallback />
+      <span className="ab">{team}</span>
+    </span>
+  )
+  const say = call
+    ? final
+      ? `Final: ${g.away} ${g.away_score}, ${g.home} ${g.home_score}. Our call was ${r(call.away)} to ${r(call.home)}.`
+      : `Our call: ${g.away} ${r(call.away)}, ${g.home} ${r(call.home)}.${pctOf != null ? ` We give ${call.pick} a ${pctOf}% chance to win.` : ''}`
+    : `${g.away} at ${g.home}`
   return (
-    <li className={`ic-pick${done && l.oursHit ? ' won' : ''}`}>
-      <span className="k">{kind}</span>
-      {b ? (
-        <>
-          <b className="lbl">{b.label}</b>
-          <span className="odd num">{b.odd != null ? odds(b.odd) : ''}</span>
-          {done ? (
+    <li className={`ic-gp-game${final ? ' post' : ''}`}>
+      <div className="ic-gp-call">
+        <div className="ic-gp-top">
+          <span className="when">
+            {final ? (
+              <>
+                <b>Final</b>
+                {vd && (
+                  <span className={`ic-gp-verdict${vd.called ? ' ok' : ''}`}>
+                    {vd.called ? <CheckIcon /> : <XIcon />}
+                    <b>{vd.called ? 'Called it' : 'Missed'}</b> · off by <b className="num">{vd.off}</b>
+                  </span>
+                )}
+              </>
+            ) : live ? (
+              <>
+                <span className="ic-live" aria-hidden="true" />
+                <b>Live</b>
+              </>
+            ) : (
+              <>
+                <ClockIcon />
+                Tip <b className="num">{clock(g.tip)}</b>
+              </>
+            )}
+          </span>
+          {final ? (
+            settled.length > 0 && (
+              <span className="callpct">
+                <b className="num">{settled.filter(([l]) => l?.oursHit).length}</b> of <b className="num">{settled.length}</b> bets won
+              </span>
+            )
+          ) : (
+            pctOf != null &&
+            call && (
+              <span className="callpct">
+                Our call · <b className="num" data-band={band(pctOf)}>{pctOf}%</b> {call.pick} to win
+              </span>
+            )
+          )}
+        </div>
+        <span className="sr-only">{say}</span>
+        {call ? (
+          <div className={`ic-gp-board ${final ? 'post' : 'pre'}`} aria-hidden="true">
+            {sideEl(g.away, 'a')}
+            {final ? (
+              <>
+                <span className={`dg a solid${(g.away_score ?? 0) < (g.home_score ?? 0) ? ' trail' : ''}`}>{g.away_score}</span>
+                <span className="dash">–</span>
+                <span className={`dg h solid${(g.home_score ?? 0) < (g.away_score ?? 0) ? ' trail' : ''}`}>{g.home_score}</span>
+              </>
+            ) : (
+              <>
+                <span className={`dg a hollow${pickHome ? '' : ' pk'}`} style={{ '--tl': teamLight(g.away) } as CSSProperties}>
+                  {shows(call.away, call.home)}
+                </span>
+                <span className="dash">–</span>
+                <span className={`dg h hollow${pickHome ? ' pk' : ''}`} style={{ '--tl': teamLight(g.home) } as CSSProperties}>
+                  {shows(call.home, call.away)}
+                </span>
+              </>
+            )}
+            {sideEl(g.home, 'h')}
+            {final && (
+              <>
+                <span className="plate" />
+                <span className="cl">Our call</span>
+                <span className={`dg a hollow sm${pickHome ? '' : ' pk'}`}>{shows(call.away, call.home)}</span>
+                <span className="dash sm">–</span>
+                <span className={`dg h hollow sm${pickHome ? ' pk' : ''}`}>{shows(call.home, call.away)}</span>
+                {pctOf != null && (
+                  <span className="cp num" data-band={band(pctOf)}>
+                    {pctOf}%
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="ic-gp-board none">
+            <Pair away={g.away} home={g.home} size={28} />
+            <b>{`${g.away} @ ${g.home}`}</b>
+          </div>
+        )}
+        {call && (
+          <p className="ic-gp-line">
+            {final ? (
+              <>
+                Final: <b>{(g.home_score ?? 0) > (g.away_score ?? 0) ? g.home : g.away}</b> by{' '}
+                <b className="num">{Math.abs((g.home_score ?? 0) - (g.away_score ?? 0))}</b> · Total{' '}
+                <b className="num">{(g.home_score ?? 0) + (g.away_score ?? 0)}</b>
+              </>
+            ) : (
+              <>
+                <b>{call.pick}</b> by <b className="num">{num(Math.round(call.margin))}</b> · Total{' '}
+                <b className="num">{num(Math.round(call.total))}</b>
+              </>
+            )}
+          </p>
+        )}
+      </div>
+      <ol className="ic-gp-slips">
+        {slips.map(([l, kind], i) => (
+          <PickSlip
+            key={kind}
+            id={`${g.game_id}-${i}`}
+            line={l}
+            kind={kind}
+            call={call}
+            last={i === slips.length - 1}
+            open={open}
+            onOpen={onOpen}
+          />
+        ))}
+      </ol>
+    </li>
+  )
+}
+
+function PickSlip({
+  id,
+  line: l,
+  kind,
+  call,
+  last,
+  open,
+  onOpen,
+}: {
+  id: string
+  line: Line | undefined
+  kind: string
+  call: GameCallView | null
+  last: boolean
+  open: string | null
+  onOpen: (id: string | null) => void
+}) {
+  const hovered = useRef(false)
+  const face = l ? betFace(l) : null
+  const b = l?.barem
+  if (!l || !b || !face) {
+    const why = !l || l.ours == null ? 'No line yet' : 'Odds 1.33 or less'
+    return (
+      <li className="ic-gp-slip none">
+        <div className="body">
+          <span className="mk">{kind}</span>
+          {l?.stat === 'WIN' && l.team ? (
+            <>
+              <span className="q">To win</span>
+              <b className="hero">{l.team}</b>
+            </>
+          ) : (
+            <b className="hero sm">–</b>
+          )}
+        </div>
+        <div className="stub">
+          <span className="nb">
+            <b>No bet</b>
+            <span>{why}</span>
+          </span>
+        </div>
+      </li>
+    )
+  }
+  const done = l.game.status === 'final' && l.oursHit != null
+  const ret = slipReturn(l)
+  const got = gotLine(l)
+  const ours = oursLine(l, call)
+  const isOpen = open === id
+  return (
+    <li
+      className={`ic-gp-slip${done ? (l.oursHit ? ' won' : ' lost') : ''}${last ? ' last' : ''}`}
+      data-slip={id}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && isOpen && hovered.current && onOpen(null)}
+    >
+      <div className="body">
+        <span className="mk">{kind}</span>
+        <span className="q">
+          {face.dot && <i className="dot" style={{ '--tl': teamLight(face.dot) } as CSSProperties} aria-hidden="true" />}
+          {face.q}
+        </span>
+        <b className={`hero${face.num ? ' num' : ''}`}>{face.hero}</b>
+        {done ? (
+          <>
             <span className={`res ${l.oursHit ? 'ok' : 'no'}`}>
               {l.oursHit ? <CheckIcon /> : <XIcon />}
               {l.oursHit ? 'Won' : 'Lost'}
             </span>
-          ) : (
-            <span className="sure">{sure ? <><span className="num">{sure}</span> sure</> : ''}</span>
-          )}
-        </>
-      ) : (
-        <span className="lbl none">{l.ours == null || l.book == null ? 'No line yet' : 'No bet: odds 1.33 or less'}</span>
-      )}
+            {got && <span className="us">{got}</span>}
+          </>
+        ) : (
+          ours && (
+            <span className="us ours" data-band={b.sure != null ? band(Math.round(b.sure * 100)) : undefined}>
+              Ours <b className="est">{ours.replace(/^Ours /, '')}</b>
+            </span>
+          )
+        )}
+      </div>
+      <div className="stub">
+        <span className="price">
+          <span className="lab">Odds</span>
+          <b className="num odd">{b.odd != null ? odds(b.odd) : '–'}</b>
+          {ret != null && <span className={`ret num${ret > 0 ? ' up' : ''}`}>{signedUnits(ret)}</span>}
+        </span>
+        {b.sure != null && <ConfRing id={id} line={l} open={isOpen} onOpen={onOpen} hovered={hovered} />}
+      </div>
+      {isOpen && b.sure != null && <ConfPop id={id} line={l} kind={kind} call={call} onOpen={onOpen} />}
     </li>
+  )
+}
+
+/** The ring: how sure we are that the ticket wins, the % inside, coloured like Our call on Scores. */
+function Ring({ pct, size, stroke }: { pct: number; size: number; stroke: number }) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  return (
+    <svg className="ic-gp-ring" viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
+      <circle className="trk" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} />
+      <circle
+        className="arc"
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        strokeWidth={stroke}
+        strokeDasharray={`${((c * pct) / 100).toFixed(2)} ${c.toFixed(2)}`}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </svg>
+  )
+}
+
+function ConfRing({
+  id,
+  line: l,
+  open,
+  onOpen,
+  hovered,
+}: {
+  id: string
+  line: Line
+  open: boolean
+  onOpen: (id: string | null) => void
+  hovered: { current: boolean }
+}) {
+  const pct = Math.round((l.barem?.sure ?? 0) * 100)
+  const canHover = useRef(window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false)
+  return (
+    <button
+      type="button"
+      id={`ic-gp-ring-${id}`}
+      className="ic-gp-conf"
+      data-band={band(pct)}
+      aria-expanded={open}
+      aria-controls={`ic-gp-pop-${id}`}
+      aria-label={`We give it ${pct}%. What this means`}
+      onClick={() => {
+        hovered.current = false
+        onOpen(open ? null : id)
+      }}
+      onPointerEnter={(e) => {
+        if (e.pointerType !== 'mouse' || !canHover.current || open) return
+        hovered.current = true
+        onOpen(id)
+      }}
+    >
+      <Ring pct={pct} size={40} stroke={4} />
+      <span className="pct num">
+        {pct}
+        <small>%</small>
+      </span>
+    </button>
+  )
+}
+
+const BAND_WORDS: Record<ReturnType<typeof band>, string> = {
+  sure: 'green: a strong call (80% and up)',
+  likely: 'soft green: likely (65 to 79%)',
+  lean: 'amber: a lean (55 to 64%)',
+  flip: 'grey: close to a coin flip (under 55%)',
+}
+
+/** What the ring means, in words: our chance beside the one iddaa's odds read as, the two lines, and
+ *  after the game how it settled. A popover on desktop, a bottom sheet with a scrim on a phone. */
+function ConfPop({
+  id,
+  line: l,
+  kind,
+  call,
+  onOpen,
+}: {
+  id: string
+  line: Line
+  kind: string
+  call: GameCallView | null
+  onOpen: (id: string | null) => void
+}) {
+  const onClose = () => onOpen(null)
+  const b = l.barem!
+  const pct = Math.round((b.sure ?? 0) * 100)
+  const book = b.odd != null ? implied(b.odd) : null
+  const diff = book == null ? 0 : pct - book
+  const face = betFace(l)
+  const label = face ? (l.stat === 'WIN' ? `${face.hero} to win` : `${face.q} ${face.hero}`) : b.label
+  const close = useRef<HTMLButtonElement>(null)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (window.matchMedia?.('(max-width: 719px)').matches) close.current?.focus()
+    // a click anywhere outside this ticket closes it; focus goes back to the ring it came from
+    const down = (e: PointerEvent) => {
+      if (!(e.target as Element | null)?.closest?.(`[data-slip="${id}"]`)) onOpen(null)
+    }
+    document.addEventListener('pointerdown', down)
+    const pop = box.current
+    return () => {
+      document.removeEventListener('pointerdown', down)
+      const at = document.activeElement
+      if (!at || at === document.body || pop?.contains(at)) document.getElementById(`ic-gp-ring-${id}`)?.focus()
+    }
+  }, [id, onOpen])
+  const bookLine =
+    l.stat === 'WIN'
+      ? l.book != null
+        ? `${l.team} ${Math.round(l.book * 100)}% to win`
+        : null
+      : l.stat === 'MAR' && l.book != null
+        ? `${l.book >= 0 ? l.team : l.other} by ${num(Math.abs(l.book))}`
+        : l.book != null
+          ? num(l.book)
+          : null
+  const ours = oursLine(l, call)?.replace(/^Ours /, '')
+  const done = l.game.status === 'final' && l.oursHit != null
+  return (
+    <>
+      <div className="ic-gp-scrim" onClick={onClose} aria-hidden="true" />
+      <div ref={box} className="ic-gp-pop" id={`ic-gp-pop-${id}`} role="dialog" aria-label={`How sure we are: ${label}`}>
+        <div className="ic-gp-pop-h">
+          <span className="mk">{kind}</span>
+          <b>{label}</b>
+          <button ref={close} type="button" className="ic-gp-x" aria-label="Close" onClick={onClose}>
+            <XIcon />
+          </button>
+        </div>
+        <div className="ic-gp-pop-lead" data-band={band(pct)}>
+          <Ring pct={pct} size={40} stroke={5} />
+          <p>
+            We give {label} a <b className="num">{pct}%</b> chance to win.
+          </p>
+        </div>
+        {book != null && (
+          <>
+            <div className="ic-gp-bars" data-band={band(pct)}>
+              <span className="who">Ours</span>
+              <span className="bar">
+                <i style={{ width: `${pct}%` }} />
+              </span>
+              <span className="num v">{pct}%</span>
+              <span className="who">iddaa</span>
+              <span className="bar book">
+                <i style={{ width: `${Math.min(100, book)}%` }} />
+              </span>
+              <span className="num v">{book}%</span>
+            </div>
+            <p className="fine">
+              iddaa's odds <b className="num">{odds(b.odd!)}</b> imply <b className="num">{book}%</b>.{' '}
+              {diff === 0 ? (
+                'We read it the same.'
+              ) : diff > 0 ? (
+                <>
+                  We rate it <b className="num">{diff}</b> {diff === 1 ? 'point' : 'points'} likelier than iddaa does.
+                </>
+              ) : (
+                <>
+                  iddaa rates it <b className="num">{-diff}</b> {diff === -1 ? 'point' : 'points'} likelier than we do. Its price
+                  includes its own cut.
+                </>
+              )}
+            </p>
+          </>
+        )}
+        {(bookLine || ours) && (
+          <p className="fine">
+            {bookLine && (
+              <>
+                iddaa's line: <b>{bookLine}</b>.{' '}
+              </>
+            )}
+            {ours && (
+              <>
+                Ours: <b>{ours}</b>.
+              </>
+            )}
+          </p>
+        )}
+        {done && (
+          <p className={`res${l.oursHit ? ' ok' : ''}`}>
+            <b>{l.oursHit ? 'Won' : 'Lost'}</b>
+            {gotLine(l) ? ` · ${gotLine(l)}` : ''}
+          </p>
+        )}
+        <p className="key">
+          <span className="sw" data-band={band(pct)} />
+          {pct}% is {BAND_WORDS[band(pct)]}.
+        </p>
+      </div>
+    </>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg className="ic-gp-ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.2" />
+      <path d="M8 4.6V8l2.3 1.5" />
+    </svg>
   )
 }
 
