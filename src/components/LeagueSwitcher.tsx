@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import type { MyLeague } from '../api/client'
-import { useEscapeLayer } from '../lib/escapeStack'
+import { useDetailsMenu } from '../lib/detailsMenu'
 import './LeagueSwitcher.css'
 import { VerifiedBadge } from './VerifiedBadge'
 
@@ -16,35 +15,17 @@ interface Props {
 
 /** The league / team crumb in the top bar, which opens a menu to jump to another league or add one. */
 export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen, onAdd, onManage }: Props) {
-  const ref = useRef<HTMLDetailsElement>(null)
-  const [open, setOpen] = useState(false)
-
-  // Close on outside click and Escape, like any other menu.
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const onDown = (e: PointerEvent) => {
-      if (el.open && !el.contains(e.target as Node)) el.open = false
-    }
-    document.addEventListener('pointerdown', onDown)
-    return () => document.removeEventListener('pointerdown', onDown)
-  }, [])
-  useEscapeLayer(open, () => {
-    const el = ref.current
-    if (!el) return
-    el.open = false
-    el.querySelector('summary')?.focus()
-  })
+  const menu = useDetailsMenu()
 
   const close = (then: () => void) => () => {
-    if (ref.current) ref.current.open = false
+    menu.close()
     then()
   }
   const isCurrent = (l: MyLeague) =>
     l.league_id === current.leagueId && (current.season === null || l.season === current.season)
 
   return (
-    <details className="switcher league-switcher" ref={ref} onToggle={(e) => setOpen(e.currentTarget.open)}>
+    <details className="switcher league-switcher" {...menu.menuProps}>
       <summary aria-label={`${leagueName}${teamName ? `, ${teamName}` : ''}. Switch league`}>
         <span className="league-name" title={leagueName}>
           {leagueName}
