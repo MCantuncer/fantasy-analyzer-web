@@ -388,3 +388,12 @@
 @media (prefers-reduced-motion: reduce) { .ic-ku-chev { transition: none; } }
 @keyframes ic-ku-in { from { opacity: 0; transform: translateY(-4px); } }
 @keyframes ic-ku-up { from { transform: translateY(100%); } }
+
+/* Why a lost leg lost (Can 2026-11-22): one quiet line under the leg, from the name to the ring. */
+.ic-ku-pick > .ic-ku-why {
+  grid-column: 2 / -1;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}

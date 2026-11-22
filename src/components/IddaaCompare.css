@@ -3652,3 +3652,30 @@
 }
 @keyframes ic-gp-in { from { opacity: 0; transform: translateY(-4px); } }
 @keyframes ic-gp-up { from { transform: translateY(100%); } }
+
+/* Why our bet lost (Can 2026-11-22, app/lostlog.py on the server): one quiet line under a lost row,
+   lined up with the name; on a game slip, under the result. */
+.ic-row-why {
+  margin: -6px 0 0;
+  padding: 0 12px 10px 96px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.ic-row-why b {
+  margin-right: 4px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-gp-slip .why {
+  margin-top: 4px;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+@media (max-width: 719px) {
+  .ic-row-why {
+    padding-left: 74px;
+  }
+}

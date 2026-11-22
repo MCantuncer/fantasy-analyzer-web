@@ -1,7 +1,7 @@
 import { CaretRight } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { couponsOf, fmtOdds } from '../lib/coupons'
+import { couponsOf, fmtOdds, legWhy } from '../lib/coupons'
 import type { CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
@@ -586,6 +586,7 @@ function KuponPick({
   const isOpen = pop === id
   const res = l.result
   const got = gotOf(l)
+  const why = legWhy(l)
   const sr = [
     wordsOf(l),
     `${g.away} at ${g.home}`,
@@ -593,6 +594,7 @@ function KuponPick({
     `odds ${l.odd.toFixed(2)}`,
     `our chance ${p}%`,
     res === 'won' ? `won, ${got.toLowerCase()}` : res === 'lost' ? `lost, ${got.toLowerCase()}` : null,
+    why,
     res === 'void' ? 'sat out, counted at 1.00' : null,
   ]
     .filter(Boolean)
@@ -709,6 +711,11 @@ function KuponPick({
         </span>
       </button>
       {isOpen && <ChancePop leg={l} id={id} onPop={onPop} />}
+      {why && (
+        <p className="ic-ku-why" aria-hidden="true">
+          {why}
+        </p>
+      )}
     </li>
   )
 }
@@ -814,6 +821,7 @@ function ChancePop({ leg: l, id, onPop }: { leg: Leg; id: string; onPop: (id: st
             </span>
           </p>
         )}
+        {legWhy(l) && <p className="fine">Why: {legWhy(l)}.</p>}
         {l.result === 'void' && (
           <p className="res">
             {l.line.name} sat out. iddaa counts the pick at <b className="num">1.00</b>, so the <K /> still pays on the

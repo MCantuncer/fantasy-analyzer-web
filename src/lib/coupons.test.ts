@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWords, pays } from './coupons'
+import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWhy, legWords, pays } from './coupons'
 import type { Leg } from './coupons'
 import { linesOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from './iddaaCompare'
@@ -171,5 +171,23 @@ describe('ready-made coupons', () => {
     const c = couponOf(COUPONS[1], legs)
     expect([fmtOdds(c.listed), fmtOdds(c.odds), c.result, c.voided.length]).toEqual(['1.99', '1.42', 'won', 1])
     expect(c.chance).toBeCloseTo(0.8 * 0.81, 9)
+  })
+})
+
+describe('why a lost leg lost', () => {
+  const why = { cause: 'pace' as const, piece: 'pace', points: -14, text: 'Game ran 7 possessions slower than we called (91 vs 98)' }
+  const leg = (kind: Leg['kind'], result: Leg['result'], ours: number, actual: number) =>
+    ({ kind, result, line: { why, ours, actual } }) as unknown as Leg
+
+  it('gives the reason on a lost game leg', () => {
+    expect(legWhy(leg('game', 'lost', 227.5, 205))).toBe(why.text)
+    expect(legWhy(leg('game', 'won', 227.5, 240))).toBeNull()
+    expect(legWhy({ ...leg('game', 'lost', 227.5, 205), line: { why: null } } as unknown as Leg)).toBeNull()
+  })
+
+  it('on a player leg, only when he came in under our number', () => {
+    expect(legWhy(leg('player', 'lost', 24, 17))).toBe(why.text)
+    // a lost rung while he beat our number: the reason explains a different miss, so say nothing
+    expect(legWhy(leg('player', 'lost', 24, 26))).toBeNull()
   })
 })

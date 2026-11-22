@@ -5,6 +5,7 @@ import {
   gameStory,
   implied,
   linesOf,
+  lostWhy,
   marketPrice,
   num,
   odds,
@@ -257,5 +258,23 @@ describe('the book price beside its number', () => {
     expect(marketPrice({ ...m, gap: -2 })).toEqual({ label: 'Under', odd: 1.9, top: false })
     expect(marketPrice({ ...m, market: 'winner', team: 'PHI', odds: [{ side: 'pick', odd: 1.33 }] })).toBeNull()
     expect(odds(2)).toBe('2.00')
+  })
+})
+
+describe('why our bet lost', () => {
+  const why = { cause: 'luck' as const, piece: 'shooting', points: -8.1, text: 'Shot 6 of 15' }
+
+  it('shows the reason only on a settled row we got wrong', () => {
+    const lost = { ...withRungs(player('Joel Embiid', 'pts', 30, 28.5, 19), 25.5), why }
+    const kept = { ...withRungs(player('Tyrese Maxey', 'pts', 25, 24.5, 26), 20.5), why }
+    const [a, b] = linesOf(night([lost, kept]), new Date())
+    expect(lostWhy(a)).toBe('Shot 6 of 15')
+    expect(lostWhy(b)).toBeNull() // our bet won: nothing to explain
+  })
+
+  it('stays quiet before the final and when the server sent no reason', () => {
+    const lost = { ...withRungs(player('Joel Embiid', 'pts', 30, 28.5, 19), 25.5), why }
+    expect(linesOf(night([lost], 'live'), new Date()).map(lostWhy)).toEqual([null])
+    expect(linesOf(night([{ ...lost, why: null }]), new Date()).map(lostWhy)).toEqual([null])
   })
 })
