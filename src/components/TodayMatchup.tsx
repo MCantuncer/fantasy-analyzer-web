@@ -11,7 +11,6 @@ import { STAT_COLUMNS } from '../lib/statOrder'
 import type { TodayData } from '../lib/todayData'
 import { chipFor, dayCategories, dayRecord, initialName, leftOnBench, shortNames } from '../lib/todayMatchup'
 import type { DayCategory, LeftOnBench } from '../lib/todayMatchup'
-import { Burn, emberAttrs, emberOf } from './GameTime'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { Bone } from './Skeleton'
@@ -292,16 +291,26 @@ function TeamColumn({ side, names }: { side: Side; names: Map<string, string> })
   const playing = bench.filter((r) => !left.includes(r) && r.state !== 'idle')
   const idle = bench.filter((r) => r.state === 'idle')
   const ir = side.rows.filter((r) => isIR(r.spot))
+  // Before any starter has played a minute there are no figures yet: no column head, no pager, no zeros.
+  const pretip = !side.starters.some((r) => r.line && r.line.minutes > 0)
+  const tips = side.starters.filter((r) => r.game && r.state === 'later').map((r) => r.game!.start)
+  const firstTip = tips.length ? tips.sort()[0] : null
   return (
     <section
-      className={`tm-col${side.mine ? ' mine' : ' theirs'}`}
+      className={`tm-col${side.mine ? ' mine' : ' theirs'}${pretip ? ' tm-pretip' : ''}`}
       aria-label={side.mine ? 'Your players' : `${side.name} players`}
     >
-      <Slide side={side}>
+      <Slide side={side} pager={!pretip}>
         <>
-          <ColumnHead />
-          <ol className="tm-list">{starters}</ol>
-          <Totals totals={side.totals} />
+          {!pretip && <ColumnHead />}
+          {/* The starters and their total share one soft field; the bench sits on the bare page. */}
+          <div className="tm-field">
+            <span className="tm-field-bg" aria-hidden="true" />
+            <ol className="tm-list" aria-label="Starters">
+              {starters}
+            </ol>
+            {pretip ? <TotalsBeforeTip firstTip={firstTip} /> : <Totals totals={side.totals} />}
+          </div>
           <h3 className="tm-sub">
             Bench <span>doesn't count</span>
           </h3>
@@ -343,7 +352,7 @@ function TeamColumn({ side, names }: { side: Side; names: Map<string, string> })
  * One team's full stat lines on a phone: the names stay pinned on the left and PTS on the right, the
  * columns between slide sideways, and ‹ › page them for anyone who doesn't swipe.
  */
-function Slide({ side, children }: { side: Side; children: ReactNode }) {
+function Slide({ side, pager, children }: { side: Side; pager: boolean; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const [at, setAt] = useState<{ start: boolean; end: boolean }>({ start: true, end: false })
   const read = useCallback(() => {
@@ -370,7 +379,7 @@ function Slide({ side, children }: { side: Side; children: ReactNode }) {
     <>
       <div className="tm-slide-head">
         <span className="tm-slide-counts">{counts.join(' · ')}</span>
-        {!(at.start && at.end) && (
+        {pager && !(at.start && at.end) && (
           <span className="tm-pager">
             <button
               type="button"
@@ -457,16 +466,18 @@ function stateOf(r: PlayerRow, now: number): { node: ReactNode; words: string } 
   return {
     node: (
       <>
+        {/* Plain words, no chip. Phones keep the score (W/L says it's over); "Final" joins it from 760. */}
         {r.state === 'dnp' ? (
-          <span className="tm-tag">
-            <span className="tm-wmid">Did not play</span>
+          <>
+            <span className="tm-wmid">Did not play · {result(r, g)}</span>
             <span className="tm-nmid">DNP</span>
-          </span>
+          </>
         ) : (
-          // On phones the grey mark says Final; the score always shows.
-          <span className="tm-tag tm-wmid">Final</span>
+          <>
+            <span className="tm-wmid">Final ·</span>
+            <span>{result(r, g)}</span>
+          </>
         )}
-        <span>{result(r, g)}</span>
       </>
     ),
     words: r.state === 'dnp' ? 'did not play' : 'final',
@@ -513,21 +524,18 @@ function Row({
   // Out with his team playing: the game is on, but he isn't.
   const out = !l && OUT.has(r.spot.injury_status)
   const live = r.state === 'live' && !out
-  const ember = r.game && live ? emberOf(r.game) : null
-  // Live: filled while he's on the floor, hollow while he sits. Done for the night: grey.
-  const mark: Mark | null = live
-    ? l?.on_court === false
-      ? 'sitting'
-      : 'oncourt'
-    : r.state === 'final' || r.state === 'dnp'
-      ? 'done'
-      : null
+  // Live: filled gold while he's on the floor, hollow while he sits. The words say the rest.
+  const mark: Mark | null = live ? (l?.on_court === false ? 'sitting' : 'oncourt') : null
   const avg = r.spot.season_avg
   const card = !!l && l.minutes > 0
+  const usual = !card && r.state === 'later' && !!avg && !quiet
   const cls = [
     'tm-row',
     card ? 'tm-card' : '',
-    live ? 'tm-livex sc-ember' : '',
+    live ? 'tm-livex' : '',
+    !r.game ? 'tm-nogame' : '',
+    r.state === 'final' || r.state === 'dnp' ? 'tm-final' : '',
+    usual ? 'tm-usual' : '',
     grade ? `tm-g-${grade.tier}` : '',
     bench ? 'tm-benchrow' : '',
     left ? 'tm-left' : '',
@@ -535,13 +543,11 @@ function Row({
   ]
     .filter(Boolean)
     .join(' ')
-  const attrs = ember ? emberAttrs(ember) : {}
   const short = names.get(r.spot.name) ?? r.spot.name
   const player = { id: r.spot.player_id, name: r.spot.name }
   return (
     <li>
-      <div className={cls} data-tm-p={left ? r.spot.player_id : undefined} tabIndex={left ? -1 : undefined} {...attrs}>
-        {ember && <Burn />}
+      <div className={cls} data-tm-p={left ? r.spot.player_id : undefined} tabIndex={left ? -1 : undefined}>
         <span className="tm-spine" aria-hidden={!grade}>
           {!quiet && <span className="tm-slot">{r.spot.slot}</span>}
           {grade && <Grade g={grade} />}
@@ -583,9 +589,9 @@ function Row({
         </span>
         {card ? (
           <StatCells line={l!} />
-        ) : r.state === 'later' && avg && !quiet ? (
+        ) : usual ? (
           <span className="tm-note">
-            usually {Math.round(avg.pts)} PTS · {Math.round(avg.reb)} REB · {Math.round(avg.ast)} AST
+            usually {Math.round(avg!.pts)} PTS · {Math.round(avg!.reb)} REB · {Math.round(avg!.ast)} AST
           </span>
         ) : (
           <span className="tm-note" />
@@ -595,11 +601,10 @@ function Row({
   )
 }
 
-type Mark = 'oncourt' | 'sitting' | 'done'
+type Mark = 'oncourt' | 'sitting'
 const MARK_WORD: Record<Mark, string> = {
   oncourt: 'On the floor now',
   sitting: 'On the bench now',
-  done: 'Game over',
 }
 
 function Grade({ g }: { g: NightGrade }) {
@@ -641,6 +646,18 @@ function Totals({ totals }: { totals: Totals }) {
     <div className="tm-tot">
       <span className="tm-tot-lab">Starters so far</span>
       <StatCells line={totals} />
+    </div>
+  )
+}
+
+/** The field's foot before anyone has played: words, not a row of zeros. */
+function TotalsBeforeTip({ firstTip }: { firstTip: string | null }) {
+  return (
+    <div className="tm-tot tm-tot-empty">
+      <span className="tm-tot-lab">Starters so far</span>
+      <span className="tm-tot-note">
+        {firstTip ? `Nothing yet · first tip ${tipOff(firstTip)}` : 'No starters play today'}
+      </span>
     </div>
   )
 }
