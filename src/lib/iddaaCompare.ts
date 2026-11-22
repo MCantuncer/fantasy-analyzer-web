@@ -111,6 +111,62 @@ export interface CompareTally {
   value_return?: number
 }
 
+/** POST /api/book-compare/record: the latest saved nights as one record of the player rungs. Written
+ *  by hand from the API schema (BookRecord) until the generated schema ships it. */
+export interface BookRecord {
+  season: number
+  /** Saved nights read. */
+  nights: number
+  /** Settled rungs with both chances. */
+  rungs: number
+  /** Brier scores over those rungs (lower is better); the book's with its margin taken out. */
+  ours_score: number | null
+  book_score: number | null
+  picks: RecordPicks[]
+  calibration: RecordBucket[]
+  /** One line per night, oldest first. Optional: older servers send none. */
+  series?: RecordNight[]
+}
+
+/** Value picks (settled rungs with value over 0 by our chance) for one stat and odds band. */
+export interface RecordPicks {
+  /** three_pm, reb, ast, stl, blk, pts or all. */
+  stat: string
+  odds_from: number
+  /** null: and up. */
+  odds_to: number | null
+  picks: number
+  hits: number
+  /** Our average chance on those picks. */
+  said: number
+  /** One unit on each at the book's odds: net units. */
+  net: number
+}
+
+/** One chance bucket for one side: what it said on average and how often the rung was reached. */
+export interface RecordBucket {
+  side: 'ours' | 'book'
+  chance_from: number
+  chance_to: number
+  rungs: number
+  said: number
+  happened: number
+}
+
+export interface RecordNight {
+  day: number | null
+  /** The night has results; false before tip-off. */
+  settled: boolean
+  picks: number
+  hits: number
+  net: number
+  /** Sum of the picks' value: what our chances expected them to make. */
+  marked: number
+  players: number
+  /** Odds of the biggest pick that landed. */
+  top_hit: number | null
+}
+
 export interface BookCompare {
   season: number
   day: number | null
