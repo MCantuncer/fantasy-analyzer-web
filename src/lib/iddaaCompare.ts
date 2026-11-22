@@ -718,15 +718,16 @@ function byWords(l: Line, v: number): string {
   return lead(v >= 0 ? l.team : l.other, Math.abs(Math.round(v * 10) / 10))
 }
 
-/** Our number on the ticket before the game: "Ours PHI −6.5", "Ours +229.3" (over the line). */
+/** Our number on the ticket before the game: "Ours PHI −6.5", "Ours +229.3" (our bet is the Over). */
 export function oursLine(l: Line, call: GameCallView | null): string | null {
   if (l.stat === 'WIN') return call ? `Ours ${lead(call.pick, Math.round(call.margin))}` : null
   if (l.ours == null) return null
   if (l.stat === 'MAR') return `Ours ${byWords(l, l.ours)}`
-  // totals carry a sign for the side of iddaa's line we sit on: + over, − under (Can 2026-11-22)
+  // totals carry the sign of the bet we lock in: + for Over, − for Under (Can 2026-11-22)
   const v = num(Math.round(l.ours * 10) / 10)
-  if (l.book == null || l.ours === l.book) return `Ours ${v}`
-  return `Ours ${l.ours > l.book ? '+' : '−'}${v}`
+  const side = l.barem?.side
+  if (side !== 'over' && side !== 'under') return `Ours ${v}`
+  return `Ours ${side === 'over' ? '+' : '−'}${v}`
 }
 
 /** What the game gave the ticket: "Got PHI by 13", "Got 229". */
