@@ -5,7 +5,9 @@ import {
   formRead,
   inVenue,
   losersBest,
+  nick,
   possessive,
+  shortDate,
   signedMargin,
   streakOf,
   typeTag,
@@ -160,6 +162,13 @@ describe('match form', () => {
     expect(typeTag('playoff', 'East 1st Round - Game 2')).toEqual({ label: 'Playoff', detail: 'East 1st Round · Game 2', variant: 'post' })
     expect(typeTag('play_in', null)?.label).toBe('Play-In')
     expect(typeTag(null, 'anything')).toBeNull()
+  })
+
+  it('names clubs and dates the short way', () => {
+    expect(nick('NY')).toBe('Knicks')
+    expect(nick('XYZ')).toBe('XYZ')
+    expect(shortDate('2026-10-30')).toBe('Oct 30')
+    expect(shortDate(null)).toBe('')
   })
 
   it('writes possessives', () => {

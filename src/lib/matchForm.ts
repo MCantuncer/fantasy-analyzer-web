@@ -1,3 +1,5 @@
+import { teamName } from './nbaTeams'
+
 // The match card's Form view (Can 2026-11-22): both teams' recent games before they meet, who is
 // heating up or cooling off, and each game's MVP. Everything here is pure, read from POST
 // /api/match-form. Preseason games never reach it: the server leaves them out.
@@ -200,4 +202,17 @@ export function typeTag(kind: GameKind | null, note: string | null): TypeTag | n
 /** "Knicks'" / "Heat's". */
 export function possessive(nick: string): string {
   return nick.endsWith('s') ? `${nick}'` : `${nick}'s`
+}
+
+/** "Knicks" from "NY"; the abbreviation when the club is unknown. */
+export function nick(abbrev: string): string {
+  const n = teamName(abbrev)
+  return n === abbrev ? abbrev : n.split(' ').slice(-1)[0]
+}
+
+/** "Oct 30" from a US game date (YYYY-MM-DD). */
+export function shortDate(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(`${iso}T12:00:00Z`)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 }
