@@ -20,6 +20,7 @@ import { useCourtReveal } from './lib/useCourtReveal'
 import { AnalysisCard, AnalysisPill, ReadyToast } from './components/AnalysisProgress'
 import { LeaguesSkeleton } from './components/Skeleton'
 import { percent, useSmoothProgress } from './lib/progress'
+import { AccountMenu } from './components/AccountMenu'
 import { Auth } from './components/Auth'
 import { SignInHero } from './components/SignInHero'
 import { ResetPassword } from './components/ResetPassword'
@@ -656,58 +657,23 @@ export default function App() {
             )}
             {themeButton}
             {signedIn && me.data && (
-              <details className="account-menu">
-                <summary className="icon" aria-label="Account" title={me.data.email ?? 'Account'}>
-                  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                    <circle cx="9" cy="6.5" r="3" stroke="currentColor" strokeWidth="1.6" fill="none" />
-                    <path
-                      d="M3.5 15.5c.8-2.8 3-4.2 5.5-4.2s4.7 1.4 5.5 4.2"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      fill="none"
-                    />
-                  </svg>
-                </summary>
-                <div className="account-pop card stack">
-                  <span className="small muted">Signed in as</span>
-                  <strong className="account-email">{me.data.email ?? 'Google account'}</strong>
-                  {me.data.admin && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={(e) => {
-                        e.currentTarget.closest('details')?.removeAttribute('open')
-                        goHome()
-                        setAdmin('health')
-                      }}
-                    >
-                      Site health
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={(e) => {
-                      e.currentTarget.closest('details')?.removeAttribute('open')
-                      goHome()
-                      setAdmin('estimates')
-                    }}
-                  >
-                    Our Estimates
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => {
-                      signOut()
-                        .catch(() => undefined)
-                        .finally(endSession)
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </details>
+              <AccountMenu
+                email={me.data.email}
+                admin={!!me.data.admin}
+                onHealth={() => {
+                  goHome()
+                  setAdmin('health')
+                }}
+                onEstimates={() => {
+                  goHome()
+                  setAdmin('estimates')
+                }}
+                onSignOut={() => {
+                  signOut()
+                    .catch(() => undefined)
+                    .finally(endSession)
+                }}
+              />
             )}
           </div>
         </div>

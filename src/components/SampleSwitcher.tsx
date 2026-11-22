@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
 import { Binoculars } from '@phosphor-icons/react'
 import type { SampleIndex, SampleTeam } from '../api/client'
 import { ordinal } from '../lib/format'
 import { OpenCrest } from './OpenCrest'
-import { useEscapeLayer } from '../lib/escapeStack'
+import { useDetailsMenu } from '../lib/detailsMenu'
 import './LeagueSwitcher.css'
 
 /**
@@ -23,28 +22,10 @@ export function SampleSwitcher({
   onJoin: () => void
   onSignIn: () => void
 }) {
-  const ref = useRef<HTMLDetailsElement>(null)
-  const [open, setOpen] = useState(false)
-
-  // Close on outside click and Escape, like any other menu.
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const onDown = (e: PointerEvent) => {
-      if (el.open && !el.contains(e.target as Node)) el.open = false
-    }
-    document.addEventListener('pointerdown', onDown)
-    return () => document.removeEventListener('pointerdown', onDown)
-  }, [])
-  useEscapeLayer(open, () => {
-    const el = ref.current
-    if (!el) return
-    el.open = false
-    el.querySelector('summary')?.focus()
-  })
+  const menu = useDetailsMenu()
 
   const close = (then: () => void) => () => {
-    if (ref.current) ref.current.open = false
+    menu.close()
     then()
   }
   const ladder = [...index.teams].sort((a, b) => a.projected_rank - b.projected_rank)
@@ -52,8 +33,7 @@ export function SampleSwitcher({
   return (
     <details
       className="switcher league-switcher smp-switcher"
-      ref={ref}
-      onToggle={(e) => setOpen(e.currentTarget.open)}
+      {...menu.menuProps}
     >
       <summary aria-label={`Sample league, team names masked. Scouting ${scout.name}. Scout another team`}>
         <span className="smp-crumb">
