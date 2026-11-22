@@ -1,12 +1,16 @@
-import { X } from "@phosphor-icons/react";
+import { ListBullets, Pulse, Trophy, X } from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { useEscapeLayer } from "../lib/escapeStack";
+import { matchFormQuery } from "../api/client";
 import { clock, num } from "../lib/iddaaCompare";
+import { typeTag } from "../lib/matchForm";
 import type { CompareEstimate, CompareGame } from "../lib/iddaaCompare";
 import { teamLight, teamName } from "../lib/nbaTeams";
 import { usePlayerCard, usePlayerCardShown } from "../lib/playerCard";
+import { FormError, FormLoading, FormView } from "./matchForm/FormView";
 import { PlayerHead, TeamLogo } from "./PlayerHead";
 import "./MatchCard.css";
 
@@ -25,6 +29,11 @@ const COLS = [
   ["PTS", "pts", false],
 ] as const;
 
+const VIEWS = [
+  ["form", "Form", Pulse],
+  ["estimates", "Our Estimates", ListBullets],
+] as const;
+
 const nick = (abbrev: string) => {
   const n = teamName(abbrev);
   return n === abbrev ? abbrev : n.split(" ").slice(-1)[0];
@@ -38,18 +47,29 @@ function countdown(tip: string, now: number): string | null {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 }
 
+type View = "form" | "estimates";
+
 export function MatchCard({
   game,
   onClose,
+  initialView = "estimates",
+  initialSide = "away",
 }: {
   game: CompareGame;
   onClose: () => void;
+  initialView?: View;
+  initialSide?: "away" | "home";
 }) {
   const titleId = useId();
+  const viewsId = useId();
+  const [view, setView] = useState<View>(initialView);
+  // Both teams' games load once the Form view has been looked at, then stay for the card's life.
+  const [formSeen, setFormSeen] = useState(initialView === "form");
+  const form = useQuery({ ...matchFormQuery(game.away, game.home), enabled: formSeen });
   const dialog = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const under = usePlayerCardShown();
-  const [side, setSide] = useState<"away" | "home">("away");
+  const [side, setSide] = useState<"away" | "home">(initialSide);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 30_000);
@@ -79,6 +99,13 @@ export function MatchCard({
   const rows = game.estimates ?? [];
   const team = side === "away" ? game.away : game.home;
   const shown = rows.filter((e) => e.team === team);
+
+  const pick = (v: View) => {
+    setView(v);
+    if (v === "form") setFormSeen(true);
+  };
+  const next = form.data?.next;
+  const tag = next && next.game_id === game.game_id ? typeTag(next.kind, next.note) : null;
 
   // Keep Tab inside the card while it is open.
   const trap = (e: ReactKeyboardEvent) => {
@@ -113,10 +140,6 @@ export function MatchCard({
       >
         <div className="mc-title">
           <h2 id={titleId} ref={heading} tabIndex={-1}>
-            <span className="mc-kick">Our estimates</span>
-            <span className="mc-dot" aria-hidden="true">
-              ·
-            </span>
             <span className="mc-game">
               {nick(game.away)} at {nick(game.home)}
             </span>
@@ -140,8 +163,15 @@ export function MatchCard({
                     Tips in <b className="num">{left}</b>
                   </>
                 )}
+              </>
+            )}
+            {tag && (
+              <>
                 <i />
-                Lines move with lineup news until tip-off
+                <span className={`mc-type ${tag.variant}`}>
+                  {tag.variant === "cup" && <Trophy size={13} aria-hidden="true" />}
+                  {tag.label}
+                </span>
               </>
             )}
           </span>
@@ -157,6 +187,58 @@ export function MatchCard({
             <kbd>Esc</kbd>
           </button>
         </div>
+        <div
+          className="mc-views"
+          role="tablist"
+          aria-label="View"
+          onKeyDown={(e) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+            e.preventDefault();
+            const next: View =
+              e.key === "Home" ? "form" : e.key === "End" ? "estimates" : view === "form" ? "estimates" : "form";
+            pick(next);
+            e.currentTarget.querySelector<HTMLButtonElement>(`#${CSS.escape(viewsId)}-${next}`)?.focus();
+          }}
+        >
+          {VIEWS.map(([v, label, Icon]) => (
+            <button
+              key={v}
+              id={`${viewsId}-${v}`}
+              type="button"
+              role="tab"
+              className="mc-view"
+              aria-selected={view === v}
+              aria-controls={`${viewsId}-panel`}
+              tabIndex={view === v ? 0 : -1}
+              onClick={() => pick(v)}
+            >
+              <Icon size={16} aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </div>
+        {view === "form" ? (
+          <div
+            id={`${viewsId}-panel`}
+            className="mc-scroll mc-form"
+            role="tabpanel"
+            aria-labelledby={`${viewsId}-form`}
+          >
+            {form.data ? (
+              <FormView form={form.data} venueNeutral={form.data.next?.neutral === true} />
+            ) : form.isError ? (
+              <FormError onRetry={() => void form.refetch()} />
+            ) : (
+              <FormLoading />
+            )}
+          </div>
+        ) : (
+          <div
+            id={`${viewsId}-panel`}
+            className="mc-estimates"
+            role="tabpanel"
+            aria-labelledby={`${viewsId}-estimates`}
+          >
         <div className="mc-switch" role="tablist" aria-label="Team">
           {(["away", "home"] as const).map((s) => {
             const ab = s === "away" ? game.away : game.home;
@@ -210,9 +292,11 @@ export function MatchCard({
           <p className="mc-foot">
             {final
               ? "Our line as it stood at tip-off, with what each player did under it."
-              : "Our line for each player expected to play 10+ minutes. It freezes at tip-off."}
+              : "Our line for each player expected to play 10+ minutes. Lines move with lineup news and freeze at tip-off."}
           </p>
         </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body,
