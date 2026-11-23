@@ -11,6 +11,7 @@ import {
   ArrowsLeftRight,
   CaretDown,
   ChatCircle,
+  Crown,
   FilmSlate,
   Gavel,
   ListBullets,
@@ -84,7 +85,7 @@ interface Ctx {
   budget: number | null
   /** Team id to crest colour; your team is the accent. */
   colours: Map<number, string>
-  /** The week's single biggest waiver bid, which gets a highlighted card. */
+  /** The week's single biggest waiver bid: its team's light, a crown and a 20px amount. */
   bigId: string | null
   link: Poster | null
   creds: Credentials | null
@@ -421,9 +422,13 @@ function MoveEntry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: bool
     actRef.current?.focus()
   }
 
+  // The week's biggest bid glows from its crest. Your own crest is gold, and gold never washes a
+  // row, so your biggest bid takes a quiet ink light instead.
+  const big = ctx.bigId === item.id
+  const bigLight = ctx.link?.teamId === item.team_id ? 'var(--text-2)' : ctx.colours.get(item.team_id)
   const cls = moment
-    ? `feed-entry feed-moment feed-moment-move${promoted ? ' is-promoted' : ''}`
-    : `feed-entry feed-line${tray || thread ? ' is-open' : ''}`
+    ? `feed-entry feed-moment feed-moment-move${promoted ? ' is-promoted' : ''}${big ? ' is-big' : ''}`
+    : `feed-entry feed-line${tray || thread ? ' is-open' : ''}${big ? ' is-big' : ''}`
   return (
     <>
       {start && (
@@ -431,7 +436,7 @@ function MoveEntry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: bool
           {timeLabel(item.at)}
         </li>
       )}
-      <li className={cls}>
+      <li className={cls} style={big && bigLight ? ({ '--feed-big': bigLight } as CSSProperties) : undefined}>
         <span className="feed-node" aria-hidden="true">
           <TeamCrest name={teamName(ctx.teams, item.team_id)} colour={ctx.colours.get(item.team_id)} size={24} />
         </span>
@@ -715,7 +720,12 @@ function FeedLine({ item, ctx, act }: { item: FeedItem; ctx: Ctx; act?: ReactNod
       {act}
       {(big || beat) && (
         <span className="feed-meta">
-          {big && <span className="feed-meta-big">Biggest bid this week</span>}
+          {big && (
+            <span className="feed-meta-big">
+              <Crown size={14} aria-hidden="true" />
+              Biggest bid this week
+            </span>
+          )}
           {beat && (
             <span className="feed-beat">
               Beat {beat.count} {beat.count === 1 ? beat.unit : `${beat.unit}s`}

@@ -98,6 +98,11 @@ describe('LeagueChat wire', () => {
     const [claim, fa] = container.querySelectorAll('.feed-line')
     expect(claim.querySelector('.feed-slot')?.textContent).toBe('Waiver bid$12')
     expect(claim.querySelector('.feed-meta')?.textContent).toContain('Biggest bid this week')
+    expect(claim.querySelector('.feed-meta-big svg')?.getAttribute('aria-hidden')).toBe('true')
+    expect(claim.classList.contains('is-big')).toBe(true)
+    expect((claim as HTMLElement).style.getPropertyValue('--feed-big')).toBe('var(--team-0)')
+    expect(fa.classList.contains('is-big')).toBe(false)
+    expect((fa as HTMLElement).style.getPropertyValue('--feed-big')).toBe('')
     const beat = claim.querySelector('.feed-beat')!
     expect(beat.textContent).toMatch(/^Beat 1 bid/)
     expect(beat.querySelector('.sr-only')?.textContent).toBe('Cayyolu Bastards')
@@ -291,6 +296,23 @@ describe('LeagueChat react and reply', () => {
     const reply = await within(li).findByText('Good pickup')
     expect(reply.closest('.chat-reply')?.querySelector('.crest')).not.toBeNull()
     expect(within(li).getByPlaceholderText('Write a reply…')).toBeTruthy()
+  })
+
+  it('lights your own biggest bid in ink, not gold, and keeps the crown when it becomes a moment', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage())
+    const { container, unmount } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    const line = container.querySelector('.feed-line.is-big') as HTMLElement
+    expect(line.style.getPropertyValue('--feed-big')).toBe('var(--text-2)')
+    expect(line.querySelector('.feed-meta-big')?.textContent).toBe('Biggest bid this week')
+    unmount()
+
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { replies: 1 } }))
+    const again = renderChat()
+    await within(again.container).findByText('Tristan da Silva')
+    const moment = again.container.querySelector('.feed-moment-move')!
+    expect(moment.classList.contains('is-big')).toBe(true)
+    expect(moment.querySelector('.feed-meta-big svg')).not.toBeNull()
   })
 
   it('shows moves with replies as moments with used chips, React and the reply count, without animating them', async () => {
