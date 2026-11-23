@@ -92,12 +92,12 @@ describe('ready-made coupons', () => {
     expect(new Set(c.legs.map((l) => l.gameId)).size).toBe(c.legs.length)
     expect(c.odds).toBeGreaterThanOrEqual(4)
     expect(c.odds).toBeLessThanOrEqual(5.5)
-    // three legs at 1.47 x 1.55 x 1.8 = 4.10 and 33% beat the four likeliest (Jokic, Embiid, Brunson,
-    // HOU: 4.97 at 31%): fewer legs keep more of the chance
-    expect(c.legs.map(legWords).sort()).toEqual(['BOS to win', 'Jalen Brunson 22+ points', 'PHI to win'])
-    expect(c.chance).toBeCloseTo(0.76 * 0.74 * 0.58, 6)
+    // game picks lean on the book's own price now (Can 2026-11-23): PHI to win at 1.55 reads about 64%,
+    // no likelier than the player floors, so three player rungs at 1.4 x 2.1 x 1.47 = 4.32 and 30% win
+    expect(c.legs.map(legWords).sort()).toEqual(['Jalen Brunson 22+ points', 'Joel Embiid 20+ points', 'Nikola Jokic 28+ points'])
+    expect(c.chance).toBeCloseTo(0.76 * 0.8 * 0.5, 6)
     expect(c.implied).toBeCloseTo(1 / c.odds, 9)
-    expect(pays(10, c.odds)).toBe(41)
+    expect(pays(10, c.odds)).toBe(43)
     expect(fmtOdds(1.55 * 1.47 * 1.45 * 1.4)).toBe('4.63')
     expect(players.why).toBeNull()
     expect(matches.coupon!.legs.every((l) => l.kind === 'game')).toBe(true)

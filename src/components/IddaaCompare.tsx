@@ -2677,7 +2677,10 @@ function ConfPop({
   const onClose = () => onOpen(null)
   const b = l.barem!
   const pct = Math.round((b.sure ?? 0) * 100)
-  const book = b.odd != null ? implied(b.odd) : null
+  // the book's own chance with its cut taken out when it priced both sides (Can 2026-11-23), else
+  // what its odds read as with the cut left in
+  const fair = b.fair != null ? Math.round(b.fair * 100) : null
+  const book = fair ?? (b.odd != null ? implied(b.odd) : null)
   const diff = book == null ? 0 : pct - book
   const face = betFace(l)
   const label = face ? (l.stat === 'WIN' ? `${face.hero} to win` : `${face.q} ${face.hero}`) : b.label
@@ -2726,6 +2729,13 @@ function ConfPop({
             We give {label} a <b className="num">{pct}%</b> chance to win.
           </p>
         </div>
+        {b.alone != null && (
+          <p className="fine">
+            Nine parts iddaa's own price with its cut taken out, one part our call: our call alone said{' '}
+            <b className="num">{Math.round(b.alone * 100)}%</b>. When the two disagree, the result has landed on the book's
+            number.
+          </p>
+        )}
         {book != null && (
           <>
             <div className="ic-gp-bars" data-band={band(pct)}>
@@ -2741,7 +2751,16 @@ function ConfPop({
               <span className="num v">{book}%</span>
             </div>
             <p className="fine">
-              iddaa's odds <b className="num">{odds(b.odd!)}</b> imply <b className="num">{book}%</b>.{' '}
+              iddaa's odds <b className="num">{odds(b.odd!)}</b>{' '}
+              {fair != null ? (
+                <>
+                  read as <b className="num">{book}%</b> with its cut taken out.{' '}
+                </>
+              ) : (
+                <>
+                  imply <b className="num">{book}%</b>.{' '}
+                </>
+              )}
               {diff === 0 ? (
                 'We read it the same.'
               ) : diff > 0 ? (
@@ -2750,8 +2769,8 @@ function ConfPop({
                 </>
               ) : (
                 <>
-                  iddaa rates it <b className="num">{-diff}</b> {diff === -1 ? 'point' : 'points'} likelier than we do. Its price
-                  includes its own cut.
+                  iddaa rates it <b className="num">{-diff}</b> {diff === -1 ? 'point' : 'points'} likelier than we do.
+                  {fair == null && ' Its price includes its own cut.'}
                 </>
               )}
             </p>

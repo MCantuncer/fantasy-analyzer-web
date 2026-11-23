@@ -95,7 +95,7 @@ describe("Tonight's Kupons", () => {
   it('writes the sum under the total odds and shows the probability beside it', () => {
     const { container } = show(night())
     const slip = container.querySelector('#ic-ku-safe') as HTMLElement
-    expect(slip.querySelector('.prod')!.textContent).toBe('1.55 × 1.50 × 1.80')
+    expect(slip.querySelector('.prod')!.textContent).toBe('1.50 × 1.55 × 1.80')
     expect(within(slip).getByText('Total odds')).toBeTruthy()
     expect(within(slip).getByText('Probability')).toBeTruthy()
   })
@@ -119,7 +119,7 @@ describe("Tonight's Kupons", () => {
     show(night(), onMatch)
     const leg = screen.getByRole('button', { name: /^IND @ NY, Match result NY to win.*Opens the match card$/ })
     expect(leg.querySelector('button')).toBeNull()
-    expect(leg.querySelector('.ic-ch')!.textContent).toBe('71%')
+    expect(leg.querySelector('.ic-ch')!.textContent).toBe('63%')
     fireEvent.click(leg)
     expect(onMatch).toHaveBeenCalledWith(2, 'home')
     expect(screen.queryByRole('button', { name: /^Our chance/ })).toBeNull()
