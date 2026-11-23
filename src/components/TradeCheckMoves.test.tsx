@@ -1,14 +1,44 @@
-import { fireEvent, render, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import sample from '../test/offer-check-1for2.json'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { TradeCheckFlags } from './TradeCheckFlags'
 import { TradeCheckMoves } from './TradeCheckMoves'
 
 const check = sample as unknown as OfferCheck
 const roster = (check.my_drop_options ?? []).map((o) => o.player) as PlayerRef[]
 
+afterEach(() => {
+  cleanup()
+  setPlayerCardHost(null)
+})
+
 describe('TradeCheckMoves', () => {
+  it('opens the card from each name and face around the deal, and from the cut sheet', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = render(
+      <TradeCheckMoves check={check} give={1} get={2} roster={roster} keep={[]} onCut={() => {}} />,
+    )
+    const view = within(container)
+    expect(container.textContent).toContain("You'd cut Davion Mitchell")
+    fireEvent.click(view.getByRole('button', { name: 'Davion Mitchell' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Davion Mitchell' }))
+    fireEvent.click(view.getByRole('button', { name: 'Ayo Dosunmu' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Ayo Dosunmu' }))
+    // Each face is the name's quiet twin: same card, out of the tab order.
+    const faces = container.querySelectorAll('.tck-mv > li > button.pc-link-face')
+    expect(faces.length).toBeGreaterThan(1)
+    expect(faces[0]).toHaveAttribute('tabindex', '-1')
+    fireEvent.click(view.getByRole('button', { name: 'Change' }))
+    const sheet = within(view.getByRole('dialog', { name: "Who you'd cut" }))
+    fireEvent.click(sheet.getByRole('button', { name: 'Jalen Green' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Jalen Green' }))
+    // Opening his card never picks him to cut.
+    expect(sheet.getByRole('radio', { name: /Jalen Green/ })).not.toBeChecked()
+  })
+
   it('names the cut and pickups, and changes the cut in a sheet', () => {
     const onCut = vi.fn()
     const { container } = render(
@@ -50,6 +80,23 @@ describe('TradeCheckMoves', () => {
 })
 
 describe('TradeCheckFlags', () => {
+  it("opens the card from their keystone's name, with his face", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const daniels = {
+      ...check.idea.get[0],
+      id: 77,
+      name: 'Dyson Daniels',
+      badges: [{ kind: 'keystone', category: 'STL', reason: 'Their STL leans on him. They win it 60% of weeks.' }],
+    }
+    const withKeystone = { ...check, idea: { ...check.idea, get: [daniels] } } as unknown as OfferCheck
+    const { container } = render(<TradeCheckFlags check={withKeystone} />)
+    expect(container.textContent).toContain('Dyson Daniels carries their STL: they win it 60% of weeks.')
+    expect(container.querySelector('.pin button.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(within(container).getByRole('button', { name: 'Dyson Daniels' }))
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 77 }))
+  })
+
   it('splits a build conflict into category chips that match the table, and names the clear checks', () => {
     const { container } = render(<TradeCheckFlags check={check} />)
     const view = within(container)

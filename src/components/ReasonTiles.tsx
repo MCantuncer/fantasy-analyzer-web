@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import type { TradeIdea } from '../api/client'
 import { ordinal } from '../lib/format'
 import { shortValue, type RoundValues } from '../lib/tradeValue'
+import type { CardPlayer } from '../lib/playerCard'
+import { PlayerInline } from './PlayerInline'
 import './ReasonTiles.css'
 
 type Fact = NonNullable<TradeIdea['facts']>[number]
@@ -67,6 +69,11 @@ export function ReasonTiles({ facts, reasons, title, valueGet, valueGive, myCats
   )
 }
 
+/** The player a fact is about, when it names one. */
+function who(f: Fact): CardPlayer | null {
+  return f.player_name ? { id: f.player_id ?? 0, name: f.player_name } : null
+}
+
 function FactTile({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
   const cats = f.categories ?? []
   switch (f.kind) {
@@ -76,7 +83,7 @@ function FactTile({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
       const ours = f.our_value ?? 0
       const label = (x: number, given?: string | null) => (rounds ? shortValue(x, rounds) : given || shortValue(x, rounds))
       return (
-        <Tile icon={f.kind === 'sell_high' ? 'up' : 'down'} title={f.kind === 'sell_high' ? 'Sell high' : 'Buy low'} sub={f.player_name} sr={f.text}>
+        <Tile icon={f.kind === 'sell_high' ? 'up' : 'down'} title={f.kind === 'sell_high' ? 'Sell high' : 'Buy low'} sub={who(f)} sr={f.text}>
           <Pair
             rows={[
               ['Owners', owners, label(owners, f.owners_label), f.kind === 'sell_high'],
@@ -134,14 +141,14 @@ function FactTile({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
       )
     case 'punt_mine':
       return (
-        <Tile icon="check" title="Costs you little" sub={f.player_name} sr={f.text}>
+        <Tile icon="check" title="Costs you little" sub={who(f)} sr={f.text}>
           <div className="small muted">His value is in your punts</div>
           <Chips cats={cats} dashed />
         </Tile>
       )
     case 'punt_theirs':
       return (
-        <Tile icon="check" title="Wasted on them" sub={f.player_name} sr={f.text}>
+        <Tile icon="check" title="Wasted on them" sub={who(f)} sr={f.text}>
           <div className="small muted">They punt</div>
           <Chips cats={cats} dashed />
         </Tile>
@@ -183,7 +190,8 @@ function Tile({
 }: {
   icon: Icon
   title: string
-  sub?: string | null
+  /** The player the point is about: a face and his linked name, under the title. */
+  sub?: CardPlayer | null
   sr: string
   tone?: 'for' | 'against'
   children: ReactNode
@@ -191,15 +199,19 @@ function Tile({
   return (
     <li className={`rt-tile rt-${tone}`}>
       <span className="sr-only">{sr}</span>
-      <div className="rt-head" aria-hidden="true">
-        <span className="rt-icon">
+      <div className="rt-head">
+        <span className="rt-icon" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d={ICON_PATHS[icon]} />
           </svg>
         </span>
         <span className="rt-title">
-          <span>{title}</span>
-          {sub && <span className="rt-sub">{sub}</span>}
+          <span aria-hidden="true">{title}</span>
+          {sub && (
+            <span className="rt-sub">
+              <PlayerInline player={sub} />
+            </span>
+          )}
         </span>
       </div>
       <div className="rt-body" aria-hidden="true">

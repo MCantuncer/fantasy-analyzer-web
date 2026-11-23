@@ -26,6 +26,7 @@ import { Delta } from './OddsChange'
 import { PickupClimb } from './PickupClimb'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import { PlayerInline } from './PlayerInline'
 import { TeamCrest } from './TeamCrest'
 import { ACCEPTANCE } from './Trades'
 import './BestMove.css'
@@ -300,7 +301,10 @@ export function BestMove({
           note={
             trade.my_drop && (
               <>
-                <Trash size={13} aria-hidden="true" /> and drop {trade.my_drop.name}
+                <Trash size={13} aria-hidden="true" />
+                <span>
+                  and drop <PlayerInline player={trade.my_drop} />
+                </span>
               </>
             )
           }
@@ -312,7 +316,10 @@ export function BestMove({
           note={
             trade.my_add && (
               <>
-                <Plus size={13} aria-hidden="true" /> and add {trade.my_add.name} from free agency
+                <Plus size={13} aria-hidden="true" />
+                <span>
+                  and add <PlayerInline player={trade.my_add} /> from free agency
+                </span>
               </>
             )
           }

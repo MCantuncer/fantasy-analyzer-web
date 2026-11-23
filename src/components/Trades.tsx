@@ -3,7 +3,7 @@ import { CaretDown, Handshake, LockSimple, LockSimpleOpen } from '@phosphor-icon
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
-import type { FeedbackSource, TradeIdea } from '../api/client'
+import type { FeedbackSource, PlayerRef, TradeIdea } from '../api/client'
 import { tradeKey } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
@@ -17,6 +17,7 @@ import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { PlayerLink } from './PlayerCard'
+import { KeptPlayers, PlayerInline, PlayerList } from './PlayerInline'
 import { ReasonTiles } from './ReasonTiles'
 import { shortListNote } from '../lib/tradeList'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
@@ -189,18 +190,18 @@ export function TradeItem({
         <ul className="reasons">
           {t.my_drop && (
             <li>
-              You drop <PlayerLink player={t.my_drop} /> to make room.
+              You drop <PlayerInline player={t.my_drop} /> to make room.
             </li>
           )}
           {t.my_add && (
             <li>
-              You send more than you get back: pick up <PlayerLink player={t.my_add} /> from free agency for the open
+              You send more than you get back: pick up <PlayerInline player={t.my_add} /> from free agency for the open
               spot. The odds above include him.
             </li>
           )}
           {t.their_drop && (
             <li>
-              They would likely drop <PlayerLink player={t.their_drop} />.
+              They would likely drop <PlayerInline player={t.their_drop} tail="." />
             </li>
           )}
           {extra}
@@ -224,7 +225,8 @@ export function TradeItem({
             {keptOut.length > 0 && (
               <span className="tr-kept-tag">
                 <LockSimple size={11} weight="fill" aria-hidden="true" />
-                {keptNames(keptOut.map((p) => p.name))} {keptOut.length > 1 ? 'are' : 'is'} kept
+                {open ? <KeptPlayers players={keptOut} face={false} /> : keptNames(keptOut.map((p) => p.name))}{' '}
+                {keptOut.length > 1 ? 'are' : 'is'} kept
               </span>
             )}
           </span>
@@ -370,7 +372,7 @@ interface TradesProps {
   teams?: { id: number; name: string }[]
   myTeamId?: number
   /** Players these moves already leave out. */
-  keepNames?: string[]
+  kept?: PlayerRef[]
   /** Opens My Team, where the Keep list is changed. */
   onEditKeep?: () => void
   /** The Keep list and its switch, for "Keep him" in an open trade. */
@@ -384,7 +386,7 @@ export function Trades({
   categories = [],
   teams = [],
   myTeamId,
-  keepNames = [],
+  kept = [],
   onEditKeep,
   keep,
   onToggleKeep,
@@ -435,12 +437,12 @@ export function Trades({
           </div>
         )}
       </div>
-      {keepNames.length > 0 && (
+      {kept.length > 0 && (
         <p className="trades-kept small">
           <span className="trades-kept-names">
             <LockSimple size={14} weight="fill" aria-hidden="true" />
             <span>
-              <strong>Always kept:</strong> {keepNames.join(', ')}.
+              <strong>Always kept:</strong> <PlayerList players={kept} tail="." />
             </span>
           </span>
           {onEditKeep && (
@@ -459,7 +461,7 @@ export function Trades({
             categories={categories}
             teams={teams}
             myTeamId={myTeamId}
-            keepNames={keepNames}
+            kept={kept}
           />
           <p className="small muted trades-hint">
             {noFair ? BOLD_ONLY : MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by

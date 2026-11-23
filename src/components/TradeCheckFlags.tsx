@@ -1,6 +1,7 @@
 import { CheckCircle, Diamond, Warning } from '@phosphor-icons/react'
-import type { OfferCheck } from '../api/client'
+import type { OfferCheck, PlayerRef } from '../api/client'
 import { clearChecks, pointChange } from '../lib/tradeCheck'
+import { PlayerInline } from './PlayerInline'
 import './TradeCheckMoves.css'
 
 const CATS = 'FG%|FT%|3PM|REB|AST|STL|BLK|TO|PTS'
@@ -22,13 +23,16 @@ function conflictChips(check: OfferCheck, evidence: string) {
 }
 
 /** Their keystones you'd take, told from their side: "Dyson Daniels carries their STL: they win it 60% …". */
-function theirKeystones(check: OfferCheck): string[] {
+function theirKeystones(check: OfferCheck): { player: PlayerRef; text: string }[] {
   return check.idea.get.flatMap((p) =>
     (p.badges ?? [])
       .filter((b) => b.kind === 'keystone' && b.category)
       .map((b) => {
         const tail = b.reason.includes('. ') ? b.reason.slice(b.reason.indexOf('. ') + 2) : ''
-        return `${p.name} carries their ${b.category}${tail ? `: ${tail.charAt(0).toLowerCase()}${tail.slice(1)}` : '.'}`
+        return {
+          player: p,
+          text: ` carries their ${b.category}${tail ? `: ${tail.charAt(0).toLowerCase()}${tail.slice(1)}` : '.'}`,
+        }
       }),
   )
 }
@@ -79,12 +83,15 @@ export function TradeCheckFlags({ check }: { check: OfferCheck }) {
             </li>
           )
         })}
-        {keystones.map((text) => (
-          <li key={text}>
+        {keystones.map(({ player, text }) => (
+          <li key={`${player.id}${text}`}>
             <Diamond className="tck-fl-icon them" size={18} aria-hidden="true" />
             <div>
               <b>Their keystone</b>
-              <p>{text}</p>
+              <p>
+                <PlayerInline player={player} />
+                {text}
+              </p>
             </div>
           </li>
         ))}
