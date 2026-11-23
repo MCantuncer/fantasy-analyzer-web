@@ -112,6 +112,20 @@
     gap: 10px 12px;
     padding: 14px 0;
   }
+  .vr-row-who {
+    grid-template-areas:
+      'who who who'
+      'stamp rung res'
+      'chance chance chance'
+      'pips pips pips';
+  }
+  .vr-who {
+    min-height: 44px;
+  }
+  .vr-who .pc-link:not(.pc-link-face) {
+    padding: 12px 0;
+    margin: -12px 0;
+  }
   .vr-stamp b {
     font-size: 16px;
   }

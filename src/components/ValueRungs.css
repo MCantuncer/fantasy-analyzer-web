@@ -459,6 +459,33 @@
   padding: 12px 0;
   border-bottom: 1px solid var(--divider);
 }
+/* A list with one rung per player: the player's face and name (both open his card) above the rung. */
+.vr-row-who {
+  grid-template-columns: 78px minmax(150px, 0.85fr) minmax(200px, 1.6fr) 196px 116px;
+  grid-template-areas:
+    'stamp who chance pips res'
+    'stamp rung chance pips res';
+  row-gap: 4px;
+}
+.vr-who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.vr-who .pc-link:not(.pc-link-face) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vr-who .pc-link-face {
+  flex: none;
+  line-height: 0;
+}
 .vr-stamp {
   grid-area: stamp;
   display: flex;
@@ -484,13 +511,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-.vr-rung .pl {
-  font-size: 12.5px;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .vr-rung b {
   font-size: 16px;
@@ -681,5 +701,9 @@
   .vr-row {
     grid-template-columns: 74px minmax(90px, 0.8fr) minmax(150px, 1.6fr) 180px 108px;
     gap: 0 12px;
+  }
+  .vr-row-who {
+    grid-template-columns: 74px minmax(150px, 1fr) minmax(150px, 1.4fr) 180px 108px;
+    gap: 4px 12px;
   }
 }

@@ -24,6 +24,7 @@ import {
   who,
 } from '../lib/valueRungs'
 import type { Pick, PickGroup } from '../lib/valueRungs'
+import { PlayerLink } from './PlayerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungTape } from './RungTape'
 import { RungTrack, ShapeBook } from './RungTrack'
@@ -248,16 +249,21 @@ function GroupHead({ group: g, settled }: { group: PickGroup; settled: boolean }
     const l = g.line
     const stats = [...new Set(g.picks.map((p) => p.line))]
     const had = stats.map(hadOf).filter(Boolean)
+    const who = { id: l.playerId ?? 0, name: l.name }
     return (
       <div className="vr-g-head">
-        <span className="vr-face" aria-hidden="true">
-          <PlayerHead player={{ id: l.playerId ?? 0, name: l.name }} team={l.team} size={38} />
-          <span className="vr-face-team">
+        <span className="vr-face">
+          <PlayerLink player={who} decorative>
+            <PlayerHead player={who} team={l.team} size={38} />
+          </PlayerLink>
+          <span className="vr-face-team" aria-hidden="true">
             <TeamLogo abbrev={l.team} size={16} />
           </span>
         </span>
         <div className="vr-g-who">
-          <b>{l.name}</b>
+          <b>
+            <PlayerLink player={who} />
+          </b>
           <span>
             {l.gameLabel} · {g.picks.length} rungs{had.length ? ` · had ${had.join(' · ')}` : ''}
           </span>
@@ -281,16 +287,27 @@ function PickRow({ pick: p, showName }: { pick: Pick; showName: boolean }) {
   const res = resultOf(p)
   const words = landWords(p.ours)
   const pending = res.kind === 'pending' || res.kind === 'live' ? ', not played yet' : ''
+  const who = { id: l.playerId ?? 0, name: l.name }
   return (
-    <li className="vr-row" aria-label={`${l.name}, ${rungLabel(r, STAT_UNIT[l.stat])}${pending}`}>
+    <li
+      className={showName ? 'vr-row vr-row-who' : 'vr-row'}
+      aria-label={`${l.name}, ${rungLabel(r, STAT_UNIT[l.stat])}${pending}`}
+    >
       <span className="vr-stamp" aria-hidden="true">
         <b className="num">{signed2(p.value)}</b>
         <small>value</small>
       </span>
-      <span className="vr-rung" aria-hidden="true">
-        {showName && <span className="pl">{l.name}</span>}
-        <b>{rungName(l.stat, r.n)}</b>{' '}
-        <span className="at">
+      {showName && (
+        <span className="vr-who">
+          <PlayerLink player={who} decorative>
+            <PlayerHead player={who} team={l.team} size={24} />
+          </PlayerLink>
+          <PlayerLink player={who} />
+        </span>
+      )}
+      <span className="vr-rung">
+        <b aria-hidden="true">{rungName(l.stat, r.n)}</b>{' '}
+        <span className="at" aria-hidden="true">
           at <span className="num">{odds(r.odd)}</span>
         </span>
       </span>

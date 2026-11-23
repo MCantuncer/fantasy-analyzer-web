@@ -1,10 +1,14 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { linesOf } from '../lib/iddaaCompare'
 import type { BookCompare, CompareGame, ComparePlayer } from '../lib/iddaaCompare'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { ValueRungs } from './ValueRungs'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  setPlayerCardHost(null)
+})
 
 function player(name: string, rungs: ComparePlayer['rungs'], actual: number | null): ComparePlayer {
   return {
@@ -94,5 +98,20 @@ describe('Value Rungs states', () => {
   it('a server from before the rungs: nothing at all', () => {
     const { container } = show(night([player('Donovan Clingan', undefined, 4)], 'final'), '2026-11-22T20:00:00Z')
     expect(container.innerHTML).toBe('')
+  })
+})
+
+describe('Value Rungs players', () => {
+  it("every player name opens the player's card, and each row carries the player's face", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const p = { ...player('Donovan Clingan', CLINGAN(null), null), player_id: 4433 }
+    const { container } = show(night([p], 'scheduled'), '2026-11-21T20:00:00Z')
+    const names = screen.getAllByRole('button', { name: 'Donovan Clingan' })
+    expect(names.length).toBeGreaterThan(0)
+    fireEvent.click(names[0])
+    expect(open).toHaveBeenCalledWith({ id: 4433, name: 'Donovan Clingan' })
+    for (const row of container.querySelectorAll('.vr-row-who'))
+      expect(row.querySelector('.pc-link-face')).not.toBeNull()
   })
 })
