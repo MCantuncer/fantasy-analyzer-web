@@ -172,27 +172,6 @@ function TradeSideBones() {
   )
 }
 
-/** Trade Park while every roster is checked: deal cards with two sides. */
-export function DealsSkeleton() {
-  return (
-    <Frame label="Checking every roster for deals">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="card sk-card">
-          <div className="sk-between">
-            <Bone w={150} h={14} />
-            <Bone w={58} h={24} className="sk-r6" />
-          </div>
-          <div className="sk-sides">
-            <TradeSideBones />
-            <TradeSideBones />
-          </div>
-          <Bone w="70%" h={10} />
-        </div>
-      ))}
-    </Frame>
-  )
-}
-
 /** Trade of the day's body while today's pick is worked out. */
 export function TradeOfTheDaySkeleton() {
   return (
