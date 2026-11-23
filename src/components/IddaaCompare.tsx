@@ -1864,6 +1864,17 @@ function GpDisc({ team }: { team: string }) {
   )
 }
 
+/** The game's seam colours under its head: each club's light, set only for a club we know, so the
+ *  CSS falls back to the plain ink fade on that side. */
+function seamColours(away: string, home: string): CSSProperties {
+  const style: Record<string, string> = {}
+  const a = teamLight(away)
+  const h = teamLight(home)
+  if (a) style['--ta'] = a
+  if (h) style['--tb'] = h
+  return style as CSSProperties
+}
+
 function PickGame({
   g,
   lines,
@@ -1901,7 +1912,7 @@ function PickGame({
     </b>
   )
   return (
-    <li className={`ic-gp-game${final ? ' post' : ''}`}>
+    <li className={`ic-gp-game${final ? ' post' : ''}`} style={seamColours(g.away, g.home)}>
       <div className="ic-gp-gh">
         <span className="ic-gp-pair" aria-hidden="true">
           <GpDisc team={g.away} />
@@ -2008,9 +2019,12 @@ function PickRow({ line: l, kind, kupons }: { line: Line; kind: string; kupons: 
           )}
         </span>
         <span className="nb">
-          <Prohibit size={16} aria-hidden="true" />
+          <Prohibit size={14} aria-hidden="true" />
           <span>
             <b>No bet</b>
+            <i className="dot" aria-hidden="true">
+              ·
+            </i>
             <span>{why}</span>
           </span>
         </span>

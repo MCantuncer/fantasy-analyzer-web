@@ -9,6 +9,10 @@
   --ic-track: #4a4138; /* chance bar and gap track (1.9:1): the printed % carries the value */
   --ic-tick: #7d7265; /* the book's tick and the break-even line: a mark with meaning, 3.97:1 */
   --ic-halo: 42%; /* club colour as light around a logo or face, nowhere else */
+  --ic-club-a: 78%; /* Game picks seam: the clubs' light on its 1px line */
+  --ic-club-glow: 22%; /* ...and the soft spill under it */
+  --ic-seam: rgb(255 240 220 / 0.14); /* the seam's plain ink when a club is unknown */
+  --ic-row-fade: rgb(255 240 220 / 0.11); /* the short fade between game pick rows */
 }
 :root[data-theme='light'] .ic {
   --ic-slip: #fffdf9;
@@ -19,6 +23,10 @@
   --ic-track: #cfc5b4;
   --ic-tick: #8c8070; /* 3.4:1 */
   --ic-halo: 26%;
+  --ic-club-a: 82%;
+  --ic-club-glow: 20%;
+  --ic-seam: rgb(70 45 20 / 0.17);
+  --ic-row-fade: rgb(70 45 20 / 0.12);
 }
 
 /* iddaa vs Ours (admins only), "Seambook". Page-own styles, prefixed ic-. iddaa sits left of the
@@ -2252,12 +2260,12 @@
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 32px;
+  gap: 44px;
 }
 @media (min-width: 1100px) {
   .ic-gp-games {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px 48px;
+    gap: 32px 64px;
   }
 }
 .ic-gp-game {
@@ -2269,11 +2277,48 @@
 
 /* the game's head: the two clubs, the matchup and tip, our score on the right */
 .ic-gp-gh {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding-bottom: 8px;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+}
+/* Club Light (Can 2026-11-23): the crests' colours run out into a 1px seam under the head, away into
+   home, with a soft spill of the same light under it, gone by 80%. --ta/--tb are set inline from
+   teamLight(); an unknown club falls back to the plain ink fade. */
+.ic-gp-gh::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 11px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ta, var(--ic-seam)) var(--ic-club-a), transparent) 0%,
+    color-mix(in srgb, var(--tb, var(--ic-seam)) var(--ic-club-a), transparent) 34%,
+    transparent 82%
+  );
+  -webkit-mask-image: linear-gradient(180deg, #000 0 1px, rgb(0 0 0 / var(--ic-club-glow)) 1px, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 1px, rgb(0 0 0 / var(--ic-club-glow)) 1px, transparent 100%);
+}
+/* the crests light the seam where it starts (behind the head's content) */
+.ic-gp-gh::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -12px;
+  bottom: -14px;
+  width: 180px;
+  height: 40px;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 50% at 30% 50%, color-mix(in srgb, var(--ta, transparent) 9%, transparent), transparent 70%),
+    radial-gradient(50% 50% at 62% 50%, color-mix(in srgb, var(--tb, transparent) 9%, transparent), transparent 70%);
 }
 .ic-gp-pair {
   display: inline-flex;
@@ -2379,14 +2424,15 @@
   color: var(--bad);
 }
 
-/* market rows: label, bet, odds, our chance; hover tint, no outline */
+/* market rows: label, bet, odds, our chance; hover tint, no outline. Between rows: room, and a short
+   ink fade that leaves from the label side like the head seam (never a full-width hairline). */
 .ic-gp-rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 .ic-gp-row {
   position: relative;
@@ -2401,6 +2447,21 @@
 }
 .ic-gp-row:hover {
   background: var(--ic-hover);
+}
+.ic-gp-row + .ic-gp-row::before {
+  content: '';
+  position: absolute;
+  top: -4.5px;
+  left: 12px;
+  width: 55%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--ic-row-fade), transparent);
+}
+/* the hover field already parts a row from its neighbours */
+.ic-gp-row:hover::before,
+.ic-gp-row:hover + .ic-gp-row::before {
+  opacity: 0;
 }
 .ic-gp-row .ml {
   font-size: 13px;
@@ -2468,7 +2529,12 @@
   line-height: 16px;
   color: var(--muted);
 }
+/* No bet: one quiet muted line ("No bet · Odds 1.33 or less") on a shorter row */
+.ic-gp-row.none {
+  min-height: 52px;
+}
 .ic-gp-row.none .bt {
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-2);
 }
@@ -2483,19 +2549,24 @@
 }
 .ic-gp-row .nb svg {
   flex: none;
+  opacity: 0.8;
 }
 .ic-gp-row .nb > span {
   display: flex;
-  flex-direction: column;
-  font-size: 12px;
-  line-height: 16px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 18px;
   white-space: nowrap;
 }
 .ic-gp-row .nb b {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 600;
-  color: var(--text-2);
+  color: var(--muted);
+}
+.ic-gp-row .nb .dot {
+  margin: 0 6px;
+  font-style: normal;
 }
 
 /* the last line: the game's player estimates (the match card) */
@@ -2580,6 +2651,22 @@
   }
   .ic-gp-row .nb svg {
     display: none;
+  }
+  /* phones keep No bet as two short lines, without the dot */
+  .ic-gp-row .nb > span {
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .ic-gp-row .nb .dot {
+    display: none;
+  }
+  .ic-gp-row + .ic-gp-row::before {
+    left: 8px;
+  }
+  .ic-gp-gh::before {
+    left: -8px;
   }
   .ic-gp-row .why {
     grid-column: 1 / -1;
