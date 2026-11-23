@@ -35,12 +35,14 @@ describe('Our Estimates for Free', () => {
     vi.restoreAllMocks()
   })
 
-  it('shows what the page holds and asks nothing of the API', () => {
+  it('shows the page behind the lock, one way in, and asks nothing of the API', () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}'))
     wrap(<IddaaCompare onBack={vi.fn()} />)
-    expect(screen.getByRole('heading', { name: "What's inside" })).toBeTruthy()
-    expect(screen.getByText('Lines we passed on, and why')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'See Pro' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Every pick, before tip-off' })).toBeTruthy()
+    expect(screen.getByText('Then $39 a year, or $4.99 a month. Cancel any time.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start 7-day free trial' })).toBeTruthy()
+    // the example game is decoration: hidden from screen readers, no buttons inside
+    expect(screen.getByText('Match result').closest('[aria-hidden="true"][inert]')).toBeTruthy()
     expect(fetch.mock.calls.some(([u]) => String(u).includes('/api/book-compare'))).toBe(false)
   })
 

@@ -59,8 +59,7 @@ import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
 import { teamQuery, useTeamCardOpen } from '../lib/teamCard'
 import { teamByAbbrev } from '../lib/teamSearch'
-import { NextGameLine } from './NextGameLine'
-import { ProLock } from './Pro'
+import { NextGameLine, NextGameLocked } from './NextGameLine'
 import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
@@ -560,7 +559,7 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, 
           : card.injury_status !== 'OUT' &&
             !lastSeason && (
               <Section id="pc-next-title" title="Next game">
-                <ProLock words="His line for tonight" />
+                <NextGameLocked />
               </Section>
             )}
 

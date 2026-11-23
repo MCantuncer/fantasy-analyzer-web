@@ -59,16 +59,16 @@ function PlanBlock({ me, onPick }: { me: Me; onPick: () => void }) {
     case 'free':
       head = (
         <>
-          <b>Free</b>
-          <span className="pro-plan-meta">Your plan</span>
+          <b>Free plan</b>
         </>
       )
-      body = 'Every league tool, always: League, My Team, Moves, Trade Park, Scores and the rest.'
+      body = 'Every league tool is yours. Pro adds next-game lines, our call on every game and Our Estimates.'
       acts = (
         <button type="button" className="pro-go" aria-haspopup="dialog" onClick={goPro}>
-          Go <ProMark label={false} />
+          Try Pro free for 7 days
         </button>
       )
+      note = `Then ${PRICES.year.amount} ${PRICES.year.per}. Cancel any time.`
       break
     case 'admin':
       head = (

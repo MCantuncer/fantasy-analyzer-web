@@ -97,7 +97,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
     if (ended) qc.invalidateQueries({ queryKey: ['me'] })
   }, [ended, qc])
   const data = q.data
-  if (!allowed || ended) return <ProInside ended={ended} onBack={onBack} onHealth={onHealth} />
+  if (!allowed || ended) return <ProInside ended={ended} onBack={onBack} />
   return (
     <div className="ic stack">
       <div className="ic-head">

@@ -1,0 +1,203 @@
+/* Our Estimates for Free: the page as it looks (one example game, fading out), then the way in.
+   Page-own styles, prefixed pi-. Ink, never gold: Pro is a finish, not a colour. */
+
+.pro-inside-page {
+  gap: 0;
+}
+
+button.pi-back {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: -6px 0 2px -10px;
+  padding: 0 12px 0 6px;
+  gap: 2px;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+button.pi-back:hover {
+  color: var(--text);
+}
+
+.pi-head {
+  margin-bottom: 20px;
+}
+
+.pi-head .page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pi-head p {
+  margin-top: 6px;
+  max-width: 560px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* The stage: one card holding the peek, the offer and what Pro holds. */
+.pi-stage {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-row);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.pi-peek {
+  position: relative;
+  max-height: 430px;
+  padding: 18px 22px 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 var(--pi-solid, 56%), transparent var(--pi-gone, 96%));
+  mask-image: linear-gradient(to bottom, #000 0, #000 var(--pi-solid, 56%), transparent var(--pi-gone, 96%));
+}
+
+.pi-peek .ic-gp-game:first-child {
+  padding-top: 14px;
+}
+
+.pi-ex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.pi-ex span {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tag);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The offer, set over the fade. */
+.pi-pay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -36px;
+  padding: 0 24px 28px;
+  text-align: center;
+}
+
+.pi-pay h2 {
+  margin: 14px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.pi-lede {
+  max-width: 420px;
+  margin-top: 8px !important;
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+button.pi-cta {
+  min-height: 52px;
+  min-width: 280px;
+  margin-top: 20px;
+  padding: 0 24px;
+  border-radius: var(--radius-tile);
+  font-size: 16px;
+}
+
+.pi-fine {
+  margin-top: 10px !important;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* What Pro holds: three columns, words only. */
+.pi-gets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--divider);
+  background: var(--surface-2);
+}
+
+.pi-gets li {
+  display: grid;
+  gap: 4px;
+  padding: 18px 22px 20px;
+  border-left: 1px solid var(--divider);
+}
+
+.pi-gets li:first-child {
+  border-left: 0;
+}
+
+.pi-gets b {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.pi-gets span {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Phones: the game stacks, so the peek shows its score and the top of the tickets. */
+@media (max-width: 719px) {
+  .pi-head {
+    margin-bottom: 16px;
+  }
+
+  .pi-peek {
+    --pi-solid: 50%;
+    --pi-gone: 92%;
+    max-height: 340px;
+    padding: 14px 14px 0;
+  }
+
+  .pi-pay {
+    margin-top: -12px;
+    padding: 0 16px 24px;
+  }
+
+  .pi-pay h2 {
+    font-size: 22px;
+  }
+
+  button.pi-cta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pi-gets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pi-gets li {
+    padding: 14px 16px;
+    border-left: 0;
+    border-top: 1px solid var(--divider);
+  }
+
+  .pi-gets li:first-child {
+    border-top: 0;
+  }
+}
