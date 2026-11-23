@@ -1,0 +1,595 @@
+/* The trading table shared by Trade Park and Trade For (tt-): give | odds on the centre line | get.
+   Three columns from 900px, one column below, phone spacing from 640px down. */
+.tt {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 184px minmax(0, 1fr);
+  grid-template-areas:
+    'give mid get'
+    'foot foot foot';
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  overflow: clip;
+}
+
+.tt.tt-has-get2 {
+  grid-template-areas:
+    'give mid get'
+    'give mid get2'
+    'foot foot foot';
+  grid-template-rows: auto 1fr auto;
+}
+
+.tt-give {
+  grid-area: give;
+}
+
+.tt-get {
+  grid-area: get;
+}
+
+.tt-get2 {
+  grid-area: get2;
+}
+
+.tt-mid {
+  grid-area: mid;
+}
+
+.tt-foot {
+  grid-area: foot;
+}
+
+.tt-end {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 24px;
+}
+
+.tt-has-get2 .tt-get2 {
+  padding-top: 0;
+}
+
+/* The lit end: the warm house light on your end, the faint partner violet on theirs. */
+.tt-lit-give .tt-give.tt-lit {
+  background: radial-gradient(90% 60% at 0% 0%, var(--house), transparent 70%);
+}
+
+.tt-lit-get .tt-get.tt-lit {
+  background: radial-gradient(
+    90% 60% at 100% 0%,
+    color-mix(in srgb, var(--partner) var(--partner-a), transparent),
+    transparent 70%
+  );
+}
+
+/* The centre column and its seam: the table's one rule. */
+.tt-mid {
+  position: relative;
+  padding: 24px 12px;
+  background: var(--surface-2);
+}
+
+.tt-mid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--seam);
+}
+
+.tt-foot {
+  background: var(--surface-2);
+}
+
+/* ---------- The odds plate ---------- */
+.tt-plate {
+  position: sticky;
+  top: 128px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.tt-plate-k {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tt-plate-big {
+  font-size: 44px;
+  line-height: 48px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tt-plate-from {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--muted);
+}
+
+.tt-plate-from b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 650;
+  background: var(--raised);
+  color: var(--text-2);
+}
+
+.tt-chip-up {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+.tt-chip-down {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.tt-chip-ar {
+  font-size: 0.6em;
+}
+
+.tt-plate-them {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tt-plate-note {
+  max-width: 156px;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.tt-plate-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ---------- End labels, list heads, tags ---------- */
+.tt-end-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+}
+
+.tt-end-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tt-label {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tt-list-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.tt-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-tag);
+  background: var(--raised);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tt-tag.tt-out {
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-family: var(--font-ui);
+}
+
+.tt-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tt-crests {
+  display: inline-flex;
+}
+
+.tt-crests .crest + .crest {
+  margin-left: -4px;
+}
+
+/* ---------- Buttons ---------- */
+.tt button.tt-btn,
+.tt a.tt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tt button.tt-btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.tt .tt-btn-ghost {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.tt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tt-actions .tt-btn {
+  flex: 1 1 160px;
+}
+
+/* ---------- What your build wants ---------- */
+.tt-wants {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tt-want {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0 4px 12px;
+  box-shadow: inset 2px 0 0 var(--track);
+}
+
+.tt-want-close {
+  box-shadow: inset 2px 0 0 var(--warn-fill);
+}
+
+.tt-want-c {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.tt-want-c em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.tt-want-v {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 700;
+}
+
+.tt-want-u {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tt-want-where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Their side, flat ---------- */
+.tt-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tt-side-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 650;
+}
+
+.tt-side-h svg {
+  color: var(--muted);
+}
+
+.tt-pitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tt-pcol {
+  display: flex;
+  flex-direction: column;
+}
+
+.tt-pcol-h {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.tt-pcol-h span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tt-pcol-v {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  color: var(--good);
+}
+
+.tt-pcol-u {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tt-sends {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tt-sends b {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tt-facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.tt-facts > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tt-facts dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text);
+  text-align: right;
+}
+
+.tt-facts dd small {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tt-facts dd.good,
+.tt-facts dd .good {
+  color: var(--good);
+}
+
+.tt-facts dd.bad {
+  color: var(--bad);
+}
+
+/* ---------- States ---------- */
+.tt-skel {
+  display: block;
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.tt-fade {
+  animation: tt-fade 150ms ease-out;
+}
+
+@keyframes tt-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-fade {
+    animation: none;
+  }
+}
+
+/* ---------- The turned table: one column ---------- */
+@media (max-width: 899px) {
+  .tt,
+  .tt.tt-has-get2 {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  .tt-lit-give {
+    grid-template-areas: 'give' 'mid' 'get' 'foot';
+  }
+
+  .tt-lit-give.tt-odds-first {
+    grid-template-areas: 'mid' 'give' 'get' 'foot';
+  }
+
+  .tt-lit-get,
+  .tt-lit-get.tt-has-get2 {
+    grid-template-areas: 'get' 'mid' 'get2' 'give' 'foot';
+  }
+
+  .tt-lit-get.tt-odds-first {
+    grid-template-areas: 'mid' 'get' 'give' 'foot';
+  }
+
+  .tt-has-get2 .tt-get2 {
+    padding-top: 16px;
+  }
+
+  /* The odds band: the seam runs across, the plate sits on it. */
+  .tt-mid {
+    padding: 0;
+  }
+
+  .tt-mid::before {
+    top: 50%;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 1px;
+  }
+
+  .tt-plate {
+    position: relative;
+    top: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    column-gap: 12px;
+    row-gap: 4px;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    margin: 0 auto;
+    padding: 12px 16px;
+  }
+
+  .tt-plate-k {
+    width: 100%;
+  }
+
+  .tt-plate-big {
+    font-size: 36px;
+    line-height: 40px;
+  }
+
+  .tt-chip {
+    align-self: center;
+  }
+
+  .tt-plate-them,
+  .tt-plate-note,
+  .tt-plate-status {
+    width: 100%;
+    max-width: none;
+    margin-top: 0;
+    justify-content: center;
+  }
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .tt-end {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .tt-wants {
+    gap: 8px;
+  }
+
+  .tt-want-v {
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .tt-pcol-v {
+    font-size: 24px;
+    line-height: 30px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tt-want-v {
+    font-size: 22px;
+  }
+}
+
+/* Small phones: list heads stay on one line. */
+@media (max-width: 380px) {
+  .tt-list-head .tt-label {
+    font-size: 12px;
+  }
+
+  .tt-list-head .tt-label:last-child {
+    white-space: nowrap;
+  }
+}
