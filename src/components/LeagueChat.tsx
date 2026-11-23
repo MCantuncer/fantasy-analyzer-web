@@ -2,10 +2,23 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { FeedSkeleton } from './Skeleton'
 import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { createPost, deletePost, fetchFeed, fetchReplies, react, retryDropped, retryDroppedDelay } from '../api/client'
-import type { FeedItem, FeedPage, FeedTeam, LeagueRef, Reactions } from '../api/client'
-import { ArrowsLeftRight, CaretDown, ChatCircle, Gavel, ListBullets, User, UserPlus } from '@phosphor-icons/react'
+import type { FeedItem, FeedPage, FeedTeam, LeagueRef } from '../api/client'
+import {
+  ArrowBendUpLeft,
+  ArrowsLeftRight,
+  CaretDown,
+  ChatCircle,
+  FilmSlate,
+  Gavel,
+  ListBullets,
+  Smiley,
+  Trash,
+  User,
+  UserPlus,
+} from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import type { Credentials } from '../lib/credentials'
 import {
@@ -20,7 +33,6 @@ import {
   isMoment,
   matches,
   postId,
-  teamAbbrev,
   teamName,
   timeLabel,
   timeRunStarts,
@@ -380,8 +392,38 @@ function Entry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: boolean 
       </li>
     )
   }
+  return <MoveEntry item={item} ctx={ctx} start={start} />
+}
+
+/**
+ * A move on the wire. In Chat a plain line carries one trailing React/Reply button that opens a tray
+ * in place; once someone replies, the same line is promoted in place to a moment with its thread.
+ * The tray and thread state live here so they survive that promotion.
+ */
+function MoveEntry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: boolean }) {
+  const chat = ctx.link != null
   // Moves with replies only become moments where the replies can be read.
-  const moment = ctx.link != null && isMoment(item)
+  const moment = chat && isMoment(item)
+  // Animate only a line that turns into a moment while on screen, not moments that load as moments.
+  const [wasMoment, setWasMoment] = useState(moment)
+  const [promoted, setPromoted] = useState(false)
+  if (moment !== wasMoment) {
+    setWasMoment(moment)
+    setPromoted(moment)
+  }
+  const [tray, setTray] = useState(false)
+  const [thread, setThread] = useState(false)
+  const actRef = useRef<HTMLButtonElement>(null)
+  const trayId = useId()
+
+  function closeTray() {
+    setTray(false)
+    actRef.current?.focus()
+  }
+
+  const cls = moment
+    ? `feed-entry feed-moment feed-moment-move${promoted ? ' is-promoted' : ''}`
+    : `feed-entry feed-line${tray || thread ? ' is-open' : ''}`
   return (
     <>
       {start && (
@@ -389,17 +431,193 @@ function Entry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: boolean 
           {timeLabel(item.at)}
         </li>
       )}
-      <li className={moment ? 'feed-entry feed-moment feed-moment-move' : 'feed-entry feed-line'}>
+      <li className={cls}>
         <span className="feed-node" aria-hidden="true">
           <TeamCrest name={teamName(ctx.teams, item.team_id)} colour={ctx.colours.get(item.team_id)} size={24} />
         </span>
-        <FeedLine item={item} ctx={ctx} />
+        <FeedLine
+          item={item}
+          ctx={ctx}
+          act={
+            chat && !moment ? (
+              <ChatAct
+                ref={actRef}
+                item={item}
+                open={tray}
+                controls={trayId}
+                onToggle={() => setTray(!tray)}
+                onClose={closeTray}
+              />
+            ) : null
+          }
+        />
         <time className={start ? 'feed-time' : 'sr-only'} dateTime={item.at}>
           {timeLabel(item.at)}
         </time>
-        <Social item={item} ctx={ctx} />
+        {chat && !moment && tray && (
+          <ReactTray
+            id={trayId}
+            item={item}
+            ctx={ctx}
+            onClose={closeTray}
+            onReply={() => {
+              setTray(false)
+              setThread(true)
+            }}
+          />
+        )}
+        {moment && <Actions item={item} ctx={ctx} thread={thread} onThread={() => setThread(!thread)} />}
+        {chat && thread && <Replies item={item} ctx={ctx} focus={!moment} />}
       </li>
     </>
+  )
+}
+
+/** The reactions used on an item, most used first. */
+function usedReactions(item: FeedItem) {
+  const counts = item.reactions?.counts ?? {}
+  return REACTIONS.map((x) => ({ ...x, n: counts[x.key] ?? 0 }))
+    .filter((x) => x.n > 0)
+    .sort((a, b) => b.n - a.n)
+}
+
+/**
+ * One 44px button at the end of a line in Chat. Empty, it's a smiley that hides until hover on a
+ * fine pointer (opacity, so it stays in the tab order); with reactions it shows up to two of them
+ * and the total, always visible.
+ */
+function ChatAct({
+  ref,
+  item,
+  open,
+  controls,
+  onToggle,
+  onClose,
+}: {
+  ref: Ref<HTMLButtonElement>
+  item: FeedItem
+  open: boolean
+  controls: string
+  onToggle: () => void
+  onClose: () => void
+}) {
+  const used = usedReactions(item)
+  const total = used.reduce((s, x) => s + x.n, 0)
+  const label = used.length ? `${used.map((x) => `${x.label}, ${x.n}`).join('; ')}. React or reply` : 'React or reply'
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={used.length ? 'chat-act has' : 'chat-act'}
+      aria-label={label}
+      aria-expanded={open}
+      aria-controls={open ? controls : undefined}
+      onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) {
+          e.preventDefault()
+          onClose()
+        }
+      }}
+    >
+      {used.length ? (
+        <>
+          {used.slice(0, 2).map((x) => (
+            <span key={x.key} className="chat-emo" aria-hidden="true">
+              {x.emoji}
+            </span>
+          ))}
+          <span className="num" aria-hidden="true">
+            {total}
+          </span>
+        </>
+      ) : (
+        <Smiley size={20} aria-hidden="true" />
+      )}
+    </button>
+  )
+}
+
+/** A reaction chip: the emoji, and its count once used. The meaning is in its name and title. */
+function ReactionChip({
+  item,
+  reaction,
+  ctx,
+  label = false,
+  onDone,
+}: {
+  item: FeedItem
+  reaction: (typeof REACTIONS)[number]
+  ctx: Ctx
+  label?: boolean
+  onDone?: () => void
+}) {
+  const n = item.reactions?.counts?.[reaction.key] ?? 0
+  const on = (item.reactions?.mine ?? []).includes(reaction.key)
+  return (
+    <button
+      type="button"
+      className="chat-chip"
+      aria-pressed={on}
+      aria-label={n > 0 ? `${reaction.label}, ${n}` : reaction.label}
+      title={reaction.label}
+      onClick={() => {
+        ctx.onReact(item, reaction.key, !on)
+        onDone?.()
+      }}
+    >
+      <span className="chat-emo" aria-hidden="true">
+        {reaction.emoji}
+      </span>
+      {label && (
+        <span className="chat-chip-label" aria-hidden="true">
+          {reaction.label}
+        </span>
+      )}
+      {n > 0 && (
+        <span className="num" aria-hidden="true">
+          {n}
+        </span>
+      )}
+    </button>
+  )
+}
+
+/** The tray a line's button opens in place: the four reactions (yours pressed) and Reply. */
+function ReactTray({
+  id,
+  item,
+  ctx,
+  onClose,
+  onReply,
+}: {
+  id: string
+  item: FeedItem
+  ctx: Ctx
+  onClose: () => void
+  onReply: () => void
+}) {
+  return (
+    <div
+      id={id}
+      className="chat-tray"
+      role="group"
+      aria-label={`React to ${teamName(ctx.teams, item.team_id)}'s move`}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          onClose()
+        }
+      }}
+    >
+      {REACTIONS.map((x) => (
+        <ReactionChip key={x.key} item={item} reaction={x} ctx={ctx} label onDone={onClose} />
+      ))}
+      <button type="button" className="chat-chip chat-ghost" onClick={onReply}>
+        <ArrowBendUpLeft size={17} aria-hidden="true" />
+        Reply
+      </button>
+    </div>
   )
 }
 
@@ -442,14 +660,14 @@ function FeedPlayerCell({
   )
 }
 
-function FeedLine({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
+function FeedLine({ item, ctx, act }: { item: FeedItem; ctx: Ctx; act?: ReactNode }) {
   const moves = item.moves ?? []
   const adds = moves.filter((m) => m.kind !== 'drop')
   const drops = moves.filter((m) => m.kind === 'drop')
   const big = ctx.bigId === item.id
   const beat = beatenBids(item, ctx.budget)
   return (
-    <div className="feed-row">
+    <div className={ctx.link ? 'feed-row has-act' : 'feed-row'}>
       <span className="feed-team">
         <span className="feed-team-name">{teamName(ctx.teams, item.team_id)}</span>
         {ctx.link?.teamId === item.team_id && <You />}
@@ -489,6 +707,7 @@ function FeedLine({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
           </>
         )}
       </span>
+      {act}
       {(big || beat) && (
         <span className="feed-meta">
           {big && <span className="feed-meta-big">Biggest bid this week</span>}
@@ -557,140 +776,235 @@ function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
           </div>
         </div>
       )}
-      <Social item={item} ctx={ctx} />
+      <Talk item={item} ctx={ctx} />
     </div>
   )
 }
 
-function Post({ item, ctx, compact = false }: { item: FeedItem; ctx: Ctx; compact?: boolean }) {
+function Post({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const mine = ctx.link?.teamId === item.team_id
+  const period = filmPostPeriod(item.body ?? '')
   return (
-    <article className={compact ? 'feed-post compact' : 'feed-post'}>
-      {compact && (
-        <span className="feed-avatar" aria-hidden="true">
-          {teamAbbrev(ctx.teams, item.team_id)}
+    <article className="chat-msg">
+      <header className="chat-msg-head">
+        <span className="chat-msg-team">
+          <span className="feed-team-name">{teamName(ctx.teams, item.team_id)}</span>
+          {mine && <You />}
         </span>
+        <span className="chat-kind">
+          {period == null ? <ChatCircle size={14} aria-hidden="true" /> : <FilmSlate size={14} aria-hidden="true" />}
+          <span className="chat-kind-label">{period == null ? 'Chat' : 'Film Room'}</span>
+        </span>
+        <time className="small muted feed-inline-time" dateTime={item.at}>
+          {timeLabel(item.at)}
+        </time>
+        {mine && <DeleteControl label="Delete your post" onDelete={() => ctx.onDelete(item)} />}
+      </header>
+      {period == null ? (
+        <p className="feed-text">{item.body}</p>
+      ) : (
+        <>
+          {filmPostNote(item.body ?? '') && <p className="feed-text">{filmPostNote(item.body ?? '')}</p>}
+          <FilmPostCard
+            leagueRef={ctx.ref}
+            creds={ctx.creds}
+            period={period}
+            name={(id) => teamName(ctx.teams, id)}
+            colours={ctx.colours}
+            onOpen={ctx.onOpenFilm}
+          />
+        </>
       )}
-      <div className="stack feed-post-body">
-        <div className="row feed-post-head">
-          <span className="feed-team">{teamName(ctx.teams, item.team_id)}</span>
-          <time className={compact ? 'small muted' : 'small muted feed-inline-time'} dateTime={item.at}>
-            {timeLabel(item.at)}
-          </time>
-          {mine && (
-            <button className="link small feed-delete" onClick={() => ctx.onDelete(item)}>
-              Delete
-            </button>
-          )}
-        </div>
-        {(() => {
-          const period = filmPostPeriod(item.body ?? '')
-          if (period == null) return <p className="feed-text">{item.body}</p>
-          const note = filmPostNote(item.body ?? '')
-          return (
-            <>
-              {note && <p className="feed-text">{note}</p>}
-              <FilmPostCard
-                leagueRef={ctx.ref}
-                creds={ctx.creds}
-                period={period}
-                name={(id) => teamName(ctx.teams, id)}
-                colours={ctx.colours}
-                onOpen={ctx.onOpenFilm}
-              />
-            </>
-          )
-        })()}
-        <Social item={item} ctx={ctx} canReply={!compact} />
-      </div>
+      <Talk item={item} ctx={ctx} />
     </article>
   )
 }
 
-function Social({ item, ctx, canReply = true }: { item: FeedItem; ctx: Ctx; canReply?: boolean }) {
-  const [open, setOpen] = useState(false)
-  const [picking, setPicking] = useState(false)
+/** A moment's actions and its reply thread, open or closed. */
+function Talk({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
+  const [thread, setThread] = useState(false)
   if (!ctx.link) return null
-  const r: Reactions = item.reactions ?? { counts: {}, mine: [] }
-  const replies = item.replies ?? 0
-  // Only reactions someone used take up room; the rest sit behind "React".
-  const shown = REACTIONS.filter((x) => picking || (r.counts?.[x.key] ?? 0) > 0)
   return (
     <>
-      <div className="feed-social">
-        {shown.map((x) => {
-          const n = r.counts?.[x.key] ?? 0
-          const on = (r.mine ?? []).includes(x.key)
-          return (
-            <button
-              key={x.key}
-              type="button"
-              className="chip sm feed-reaction"
-              aria-pressed={on}
-              aria-label={n > 0 ? `${x.label}, ${n}` : x.label}
-              title={x.label}
-              onClick={() => {
-                ctx.onReact(item, x.key, !on)
-                setPicking(false)
-              }}
-            >
-              <span className="feed-reaction-emoji" aria-hidden="true">
-                {x.emoji}
-              </span>
-              {n > 0 && (
-                <span className="num" aria-hidden="true">
-                  {n}
-                </span>
-              )}
-            </button>
-          )
-        })}
-        {!picking && (
-          <button
-            type="button"
-            className="link small feed-react"
-            aria-expanded={false}
-            onClick={() => setPicking(true)}
-          >
-            React
-          </button>
-        )}
-        {canReply && (
-          <button
-            type="button"
-            className="link small feed-reply-toggle"
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            {replies === 0 ? 'Reply' : `${replies} ${replies === 1 ? 'reply' : 'replies'}`}
-          </button>
-        )}
-      </div>
-      {open && <Replies item={item} ctx={ctx} />}
+      <Actions item={item} ctx={ctx} thread={thread} onThread={() => setThread(!thread)} />
+      {thread && <Replies item={item} ctx={ctx} />}
     </>
   )
 }
 
-function Replies({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
-  const replies = useQuery({
-    queryKey: ['replies', ctx.ref.leagueId, ctx.ref.season, item.id],
-    queryFn: () => fetchReplies(ctx.ref, item.id),
-    refetchInterval: REFRESH_MS,
-  })
+/**
+ * A moment's actions row: the reactions people used (yours ringed), "React" to pick another, and
+ * "Reply" or the reply count, which opens the thread.
+ */
+function Actions({
+  item,
+  ctx,
+  thread,
+  onThread,
+}: {
+  item: FeedItem
+  ctx: Ctx
+  thread: boolean
+  onThread: () => void
+}) {
+  const [picking, setPicking] = useState(false)
+  const reactRef = useRef<HTMLButtonElement>(null)
+  if (!ctx.link) return null
+  const replies = item.replies ?? 0
+  const used = new Set(usedReactions(item).map((x) => x.key))
+  // Only reactions someone used take up room; the rest wait behind "React".
+  const shown = REACTIONS.filter((x) => picking || used.has(x.key))
+  function stopPicking() {
+    setPicking(false)
+    reactRef.current?.focus()
+  }
   return (
-    <div className="feed-replies stack">
-      {replies.isPending && <span className="small muted">Loading replies…</span>}
-      {replies.data?.items.map((p) => (
-        <Post key={p.id} item={p} ctx={ctx} compact />
+    <div
+      className="chat-actions"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && picking) {
+          e.preventDefault()
+          stopPicking()
+        }
+      }}
+    >
+      {shown.map((x) => (
+        <ReactionChip
+          key={x.key}
+          item={item}
+          reaction={x}
+          ctx={ctx}
+          onDone={picking ? stopPicking : undefined}
+        />
       ))}
-      <Composer ctx={ctx} target={item.id} placeholder={`Reply as ${ctx.link!.teamName}`} />
+      <button
+        ref={reactRef}
+        type="button"
+        className="chat-chip chat-ghost"
+        aria-expanded={picking}
+        onClick={() => setPicking(!picking)}
+      >
+        <Smiley size={17} aria-hidden="true" />
+        React
+      </button>
+      <button type="button" className="chat-chip chat-ghost" aria-expanded={thread} onClick={onThread}>
+        <ArrowBendUpLeft size={17} aria-hidden="true" />
+        {replies === 0 ? 'Reply' : `${replies} ${replies === 1 ? 'reply' : 'replies'}`}
+      </button>
     </div>
   )
 }
 
-function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | null; placeholder: string }) {
+/** Replies branch off the wire: each with its crest, team, time and text, then "Write a reply…". */
+function Replies({ item, ctx, focus = false }: { item: FeedItem; ctx: Ctx; focus?: boolean }) {
+  const replies = useQuery({
+    queryKey: ['replies', ctx.ref.leagueId, ctx.ref.season, item.id],
+    queryFn: () => fetchReplies(ctx.ref, item.id),
+    refetchInterval: REFRESH_MS,
+    // A line with no replies yet has nothing to load.
+    enabled: (item.replies ?? 0) > 0,
+  })
+  const rows = replies.data?.items ?? []
+  return (
+    <div className="chat-thread">
+      {replies.isLoading && <p className="chat-thread-note">Loading replies…</p>}
+      {rows.length > 0 && (
+        <ul className="chat-replies" aria-label="Replies">
+          {rows.map((p) => (
+            <Reply key={p.id} item={p} ctx={ctx} />
+          ))}
+        </ul>
+      )}
+      <Composer ctx={ctx} target={item.id} placeholder="Write a reply…" focus={focus} />
+    </div>
+  )
+}
+
+function Reply({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
+  const mine = ctx.link?.teamId === item.team_id
+  const name = teamName(ctx.teams, item.team_id)
+  return (
+    <li className="chat-reply">
+      <TeamCrest name={name} colour={ctx.colours.get(item.team_id)} size={20} />
+      <div className="chat-reply-body">
+        <div className="chat-reply-who">
+          <span className="feed-team-name">{name}</span>
+          {mine && <You />}
+          <time className="num" dateTime={item.at}>
+            {timeLabel(item.at)}
+          </time>
+          {mine && <DeleteControl label="Delete your reply" onDelete={() => ctx.onDelete(item)} />}
+        </div>
+        <p className="feed-text">{item.body}</p>
+      </div>
+    </li>
+  )
+}
+
+/** A trash button that asks once: "Delete" or "Keep", with focus on Keep. */
+function DeleteControl({ label, onDelete }: { label: string; onDelete: () => void }) {
+  const [asking, setAsking] = useState(false)
+  const trashRef = useRef<HTMLButtonElement>(null)
+  const keepRef = useRef<HTMLButtonElement>(null)
+  const asked = useRef(false)
+  useEffect(() => {
+    if (asking) keepRef.current?.focus()
+    else if (asked.current) trashRef.current?.focus()
+    asked.current = asking
+  }, [asking])
+  if (!asking) {
+    return (
+      <button
+        ref={trashRef}
+        type="button"
+        className="chat-del"
+        aria-label={label}
+        title={label}
+        onClick={() => setAsking(true)}
+      >
+        <Trash size={18} aria-hidden="true" />
+      </button>
+    )
+  }
+  return (
+    <span
+      className="chat-del-ask"
+      role="group"
+      aria-label={label}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          setAsking(false)
+        }
+      }}
+    >
+      <button type="button" className="chat-ink" onClick={onDelete}>
+        Delete
+      </button>
+      <button ref={keepRef} type="button" className="chat-chip" onClick={() => setAsking(false)}>
+        Keep
+      </button>
+    </span>
+  )
+}
+
+function Composer({
+  ctx,
+  target,
+  placeholder,
+  focus = false,
+}: {
+  ctx: Ctx
+  target: string | null
+  placeholder: string
+  focus?: boolean
+}) {
   const qc = useQueryClient()
   const [text, setText] = useState('')
+  const input = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (focus) input.current?.focus()
+  }, [focus])
   const send = useMutation({
     mutationFn: (body: string) => createPost(ctx.ref, body, target),
     onSuccess: () => {
@@ -702,7 +1016,7 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
   const id = `compose-${target ?? 'chat'}`
   return (
     <form
-      className={target ? 'composer reply' : 'chat-compose-row'}
+      className={target ? 'chat-compose-row chat-reply-row' : 'chat-compose-row'}
       onSubmit={(e) => {
         e.preventDefault()
         if (text.trim()) send.mutate(text.trim())
@@ -712,6 +1026,7 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
         {target ? 'Reply' : 'Message the league'}
       </label>
       <input
+        ref={input}
         id={id}
         value={text}
         maxLength={500}
@@ -721,7 +1036,7 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
       />
       <button
         type="submit"
-        className={target ? undefined : 'chat-post'}
+        className={target ? 'chat-soft' : 'chat-post'}
         disabled={!text.trim() || send.isPending}
       >
         {target ? 'Reply' : 'Post'}
