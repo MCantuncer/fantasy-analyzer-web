@@ -41,8 +41,8 @@ describe('Our Estimates for Free', () => {
     expect(screen.getByRole('heading', { name: 'Every pick, before tip-off' })).toBeTruthy()
     expect(screen.getByText('Then $39 a year, or $4.99 a month. Cancel any time.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Start 7-day free trial' })).toBeTruthy()
-    // the example game is decoration: hidden from screen readers, no buttons inside
-    expect(screen.getByText('Match result').closest('[aria-hidden="true"][inert]')).toBeTruthy()
+    // the example games are decoration: hidden from screen readers, no buttons inside
+    for (const el of screen.getAllByText('Match result')) expect(el.closest('[aria-hidden="true"][inert]')).toBeTruthy()
     expect(fetch.mock.calls.some(([u]) => String(u).includes('/api/book-compare'))).toBe(false)
   })
 

@@ -122,3 +122,48 @@ describe('Our Estimates head', () => {
     expect((await screen.findByText(/Last look at iddaa/)).textContent).toMatch(/failed: iddaa timed out$/)
   })
 })
+
+describe('Game picks', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+  })
+
+  const odds2 = (a: number, b: number) => [
+    { side: 'pick' as const, odd: a },
+    { side: 'other' as const, odd: b },
+  ]
+  const mk = (
+    market: 'winner' | 'margin' | 'total',
+    team: string,
+    ours: number,
+    book: number,
+    odds: { side: 'pick' | 'other' | 'over' | 'under'; odd: number }[],
+  ) => ({ market, team, book_team: team, won: '', ours, book, actual: null, gap: ours - book, ours_hit: null, book_hit: null, closer: null, odds })
+
+  it('reads as calm rows: Handicap, Total points, Match result, with our chance as a number and no rings', async () => {
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    g.markets = [
+      mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4)),
+      mk('margin', 'NY', 2, 4.5, odds2(1.87, 1.93)),
+      mk('total', '', 230, 226.5, [
+        { side: 'under', odd: 1.9 },
+        { side: 'over', odd: 1.9 },
+      ]),
+    ]
+    mount(night([g]))
+    const section = (await screen.findByRole('heading', { level: 2, name: 'Game picks' })).closest('section')!
+    expect(section.querySelector('.ic-gp-sm')!.textContent).toBe('2 bets · 1 no bet')
+    const rows = [...section.querySelectorAll('.ic-gp-row')]
+    expect(rows.map((r) => r.querySelector('.ml')!.textContent)).toEqual(['Handicap', 'Total points', 'Match result'])
+    expect(rows[0].querySelector('.bt')!.textContent).toBe('IND +4.5')
+    expect(rows[0].querySelector('.bo')!.textContent).toBe('Book NY −4.5 · Ours NY −2')
+    expect(rows[1].querySelector('.ic-ch')!.textContent).toBe('51%') // 9 parts the book's even 1.90s, 1 part our 58%
+    expect(rows[2].textContent).toContain('Ours NY 64%')
+    expect(rows[2].querySelector('.nb')!.textContent).toBe('No betNY odds 1.33 or less')
+    // the score is solid, our chance is a number: no hollow digits, no ring buttons or popovers
+    expect(section.querySelector('.ic-gp-sc')!.textContent).toContain('Our score')
+    expect(section.querySelector('.hollow, .ic-gp-conf, .ic-gp-ring')).toBeNull()
+    expect(within(section).queryByRole('button', { name: /What this means/ })).toBeNull()
+  })
+})
