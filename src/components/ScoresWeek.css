@@ -101,6 +101,14 @@
   white-space: nowrap;
 }
 
+/* The link is its own box: the ellipsis has to sit on it to show. */
+.sw-name-text button.pc-link {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sw-cell {
   position: relative;
   display: flex;
