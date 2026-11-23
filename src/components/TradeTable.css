@@ -187,11 +187,17 @@
 
 .tt-end-name {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
+  white-space: nowrap;
+}
+
+.tt-end-label > :last-child:not(:first-child) {
+  text-align: right;
 }
 
 .tt-label {
