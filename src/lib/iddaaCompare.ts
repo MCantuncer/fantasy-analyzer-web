@@ -251,6 +251,7 @@ export interface Price {
   odd: number
   top: boolean // a player's highest priced rung, and our number is past it
   n?: number // a player's rung
+  fair?: number | null // game lines: the chance the book's own two prices read as, its cut taken out
 }
 
 /** Winner gaps are chances: 20 points of chance count as one band when ranking. */
@@ -318,13 +319,45 @@ export function playerPrice(rungs: CompareRung[], book: number | null, ours: num
  *  ours sees him winning by more than the book, else the other team with the points; over or under
  *  for totals, by which way our number sits from the book's. */
 export function marketPrice(m: CompareMarket, other = ''): Price | null {
-  const odds = (m.odds ?? []).filter((o) => o.odd > MIN_ODD)
+  const all = m.odds ?? []
+  const odds = all.filter((o) => o.odd > MIN_ODD)
   const down = (m.gap ?? 0) < 0
   const want = m.market === 'winner' ? 'pick' : m.market === 'margin' ? (down ? 'other' : 'pick') : down ? 'under' : 'over'
   const o = odds.find((x) => x.side === want)
   if (!o) return null
   const label = want === 'pick' ? m.team : want === 'other' ? other : want === 'over' ? 'Over' : 'Under'
-  return { label, odd: o.odd, top: false }
+  const facing = { pick: 'other', other: 'pick', over: 'under', under: 'over' }[want]
+  return { label, odd: o.odd, top: false, fair: fairChance(o.odd, all.find((x) => x.side === facing)?.odd ?? null) }
+}
+
+/** How much a game pick's chance leans on the book's own price (Can 2026-11-23, "Blend: 90% book,
+ *  10% us"). Book moneylines of 2021-22..2023-24 (3,346 games) against our win chance: when the two
+ *  disagree the result lands on the book's number (a 5-10 point gap: we said 60%, the book 53%, the
+ *  side won 50%), and a blend fitted with each season left out puts 0.86-1.00 on the book and beats
+ *  ours every season. Totals and handicaps have no book history to fit, and the 13 live totals point
+ *  the same way (leaning 3+ points off iddaa: 1 of 6). Players keep their own rung chances. */
+export const BOOK_WEIGHT = 0.9
+/** iddaa's usual cut on a two-way game line (1.63 / 1.61: 1/1.63 + 1/1.61 = 1.235), for a side whose
+ *  other price is missing. */
+export const BOOK_CUT = 1.235
+
+/** The chance a book price reads as with its cut taken out: from the line's two prices, or its usual
+ *  cut when only one is there. */
+export function fairChance(odd: number, against: number | null): number {
+  const p = 1 / odd
+  return against != null && against > 1 ? p / (p + 1 / against) : Math.min(p / BOOK_CUT, 0.99)
+}
+
+const logit = (p: number) => {
+  const q = Math.min(Math.max(p, 0.001), 0.999)
+  return Math.log(q / (1 - q))
+}
+
+/** A game pick's chance: our chance blended with the book's own (in log-odds, BOOK_WEIGHT on the
+ *  book's). Ours alone when the book has no price for it. */
+export function blendChance(ours: number, fair: number | null | undefined): number {
+  if (fair == null) return ours
+  return 1 / (1 + Math.exp(-((1 - BOOK_WEIGHT) * logit(ours) + BOOK_WEIGHT * logit(fair))))
 }
 
 /** How far a game's result lands from our call, one standard deviation, for the chance a game bet
@@ -397,7 +430,9 @@ export interface Barem {
   side: 'over' | 'under'
   at: number // the line itself: 11.5 for a 12+ rung
   odd: number | null // the book's own odds for this bet
-  sure: number | null // our chance the bet wins
+  sure: number | null // our chance the bet wins (game lines: blended with the book's, blendChance)
+  alone?: number | null // game lines: our call's chance on its own, before the blend
+  fair?: number | null // game lines: the book's own chance for this bet, its cut taken out
 }
 
 export function baremOf(
@@ -413,7 +448,7 @@ export function baremOf(
     // our pick to win, at the book's odds for him (whatever its chance reads); settled by the
     // server's pick-won mark
     if (j.ours == null || !price) return null
-    return { label: `${team} to win`, side: 'over', at: 0, odd: price.odd, sure: j.ours }
+    return { label: `${team} to win`, side: 'over', at: 0, odd: price.odd, sure: blendChance(j.ours, price.fair), alone: j.ours, fair: price.fair ?? null }
   }
   if (j.ours == null || j.book == null) return null
   if (player) {
@@ -438,7 +473,8 @@ export function baremOf(
         : `${word} ${num(j.book)}`
   const spread = GAME_SPREAD[stat]
   const up = spread ? normal(lean / spread) : null
-  return { label, side, at: j.book, odd: price.odd, sure: up == null ? null : side === 'over' ? up : 1 - up }
+  const alone = up == null ? null : side === 'over' ? up : 1 - up
+  return { label, side, at: j.book, odd: price.odd, sure: alone == null ? null : blendChance(alone, price.fair), alone, fair: price.fair ?? null }
 }
 
 /** "64%": our confidence in a bet. */
