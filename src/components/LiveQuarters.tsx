@@ -65,6 +65,7 @@ export function LiveQuarters({
                 <th scope="row">
                   <TeamLogo abbrev={team.abbrev} size={20} />
                   <span>{team.abbrev}</span>
+                  {q.bonus && <small className="lqt-bonus">Bonus</small>}
                 </th>
                 {quarterCells(q, period).map((c, i) => (
                   <td key={i} className={`lqt-${c.kind}`}>

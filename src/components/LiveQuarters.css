@@ -42,6 +42,14 @@
 .lqt-table tbody th span {
   margin-left: 6px;
 }
+.lqt-bonus {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
 .lqt-table td {
   height: 56px;
   padding: 4px 0;
@@ -111,7 +119,7 @@
     width: 46px;
   }
   /* The abbreviation always reads, so it stays and the logo goes. */
-  .lqt-table tbody th > :not(span) {
+  .lqt-table tbody th > :not(span):not(.lqt-bonus) {
     display: none;
   }
   .lqt-table tbody th span {
