@@ -279,38 +279,7 @@
   max-width: 640px;
 }
 
-.ic-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 18px;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--divider);
-  color: var(--muted);
-  font-size: 13px;
-}
-.ic-status .ic-date {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 14px;
-}
-.ic-status .num {
-  color: var(--text-2);
-}
-
 /* Controls */
-.ic-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-.ic-ctrl-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
 .ic-seg {
   display: inline-flex;
   padding: 2px;
@@ -340,193 +309,8 @@
   color: var(--faint);
   margin-left: 4px;
 }
-.ic-games {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  min-width: 0;
-  flex: 1;
-}
-.ic-games::-webkit-scrollbar,
-.ic-tabs::-webkit-scrollbar {
-  display: none;
-}
-.ic-chip {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.ic-chip[aria-pressed='true'] {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-}
-.ic-chip .t {
-  font-family: var(--font-num);
-  font-size: 12px;
-  color: var(--muted);
-}
-.ic-chip[aria-pressed='true'] .t {
-  color: inherit;
-  opacity: 0.75;
-}
-.ic-tabs {
-  display: flex;
-  gap: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--divider);
-}
-.ic-tab {
-  flex: none;
-  position: relative;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-weight: 550;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.ic-tab .num {
-  font-size: 12px;
-  color: var(--faint);
-  margin-left: 3px;
-}
-.ic-tab[aria-selected='true'] {
-  color: var(--text);
-}
-.ic-tab[aria-selected='true']::after {
-  content: '';
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-.ic-tab:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.ic-explain {
-  color: var(--muted);
-  font-size: 12.5px;
-  padding: 10px 0 4px;
-}
 
 /* The list: seam rows */
-.ic-colhead {
-  display: grid;
-  align-items: end;
-  column-gap: 12px;
-  padding: 8px 12px 6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 550;
-}
-.ic-colhead .ic-lane {
-  margin: 0;
-  padding: 0;
-}
-.ic-colhead .ic-lane::before,
-.ic-colhead .ic-lane::after {
-  display: none;
-}
-.ic-colhead .ic-lane .l {
-  justify-content: flex-end;
-  padding-right: 22px;
-}
-.ic-colhead .ic-lane .r {
-  justify-content: flex-start;
-  padding-left: 22px;
-}
-.ic-colhead .ic-lane .c {
-  min-width: 60px;
-  text-align: center;
-  color: var(--text-2);
-}
-
-.ic-colhead > :nth-child(1) {
-  grid-area: rk;
-}
-.ic-colhead > :nth-child(2) {
-  grid-area: face;
-}
-.ic-colhead > :nth-child(3) {
-  grid-area: who;
-}
-.ic-rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  position: relative;
-}
-
-.ic-row {
-  position: relative;
-  border-top: 1px solid var(--divider);
-  transition: opacity 0.2s ease;
-}
-.ic-rows > .ic-row:first-child {
-  border-top: 0;
-}
-.ic-rows.has-open .ic-row:not(.is-open) {
-  opacity: 0.5;
-}
-.ic-row.is-open {
-  z-index: 2;
-  background: var(--slip);
-  border-radius: var(--radius-row);
-  box-shadow: var(--lift);
-  border-top-color: transparent;
-  animation: ic-lift 200ms ease-out;
-}
-.ic-row.is-open + .ic-row {
-  border-top-color: transparent;
-}
-.ic-row-main {
-  all: unset;
-  box-sizing: border-box;
-  display: grid;
-  width: 100%;
-  align-items: center;
-  column-gap: 12px;
-  padding: 10px 12px;
-  min-height: 64px;
-  border-radius: var(--radius-row);
-  cursor: pointer;
-}
-.ic-row-main:hover {
-  background: var(--accent-soft);
-}
-.ic-row-main:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: -2px;
-}
-
-.ic-rk {
-  grid-area: rk;
-  font-family: var(--font-num);
-  font-size: 12px;
-  color: var(--faint);
-  text-align: right;
-}
 .ic-face {
   grid-area: face;
   width: 38px;
@@ -555,40 +339,6 @@
 }
 .ic-face.pair i:last-child {
   color: var(--muted);
-}
-.ic-who {
-  grid-area: who;
-  min-width: 0;
-}
-.ic-nm {
-  font-weight: 600;
-  font-size: 14.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ic-nm-link {
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-.ic-nm-link:hover {
-  color: var(--accent-text);
-  text-decoration-color: currentColor;
-}
-.ic-card-btn {
-  align-self: flex-start;
-}
-.ic-who .ic-sub {
-  font-size: 12.5px;
-  color: var(--muted);
-  margin-top: 1px;
-}
-.ic-who .ic-sub b {
-  font-weight: 550;
-  color: var(--text-2);
 }
 .ic-lane {
   grid-area: lane;
@@ -752,9 +502,6 @@
   stroke-width: 1.4;
   stroke-linejoin: round;
 }
-.ic-row.is-open .r-ours {
-  fill: var(--slip);
-}
 .ic .r-iddaa {
   fill: var(--text-2);
 }
@@ -771,54 +518,6 @@
   color: var(--muted);
   font-weight: 600;
   margin-right: 3px;
-}
-
-
-
-.ic-list-foot {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-  margin-top: 14px;
-}
-.ic-list-foot > .secondary {
-  align-self: center;
-}
-.ic-fold-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 48px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-row);
-  background: var(--surface-2);
-  color: var(--text-2);
-  font: inherit;
-  font-weight: 550;
-  cursor: pointer;
-  text-align: left;
-}
-.ic-fold-btn .num {
-  color: var(--muted);
-  font-weight: 500;
-}
-.ic-fold-btn svg {
-  transition: transform 0.2s;
-}
-.ic-fold-btn[aria-expanded='true'] svg {
-  transform: rotate(180deg);
-}
-.ic-none {
-  padding: 20px 12px;
-  color: var(--text-2);
-  font-size: 13.5px;
-}
-.ic-none b {
-  font-weight: 600;
-  color: var(--text);
 }
 
 /* Open row: the card comes forward */
@@ -1304,7 +1003,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ic-sheet.motion .ic-band,
-  .ic-row.is-open,
   .ic-sk {
     animation: none !important;
   }
@@ -1354,14 +1052,6 @@
   .ic-sec {
     padding: 14px 12px 16px;
   }
-  .ic-status {
-    padding: 10px 12px;
-    gap: 2px 12px;
-    font-size: 12.5px;
-  }
-  .ic-status .ic-opt {
-    display: none;
-  }
   .ic-sec-h {
     margin-bottom: 10px;
   }
@@ -1376,20 +1066,6 @@
   }
   .ic-seg button {
     flex: 1;
-  }
-  .ic-colhead {
-    display: none;
-  }
-  .ic-explain {
-    padding-top: 8px;
-  }
-  .ic-row-main {
-    padding: 12px 6px;
-    row-gap: 10px;
-  }
-
-  .ic-rk {
-    display: none;
   }
   .ic-face {
     width: 36px;
@@ -1665,15 +1341,6 @@
   width: 40px;
   height: 40px;
 }
-.ic-nm-st {
-  font-weight: 500;
-  color: var(--text-2);
-  font-size: 13px;
-  margin-left: 4px;
-}
-.ic-chip .team-logo {
-  margin: 0 -2px;
-}
 .ic-gt td .team-logo {
   vertical-align: -3px;
 }
@@ -1901,14 +1568,6 @@
 }
 
 /* Rows: rank, face, name, the lane and the result slot (Across the Seam, PR 1). */
-.ic-grid {
-  grid-template-columns: 22px 38px minmax(0, 1fr) var(--lane-w) 224px;
-  grid-template-areas: 'rk face who lane slot';
-}
-.ic-ch-slot {
-  grid-area: slot;
-  padding-left: 12px;
-}
 .ic-hit {
   display: inline-grid;
   place-items: center;
@@ -1939,79 +1598,6 @@
 }
 /* The slot: a quiet well until tip-off, Playing during the game, then the result. The green light
    lives only here, never on the row, so a run of closer lines never becomes one green block. */
-.ic-slot {
-  grid-area: slot;
-  box-sizing: border-box;
-  height: 48px;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  color: var(--text-2);
-}
-.ic-slot .sub {
-  font-size: 12px;
-  color: var(--muted);
-}
-.ic-slot .num {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-}
-.ic-slot.wait {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 5%, transparent);
-  justify-content: flex-end;
-}
-.ic-slot.wait .sub {
-  color: var(--faint);
-}
-.ic-slot.live {
-  background: var(--plate);
-  justify-content: flex-start;
-  gap: 0;
-}
-.ic-slot.live .sub {
-  margin-left: auto;
-}
-.ic-slot.fin {
-  background: var(--plate);
-  box-shadow: var(--recess);
-}
-.ic-slot.fin.ours {
-  background:
-    radial-gradient(130% 170% at 100% 50%, var(--closer-light), transparent 78%),
-    var(--plate);
-  box-shadow: inset 0 0 0 1px var(--closer-rim);
-}
-.ic-slot-res {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  white-space: nowrap;
-}
-.ic-slot-res .lab {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.ic-slot-res b {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  font-size: 18px;
-  font-weight: 650;
-  line-height: 1;
-  color: var(--text);
-}
-.ic-slot-res b small {
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--muted);
-  margin-right: 3px;
-}
 .ic-slot-vd {
   display: flex;
   flex-direction: column;
@@ -2037,98 +1623,20 @@
   font-weight: 550;
 }
 @media (max-width: 719px) {
-  .ic-grid {
-    grid-template-columns: 36px minmax(0, 1fr) auto;
-    grid-template-areas:
-      'face who slot'
-      'lane lane lane';
-  }
-  .ic-slot {
-    height: auto;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-  }
-  .ic-slot.wait,
-  .ic-slot.live,
-  .ic-slot.fin {
-    background: none;
-    box-shadow: none;
-  }
-  .ic-slot.live .sub {
-    display: none;
-  }
-  .ic-slot.fin {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-  .ic-slot.fin.ours {
-    margin: -4px -6px -4px 0;
-    padding: 4px 8px;
-    border-radius: 10px;
-    background: radial-gradient(130% 170% at 100% 50%, var(--closer-light), transparent 82%);
-    box-shadow: inset 0 0 0 1px var(--closer-rim);
-  }
-  .ic-slot-res .lab {
-    font-size: 11px;
-  }
-  .ic-slot-res b {
-    font-size: 16px;
-  }
   .ic-slot-vd span {
     display: none;
   }
 }
 
-/* The night card (Across the Seam, PR 2): status, the tally so far, and the games as the filter. */
-.ic-nc {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 24px 16px;
-  border-bottom: 1px solid var(--divider);
-  background: radial-gradient(90% 140% at 0% 0%, var(--glow), transparent 60%);
-}
-.ic-nc .ic-status {
-  padding: 0;
-  border: 0;
-}
-.ic-look {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.ic-look .ic-live {
-  margin-right: 2px;
-}
-.ic-tally-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 18px;
-  font-size: 13.5px;
-  color: var(--text-2);
-}
-.ic-tally-line b,
+/* Who was closer, stat by stat: the numbers in the list */
 .ic-t-list .ic-tx b {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-weight: 650;
   color: var(--text);
 }
-.ic-tally-line b.g,
 .ic-t-list b.g {
   color: var(--good);
-}
-.ic-tl-band {
-  font-size: 12.5px;
-  color: var(--muted);
-}
-.ic-tl-band b {
-  font-weight: 600;
-  color: var(--text-2);
 }
 .ic-split {
   display: flex;
@@ -2164,122 +1672,6 @@
 .ic-split :only-child {
   border-radius: 4px;
 }
-.ic-nc .ic-games {
-  flex: none;
-  padding-bottom: 2px;
-}
-.ic-chip-all {
-  min-height: 64px;
-  padding: 0 18px;
-  font-weight: 600;
-}
-.ic-chip-g {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  min-height: 64px;
-  padding: 8px 14px;
-  text-align: left;
-}
-.ic-chip-h {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-.ic-chip-s {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12.5px;
-  color: var(--text-2);
-}
-.ic-chip-s .num {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  margin-left: 4px;
-}
-.ic-chip-f .num {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-}
-.ic-chip-f {
-  font-size: 12px;
-  color: var(--muted);
-}
-.ic-chip[aria-pressed='true'] .ic-chip-h,
-.ic-chip[aria-pressed='true'] .ic-chip-s,
-.ic-chip[aria-pressed='true'] .ic-chip-f {
-  color: inherit;
-}
-.ic-chip[aria-pressed='true'] .ic-chip-f {
-  opacity: 0.75;
-}
-/* One line of how to rank + a small key, in place of the stacked notes. */
-.ic-explain {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 20px;
-}
-.ic-explain p {
-  margin: 0;
-}
-.ic-explain .num {
-  font-family: var(--font-num);
-  color: var(--text-2);
-}
-.ic-key {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 14px;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-.ic-key > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.ic-key .kb {
-  font-family: var(--font-num);
-  font-size: 14px;
-  color: var(--text-2);
-}
-.ic-key .kg {
-  font-family: var(--font-num);
-  font-weight: 650;
-  font-size: 12px;
-  color: var(--text);
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--raised);
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-.ic-key .ko {
-  font-family: 'Mona Sans Outline', var(--font-num);
-  font-weight: 700;
-  font-size: 15px;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--text);
-}
-.ic-key-ok {
-  display: inline-grid;
-  color: var(--good);
-}
-.ic-key-ok svg {
-  width: 13px;
-  height: 13px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 /* Who was closer, stat by stat */
 .ic-t-list li {
   grid-template-columns: 110px 160px minmax(0, 1fr) auto;
@@ -2293,23 +1685,6 @@
   color: var(--muted);
 }
 @media (max-width: 719px) {
-  .ic-nc {
-    padding: 12px;
-    gap: 10px;
-  }
-  .ic-look {
-    margin-left: 0;
-  }
-  .ic-tally-line .ic-split {
-    width: 100%;
-  }
-  .ic-chip-f {
-    display: none;
-  }
-  .ic-chip-all,
-  .ic-chip-g {
-    min-height: 52px;
-  }
   .ic-t-list li {
     grid-template-columns: 90px minmax(0, 1fr);
     gap: 4px 12px;
@@ -2323,418 +1698,11 @@
   }
 }
 
-/* The duel stage (Across the Seam, PR 3): the top three gaps, the book facing ours on one ruler. */
-.ic-stage-h {
-  margin: 18px 0 6px;
-}
-.ic-stage {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 14px 0 6px;
-}
-.ic-duel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 16px 18px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--lift);
-  overflow: hidden;
-}
-.ic-duel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(340px 200px at 100% 30%, var(--glow), transparent 70%);
-  pointer-events: none;
-}
-.ic-duel > * {
-  position: relative;
-}
-.ic-duel header {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-.ic-duel .ic-face {
-  flex: none;
-}
-.ic-rkd {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font: 700 12px/22px var(--font-num);
-  text-align: center;
-}
-.ic-dw {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.ic-dw b {
-  font-weight: 650;
-  font-size: 15px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ic-dw > span {
-  font-size: 12.5px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ic-dw em {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.ic-when {
-  margin-left: auto;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.ic-when .num {
-  font-family: var(--font-num);
-  color: var(--text-2);
-}
-.ic-faceoff {
-  display: grid;
-  grid-template-columns: auto minmax(24px, 1fr) auto;
-  grid-template-areas:
-    'lb . lo'
-    'vb wire vo'
-    'hb . ho';
-  column-gap: 12px;
-  margin-top: 14px;
-}
-.ic-faceoff .lab {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.ic-faceoff .lab.bk {
-  grid-area: lb;
-}
-.ic-faceoff .lab.ou {
-  grid-area: lo;
-  justify-self: end;
-}
-.ic-faceoff .v {
-  align-self: end;
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  white-space: nowrap;
-}
-.ic-faceoff .v small {
-  font-family: var(--font-ui);
-  -webkit-text-stroke: 0;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 0.32em;
-  margin-right: 0.3em;
-  vertical-align: 0.6em;
-}
-.ic-faceoff .v .pct {
-  -webkit-text-stroke: 0;
-  color: var(--muted);
-  font-size: 0.45em;
-}
-.ic-faceoff .v.bk {
-  grid-area: vb;
-  font-size: 40px;
-  font-weight: 450;
-  color: var(--text-2);
-}
-.ic-faceoff .v.ou {
-  grid-area: vo;
-  justify-self: end;
-  font-family: 'Mona Sans Outline', var(--font-num);
-  font-weight: 700;
-  font-size: 54px;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--text);
-}
-:root[data-theme='light'] .ic-faceoff .v.ou {
-  -webkit-text-stroke-width: 1.6px;
-}
-.ic-faceoff .wire {
-  grid-area: wire;
-  position: relative;
-  height: 56px;
-}
-.ic-faceoff .wire::before {
-  content: '';
-  position: absolute;
-  left: 4px;
-  right: 8px;
-  bottom: 16px;
-  height: 1.5px;
-  background: linear-gradient(90deg, var(--seam), var(--text-2));
-}
-.ic-faceoff .wire::after {
-  content: '';
-  position: absolute;
-  right: 4px;
-  bottom: 12.5px;
-  width: 7px;
-  height: 7px;
-  border-top: 1.5px solid var(--text-2);
-  border-right: 1.5px solid var(--text-2);
-  transform: rotate(45deg);
-}
-.ic-faceoff .gap {
-  position: absolute;
-  left: 50%;
-  bottom: 25px;
-  transform: translateX(-50%);
-  padding: 6px 9px;
-  border-radius: 9px;
-  background: var(--raised);
-  box-shadow: var(--recess);
-  font: 650 13px/1 var(--font-num);
-  white-space: nowrap;
-}
-.ic-faceoff .hw {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.ic-faceoff .hw.bk {
-  grid-area: hb;
-}
-.ic-faceoff .hw.ou {
-  grid-area: ho;
-  justify-self: end;
-}
-.ic-faceoff .hw.ok {
-  color: var(--good);
-}
-.ic-faceoff .hw.no {
-  color: var(--bad);
-}
-.ic-faceoff .hw svg {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.ic-sruler {
-  position: relative;
-  height: 40px;
-  margin: 14px 2px 0;
-}
-.ic-sruler i,
-.ic-sruler span {
-  position: absolute;
-}
-.ic-sruler .ax {
-  left: 0;
-  right: 0;
-  top: 12px;
-  height: 1.5px;
-  border-radius: 2px;
-  background: var(--track);
-}
-.ic-sruler .tk {
-  top: 9px;
-  width: 1px;
-  height: 8px;
-  background: var(--seam);
-}
-.ic-sruler .bar {
-  top: 9px;
-  height: 8px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, transparent, var(--warm));
-}
-.ic-sruler .bar::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  top: -3px;
-  width: 2px;
-  height: 14px;
-  border-radius: 2px;
-  background: var(--warm-cap);
-}
-.ic-sruler .bar.dn {
-  background: linear-gradient(270deg, transparent, var(--warm));
-}
-.ic-sruler .bar.dn::after {
-  right: auto;
-  left: -1px;
-}
-.ic-sruler .bk {
-  top: 5px;
-  width: 2px;
-  height: 16px;
-  margin-left: -1px;
-  border-radius: 2px;
-  background: var(--text-2);
-}
-.ic-sruler .pin {
-  top: 7px;
-  width: 12px;
-  height: 12px;
-  margin-left: -6px;
-  border-radius: 50%;
-  background: var(--text);
-  box-shadow: 0 0 0 3px var(--surface);
-}
-.ic-sruler .lbl {
-  top: 23px;
-  transform: translateX(-50%);
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.ic-sruler .lbl.r {
-  color: var(--text);
-  font-weight: 600;
-}
-.ic-duel-cap {
-  margin: 2px 0 12px;
-  font-size: 11px;
-  color: var(--faint);
-  text-align: right;
-}
-.ic-dslot {
-  margin-top: auto;
-  min-height: 46px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--plate);
-  box-shadow: var(--recess);
-  font-size: 13.5px;
-  color: var(--text-2);
-}
-.ic-dslot b {
-  font-family: var(--font-num);
-  font-weight: 650;
-  color: var(--text);
-}
-.ic-dslot .ic-slot-vd b {
-  font-family: var(--font-ui);
-}
-.ic-dslot.ours {
-  background:
-    radial-gradient(120% 160% at 100% 50%, var(--closer-light), transparent 75%),
-    var(--plate);
-  box-shadow: inset 0 0 0 1px var(--closer-rim);
-}
-.ic-dslot.ours .ic-slot-vd b {
-  color: var(--good);
-}
-.ic-dslot .sub {
-  font-size: 12px;
-  color: var(--muted);
-}
-.ic-dslot .num {
-  font-family: var(--font-num);
-}
-.ic-rest-h {
-  margin: 22px 0 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-@media (max-width: 1100px) {
-  .ic-faceoff .v.bk {
-    font-size: 32px;
-  }
-  .ic-faceoff .v.ou {
-    font-size: 42px;
-  }
-}
-@media (max-width: 899px) {
-  .ic-stage {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-}
-@media (max-width: 719px) {
-  .ic-duel {
-    padding: 12px 14px;
-    border-radius: var(--radius-tile);
-  }
-  .ic-faceoff {
-    margin-top: 8px;
-  }
-  .ic-faceoff .lab {
-    font-size: 11.5px;
-  }
-  .ic-faceoff .v.bk {
-    font-size: 30px;
-  }
-  .ic-faceoff .v.ou {
-    font-size: 40px;
-  }
-  .ic-faceoff .wire {
-    height: 44px;
-  }
-  .ic-faceoff .wire::before {
-    bottom: 11px;
-  }
-  .ic-faceoff .wire::after {
-    bottom: 7.5px;
-  }
-  .ic-faceoff .gap {
-    bottom: 19px;
-    font-size: 12px;
-    padding: 5px 8px;
-  }
-  .ic-sruler {
-    margin: 6px 0 4px;
-    height: 34px;
-  }
-  .ic-duel:not(.has-res) .ic-sruler {
-    height: 24px;
-  }
-  .ic-duel:not(.has-res) .ic-sruler .lbl,
-  .ic-duel-cap,
-  .ic-dslot.pre:not(.bet) {
-    display: none;
-  }
-  .ic-dslot {
-    margin-top: 8px;
-    min-height: 40px;
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-}
-
 /* Phone spread (Across the Seam, PR 4): the lane becomes Book page | Gap or Result tab | Ours page,
    the stat tabs become a select and the game tables fold. Desktop keeps the lane as it is. */
 .ic-pill .t,
 .ic-pill .r,
 .ic-lane .pg,
-.ic-sub-s,
-.ic-stat-sel,
 .ic-gt-fold > summary {
   display: none;
 }
@@ -2745,81 +1713,13 @@
   --spread-light: rgb(232 150 60 / 0.16);
 }
 @media (max-width: 719px) {
-  .ic-tabs {
-    display: none;
-  }
-  .ic-stat-sel {
-    display: block;
-    position: relative;
-    margin-top: 10px;
-  }
-  .ic-stat-sel select {
-    appearance: none;
-    -webkit-appearance: none;
-    min-height: 44px;
-    padding: 0 42px 0 14px;
-    font-weight: 550;
-    color: var(--text);
-    background: var(--surface-2);
-    cursor: pointer;
-  }
-  .ic-stat-sel .ic-i {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    width: 18px;
-    height: 18px;
-    margin-top: -9px;
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    pointer-events: none;
-  }
 
   /* Row top: rank, face, name over stat and game, then the verdict or Playing on the right. */
-  .ic-grid {
-    grid-template-columns: 16px 34px minmax(0, 1fr) auto;
-    grid-template-areas:
-      'rk face who slot'
-      'lane lane lane lane';
-    column-gap: 10px;
-  }
-  .ic-row-main {
-    padding: 12px 4px 14px;
-    row-gap: 10px;
-  }
-  .ic-rk {
-    display: block;
-    font-size: 12px;
-    text-align: center;
-  }
-  .ic-grid .ic-face {
-    width: 34px;
-    height: 34px;
-  }
-  .ic-sub-l {
-    display: none;
-  }
-  .ic-sub-s {
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .ic-slot.fin .ic-slot-res {
-    display: none;
-  }
   .ic-slot-vd > span {
     display: block;
   }
   .ic-slot-vd > span .num {
     display: inline;
-  }
-  .ic-slot.fin.ours {
-    margin: -6px -4px -6px 0;
-    padding: 6px 10px;
   }
 
   /* The spread: two pages on either side of the spine, each labelled in its outer corner. */
@@ -3254,9 +2154,6 @@
   outline-offset: 2px;
   animation: ic-flash 1.8s ease-out forwards;
 }
-.ic-row.ic-flash {
-  border-radius: var(--radius-sm);
-}
 @keyframes ic-flash {
   0%,
   70% {
@@ -3395,10 +2292,6 @@
 .ic-px.top .num {
   color: var(--warm-cap);
 }
-.ic-faceoff .lab .ic-px {
-  margin: 0;
-  font-size: 12px;
-}
 .ic-mc-nums .ic-px {
   display: block;
   margin-top: 2px;
@@ -3417,12 +2310,6 @@
 .ic-ladder .o {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  color: var(--text-2);
-}
-.ic-key .kp {
-  font-family: var(--font-num);
-  font-size: 12px;
-  font-weight: 600;
   color: var(--text-2);
 }
 @media (max-width: 719px) {
@@ -3446,44 +2333,9 @@
 }
 
 /* One bet per line before tip-off (Can 2026-11-22): the barem, its own odds and our confidence. */
-.ic-slot.wait.bet {
-  justify-content: space-between;
-}
-.ic-slot.wait.bet .ic-slot-vd b {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-.ic-slot.wait.bet.none {
-  justify-content: flex-end;
-}
 .ic-slot-vd.none b {
   color: var(--muted);
   font-weight: 550;
-}
-.ic-dslot.bet .sub {
-  white-space: nowrap;
-}
-@media (max-width: 719px) {
-  .ic-slot.wait.bet {
-    gap: 10px;
-  }
-  .ic-slot.wait.bet .ic-slot-vd > span {
-    display: block;
-    white-space: nowrap;
-  }
-  .ic-slot.wait.bet.none .ic-slot-vd > span {
-    display: none;
-  }
-}
-
-/* Before the book's player bets: the list keeps only its Players/Games switch and a note. */
-.ic-waiting .ic-tabs,
-.ic-waiting .ic-stat-sel,
-.ic-waiting .ic-stage-h,
-.ic-waiting .ic-explain,
-.ic-waiting .ic-list-foot {
-  display: none;
 }
 
 /* Game picks (The Slip Rail, Can 2026-11-23): one calm block per game on the bare page, two columns
@@ -3872,22 +2724,724 @@
   }
 }
 
-/* Why our bet lost (Can 2026-11-22, app/lostlog.py on the server): one quiet line under a lost row,
-   lined up with the name. */
-.ic-row-why {
-  margin: -6px 0 0;
-  padding: 0 12px 10px 96px;
-  font-size: 12.5px;
-  line-height: 1.4;
+/* Where we and the book disagree (The Slip Rail, Can 2026-11-23): one ranked list on the bare page,
+   the first three rows larger. No borders or outlines on rows: a hover tint, the numbers, a short
+   track. Each row has two targets side by side: the player (his card) and the rest (the rungs). */
+.ic-gl {
+  margin: 0 0 40px;
+}
+.ic-gl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 20px;
+}
+.ic-gl-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.ic-gl-head h2 svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-gl-sm {
+  font-size: 13px;
+  line-height: 18px;
   color: var(--muted);
 }
-.ic-row-why b {
-  margin-right: 4px;
+.ic-gl-sm b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* the toolbar: stat tabs (an ink pill for the open one) and the game select */
+.ic-gl-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ic-gl-tabs {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ic-gl-tabs::-webkit-scrollbar {
+  display: none;
+}
+.ic-gl-tab {
+  flex: none;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ic-gl-tab .num {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.ic-gl-tab[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ic-gl-tab[aria-selected='true'] .num {
+  color: var(--on-accent);
+  opacity: 0.75;
+}
+.ic-gl-tab:not([aria-selected='true']):not(:disabled):hover {
+  background: var(--ic-hover);
+}
+.ic-gl-tab:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.ic-gl-sel {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.ic-gl-sel select {
+  appearance: none;
+  height: 44px;
+  padding: 0 36px 0 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ic-gl-sel svg {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+/* the list: rank, player, then gap · bet · odds · our chance */
+.ic-gl-colh,
+.ic-gl-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-items: center;
+}
+.ic-gl-colh {
+  grid-template-columns: 24px minmax(0, 1fr) 200px 112px 52px 84px;
+  padding: 0 12px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-gl-colh span:nth-child(n + 4) {
+  text-align: right;
+}
+.ic-gl-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ic-gl-row {
+  min-height: 68px;
+  padding: 8px 12px;
+  border-radius: var(--radius-tile);
+}
+.ic-gl-row.top {
+  min-height: 80px;
+}
+.ic-gl-row:hover {
+  background-color: var(--ic-hover);
+}
+.ic-gl-rk {
+  font-size: 13px;
+  color: var(--faint);
+  text-align: center;
+}
+
+/* the player: his face (lit by his club) and name open the player card */
+.ic-gl-pw {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+button.ic-gl-pw {
+  cursor: pointer;
+}
+button.ic-gl-pw:hover .ic-gl-who b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--faint);
+}
+.ic-gl-face {
+  position: relative;
+  flex: none;
+  display: flex;
+}
+.ic-gl-disc {
+  position: absolute;
+  right: -1px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 10px color-mix(in srgb, var(--tc) var(--ic-halo), transparent);
+}
+.ic-gl-disc img,
+.ic-gl-disc .team-logo-ab {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  object-fit: contain;
+  font-size: 5px !important;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.ic-gl-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ic-gl-who b {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ic-gl-row.top .ic-gl-who b {
+  font-size: 17px;
+  line-height: 22px;
+}
+.ic-gl-who > span {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* the rest of the row: one button that opens the book's rungs */
+.ic-gl-det {
+  display: grid;
+  grid-template-columns: 200px 112px 52px 84px;
+  gap: 0 16px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-gl-gp {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  min-width: 0;
+}
+.ic-gl-gap,
+.ic-gl-got {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 17px;
+  font-weight: 640;
+  line-height: 22px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.ic-gl-row.top .ic-gl-gap {
+  font-size: 20px;
+  line-height: 24px;
+}
+.ic-gl-got {
+  font-size: 15px;
+}
+.ic-gl-got svg {
+  flex: none;
+}
+.ic-gl-got svg.ok {
+  color: var(--good);
+}
+.ic-gl-got svg.no {
+  color: var(--bad);
+}
+.ic-gl-gp .bo {
+  grid-column: 1 / 3;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-gl-gp .bo b {
   font-weight: 600;
   color: var(--text-2);
 }
+
+/* the track: the book's tick, our dot, ink between; the result as a ring once final */
+.ic-gl-trk {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 140px;
+  height: 14px;
+}
+.ic-gl-trk i {
+  position: absolute;
+  display: block;
+}
+.ic-gl-trk .ln {
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ic-track);
+}
+.ic-gl-trk .sg {
+  top: 6px;
+  height: 2px;
+  left: calc(5px + (100% - 10px) * var(--a));
+  width: calc((100% - 10px) * (var(--b) - var(--a)));
+  background: var(--text-2);
+}
+.ic-gl-trk .tk,
+.ic-gl-trk .dt,
+.ic-gl-trk .rs {
+  left: calc(5px + (100% - 10px) * var(--x));
+}
+.ic-gl-trk .tk {
+  top: 0;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ic-tick);
+}
+.ic-gl-trk .dt {
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.ic-gl-trk .rs {
+  top: 1px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 2px var(--text-2),
+    0 0 0 2px var(--bg);
+}
+
+/* bet, odds, our chance: the Kupon leg's grammar */
+.ic-gl-pb {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+.ic-gl-pb > b {
+  font-size: 17px;
+  font-weight: 640;
+  line-height: 22px;
+}
+.ic-gl-pb .lab {
+  display: none;
+}
+.ic-gl-pb .ic-kt {
+  max-width: 100%;
+}
+.ic-gl-pb .ic-kt > span[aria-hidden] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-gl-od {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.ic-gl-od b {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.ic-gl-od span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-gl-ch {
+  justify-self: end;
+}
+.ic-gl-rs {
+  justify-self: end;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ic-gl-rs.ok {
+  color: var(--good);
+}
+.ic-gl-rs.no {
+  color: var(--bad);
+}
+.ic-gl-nb {
+  grid-column: 2 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  color: var(--muted);
+}
+.ic-gl-nb > span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.ic-gl-nb b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.ic-gl-nb > span > span {
+  font-size: 12px;
+}
+
+/* settled: a closer-ours row gets a soft green light from its left edge, no line (colour only for outcomes) */
+.ic-gl-row.closer {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--good) 13%, transparent), transparent 40%);
+}
+.ic-gl-why {
+  grid-column: 2 / 4;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-gl-why b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-gl-open {
+  grid-column: 1 / 4;
+}
+.ic-gl-open .ic-row-open {
+  padding: 8px 0 12px 52px;
+}
+.ic-gl-open .ic-ledger .big.o {
+  padding: 0;
+  font-family: var(--font-num);
+  font-size: 30px;
+  font-weight: 640;
+  color: var(--text);
+  background: none;
+  -webkit-text-stroke: 0;
+}
+/* the ladder sits on the bare page too: no rules between its rungs */
+.ic-gl-open .vr-ladder th,
+.ic-gl-open .vr-ladder td {
+  border-bottom: 0;
+}
+
+/* the group line over the lines with no bet */
+.ic-gl-grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-gl-grp svg {
+  flex: none;
+}
+.ic-gl-grp b {
+  color: var(--text-2);
+}
+
+.ic-gl-none {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* phones: Show 8 more; everyone: the level-or-below fold */
+.ic-gl-more,
+.ic-gl-fold {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-tile);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.ic-gl-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--accent-soft);
+  font-size: 14px;
+  font-weight: 600;
+}
+.ic-gl-fold {
+  display: grid;
+  justify-content: stretch;
+  font-weight: 400;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  background: var(--ic-hover);
+  text-align: left;
+}
+.ic-gl-more:hover,
+.ic-gl-fold:hover {
+  background: var(--accent-soft);
+}
+.ic-gl-fold .fl {
+  font-size: 15px;
+}
+.ic-gl-fold .fl b {
+  font-weight: 600;
+}
+.ic-gl-fold .fl .num {
+  margin-left: 4px;
+  color: var(--muted);
+}
+.ic-gl-fold .fs {
+  grid-column: 1;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-gl-fold svg {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  color: var(--text-2);
+}
+.ic-gl-fold[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.ic-gl-fold + .ic-gl-rows {
+  margin-top: 8px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ic-gl-row,
+  .ic-gl-tab,
+  .ic-gl-more,
+  .ic-gl-fold {
+    transition: background-color 120ms ease;
+  }
+}
+
+@media (max-width: 1099px) {
+  .ic-gl-colh {
+    grid-template-columns: 24px minmax(0, 1fr) 176px 96px 52px 84px;
+    column-gap: 12px;
+  }
+  .ic-gl-row {
+    column-gap: 12px;
+  }
+  .ic-gl-det {
+    grid-template-columns: 176px 96px 52px 84px;
+    column-gap: 12px;
+  }
+}
+
+/* phones: line 1 face, name, gap and track; line 2 the sub and Book · Ours; line 3 bet, odds and
+   our chance. The rungs button lies under the whole row and the player button sits over its first
+   52px on the left, so the two stay side by side, never nested. */
 @media (max-width: 719px) {
-  .ic-row-why {
-    padding-left: 74px;
+  .ic-gl-head {
+    margin-bottom: 16px;
+  }
+  .ic-gl-head h2 {
+    font-size: 19px;
+  }
+  .ic-gl-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .ic-gl-tabs {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .ic-gl-sel select {
+    width: 100%;
+  }
+  .ic-gl-colh,
+  .ic-gl-rk {
+    display: none;
+  }
+  .ic-gl-row,
+  .ic-gl-row.top {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    margin: 0 -8px;
+    padding: 12px 8px;
+    row-gap: 4px;
+  }
+  .ic-gl-pw {
+    grid-area: 1 / 1;
+    z-index: 1;
+    align-self: start;
+    justify-self: start;
+    max-width: calc(100% - 140px);
+    height: 52px;
+  }
+  .ic-gl-row.top .ic-gl-who b {
+    font-size: 16px;
+  }
+  .ic-gl-who .tip {
+    display: none;
+  }
+  .ic-gl-det {
+    grid-area: 1 / 1;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'sp gp gp'
+      'pb od ch';
+    column-gap: 16px;
+    row-gap: 6px;
+    min-height: 0;
+  }
+  .ic-gl-det::before {
+    content: '';
+    grid-area: sp;
+    min-height: 52px;
+  }
+  .ic-gl-gp {
+    grid-area: gp;
+    grid-template-columns: auto;
+    justify-items: end;
+  }
+  .ic-gl-gp .bo {
+    grid-column: 1;
+  }
+  .ic-gl-trk {
+    width: 72px;
+  }
+  .ic-gl-pb {
+    grid-area: pb;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    padding-left: 52px;
+  }
+  .ic-gl-pb .lab {
+    display: inline;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .ic-gl-pb .ic-kt > span[aria-hidden] {
+    display: none;
+  }
+  .ic-gl-pb .ic-kt::after {
+    content: 'Kupon';
+    font-style: italic;
+  }
+  .ic-gl-od {
+    grid-area: od;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .ic-gl-ch,
+  .ic-gl-rs {
+    grid-area: ch;
+  }
+  .ic-gl-ch .ic-ch-bar {
+    width: 24px;
+  }
+  .ic-gl-nb {
+    grid-row: 2;
+    grid-column: 1 / 4;
+    justify-content: flex-start;
+    padding-left: 52px;
+  }
+  .ic-gl-nb svg {
+    display: none;
+  }
+  .ic-gl-nb > span {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .ic-gl-why,
+  .ic-gl-open {
+    grid-column: 1;
+  }
+  .ic-gl-why {
+    padding-left: 52px;
+  }
+  .ic-gl-open .ic-row-open {
+    padding: 8px 0 8px;
+  }
+  .ic-gl-open .ic-ledger .big.o {
+    font-size: 26px;
+  }
+  .ic-gl-grp {
+    padding: 16px 0 4px;
+  }
+  .ic-gl-fold .fs {
+    font-size: 12px;
   }
 }
