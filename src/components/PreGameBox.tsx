@@ -30,6 +30,7 @@ import {
 } from '../lib/pregame'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import { QuarterStave } from './QuarterStave'
 import { BenchBreak } from './StartersSplit'
 import './PreGameBox.css'
 
@@ -224,6 +225,7 @@ function Ready({
     <div className="sc-box box-card pg-box" style={style}>
       {head(teamSwitch, line)}
       <CallPanel b={b} />
+      <QuarterStave b={b} />
       <HowItCouldGo b={b} />
       <Stakes
         b={b}
