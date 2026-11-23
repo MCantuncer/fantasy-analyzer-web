@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react'
-import { CaretLeft } from '@phosphor-icons/react'
+import { CaretLeft, Clock } from '@phosphor-icons/react'
 import { teamLight } from '../lib/nbaTeams'
 import { PRICES } from '../lib/plans'
 import { usePro } from '../lib/pro'
+import { Chance } from './EstimateBits'
 import { ProMark } from './Pro'
 import { TeamLogo } from './PlayerHead'
 import './ProInside.css'
@@ -13,11 +14,10 @@ const EXAMPLE = {
   home: 'DEN',
   tip: '8:00 PM',
   call: [112, 118] as const,
-  pct: 64,
-  slips: [
-    { mk: 'Match result', q: 'To win', hero: 'DEN', txt: true, ours: 'DEN −6', odd: '1.55', pct: 64 },
-    { mk: 'Handicap', q: 'DEN', dot: 'DEN', hero: '−4.5', ours: 'DEN −6', odd: '1.87', pct: 56 },
-    { mk: 'Total points', q: 'Over', hero: '226.5', ours: '+230', odd: '1.90', pct: 57 },
+  rows: [
+    { mk: 'Handicap', bet: 'DEN −4.5', num: true, book: 'DEN −4.5', ours: 'DEN −6', odd: '1.87', pct: 0.56 },
+    { mk: 'Total points', bet: 'Over 226.5', num: true, book: '226.5', ours: '230', odd: '1.90', pct: 0.57 },
+    { mk: 'Match result', bet: 'DEN to win', num: false, book: 'DEN 58%', ours: 'DEN 64%', odd: '1.55', pct: 0.64 },
   ],
 }
 
@@ -29,62 +29,39 @@ const GETS = [
   { h: 'The record', p: 'Every pick judged once the game ends, the misses kept in view.' },
 ] as const
 
-function Ring({ pct }: { pct: number }) {
-  const size = 40
-  const stroke = 4
-  const r = (size - stroke) / 2
-  const c = 2 * Math.PI * r
-  return (
-    <span className="ic-gp-conf" data-band={pct >= 65 ? 'likely' : pct >= 55 ? 'lean' : 'flip'}>
-      <svg className="ic-gp-ring" viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
-        <circle className="trk" cx={20} cy={20} r={r} strokeWidth={stroke} />
-        <circle
-          className="arc"
-          cx={20}
-          cy={20}
-          r={r}
-          strokeWidth={stroke}
-          strokeDasharray={`${((c * pct) / 100).toFixed(2)} ${c.toFixed(2)}`}
-          transform="rotate(-90 20 20)"
-        />
-      </svg>
-      <span className="pct num">
-        {pct}
-        <small>%</small>
-      </span>
+function Head({ away, home, tip, call }: { away: string; home: string; tip: string; call: readonly [number, number] }) {
+  const disc = (team: string) => (
+    <span className="ic-gp-disc" style={{ '--tc': teamLight(team) ?? 'transparent' } as CSSProperties}>
+      <TeamLogo abbrev={team} size={40} fallback />
     </span>
   )
-}
-
-function Board({ away, home, call }: { away: string; home: string; call: readonly [number, number] }) {
-  const pickHome = call[1] > call[0]
-  const side = (team: string, s: 'a' | 'h') => (
-    <span className={`side ${s}`}>
-      <TeamLogo abbrev={team} size={36} fallback />
-      <span className="ab">{team}</span>
-    </span>
-  )
+  const pick = call[1] > call[0] ? home : away
   return (
-    <div className="ic-gp-board pre">
-      {side(away, 'a')}
-      <span className={`dg a hollow${pickHome ? '' : ' pk'}`} style={{ '--tl': teamLight(away) } as CSSProperties}>
-        {call[0]}
+    <div className="ic-gp-gh">
+      <span className="ic-gp-pair">
+        {disc(away)}
+        {disc(home)}
       </span>
-      <span className="dash">–</span>
-      <span className={`dg h hollow${pickHome ? ' pk' : ''}`} style={{ '--tl': teamLight(home) } as CSSProperties}>
-        {call[1]}
+      <span className="ic-gp-gn">
+        <b>{`${away} @ ${home}`}</b>
+        <span>
+          <Clock size={14} />
+          Tip <span className="num">{tip}</span>
+        </span>
       </span>
-      {side(home, 'h')}
+      <span className="ic-gp-sc">
+        <span className="lab">Our score</span>
+        <b className="num">
+          <small>{away}</small> {call[0]}
+          <i>–</i>
+          {call[1]} <small>{home}</small>
+        </b>
+        <span className="sub">
+          {pick} by <span className="num">{Math.abs(call[1] - call[0])}</span> · Total{' '}
+          <span className="num">{call[0] + call[1]}</span>
+        </span>
+      </span>
     </div>
-  )
-}
-
-function Clock() {
-  return (
-    <svg className="ic-gp-ico" viewBox="0 0 16 16" width="14" height="14">
-      <circle cx="8" cy="8" r="6.2" />
-      <path d="M8 4.6V8l2.3 1.5" />
-    </svg>
   )
 }
 
@@ -96,60 +73,31 @@ function Peek() {
       <p className="pi-ex">
         <span>Example</span> How a game looks on Our Estimates
       </p>
-      <section className="ic-sec ic-gp">
+      <section className="ic-gp">
         <ol className="ic-gp-games">
           <li className="ic-gp-game">
-            <div className="ic-gp-call">
-              <div className="ic-gp-top">
-                <span className="when">
-                  <Clock />
-                  Tip <b className="num">{e.tip}</b>
-                </span>
-                <span className="callpct">
-                  Our call · <b className="num" data-band="lean">{e.pct}%</b> {e.home} to win
-                </span>
-              </div>
-              <Board away={e.away} home={e.home} call={e.call} />
-              <p className="ic-gp-line">
-                <b>{e.home}</b> by <b className="num">{e.call[1] - e.call[0]}</b> · Total{' '}
-                <b className="num">{e.call[0] + e.call[1]}</b>
-              </p>
-            </div>
-            <ol className="ic-gp-slips">
-              {e.slips.map((s, i) => (
-                <li key={s.mk} className={`ic-gp-slip${i === e.slips.length - 1 ? ' last' : ''}`}>
-                  <div className="body">
-                    <span className="mk">{s.mk}</span>
-                    <span className="q">
-                      {s.dot && <i className="dot" style={{ '--tl': teamLight(s.dot) } as CSSProperties} />}
-                      {s.q}
+            <Head away={e.away} home={e.home} tip={e.tip} call={e.call} />
+            <ul className="ic-gp-rows">
+              {e.rows.map((r) => (
+                <li key={r.mk} className="ic-gp-row">
+                  <span className="ml">{r.mk}</span>
+                  <span className="mb">
+                    <b className={`bt${r.num ? ' num' : ''}`}>{r.bet}</b>
+                    <span className="bo">
+                      Book <b className="num">{r.book}</b> · Ours <b className="num">{r.ours}</b>
                     </span>
-                    <b className={`hero${s.txt ? '' : ' num'}`}>{s.hero}</b>
-                    <span className="us ours" data-band={s.pct >= 55 ? 'lean' : 'flip'}>
-                      Ours <b className="est">{s.ours}</b>
-                    </span>
-                  </div>
-                  <div className="stub">
-                    <span className="price">
-                      <span className="lab">Odds</span>
-                      <b className="num odd">{s.odd}</b>
-                    </span>
-                    <Ring pct={s.pct} />
-                  </div>
+                  </span>
+                  <span className="od">
+                    <b className="num">{r.odd}</b>
+                    <span>odds</span>
+                  </span>
+                  <Chance value={r.pct} />
                 </li>
               ))}
-            </ol>
+            </ul>
           </li>
           <li className="ic-gp-game">
-            <div className="ic-gp-call">
-              <div className="ic-gp-top">
-                <span className="when">
-                  <Clock />
-                  Tip <b className="num">{SECOND.tip}</b>
-                </span>
-              </div>
-              <Board away={SECOND.away} home={SECOND.home} call={SECOND.call} />
-            </div>
+            <Head away={SECOND.away} home={SECOND.home} tip={SECOND.tip} call={SECOND.call} />
           </li>
         </ol>
       </section>

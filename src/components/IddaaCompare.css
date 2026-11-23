@@ -3486,19 +3486,11 @@
   display: none;
 }
 
-/* Our game picks, "Score Slip" (Can 2026-11-22): our called score leads each game, then one ticket per
-   iddaa game line with the barem and its own odds big, and a confidence ring that explains itself.
-   Confidence colours are the Scores "Our call" bands, copied here because OurCall.css may not be loaded. */
+/* Game picks (The Slip Rail, Can 2026-11-23): one calm block per game on the bare page, two columns
+   from 1100px. Our score in solid numerals, then market rows with the same grammar as a Kupon leg
+   (bet, odds, our chance). No outlines, no rings; colour only for results and the logos' halo. */
 .ic-gp {
-  --plate: color-mix(in srgb, var(--text) 5%, transparent);
-  --conf-sure: var(--good);
-  --conf-likely: color-mix(in oklab, var(--good) 50%, var(--muted));
-  --conf-lean: color-mix(in oklab, var(--warn) 70%, var(--text-2));
-  --conf-flip: var(--text-2);
-}
-:root[data-theme='light'] .ic-gp {
-  --plate: color-mix(in srgb, var(--text) 4.5%, transparent);
-  --conf-likely: color-mix(in oklab, var(--good) 62%, var(--muted));
+  margin: 0 0 40px;
 }
 .ic-gp .sr-only {
   position: absolute;
@@ -3508,276 +3500,380 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-.ic-gp-head h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
-.ic-gp-head p { margin: 4px 0 0; font-size: 14px; color: var(--text-2); max-width: 72ch; }
-.ic-gp-night {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px;
-  margin: 16px 0 4px; padding-bottom: 14px; border-bottom: 1px solid var(--divider);
-  font-size: 14px; color: var(--text-2);
+.ic-gp-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 20px;
 }
-.ic-gp-night b { color: var(--text); font-weight: 650; }
-.ic-gp-night .num { font-size: 16px; }
-.ic-gp-night .up { color: var(--good); }
-.ic-gp-night .r { margin-left: auto; }
-.ic-gp-gold { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); margin-right: 7px; vertical-align: 1px; }
-
-.ic-gp-games { list-style: none; margin: 0; padding: 0; }
-.ic-gp-game {
-  display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px; align-items: stretch;
-  padding: 22px 0 24px; border-top: 1px solid var(--divider);
+.ic-gp-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
 }
-.ic-gp-game:first-child { border-top: 0; }
-
-/* the call: our predicted score leads */
-/* as tall as the slips beside it, padded like them and centred on them, so it sits on their line and its hover tile matches theirs */
-.ic-gp-call { position: relative; display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 12px 14px; }
-.ic-gp-slips { align-self: start; }
-/* the score side is one big button to the match card: "Player estimates ›" is its label, and its
-   ::after covers the side, lit softly on hover, ringed on keyboard focus */
-.ic-gp-open {
-  position: static; display: flex; align-items: center; justify-content: center; gap: 4px;
-  margin: 10px auto 0; padding: 4px 6px; border: 0; background: none; cursor: pointer;
-  font-size: 13px; font-weight: 600; color: var(--text-2);
+.ic-gp-head h2 svg {
+  flex: none;
+  color: var(--text-2);
 }
-.ic-gp-open svg { width: 12px; height: 12px; transform: rotate(-90deg); }
-.ic-gp-open::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-tile); transition: background-color 120ms ease-out; }
-.ic-gp-open:hover { color: var(--text); }
-.ic-gp-open:hover::after { background: var(--accent-soft); }
-.ic-gp-open:focus-visible { outline: none; color: var(--text); }
-.ic-gp-open:focus-visible::after { box-shadow: 0 0 0 2px var(--focus); }
-.ic-gp-top {
-  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
-  font-size: 13px; color: var(--muted);
-}
-.ic-gp-top .when { display: inline-flex; align-items: center; gap: 6px; }
-.ic-gp-top .when > b:first-child { color: var(--text); font-weight: 650; }
-.ic-gp-top b.num { color: var(--text-2); font-weight: 600; }
-.ic-gp-ico { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
-.callpct b.num[data-band] { color: var(--band); font-weight: 650; font-size: 13.5px; }
-.ic-gp [data-band] { --band: var(--conf-flip); }
-.ic-gp [data-band='sure'] { --band: var(--conf-sure); }
-.ic-gp [data-band='likely'] { --band: var(--conf-likely); }
-.ic-gp [data-band='lean'] { --band: var(--conf-lean); }
-.ic-gp-verdict { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; color: var(--text-2); }
-.ic-gp-verdict b { color: var(--text); font-weight: 650; }
-.ic-gp-verdict svg,
-.ic-gp-slip .res svg,
-.ic-gp-pop .ic-gp-x svg {
-  width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
-  stroke-linecap: round; stroke-linejoin: round;
-}
-.ic-gp-verdict svg { color: var(--text-2); }
-.ic-gp-verdict.ok svg { color: var(--good); }
-
-.ic-gp-board {
-  position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) 22px minmax(0, 1fr) 56px;
-  align-items: center; margin: 12px 0 8px; column-gap: 4px;
-}
-.ic-gp-board .side { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.ic-gp-board .ab { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: 0.01em; }
-.ic-gp-logo {
-  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
-  background: var(--logo); color: #fff; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset;
-}
-.ic-gp-logo i { font-style: normal; font-size: 9.5px; font-weight: 700; letter-spacing: 0.02em; opacity: 0.92; }
-.ic-gp-board .dg {
-  position: relative; text-align: center; font-size: 48px; line-height: 1.05; font-weight: 700;
-  letter-spacing: 0; font-variant-numeric: tabular-nums;
-}
-.ic-gp-board .dg.a { grid-column: 2; text-align: right; }
-.ic-gp-board .dg.h { grid-column: 4; text-align: left; }
-.ic-gp-board .dash { grid-column: 3; }
-.ic-gp-board .side { grid-row: 1; }
-.ic-gp-board .side.h { grid-column: 5; }
-.ic-gp-board .dg:not(.sm), .ic-gp-board .dash:not(.sm) { grid-row: 1; }
-.ic-gp-board .dash { text-align: center; color: var(--faint); font-family: var(--font-num); font-size: 22px; }
-.ic-gp-board .dg.hollow {
-  font-family: 'Mona Sans Outline', var(--font-num); color: transparent;
-  -webkit-text-stroke: 1.25px var(--text-2);
-}
-.ic-gp-board .dg.hollow.pk { -webkit-text-stroke: 1.6px var(--text); }
-.ic-gp-board.pre .dg.pk::after {
-  content: ''; position: absolute; left: 50%; bottom: -7px; width: 64%; height: 3px; border-radius: 2px;
-  transform: translateX(-50%); background: var(--tl);
-}
-.ic-gp-board .dg.solid { font-family: var(--font-num); color: var(--text); }
-.ic-gp-board .dg.solid.trail { color: var(--muted); font-weight: 500; }
-.ic-gp-board .dg.sm { font-size: 32px; }
-.ic-gp-board .dash.sm { font-size: 16px; }
-.ic-gp-board.post .plate {
-  grid-row: 2; grid-column: 1 / -1; align-self: stretch; margin-top: 8px; border-radius: 10px; background: var(--plate);
-}
-.ic-gp-board.post .cl,
-.ic-gp-board.post .dg.sm,
-.ic-gp-board.post .dash.sm,
-.ic-gp-board.post .cp { grid-row: 2; margin-top: 8px; padding: 6px 0; }
-.ic-gp-board.post .cl { grid-column: 1; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.15; }
-.ic-gp-board.post .cp { grid-column: 5; text-align: center; font-size: 13px; font-weight: 650;
-  color: color-mix(in oklab, var(--band) 85%, var(--muted)); }
-.ic-gp-line { margin: 10px 0 0; text-align: center; font-size: 13.5px; color: var(--text-2); }
-.ic-gp-line b { color: var(--text); font-weight: 650; }
-
-/* the bets: one tile each; the barem and its odds are the heroes, the market name is small */
-.ic-gp-slips { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.ic-gp-slip {
-  position: relative; display: flex; flex-direction: column; min-width: 0;
-  background: var(--slip); border-radius: var(--radius-tile); box-shadow: var(--shadow);
-}
-.ic-gp-slip .body { flex: 1; display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px; min-width: 0; }
-.ic-gp-slip .mk { font-size: 12px; color: var(--muted); line-height: 1.2; }
-.ic-gp-slip .q { margin-top: 10px; font-size: 13.5px; font-weight: 550; color: var(--text-2); line-height: 1.2; }
-.ic-gp-slip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tl); margin-right: 6px; vertical-align: 1px; }
-.ic-gp-slip .hero { font-size: 30px; font-weight: 700; line-height: 1.08; letter-spacing: -0.01em; color: var(--text); white-space: nowrap; }
-.ic-gp-slip .hero.num { font-size: 34px; letter-spacing: 0; }
-.ic-gp-slip .us { margin-top: 6px; font-size: 12.5px; color: var(--muted); line-height: 1.3; }
-.ic-gp-slip .us b { color: var(--text-2); font-weight: 600; }
-.ic-gp-slip .body .res { margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 650; }
-.ic-gp-slip .body .res.ok { color: var(--good); }
-.ic-gp-slip .body .res.no { color: var(--text-2); }
-.ic-gp-slip .body .res + .us { margin-top: 2px; }
-
-.ic-gp-slip .stub {
-  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 10px 10px 11px 14px; border-top: 1.5px dashed var(--seam);
-}
-.ic-gp-slip .stub::before,
-.ic-gp-slip .stub::after {
-  content: ''; position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface);
-}
-.ic-gp-slip .stub::before { left: -7px; }
-.ic-gp-slip .stub::after { right: -7px; }
-.ic-gp-slip .price { display: flex; flex-direction: column; min-width: 0; }
-.ic-gp-slip .lab { font-size: 11.5px; color: var(--muted); line-height: 1.1; }
-.ic-gp-slip .odd { font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--text); }
-.ic-gp-slip .ret { font-size: 12.5px; font-weight: 650; color: var(--muted); }
-.ic-gp-slip .ret.up { color: var(--good); }
-
-/* confidence: a ring that fills, the % inside; a button that explains itself */
-.ic-gp-conf {
-  position: relative; flex: none; display: grid; place-items: center; width: 46px; height: 46px; padding: 0;
-  border: 0; border-radius: 50%; background: transparent; cursor: pointer;
-}
-.ic-gp-conf > * { grid-area: 1 / 1; }
-.ic-gp-conf .pct { font-size: 13px; font-weight: 650; color: var(--text); line-height: 1; }
-.ic-gp-conf .pct small { font-size: 9px; font-weight: 600; color: var(--muted); margin-left: 0.5px; }
-.ic-gp-conf:hover { background: var(--accent-soft); }
-.ic-gp-conf[aria-expanded='true'] { background: var(--accent-soft); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--band) 60%, transparent); }
-.ic-gp-ring { flex: none; }
-.ic-gp-ring circle { fill: none; }
-.ic-gp-ring .trk { stroke: var(--track); }
-.ic-gp-ring .arc { stroke: var(--band); stroke-linecap: round; }
-
-/* settled: a thin flat edge, never a wash */
-.ic-gp-slip.won::before {
-  content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 2px 2px 0; background: var(--good);
-}
-.ic-gp-slip .us b { white-space: nowrap; }
-.ic-gp-slip .us.ours .est .sg { margin-right: 1px; font-weight: 800; }
-/* our number on the ticket sits in a small pill tinted with the ring's colour, so it reads as ours */
-.ic-gp-slip .us.ours { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; margin-top: 8px; }
-.ic-gp-slip .us.ours .est {
-  padding: 2px 9px; border-radius: 999px; white-space: nowrap; font-weight: 650;
-  color: color-mix(in oklab, var(--band) 70%, var(--text));
-  background: color-mix(in srgb, var(--band) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band) 38%, transparent);
-}
-.ic-gp-slip.lost .hero, .ic-gp-slip.lost .odd { color: var(--text-2); }
-.ic-gp-slip.lost .stub .ic-gp-ring .arc { opacity: 0.55; }
-/* no bet: kept in its place, quiet, with the reason */
-.ic-gp-slip.none { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border); }
-.ic-gp-slip.none .hero { color: var(--muted); font-weight: 600; }
-.ic-gp-slip.none .stub { border-top-color: var(--border); }
-.ic-gp-slip.none .nb { display: flex; flex-direction: column; min-height: 46px; justify-content: center; font-size: 12px; color: var(--muted); }
-.ic-gp-slip.none .nb b { font-size: 14px; font-weight: 650; color: var(--text-2); }
-
-/* the popover: what the ring means, in words */
-.ic-gp-pop {
-  position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: 320px;
-  padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--radius-tile);
-  background: var(--raised); box-shadow: var(--lift); font-size: 14px;
-}
-.ic-gp-slip:last-child .ic-gp-pop { left: auto; right: 0; }
-.ic-gp-pop[hidden] { display: none; }
-.ic-gp-pop-h { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: start; }
-.ic-gp-pop-h .mk { grid-column: 1; font-size: 12.5px; color: var(--muted); }
-.ic-gp-pop-h b { grid-column: 1; font-size: 16px; font-weight: 650; }
-.ic-gp-x {
+.ic-gp-sm {
+  font-size: 13px;
+  line-height: 18px;
   color: var(--muted);
-  grid-column: 2; grid-row: 1 / span 2; display: grid; place-items: center; width: 32px; height: 32px;
-  margin: -6px -8px 0 0; border: 0; border-radius: 9px; background: transparent; cursor: pointer;
 }
-.ic-gp-x:hover { background: var(--accent-soft); }
-.ic-gp-pop-lead { display: flex; align-items: center; gap: 12px; margin: 12px 0 12px; }
-.ic-gp-pop-lead p { margin: 0; font-size: 14.5px; line-height: 1.4; }
-.ic-gp-pop-lead .num { font-size: 16px; font-weight: 650; }
-.ic-gp-bars { display: grid; grid-template-columns: 42px minmax(0, 1fr) 38px; align-items: center; gap: 7px 10px; }
-.ic-gp-bars .who { font-size: 12.5px; color: var(--muted); }
-.ic-gp-bars .bar { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
-.ic-gp-bars .bar i { display: block; height: 100%; border-radius: 4px; background: var(--band); }
-.ic-gp-bars .bar.book i { background: var(--faint); }
-.ic-gp-bars .v { text-align: right; font-size: 14px; font-weight: 650; }
-.ic-gp-pop .fine { margin: 12px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.45; }
-.ic-gp-pop .fine b { color: var(--text); }
-.ic-gp-pop .res { display: flex; gap: 7px; align-items: baseline; margin: 10px 0 0; font-size: 13.5px; color: var(--text-2); }
-.ic-gp-pop .res b { color: var(--text); }
-.ic-gp-pop .res.ok b { color: var(--good); }
-.ic-gp-pop .key { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--divider); font-size: 12.5px; color: var(--muted); line-height: 1.45; }
-.ic-gp-pop .key .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--band); margin-right: 6px; }
-.ic-gp-scrim { display: none; }
+.ic-gp-sm b {
+  color: var(--text-2);
+  font-weight: 600;
+}
 
-/* ---------- widths ---------- */
-@media (max-width: 1100px) {
-  .ic-gp-game { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .ic-gp-call { max-width: 420px; width: 100%; margin: 0 auto; }
+.ic-gp-games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
 }
-@media (max-width: 719px) {
-  .ic-gp-night { gap: 4px 16px; }
-  .ic-gp-night .r { margin-left: 0; }
-  .ic-gp-game { padding: 18px 0 20px; gap: 14px; }
-  .ic-gp-board { grid-template-columns: 50px minmax(0, 1fr) 20px minmax(0, 1fr) 50px; }
-  .ic-gp-board .dg { font-size: 44px; }
-  .ic-gp-board .dg.sm { font-size: 32px; }
-  .ic-gp-slips { gap: 8px; }
-  .ic-gp-slip .body { padding: 10px 9px 10px 10px; }
-  .ic-gp-slip .mk { font-size: 11.5px; }
-  .ic-gp-slip .q { margin-top: 7px; font-size: 12.5px; }
-  .ic-gp-slip .hero { font-size: 22px; }
-  .ic-gp-slip .hero.num { font-size: 25px; }
-  .ic-gp-slip .us { font-size: 12px; }
-  .ic-gp-slip .body .res { margin-top: 6px; font-size: 12.5px; }
-  .ic-gp-slip .stub { padding: 8px 4px 9px 10px; gap: 2px; }
-  .ic-gp-slip .odd { font-size: 21px; }
-  .ic-gp-slip .ret { font-size: 12px; }
-  .ic-gp-conf { width: 38px; height: 38px; }
-  .ic-gp-conf::before { content: ''; position: absolute; inset: -3px; }
-  .ic-gp-conf .ic-gp-ring { width: 36px; height: 36px; }
-  .ic-gp-conf .pct { font-size: 11.5px; }
-  .ic-gp-conf .pct small { font-size: 8px; }
-  .ic-gp-slip.none .nb { min-height: 38px; font-size: 11.5px; }
-  .ic-gp-slip.none .nb .why { display: none; }
-  .ic-gp-slip.none .nb b { font-size: 13px; }
-  /* on a phone the popover becomes a bottom sheet */
-  .ic-gp-pop,
-  .ic-gp-slip:last-child .ic-gp-pop {
-    position: fixed; z-index: 50; top: auto; left: 0; right: 0; bottom: 0; width: auto;
-    padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; border-bottom: 0;
+@media (min-width: 1100px) {
+  .ic-gp-games {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 48px;
   }
-  .ic-gp-pop::before {
-    content: ''; position: absolute; top: 8px; left: 50%; width: 36px; height: 4px; margin-left: -18px;
-    border-radius: 2px; background: var(--border);
-  }
-  .ic-gp-x { width: 40px; height: 40px; margin: -8px -4px 0 0; }
-  .ic-gp-scrim { display: block; position: fixed; inset: 0; z-index: 45; background: var(--scrim); }
+}
+.ic-gp-game {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* the game's head: the two clubs, the matchup and tip, our score on the right */
+.ic-gp-gh {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.ic-gp-pair {
+  display: inline-flex;
+}
+.ic-gp-disc {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 24px color-mix(in srgb, var(--tc) var(--ic-halo), transparent);
+}
+.ic-gp-disc + .ic-gp-disc {
+  margin-left: -6px;
+}
+.ic-gp-disc img,
+.ic-gp-disc .team-logo-ab {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  object-fit: contain;
+  font-size: 12px !important;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.ic-gp-gn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ic-gp-gn > b {
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ic-gp-gn > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-gp-gn .ic-live {
+  margin-right: 2px;
+}
+.ic-gp-sc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+.ic-gp-sc .lab {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.ic-gp-sc > b {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 640;
+  color: var(--text);
+  white-space: nowrap;
+}
+.ic-gp-sc > b small {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+  vertical-align: 0.4em;
+}
+.ic-gp-sc > b i {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--faint);
+  margin: 0 4px;
+}
+.ic-gp-sc .sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+.ic-gp-game.post .ic-gp-sc .sub {
+  color: var(--muted);
+}
+.ic-gp-sc .sub .ok,
+.ic-gp-row .rs.ok {
+  color: var(--good);
+}
+.ic-gp-sc .sub .no,
+.ic-gp-row .rs.no {
+  color: var(--bad);
+}
+
+/* market rows: label, bet, odds, our chance; hover tint, no outline */
+.ic-gp-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ic-gp-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr) 48px 84px;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 60px;
+  margin: 0 -12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-tile);
+}
+.ic-gp-row:hover {
+  background: var(--ic-hover);
+}
+.ic-gp-row .ml {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-gp-row .mb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+}
+.ic-gp-row .bt {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 640;
+  white-space: nowrap;
+}
+.ic-gp-row .bo {
+  flex-basis: 100%;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-gp-row .bo b {
+  color: var(--text);
+  font-weight: 600;
+}
+.ic-gp-row .od {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.ic-gp-row .od b {
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.ic-gp-row .od span {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.ic-gp-row .rs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ic-gp-row.won,
+.ic-gp-row.lost {
+  --edge: var(--good);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--edge) 10%, transparent), transparent 40%);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--edge) 70%, transparent);
+}
+.ic-gp-row.lost {
+  --edge: var(--bad);
+}
+.ic-gp-row .why {
+  grid-column: 2 / -1;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.ic-gp-row.none .bt {
+  font-weight: 500;
+  color: var(--text-2);
+}
+.ic-gp-row .nb {
+  grid-column: 3 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--muted);
+  text-align: right;
+}
+.ic-gp-row .nb svg {
+  flex: none;
+}
+.ic-gp-row .nb > span {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.ic-gp-row .nb b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* the last line: the game's player estimates (the match card) */
+.ic-gp-more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: -12px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ic-gp-more:hover {
+  background: var(--ic-hover);
+}
+.ic-gp-more svg {
+  color: var(--text-2);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ic-gp-pop { animation: ic-gp-in 160ms ease-out; }
-  @media (max-width: 719px) { .ic-gp-pop { animation: ic-gp-up 220ms cubic-bezier(0.2, 0.9, 0.3, 1); } }
+  .ic-gp-row,
+  .ic-gp-more {
+    transition: background-color 120ms ease;
+  }
 }
-@keyframes ic-gp-in { from { opacity: 0; transform: translateY(-4px); } }
-@keyframes ic-gp-up { from { transform: translateY(100%); } }
+
+/* phones: one column; the score sits right of the names at 22px without the clubs' letters, and the
+   market label moves above the bet */
+@media (max-width: 719px) {
+  .ic-gp {
+    margin-bottom: 24px;
+  }
+  .ic-gp-head {
+    margin-bottom: 16px;
+  }
+  .ic-gp-head h2 {
+    font-size: 19px;
+  }
+  .ic-gp-gh {
+    gap: 10px;
+  }
+  .ic-gp-disc {
+    width: 34px;
+    height: 34px;
+  }
+  .ic-gp-disc .team-logo-ab {
+    font-size: 10px !important;
+  }
+  .ic-gp-gn > b {
+    font-size: 16px;
+  }
+  .ic-gp-sc > b {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .ic-gp-sc > b small,
+  .ic-gp-sc .lab {
+    display: none;
+  }
+  .ic-gp-row {
+    grid-template-columns: minmax(0, 1fr) 44px 76px;
+    gap: 4px 10px;
+    margin: 0 -8px;
+    padding: 8px;
+  }
+  .ic-gp-row .ml {
+    grid-column: 1 / -1;
+  }
+  .ic-gp-row .mb {
+    grid-column: 1;
+  }
+  .ic-gp-row .nb {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+  .ic-gp-row .nb svg {
+    display: none;
+  }
+  .ic-gp-row .why {
+    grid-column: 1 / -1;
+  }
+}
 
 /* Why our bet lost (Can 2026-11-22, app/lostlog.py on the server): one quiet line under a lost row,
-   lined up with the name; on a game slip, under the result. */
+   lined up with the name. */
 .ic-row-why {
   margin: -6px 0 0;
   padding: 0 12px 10px 96px;
@@ -3789,13 +3885,6 @@
   margin-right: 4px;
   font-weight: 600;
   color: var(--text-2);
-}
-.ic-gp-slip .why {
-  margin-top: 4px;
-  max-width: 100%;
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--muted);
 }
 @media (max-width: 719px) {
   .ic-row-why {

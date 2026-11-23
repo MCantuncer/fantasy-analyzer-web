@@ -6,6 +6,7 @@ import {
   implied,
   linesOf,
   lostWhy,
+  marketPair,
   marketPrice,
   num,
   odds,
@@ -157,6 +158,12 @@ describe('our game picks', () => {
     expect([mar.barem?.label, mar.barem?.odd, mar.barem?.side]).toEqual(['MIL +4.5', 1.93, 'under']) // MIL takes the points
     expect(sureOf(mar.barem)).toBe('57%') // 1 - Normal(-2.5 / 13.6)
     expect([tot.barem?.label, tot.barem?.odd, sureOf(tot.barem)]).toEqual(['Over 226.5', 1.9, '58%'])
+    // Book and Ours said the same way, side by side
+    expect([marketPair(win), marketPair(mar), marketPair(tot)]).toEqual([
+      { book: 'PHI 58%', ours: 'PHI 64%' },
+      { book: 'PHI −4.5', ours: 'PHI −2' },
+      { book: '226.5', ours: '230' },
+    ])
     data.games[0].markets[0].odds = odds2(1.3, 3.4)
     expect(linesOf(data, new Date())[0].barem).toBeNull() // our side at 1.33 or less: no bet
   })

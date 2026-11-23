@@ -750,6 +750,18 @@ export function oursLine(l: Line, call: GameCallView | null): string | null {
   return `Ours ${side === 'over' ? '+' : '−'}${v}`
 }
 
+/** A game line's two numbers, said the same way so they read side by side: "NY −7.5" and "NY −4" for a
+ *  handicap, "213.5" and "216" for the total, "NY 58%" and "NY 63%" for the match result. */
+export function marketPair(l: Line): { book: string | null; ours: string | null } {
+  if (l.stat === 'WIN') {
+    const pct = (v: number | null) => (v == null || !l.team ? null : `${l.team} ${Math.round(v * 100)}%`)
+    return { book: pct(l.book), ours: pct(l.ours) }
+  }
+  if (l.stat === 'MAR')
+    return { book: l.book == null ? null : byWords(l, l.book), ours: l.ours == null ? null : byWords(l, l.ours) }
+  return { book: l.book == null ? null : num(l.book), ours: l.ours == null ? null : num(Math.round(l.ours)) }
+}
+
 /** What the game gave the ticket: "Got PHI by 13", "Got 229". */
 export function gotLine(l: Line): string | null {
   const g = l.game
