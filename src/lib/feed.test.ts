@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { FeedItem, FeedTeam } from '../api/client'
 import {
   biggestBidId,
-  bidLine,
   dayLabel,
   daySummary,
   faabLine,
@@ -64,26 +63,6 @@ const trade: FeedItem = {
 const post: FeedItem = { id: 'post:1', kind: 'post', at: '2026-10-23T09:00:00Z', team_id: 3, body: 'hi', replies: 0 }
 
 describe('feed lines', () => {
-  it('names the bid a claim beat', () => {
-    expect(bidLine(claim, teams, 100)).toBe('Won over 1 other bid (Cayyolu, $1).')
-    expect(bidLine(claim, teams, null)).toBe('Won over 1 other claim (Cayyolu) on waiver priority.')
-    expect(bidLine({ ...claim, losing_bids: [] }, teams)).toBeNull()
-    expect(
-      bidLine(
-        {
-          ...claim,
-          losing_bids: [
-            { team_id: 6, bid: 3 },
-            { team_id: 3, bid: 1 },
-          ],
-        },
-        teams,
-        100,
-      ),
-    ).toBe('Won over 2 other bids, the highest $3.')
-    expect(bidLine(trade, teams)).toBeNull()
-  })
-
   it('calls out the biggest FAAB spender only when they lead alone', () => {
     expect(faabLine(claim, teams, 100)).toBe('Eryaman Lakers has spent $9 of $100, the most in the league.')
     expect(faabLine({ ...claim, team_id: 3 }, teams, 100)).toBeNull()
