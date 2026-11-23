@@ -8,7 +8,7 @@ import { ProMark } from './Pro'
 import { TeamLogo } from './PlayerHead'
 import './ProInside.css'
 
-/** One made-up game, drawn with the real game-picks markup so a Free account sees the page as it is. */
+/** Two made-up games, drawn with the real game-picks markup so a Free account sees the page as it is. */
 const EXAMPLE = {
   away: 'LAL',
   home: 'DEN',
@@ -21,7 +21,42 @@ const EXAMPLE = {
   ],
 }
 
-const SECOND = { away: 'BOS', home: 'NYK', tip: '7:30 PM', call: [109, 104] as const }
+const SECOND = {
+  away: 'BOS',
+  home: 'NYK',
+  tip: '7:30 PM',
+  call: [109, 104] as const,
+  rows: [
+    { mk: 'Handicap', bet: 'BOS −2.5', num: true, book: 'BOS −2.5', ours: 'BOS −5', odd: '1.85', pct: 0.58 },
+    { mk: 'Total points', bet: 'Under 218.5', num: true, book: '218.5', ours: '213', odd: '1.92', pct: 0.55 },
+    { mk: 'Match result', bet: 'BOS to win', num: false, book: 'BOS 54%', ours: 'BOS 61%', odd: '1.70', pct: 0.61 },
+  ],
+}
+
+type ExampleRow = (typeof EXAMPLE.rows)[number]
+
+function Rows({ rows }: { rows: readonly ExampleRow[] }) {
+  return (
+    <ul className="ic-gp-rows">
+      {rows.map((r) => (
+        <li key={r.mk} className="ic-gp-row">
+          <span className="ml">{r.mk}</span>
+          <span className="mb">
+            <b className={`bt${r.num ? ' num' : ''}`}>{r.bet}</b>
+            <span className="bo">
+              Book <b className="num">{r.book}</b> · Ours <b className="num">{r.ours}</b>
+            </span>
+          </span>
+          <span className="od">
+            <b className="num">{r.odd}</b>
+            <span>odds</span>
+          </span>
+          <Chance value={r.pct} />
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 const GETS = [
   { h: 'Game picks', p: 'Our score for every game, and one bet on each of the sportsbook’s lines.' },
@@ -77,27 +112,11 @@ function Peek() {
         <ol className="ic-gp-games">
           <li className="ic-gp-game">
             <Head away={e.away} home={e.home} tip={e.tip} call={e.call} />
-            <ul className="ic-gp-rows">
-              {e.rows.map((r) => (
-                <li key={r.mk} className="ic-gp-row">
-                  <span className="ml">{r.mk}</span>
-                  <span className="mb">
-                    <b className={`bt${r.num ? ' num' : ''}`}>{r.bet}</b>
-                    <span className="bo">
-                      Book <b className="num">{r.book}</b> · Ours <b className="num">{r.ours}</b>
-                    </span>
-                  </span>
-                  <span className="od">
-                    <b className="num">{r.odd}</b>
-                    <span>odds</span>
-                  </span>
-                  <Chance value={r.pct} />
-                </li>
-              ))}
-            </ul>
+            <Rows rows={e.rows} />
           </li>
           <li className="ic-gp-game">
             <Head away={SECOND.away} home={SECOND.home} tip={SECOND.tip} call={SECOND.call} />
+            <Rows rows={SECOND.rows} />
           </li>
         </ol>
       </section>
