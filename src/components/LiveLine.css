@@ -1,0 +1,148 @@
+/* Live line under the box score of a game in progress (Can, 2026-11-23). One track a player on one scale:
+   points so far (solid club colour), what is still to come (soft club colour), his line at tip-off (a tick).
+   Prefix lvl-. */
+.lvl {
+  --lvl-cols: minmax(120px, 190px) minmax(0, 1fr) 44px 48px 44px 60px;
+  --lvl-now: color-mix(in srgb, var(--tl) 78%, transparent);
+  --lvl-rest: color-mix(in srgb, var(--tl) 26%, transparent);
+  --lvl-hollow: color-mix(in srgb, var(--text) 7%, transparent);
+  padding: 18px 16px 4px;
+  border-top: 1px solid var(--divider);
+}
+:root[data-theme='light'] .lvl {
+  --lvl-now: color-mix(in srgb, var(--tl) 64%, transparent);
+  --lvl-rest: color-mix(in srgb, var(--tl) 20%, transparent);
+  --lvl-hollow: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.lvl-locked {
+  padding-bottom: 14px;
+}
+.lvl-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+.lvl-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.lvl-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.lvl-cols,
+.lvl-row {
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: var(--lvl-cols);
+  column-gap: 12px;
+  align-items: center;
+}
+.lvl-cols {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-bottom: 4px;
+}
+.lvl-cols span {
+  text-align: right;
+}
+.lvl-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lvl-row {
+  min-height: 40px;
+  padding: 4px 0;
+}
+.lvl-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 550;
+}
+.lvl-track {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--lvl-hollow);
+}
+.lvl-rest,
+.lvl-now {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 5px;
+}
+.lvl-rest {
+  background: var(--lvl-rest);
+}
+.lvl-now {
+  background: var(--lvl-now);
+}
+.lvl-tick {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.7;
+}
+.lvl-n {
+  text-align: right;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.lvl-end {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.lvl-vs {
+  font-size: 13px;
+}
+.lvl-vs.up,
+.lvl-vs.down {
+  color: var(--text);
+  font-weight: 600;
+}
+.lvl-note {
+  margin: 10px 0 12px;
+  max-width: 72ch;
+  line-height: 1.5;
+}
+
+/* Phones: name and numbers on one line, the track under them across the row. */
+@media (max-width: 640px) {
+  .lvl {
+    --lvl-cols: minmax(0, 1fr) 30px 34px 52px;
+    padding: 16px 16px 4px;
+  }
+  /* The tick on the track carries his line; the column says how far from it he ends. */
+  .lvl-cols span:nth-child(2),
+  .lvl .lvl-ln {
+    display: none;
+  }
+  .lvl-row {
+    row-gap: 6px;
+    padding: 8px 0;
+  }
+  .lvl-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lvl-rest,
+  .lvl-now {
+    transition: width 0.4s ease;
+  }
+}

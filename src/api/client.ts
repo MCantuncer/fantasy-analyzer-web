@@ -832,6 +832,51 @@ export function fetchPregame(
   )
 }
 
+/** One player in a game in progress (POST /api/scores/live-lines). */
+export interface LivePlayerLine {
+  player_id: number
+  name: string
+  pro_team_id: number
+  pts: number
+  minutes: number
+  line_pts: number
+  line_minutes: number
+  /** Where his points land at the end of regulation, from here. */
+  final: number
+  rest: number
+  minutes_left: number
+}
+
+/** A game in progress: each player's live line, and how far finals land from it at this point. */
+export interface LiveLines {
+  league_id: number
+  season: number
+  day: number
+  game_id: number
+  status: 'scheduled' | 'live' | 'final'
+  clock: string | null
+  elapsed: number | null
+  half_within: number
+  most_within: number
+  lines: LivePlayerLine[]
+}
+
+/** A game in progress: where each player's night ends (Pro). Empty lines before tip-off or without a clock. */
+export function fetchLiveLines(
+  leagueId: number,
+  season: number | null,
+  gameId: number,
+  day: number | null,
+  creds: Credentials | null,
+) {
+  return post<LiveLines>(
+    '/api/scores/live-lines',
+    { league_id: leagueId, season, game_id: gameId, day },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
 /** Your lineup on a day, read fresh from ESPN (the server keeps it 30 s): who starts, who sits, each player's game. */
 export function fetchLineup(
   leagueId: number,
