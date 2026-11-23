@@ -409,6 +409,9 @@
     color-mix(in srgb, var(--feed-big, transparent) var(--feed-light), transparent),
     transparent
   );
+  /* The light may not reach the page edge, so its left end fades out instead of stopping. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--feed-big-bleed));
+  mask-image: linear-gradient(to right, transparent, #000 var(--feed-big-bleed));
   pointer-events: none;
 }
 
