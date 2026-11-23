@@ -57,7 +57,7 @@ import { PlayerLink } from './PlayerCard'
 import { RungLadder, RungNote } from './RungTrack'
 import { Kupons } from './Kupons'
 import { OurRecord } from './OurRecord'
-import { ValueRungs } from './ValueRungs'
+import { EstimateTools } from './EstimateTools'
 import { HowToRead } from './HowToRead'
 import { Chance, KuponTag, useKuponPicks } from './EstimateBits'
 import { kuponKey } from '../lib/coupons'
@@ -248,7 +248,6 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   const [pages, setPages] = useState(1)
   const [fold, setFold] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
-  const [motion, setMotion] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
   // The open match card: Our Estimates from a game's "Player estimates"; Form from a Kupon pick.
   const [card, setCardState] = useState<{ id: number; view: 'form' | 'estimates'; side: 'away' | 'home' } | null>(
@@ -256,11 +255,6 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   )
   const setCard = (id: number | null) => setCardState(id == null ? null : { id, view: 'estimates', side: 'away' })
   const openForm = (id: number, side: 'away' | 'home') => setCardState({ id, view: 'form', side })
-  const first = useRef(true)
-  useEffect(() => {
-    if (first.current) first.current = false
-    else setMotion(true) // the bands tug and the marks draw on a change, never on load
-  }, [stat, game])
 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
@@ -331,13 +325,13 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
         </>
       )}
       <OurRecord data={data} lines={lines} />
-      {data.games.length > 0 && (
-        <div className={`ic-sheet${motion ? ' motion' : ''}`}>
-          <ValueRungs data={data} lines={lines} settled={settled} />
-          <HowDivided lines={lines} group="players" game={game} stage={stage} onSee={see} />
-          <GameBoxes data={data} lines={lines} settled={settled} />
-        </div>
-      )}
+      <EstimateTools
+        data={data}
+        lines={lines}
+        settled={settled}
+        divided={<HowDivided lines={lines} group="players" game={game} stage={stage} onSee={see} />}
+        boxes={<GameBoxes data={data} lines={lines} />}
+      />
       {cardGame && card && (
         <MatchCard
           key={`${card.id}-${card.view}-${card.side}`}
@@ -1304,16 +1298,13 @@ function HowDivided({
   const has = (f: (l: Line) => boolean) => mine.some(f)
   const fin = (l: Line) => l.game.status === 'final' && l.closer != null
   return (
-    <section className="ic-sec" aria-labelledby="ic-h-field">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-field">How divided</h2>
-          <p className="ic-sub">
-            Every line is one mark at its gap, measured in bands (the edges are 0.6 of a band, the same scale as the row
-            bands). <span className="ic-hover-hint">Hover a mark to see whose line it is, click to keep the card open.</span>
-            <span className="ic-tap-hint">Tap a mark to see whose line it is.</span>
-          </p>
-        </div>
+    <div className="ic-hd">
+      <p className="ic-hd-hint">
+        Each line is one mark at its gap, in bands.{' '}
+        <span className="ic-hover-hint">Hover a mark to see whose line it is, click to keep the card open.</span>
+        <span className="ic-tap-hint">Tap a mark to see whose line it is.</span>
+      </p>
+      <div className="ic-hd-top">
         <div className="ic-legend">
           {stage.size > 0 && (
             <span>
@@ -1403,9 +1394,14 @@ function HowDivided({
                 <>
                   biggest {signed(best.gap ?? 0, s)}{' '}
                   {best.kind === 'player' ? (
-                    <PlayerLink player={{ id: best.playerId ?? 0, name: best.name }}>
-                      {best.name.split(' ').slice(-1)[0]}
-                    </PlayerLink>
+                    <span className="ic-hd-who">
+                      <PlayerLink player={{ id: best.playerId ?? 0, name: best.name }} decorative>
+                        <PlayerHead player={{ id: best.playerId ?? 0, name: best.name }} team={best.team} size={20} />
+                      </PlayerLink>
+                      <PlayerLink player={{ id: best.playerId ?? 0, name: best.name }}>
+                        {best.name.split(' ').slice(-1)[0]}
+                      </PlayerLink>
+                    </span>
                   ) : (
                     best.gameLabel
                   )}
@@ -1415,7 +1411,7 @@ function HowDivided({
           </div>
         )
       })}
-    </section>
+    </div>
   )
 }
 
@@ -2066,16 +2062,12 @@ function PickRow({ line: l, kind, kupons }: { line: Line; kind: string; kupons: 
   )
 }
 
-function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[]; settled: boolean }) {
-  const phone = usePhone()
+/** Every line, opened from Tools: game by game, the winner, margin, total and both team totals
+ *  with the book's number beside ours, then the game's player lines in a count. */
+function GameBoxes({ data, lines }: { data: BookCompare; lines: Line[] }) {
+  const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   return (
-    <section className="ic-sec" aria-labelledby="ic-h-games">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-games">Game by game</h2>
-          <p className="ic-sub">Winner, margin, total and team points for each game, with that game's player lines.</p>
-        </div>
-      </div>
+    <div className="ic-every">
       <div className="ic-gboxes">
         {[...data.games]
           .sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.tip.localeCompare(b.tip))
@@ -2118,11 +2110,6 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                   </span>
                 </div>
                 {gameStory(ls, final) && <p className="ic-gb-say">{gameStory(ls, final)}</p>}
-                <details className="ic-gt-fold" open={!phone}>
-                  <summary>
-                    Winner, margin, total and team points
-                    <Chevron />
-                  </summary>
                   <table className="ic-gt">
                     <thead>
                       <tr>
@@ -2179,7 +2166,6 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
                       ))}
                     </tbody>
                   </table>
-                </details>
                 <div className="ic-gb-f">
                   {final ? (
                     <>
@@ -2198,7 +2184,7 @@ function GameBoxes({ data, lines, settled }: { data: BookCompare; lines: Line[];
             )
           })}
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -2285,14 +2271,6 @@ function Caret() {
   return (
     <svg className="caret" viewBox="0 0 7 10" aria-hidden="true">
       <path d="M6.2 1 1 5l5.2 4z" />
-    </svg>
-  )
-}
-
-function Chevron() {
-  return (
-    <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
     </svg>
   )
 }

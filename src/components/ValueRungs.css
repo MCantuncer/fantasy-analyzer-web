@@ -1,116 +1,16 @@
-/* Value Rungs on Our Estimates: tiles, the Tape, the finds and the two data-written margin notes.
-   vr- prefix, page-own styles. Phone layout: src/styles/phone/value-rungs.css. No gold here: the
-   only gold is the live dot (.ic-live). Green and red mark Landed/Missed and net units only. */
-.vr {
-  --vr-tick: color-mix(in srgb, var(--muted) 72%, var(--surface));
-}
+/* Value rungs, opened from Tools on Our Estimates: the dot tape (one row per odds band), its
+   caption, then the rungs that beat their price. vr- prefix, page-own styles. Calm and borderless:
+   rows sit on the tool's fill with hover tints, no outlines. No gold here: the only gold is the
+   live dot (.ic-live). Green and coral mark Landed/Missed and net units only. */
 .vr .good {
   color: var(--good);
 }
 .vr .bad {
   color: var(--bad);
 }
-.vr-ph-sum,
-.vr-tiles.after,
+/* Shared with Our record's ledger (RungRecord): words shown only on phones, or only above them. */
 .vr-ph-in {
   display: none;
-}
-.vr-h h2 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 21px;
-}
-.vr-hi {
-  width: 22px !important;
-  height: 22px !important;
-  stroke: var(--text);
-  fill: none;
-  stroke-width: 1.8;
-}
-.vr-gloss {
-  margin-top: 8px !important;
-  max-width: 760px;
-  color: var(--text-2);
-  font-size: 14px;
-  line-height: 1.5;
-}
-.vr-gloss b {
-  color: var(--text);
-  font-weight: 600;
-}
-.vr-when {
-  margin-top: 8px !important;
-  display: flex;
-  align-items: center;
-  font-size: 13px;
-  color: var(--muted);
-}
-.vr-when .num {
-  color: var(--text-2);
-}
-.vr-empty {
-  margin-top: 16px;
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  font-size: 13.5px;
-  color: var(--text-2);
-}
-.vr-empty b {
-  display: block;
-  color: var(--text);
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-/* Tiles */
-.vr-tiles {
-  display: grid;
-  grid-template-columns: 1.15fr 0.95fr 0.95fr 1fr 1.5fr;
-  gap: 10px;
-  margin-top: 18px;
-}
-.vr-tile {
-  padding: 14px 16px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  min-width: 0;
-}
-.vr-tile .big {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums;
-  font-size: 26px;
-  font-weight: 650;
-  line-height: 1.1;
-}
-.vr-tile .big small {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-2);
-  margin-left: 2px;
-}
-.vr-tile .big.good small,
-.vr-tile .big.bad small {
-  color: inherit;
-}
-.vr-tile .sub {
-  margin-top: 6px;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-.vr-tile.note {
-  display: flex;
-  gap: 10px;
-  font-size: 13.5px;
-  color: var(--text-2);
-  line-height: 1.45;
-}
-.vr-tile.note b {
-  color: var(--text);
 }
 .vr-ni {
   width: 17px !important;
@@ -121,274 +21,226 @@
   stroke-width: 1.8;
   margin-top: 2px;
 }
-.vr-hero {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.vr-outline {
-  font-family: 'Mona Sans Outline', var(--font-num);
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.2px var(--text);
-}
-.vr-hero .of {
-  font-family: var(--font-num);
-  font-size: 18px;
-  color: var(--text-2);
-}
 
-/* The Tape */
-.vr-tape {
-  margin: 14px 0 0;
-  padding: 14px 16px 12px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-}
-.vr-tape-h {
-  display: flex;
-  align-items: center;
-  gap: 8px 16px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-.vr-tape-h b {
+/* The tool row's header line */
+.vr-l-n b {
+  color: var(--text-2);
   font-weight: 600;
 }
-.vr-tape-say {
-  margin-left: auto;
-  color: var(--muted);
-}
-.vr-link {
-  min-height: 44px;
-  margin: -12px -8px -12px 0;
-  padding: 0 8px;
-  border: 0;
-  background: transparent;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 550;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-.vr-tape-line {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 16px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  color: var(--text-2);
-}
-.vr-tape-line .vr-link {
-  margin: 0;
-}
-.vr-tape-wrap {
-  position: relative;
-}
-.vr-tape-plot {
-  position: relative;
-  width: 100%;
-}
-.vr-tape-plot svg {
-  display: block;
-  overflow: visible;
-}
-.vr-tape-plot .house {
-  fill: var(--house);
-}
-.vr-tape-plot .t {
-  fill: var(--vr-tick);
-}
-.vr-tape-plot .avg {
-  fill: var(--text-2);
-}
-.vr-tape-plot .seam {
-  stroke: var(--seam);
-  stroke-width: 1;
-}
-.vr-tape-plot .val rect {
-  fill: var(--accent);
-}
-.vr-tape-plot .zero {
-  fill: var(--text);
-}
-.vr-tape-zero {
-  position: absolute;
-  left: 0;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--surface-2);
-  font-size: 11px;
-  color: var(--text-2);
-  pointer-events: none;
-}
-.vr-tape-lab {
-  position: absolute;
-  transform: translateX(-50%);
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: var(--raised);
-  color: var(--text);
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.vr-tape-lab.r {
-  transform: translateX(-100%);
-}
-.vr-tape-lab.l {
-  transform: none;
-}
-.vr-bands {
-  position: relative;
-  height: 36px;
-  margin-top: 6px;
-}
-.vr-band {
-  position: absolute;
-  top: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  white-space: nowrap;
-  padding-left: 6px;
-  border-left: 1px solid var(--seam);
-  display: flex;
-  flex-direction: column;
-  font-size: 11.5px;
-  line-height: 1.35;
-}
-.vr-band:first-child {
-  border-left: 0;
-  padding-left: 0;
-}
-.vr-band b {
-  font-family: var(--font-num);
-  font-weight: 600;
-  color: var(--text);
-}
-.vr-band span {
-  color: var(--muted);
-  font-family: var(--font-num);
-}
-.vr-keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--text-2);
-}
-.vr-keys span {
+.vr-l-who {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  vertical-align: middle;
+  color: var(--text-2);
+  font-weight: 600;
 }
-.vr-keys i {
-  display: inline-block;
-}
-.vr-keys .k-val {
-  width: 3px;
-  height: 13px;
-  background: var(--accent);
-}
-.vr-keys .k-tick {
-  width: 2px;
-  height: 11px;
-  background: var(--vr-tick);
-}
-.vr-keys .k-avg {
-  width: 14px;
-  height: 2px;
-  background: var(--text-2);
-}
-.vr-keys .k-house {
-  width: 16px;
-  height: 10px;
-  background: var(--house);
-  border-bottom: 2px solid var(--text);
+.vr-l-who .pc-link-face {
+  flex: none;
+  line-height: 0;
 }
 
-/* The finds */
+.vr-failed {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.vr-failed b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* The dot tape: band label | strip | average. The break-even line runs through every strip. */
+.vr-axis,
+.vr-tape li {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 128px;
+  column-gap: 16px;
+  align-items: center;
+}
+.vr-ax {
+  position: relative;
+  height: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vr-ax i {
+  position: absolute;
+  top: 0;
+  font-style: normal;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.vr-ax i:first-child {
+  transform: none;
+}
+.vr-ax i.be {
+  color: var(--text-2);
+  font-weight: 600;
+  transform: translateX(-100%);
+  padding-right: 6px;
+}
+.vr-tape ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.vr-tape li {
+  min-height: 44px;
+}
+.vr-tb {
+  display: flex;
+  flex-direction: column;
+}
+.vr-tb b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.vr-tb > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.vr-strip {
+  position: relative;
+  height: 24px;
+  margin: 0 3px; /* room for the half of a dot at either end */
+}
+.vr-strip::after {
+  content: '';
+  position: absolute;
+  left: var(--vr-be, 90.9%);
+  top: -6px;
+  bottom: -6px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ic-tick);
+}
+.vr-strip i {
+  position: absolute;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--text-2);
+  opacity: 0.45;
+}
+.vr-strip i.up {
+  background: var(--text);
+  opacity: 0.9;
+}
+.vr-strip i.avg {
+  top: 2px;
+  width: 3px;
+  height: 20px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--text);
+  opacity: 1;
+}
+.vr-ta {
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.vr-ta b {
+  color: var(--text);
+  font-weight: 600;
+}
+.vr-cap {
+  margin: 12px 0 0;
+  padding-left: 136px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.vr-when {
+  margin-left: 4px;
+}
+.vr-when .ic-live {
+  vertical-align: middle;
+}
+.vr-when .num {
+  color: var(--text-2);
+}
+
+/* The rungs that beat their price */
 .vr-finds-h {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-top: 26px;
+  margin-top: 28px;
 }
-.vr-finds-h h3 {
+.vr-finds-h h4 {
   margin: 0;
   font-size: 17px;
+  font-weight: 600;
 }
-.vr-legend {
+.vr-seg {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 22px;
-  margin: 12px 0 6px;
-  font-size: 12.5px;
+  gap: 4px;
+}
+.vr-seg button {
+  height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
   color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
 }
-.vr-legend > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+.vr-seg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--on-accent);
 }
-.vr-legend svg {
-  width: 26px;
-  height: 14px;
-  overflow: visible;
+.vr-seg button:not([aria-pressed='true']):hover {
+  background: var(--ic-hover);
 }
-.vr-legend .vr-sb {
-  width: 11px;
-  height: 10px;
+.vr-sum {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
 }
-.vr-legend .o {
-  fill: none;
-  stroke: var(--text);
-  stroke-width: 1.5;
+.vr-sum b {
+  color: var(--text);
+  font-weight: 640;
 }
-.vr-legend .tr {
-  fill: var(--track);
+.vr-sum b.good {
+  color: var(--good);
 }
-.vr-legend .nt {
-  fill: var(--text);
-}
-.vr-legend .vl {
-  fill: var(--accent);
+.vr-sum b.bad {
+  color: var(--bad);
 }
 .vr-group {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 0 26px;
-  margin-top: 18px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 0 24px;
+  margin-top: 20px;
   align-items: start;
 }
 .vr-group.no-note {
   grid-template-columns: minmax(0, 1fr);
 }
 .vr-group.no-note .vr-g-main {
-  max-width: calc(100% - 296px);
+  max-width: calc(100% - 284px);
 }
 .vr-g-head,
 .vr-g-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--divider);
+  min-height: 52px;
+  padding: 0 12px 4px;
 }
 .vr-face {
   position: relative;
@@ -406,20 +258,17 @@
   min-width: 0;
 }
 .vr-g-who b {
-  font-size: 15.5px;
+  font-size: 15px;
   font-weight: 600;
 }
-.vr-g-who span {
-  font-size: 12.5px;
+.vr-g-who span,
+.vr-g-sub {
+  font-size: 13px;
   color: var(--muted);
 }
 .vr-g-title b {
-  font-size: 15.5px;
+  font-size: 15px;
   font-weight: 600;
-}
-.vr-g-sub {
-  font-size: 12.5px;
-  color: var(--muted);
 }
 .vr-g-sum {
   margin-left: auto;
@@ -427,12 +276,11 @@
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--muted);
 }
 .vr-g-sum b {
-  font-family: var(--font-num);
-  font-weight: 650;
+  font-weight: 640;
   color: var(--text);
 }
 .vr-g-sum b.good,
@@ -449,32 +297,63 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .vr-row {
   display: grid;
-  grid-template-columns: 78px minmax(100px, 0.8fr) minmax(170px, 1.6fr) 196px 116px;
-  grid-template-areas: 'stamp rung chance pips res';
-  gap: 0 16px;
+  grid-template-columns: 64px minmax(140px, 1fr) minmax(0, 1.5fr) 124px;
+  grid-template-areas: 'val rung chance res';
+  gap: 4px 16px;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--divider);
+  min-height: 60px;
+  padding: 8px 12px;
+  border-radius: var(--radius-tile);
 }
-/* A list with one rung per player: the player's face and name (both open his card) above the rung. */
-.vr-row-who {
-  grid-template-columns: 78px minmax(150px, 0.85fr) minmax(200px, 1.6fr) 196px 116px;
-  grid-template-areas:
-    'stamp who chance pips res'
-    'stamp rung chance pips res';
-  row-gap: 4px;
+.vr-row:hover {
+  background: var(--ic-hover);
+}
+.vr-val {
+  grid-area: val;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.vr-val b {
+  font-size: 17px;
+  font-weight: 640;
+}
+.vr-val small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.vr-rung {
+  grid-area: rung;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.vr-rl {
+  font-size: 13px;
+  color: var(--muted);
+}
+.vr-rl b {
+  font-size: 15px;
+  font-weight: 640;
+  color: var(--text);
+}
+.vr-rl .num {
+  color: var(--text-2);
 }
 .vr-who {
-  grid-area: who;
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  font-size: 13.5px;
-  font-weight: 550;
+  font-size: 15px;
+  font-weight: 600;
   white-space: nowrap;
 }
 .vr-who .pc-link:not(.pc-link-face) {
@@ -486,105 +365,32 @@
   flex: none;
   line-height: 0;
 }
-.vr-stamp {
-  grid-area: stamp;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0 5px;
-  border: 1.5px solid var(--text);
-  border-radius: 10px;
-  line-height: 1.1;
-}
-.vr-stamp b {
-  font-family: var(--font-num);
-  font-size: 18px;
-  font-weight: 700;
-}
-.vr-stamp small {
-  font-size: 11px;
-  color: var(--text-2);
-}
-.vr-rung {
-  grid-area: rung;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.vr-rung b {
-  font-size: 16px;
-  font-weight: 650;
-}
-.vr-rung .at {
-  font-size: 12.5px;
-  color: var(--muted);
-}
-.vr-rung .at .num {
-  color: var(--text-2);
-}
 .vr-chance {
   grid-area: chance;
-  min-width: 0;
-}
-.vr-ct {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  margin-top: 1px;
-  font-size: 12.5px;
-  color: var(--text-2);
-}
-.vr-ct b {
-  color: var(--text);
-  font-weight: 650;
-  font-family: var(--font-num);
-}
-.vr-ct .num {
-  font-family: var(--font-num);
-}
-.vr-pips {
-  grid-area: pips;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  min-width: 0;
 }
-.vr-pip-strip {
-  display: flex;
-  gap: 4px;
-}
-.vr-pip {
-  position: relative;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  box-sizing: border-box;
-  border: 1.3px solid var(--muted);
-  overflow: hidden;
-  flex: none;
-}
-.vr-pip span {
-  position: absolute;
-  left: -1px;
-  top: -1px;
-  bottom: -1px;
-  background: var(--text);
-}
+.vr-ct,
 .vr-pw {
-  font-size: 12.5px;
-  color: var(--text-2);
-  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted);
 }
+.vr-ct b,
 .vr-pw b {
   color: var(--text);
-  font-weight: 650;
+  font-weight: 600;
+}
+.vr-ct .num {
+  color: var(--text-2);
 }
 .vr-res {
   grid-area: res;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.3;
 }
 .vr-res > span {
@@ -592,11 +398,11 @@
   flex-direction: column;
 }
 .vr-res b {
-  font-weight: 650;
+  font-weight: 600;
 }
 .vr-res small {
-  font-size: 12.5px;
-  color: var(--text-2);
+  font-size: 12px;
+  color: var(--muted);
 }
 .vr-ri {
   width: 18px;
@@ -619,55 +425,67 @@
 .vr-res.wait {
   color: var(--text-2);
 }
-.vr-res.wait b {
-  color: var(--text);
-}
 .vr-res.wait .vr-ri {
   stroke-width: 1.7;
 }
 .vr-more {
-  margin-top: 12px;
+  margin-top: 4px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vr-more:hover {
+  background: var(--ic-hover);
+}
+.vr-more .ic-i {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 .vr-more[aria-expanded='true'] svg {
   transform: rotate(180deg);
 }
 
-/* The margin notes: a bracket column on desktop, under the group on phones */
+/* The data-written notes: a quiet column on desktop, under the group on phones */
 .vr-g-notes {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 .vr-note-m {
-  padding: 2px 0 2px 16px;
-  border-left: 1.5px solid var(--border);
-  border-radius: 0;
-  font-size: 13.5px;
+  padding: 12px 16px;
+  border-radius: var(--radius-tile);
+  background: var(--ic-hover);
+  font-size: 13px;
   color: var(--text-2);
   line-height: 1.45;
 }
-.vr-note-m h4 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 6px;
-  font-size: 14px;
+.vr-note-m h5 {
+  margin: 0 0 4px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
 }
-.vr-note-m h4 .vr-ni {
-  margin-top: 0;
+.vr-note-m p {
+  margin: 0;
 }
 .vr-note-m dl {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 3px 10px;
-  margin: 10px 0 0;
-  font-size: 13px;
+  gap: 4px 12px;
+  margin: 8px 0 0;
 }
 .vr-note-m dt {
   color: var(--text-2);
@@ -685,10 +503,7 @@
   color: var(--muted);
 }
 
-@media (max-width: 1100px) and (min-width: 720px) {
-  .vr-tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+@media (max-width: 1100px) {
   .vr-group {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -696,14 +511,86 @@
     max-width: none;
   }
   .vr-g-notes {
-    margin-top: 14px;
+    margin-top: 8px;
+  }
+}
+
+/* Phones: the band label and its average over a full-width strip; rows stack in two lines. */
+@media (max-width: 719px) {
+  .vr-axis {
+    display: none;
+  }
+  .vr-tape li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'tb ta'
+      'st st';
+    row-gap: 6px;
+    padding: 8px 0;
+  }
+  .vr-tb {
+    grid-area: tb;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .vr-ta {
+    grid-area: ta;
+  }
+  .vr-strip {
+    grid-area: st;
+  }
+  .vr-cap {
+    padding-left: 0;
+  }
+  .vr-seg {
+    width: 100%;
+  }
+  .vr-seg button {
+    flex: 1;
+    padding: 0 8px;
+  }
+  .vr-g-head,
+  .vr-g-title {
+    padding: 0 0 4px;
   }
   .vr-row {
-    grid-template-columns: 74px minmax(90px, 0.8fr) minmax(150px, 1.6fr) 180px 108px;
-    gap: 0 12px;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'val rl res'
+      'val chance chance';
+    gap: 6px 12px;
+    padding: 10px 0;
   }
+  .vr-row:hover {
+    background: none;
+  }
+  /* a one-rung-per-player row: the face and name get the whole width above the rung */
   .vr-row-who {
-    grid-template-columns: 74px minmax(150px, 1fr) minmax(150px, 1.4fr) 180px 108px;
-    gap: 4px 12px;
+    grid-template-areas:
+      'val who who'
+      'val rl res'
+      'val chance chance';
+  }
+  .vr-rung {
+    display: contents;
+  }
+  .vr-who {
+    grid-area: who;
+    min-height: 44px;
+  }
+  .vr-rl {
+    grid-area: rl;
+  }
+  .vr-who .pc-link:not(.pc-link-face) {
+    padding: 12px 0;
+    margin: -12px 0;
+  }
+  .vr-res {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .vr-res > span {
+    align-items: flex-end;
   }
 }
