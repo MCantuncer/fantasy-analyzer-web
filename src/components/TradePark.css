@@ -1,54 +1,267 @@
-/* Trade Park: a face on each player in the "Who are you shopping?" picker. */
-.park .pick {
-  grid-template-columns: 20px 36px minmax(0, 1fr) auto;
-  min-height: 56px;
+/* Trade Park (park-): the trading table seen from your end. The table itself is TradeTable (tt-). */
+.park-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.park .pick.off .head {
-  filter: grayscale(1);
+/* ---------- Your roster, in the give end ---------- */
+.park-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* The face takes ~44px from the name column; widen the picker so full names still fit. */
-@media (min-width: 901px) {
-  div.park {
-    grid-template-columns: 360px minmax(0, 1fr);
-  }
-}
-
-/* Tier as a dot + word on the sub-line (like My Team), so the name keeps the row's width. */
-.pk-tier {
-  display: inline-flex;
+.park-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto 44px;
   align-items: center;
-  gap: 5px;
-  margin-left: 10px;
+  gap: 12px;
+  min-height: 60px;
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: var(--radius-row);
+}
+
+.park-row.park-on {
+  background: var(--raised);
+}
+
+.park-face {
+  display: inline-grid;
+  flex: none;
+  border-radius: 34%;
+}
+
+/* Your picks: a gold ring round the face. */
+.park-face.park-you {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--gold);
+}
+
+.park-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.park-nm {
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 20px;
   font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.pk-tier::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+.park-nm button.pc-link {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
 }
 
-.pk-tier-core {
-  color: var(--accent-text);
+.park-mt {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.pk-tier-tradeable {
+.park-mt .tt-tag,
+.park-mt .tt-status {
+  height: 20px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+
+.park-val {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* The 44px toggle: a faint ring with +, your pick number once picked. */
+.park-tog {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   color: var(--text-2);
 }
 
-.pk-tier-droppable {
-  color: var(--warn);
+.park-row button.park-tog {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
 }
 
-.pk-tier-injured {
-  color: var(--bad);
+.park-ring {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--faint);
+}
+
+.park-row button.park-tog:hover .park-ring {
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+  color: var(--text);
+}
+
+.park-row button.park-tog[aria-pressed='true'] .park-ring {
+  background: var(--accent);
+  box-shadow: none;
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.park-row button.park-tog[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.park-row button.park-tog[aria-disabled='true'] .park-ring {
+  box-shadow: inset 0 0 0 1.5px var(--track);
+  color: var(--muted);
+}
+
+.park-lock {
+  color: var(--muted);
+  cursor: default;
+}
+
+/* ---------- The get end before a pick ---------- */
+.park-block-h {
+  margin-bottom: 8px;
+}
+
+.park-note {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.park-teams {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.park-team {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.park-tn {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.park-rec {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.park-lows {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* ---------- The rail: phones only, once the roster has folded ---------- */
+.park-rail {
+  display: none;
 }
 
 /* Deals header: the filter stands alone (its "All · 6" carries the count), centred in the card. */
 .card-head.park-deals-head {
   justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .park-page {
+    gap: 24px;
+  }
+
+  .park-row {
+    gap: 10px;
+  }
+
+  .park-who-label {
+    display: none;
+  }
+
+  .park-rail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .park-folded .park-roster {
+    display: none;
+  }
+
+  .park-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding-left: 6px;
+    border-radius: var(--radius-sm);
+    background: var(--raised);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .park-chip .park-face.park-you {
+    box-shadow:
+      0 0 0 2px var(--raised),
+      0 0 0 4px var(--gold);
+  }
+
+  .park-rail button.park-chip-x {
+    width: 40px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-2);
+  }
+
+  .park-rail button.park-add {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 0;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--border);
+    color: var(--text-2);
+  }
+}
+
+@media (max-width: 380px) {
+  .park-val {
+    font-size: 14px;
+  }
 }

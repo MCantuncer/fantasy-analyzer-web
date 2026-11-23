@@ -96,9 +96,8 @@ export function Report({
   const tradesPending = (report.pending ?? []).includes('trades')
   // On phones one list shows at a time: open on the one that's ready.
   const [show, setShow] = useState<'trades' | 'pickups'>(tradesPending ? 'pickups' : 'trades')
-  // Trade Park: players picked, and the set last searched (kept across tab switches).
+  // Trade Park: the players picked to shop (kept across tab switches). Picking runs the search.
   const [picks, setPicks] = useState<number[]>([])
-  const [searched, setSearched] = useState<number[]>([])
   // Trade Park finds deals or checks one you bring; a shared check link opens on the check.
   const [parkMode, setParkMode] = useState<'find' | 'check'>(() =>
     new URLSearchParams(window.location.search).has(CHECK_PARAM) ? 'check' : 'find',
@@ -173,7 +172,6 @@ export function Report({
 
   const shopPlayer = (id: number) => {
     setPicks([id])
-    setSearched([id])
     onTab('park')
   }
 
@@ -276,8 +274,6 @@ export function Report({
               creds={creds}
               picks={picks}
               onPicks={setPicks}
-              searched={searched}
-              onSearch={setSearched}
             />
           ) : (
             <TradeCheck key={checkOpened} report={report} keep={keep} creds={creds} />
