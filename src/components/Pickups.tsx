@@ -32,6 +32,8 @@ import { useTodayFeed, type TodaySource } from '../lib/useTodayFeed'
 import { rowSaid } from '../lib/hotRun'
 import { HotLine, HotStory } from './HotRun'
 import { NextGameSwap } from './NextGameSwap'
+import { ProLock } from './Pro'
+import { useFeature } from '../lib/pro'
 import './Pickups.css'
 
 interface Props {
@@ -150,6 +152,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
   const [open, setOpen] = useState<number | null>(null)
   const [all, setAll] = useState(false)
   const keepRow = useKeepRowInView(open)
+  const showNext = useFeature('next_game')
   const shown = all ? pickups : pickups.slice(0, SHOW)
   // Most days every idea in view drops the same player from the same odds: say that once, not on every row.
   const first = shown[0]
@@ -200,6 +203,11 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
               </span>
               {sameStart && <span className="pk-from num">from {pct(first.playoff_pct_before)}</span>}
             </p>
+          )}
+          {!showNext && (
+            <div className="pk-pro">
+              <ProLock words="Next-game lines for these swaps" plural />
+            </div>
           )}
           <ol className="move-list" onClickCapture={keepRow}>
             {shown.map((p, i) => {
@@ -278,7 +286,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                           </div>
                         )}
                         {/* His line next to the drop's takes the chips' place; their names still open the cards. */}
-                        {p.add.next_game ? (
+                        {p.add.next_game && showNext ? (
                           <NextGameSwap
                             add={p.add}
                             drop={p.drop}

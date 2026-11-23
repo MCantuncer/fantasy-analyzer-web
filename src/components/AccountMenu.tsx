@@ -1,4 +1,6 @@
 import { useDetailsMenu } from '../lib/detailsMenu'
+import { useFeature } from '../lib/pro'
+import { ProMark } from './Pro'
 import { ProPlan } from './ProPlan'
 
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
 /** The person icon at the top right: who is signed in, their plan, the admin pages and sign out. */
 export function AccountMenu({ email, admin, onHealth, onEstimates, onSignOut }: Props) {
   const menu = useDetailsMenu()
+  const estimates = useFeature('estimates')
   const pick = (then: () => void) => () => {
     menu.close()
     then()
@@ -41,6 +44,7 @@ export function AccountMenu({ email, admin, onHealth, onEstimates, onSignOut }: 
         )}
         <button type="button" className="secondary" onClick={pick(onEstimates)}>
           Our Estimates
+          {!estimates && <ProMark />}
         </button>
         <button type="button" className="secondary" onClick={onSignOut}>
           Sign out

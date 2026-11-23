@@ -59,7 +59,8 @@ import type { CardPlayer, Deal, PlayerCardApi } from '../lib/playerCard'
 import { teamLogoUrl } from '../lib/league'
 import { teamQuery, useTeamCardOpen } from '../lib/teamCard'
 import { teamByAbbrev } from '../lib/teamSearch'
-import { NextGameLine } from './NextGameLine'
+import { NextGameLine, NextGameLocked } from './NextGameLine'
+import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
 import { ratioPct } from '../lib/shooting'
@@ -501,6 +502,7 @@ function Section({
 
 function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, tab, onTab }: BodyProps) {
   const now = new Date()
+  const showNext = useFeature('next_game')
   const injury = card.news.find((n) => n.kind === 'injury' || n.kind === 'return')
   const lastSeason = card.games.length > 0 && card.games[0].season < season
   // Form and minutes read the games he played; the log also lists the ones he sat out.
@@ -548,11 +550,18 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, 
           </button>
         )}
 
-        {nextGame && (
-          <Section id="pc-next-title" title="Next game">
-            <NextGameLine line={nextGame} />
-          </Section>
-        )}
+        {showNext
+          ? nextGame && (
+              <Section id="pc-next-title" title="Next game">
+                <NextGameLine line={nextGame} />
+              </Section>
+            )
+          : card.injury_status !== 'OUT' &&
+            !lastSeason && (
+              <Section id="pc-next-title" title="Next game">
+                <NextGameLocked />
+              </Section>
+            )}
 
         {!card.games.length && !line ? (
           <p className="pc-empty">No games played yet this season.</p>
