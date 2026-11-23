@@ -63,11 +63,6 @@
   padding: 16px;
 }
 
-.card.sk-card.sk-compose {
-  flex-direction: row;
-  align-items: center;
-}
-
 .sk-row {
   display: flex;
   gap: 8px;
@@ -89,10 +84,6 @@
 
 .sk-end {
   margin-left: auto;
-}
-
-.sk-indent {
-  padding-left: 8px;
 }
 
 .sk-between {
@@ -149,11 +140,6 @@
   font-weight: 500;
 }
 
-.sk-bone.sk-grow {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
 .sk-sides {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -170,6 +156,153 @@
 
 .sk-story.sk-row {
   flex-direction: row;
+}
+
+.sk-bone.sk-r12 {
+  border-radius: 12px;
+}
+
+/* The league feed's wire (sk-wire): the same spine, gutter and columns as LeagueChat's wire, so the
+   moves fill in where their bones were. */
+.sk.sk-feed {
+  --sk-node-x: 88px;
+  --sk-content-x: 116px;
+  gap: 16px;
+}
+
+.sk-feed-filters {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: var(--sk-content-x);
+}
+
+.sk-wire {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.sk-wire::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--sk-node-x) - 1px);
+  top: 8px;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--feed-spine-hot, var(--border)),
+    var(--feed-spine, var(--border)) 160px,
+    transparent
+  );
+}
+
+.sk-wire-day,
+.sk-wire-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px;
+  align-items: center;
+  column-gap: 12px;
+  padding-left: var(--sk-content-x);
+}
+
+.sk-wire-day {
+  display: flex;
+  height: 40px;
+  padding-top: 4px;
+}
+
+.sk-wire-ring {
+  position: absolute;
+  left: var(--sk-node-x);
+  top: calc(50% + 2px);
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+}
+
+.sk-wire-sum {
+  margin-left: auto;
+}
+
+.sk-wire-line {
+  height: 48px;
+}
+
+.sk-bone.sk-wire-node {
+  position: absolute;
+  left: calc(var(--sk-node-x) - 12px);
+  top: 12px;
+}
+
+.sk-wire-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sk-bone.sk-wire-name {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.sk-bone.sk-wire-bid {
+  justify-self: end;
+}
+
+/* Each line breathes a beat after the one above. */
+.sk-wire-line:nth-child(3) .sk-bone {
+  animation-delay: 0.15s;
+}
+
+.sk-wire-line:nth-child(4) .sk-bone {
+  animation-delay: 0.3s;
+}
+
+.sk-wire-line:nth-child(5) .sk-bone {
+  animation-delay: 0.45s;
+}
+
+@media (max-width: 1099px) {
+  .sk.sk-feed {
+    --sk-node-x: 12px;
+    --sk-content-x: 40px;
+  }
+
+  .sk-wire-line {
+    grid-template-columns: 148px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
+  }
+}
+
+/* Phones: team, the added player and the bid; the dropped name waits for the real line. */
+@media (max-width: 759px) {
+  .sk.sk-feed {
+    --sk-content-x: 36px;
+    gap: 12px;
+  }
+
+  .sk-feed-filters {
+    padding-left: 0;
+  }
+
+  .sk-feed-filters .sk-bone {
+    height: 44px !important;
+  }
+
+  .sk-wire-line {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 32px;
+  }
+
+  .sk-bone.sk-wire-drop {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

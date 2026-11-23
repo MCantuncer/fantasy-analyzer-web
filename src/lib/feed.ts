@@ -165,3 +165,22 @@ export function faabLeaderId(teams: FeedTeam[]): number | null {
 export function isMoment(item: FeedItem): boolean {
   return item.kind === 'post' || item.kind === 'trade' || item.replies > 0
 }
+
+// What an empty filter says it found nothing of.
+const EMPTY_WHAT: Record<Filter, string> = {
+  all: 'Nothing moved',
+  trade: 'No trades',
+  waiver: 'No waivers',
+  free_agent: 'No free-agent adds',
+  post: 'No posts',
+  mine: 'Nothing from your team',
+}
+
+/**
+ * The milestone an empty wire shows: "No trades in the last 7 days." Each loaded page is a week, so
+ * the span grows with "Show the week before"; once the season's first week is loaded, it's the season.
+ */
+export function emptyLine(filter: Filter, pages: number, more: boolean): string {
+  const span = more ? `in the last ${pages * 7} days` : 'yet this season'
+  return `${EMPTY_WHAT[filter]} ${span}.`
+}

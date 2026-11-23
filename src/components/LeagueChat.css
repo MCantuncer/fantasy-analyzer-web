@@ -173,7 +173,8 @@
   bottom: 10px;
 }
 
-.feed-day .feed-node::before {
+.feed-day .feed-node::before,
+.feed-empty .feed-node::before {
   content: '';
   width: 10px;
   height: 10px;
@@ -732,8 +733,19 @@
   color: var(--muted);
 }
 
-.chat-compose-row .composer-error {
+.chat-compose-row .chat-compose-error {
+  display: flex;
   flex-basis: 100%;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.chat-compose-error svg {
+  flex: none;
+  color: var(--muted);
 }
 
 .chat-as {
@@ -945,9 +957,123 @@
   }
 }
 
-/* A refresh that failed while the feed stays on screen. */
-.chat-stale {
+/* States. An empty filter is a milestone on the wire, with "Show the week before" right under it. */
+.feed-empty {
+  padding-top: 8px;
+  padding-bottom: 16px;
+}
+
+.chat-compose + .feed-empty,
+.feed-stale + .feed-empty {
+  margin-top: 8px;
+}
+
+/* Nothing after it: let the spine run on a little and fade. */
+.feed-empty:last-child {
+  padding-bottom: 56px;
+}
+
+.feed-empty .feed-node {
+  top: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.feed-empty-text {
   margin: 0;
+  line-height: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feed-end.is-near {
+  padding-top: 0;
+  padding-bottom: 28px;
+}
+
+.feed-end.is-near .feed-node {
+  display: none;
+}
+
+.feed-more svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+.feed-end-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* A refresh that failed: a muted node and one line at the top of the wire; the feed stays. */
+.feed-stale {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.feed-stale .feed-node {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.feed-stale .feed-node::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.feed-stale-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.feed-stale-text svg {
+  flex: none;
+}
+
+/* The feed never loaded: a quiet surface with no outline, the reason and "Try again". */
+.feed-error {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 12px;
+  max-width: 560px;
+  padding: 20px 24px;
+  border-radius: var(--radius-row);
+  background: var(--surface);
+}
+
+.feed-error-icon {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.feed-error-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.feed-error-why {
+  margin: 2px 0 14px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.feed-retry {
+  justify-self: start;
+}
+
+.feed-retry svg {
+  flex: none;
+  color: var(--text-2);
 }
 
 /* Desktop: the time sits in the gutter, so a moment's own time is for screen readers only. */
@@ -1149,6 +1275,12 @@
   .feed-trade-sides,
   .chat-vote-btns {
     grid-auto-flow: row;
+  }
+}
+
+@media (max-width: 759px) {
+  .feed-error {
+    padding: 16px;
   }
 }
 
