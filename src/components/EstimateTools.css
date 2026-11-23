@@ -1,0 +1,214 @@
+/* Tools on Our Estimates (The Slip Rail): quiet disclosure rows on the bare page, each with an
+   --ic-hover fill and radius 14, no outlines. ic-tl- prefix. The row's button holds its title and
+   stretches over the whole 64px head (::after); the header line and the right side sit above it with
+   pointer-events off, so a press anywhere on the head toggles the row, and a player's name in the
+   line still opens his card. Gold only on the focus ring. */
+.ic-tl {
+  margin: 56px 0 40px;
+}
+.ic-tl-head {
+  margin-bottom: 20px;
+}
+.ic-tl-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.ic-tl-head h2 svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-tl-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-tl-row {
+  min-width: 0;
+  border-radius: var(--radius-tile);
+  background: var(--ic-hover);
+}
+.ic-tl-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'h side'
+    'line side';
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 2px;
+  min-height: 64px;
+  padding: 12px 16px;
+}
+.ic-tl-h {
+  grid-area: h;
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.ic-tl-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-tl-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-tile);
+}
+.ic-tl-btn:hover::after {
+  background: var(--ic-hover);
+}
+.ic-tl-btn:focus-visible {
+  outline: none;
+}
+.ic-tl-btn:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ic-tl-line,
+.ic-tl-side {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.ic-tl-line .pc-link {
+  pointer-events: auto;
+}
+.ic-tl-line {
+  grid-area: line;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-tl-line b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-tl-side {
+  grid-area: side;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-2);
+}
+.ic-tl-cnt {
+  font-size: 22px;
+  font-weight: 600;
+}
+.ic-tl-cv {
+  flex: none;
+}
+.ic-tl-row.open .ic-tl-cv {
+  transform: rotate(180deg);
+}
+.ic-tl-prev {
+  flex: none;
+  width: 120px;
+  height: 28px;
+}
+.ic-tl-prev circle {
+  fill: var(--text-2);
+  opacity: 0.8;
+}
+.ic-tl-prev path {
+  stroke: var(--ic-tick);
+  stroke-width: 1.5;
+}
+.ic-tl-body {
+  padding: 4px 16px 16px;
+}
+.ic-tl-body[hidden] {
+  display: none;
+}
+
+/* How divided and Game by game inside a tool: no section chrome, no rules between rows. */
+.ic-tl .ic-hd-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+.ic-tl .ic-hd-who .pc-link-face {
+  flex: none;
+  line-height: 0;
+}
+.ic-tl .ic-hd-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-tl .ic-hd .ic-legend {
+  margin-bottom: 12px;
+}
+.ic-tl .ic-strip {
+  border-top: 0;
+  padding: 4px 0;
+}
+.ic-tl .ic-gboxes {
+  gap: 24px 32px;
+}
+.ic-tl .ic-gbox {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+}
+.ic-tl .ic-gt td {
+  border-top: 0;
+  padding: 6px 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ic-tl-btn::after {
+    transition: background-color 120ms ease;
+  }
+}
+
+@media (max-width: 719px) {
+  .ic-tl {
+    margin: 40px 0 32px;
+  }
+  .ic-tl-head {
+    margin-bottom: 16px;
+  }
+  .ic-tl-head h2 {
+    font-size: 19px;
+  }
+  .ic-tl-top {
+    column-gap: 12px;
+    padding: 12px;
+  }
+  .ic-tl-prev {
+    display: none;
+  }
+  .ic-tl-cnt {
+    font-size: 19px;
+  }
+  .ic-tl-body {
+    padding: 0 12px 16px;
+  }
+  /* a name in a header line or a How divided note is a 44px target on phones */
+  .ic-tl-line .pc-link:not(.pc-link-face),
+  .ic-tl .ic-strip .notes .pc-link:not(.pc-link-face) {
+    display: inline-block;
+    padding: 13px 4px;
+    margin: -13px -4px;
+  }
+}

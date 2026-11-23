@@ -13,12 +13,12 @@ import {
   loadChoice,
   nightSum,
   picksOf,
-  pipFills,
   readBetter,
   resultOf,
   saveChoice,
   scoreRows,
   TAPE_BANDS,
+  bestRung,
   tapeBands,
   tapeOf,
   typical,
@@ -235,15 +235,26 @@ describe('the night’s value picks', () => {
     expect(s.withoutTop).toBeCloseTo(9.06 - 5.27, 2)
     expect(s.players).toBe(8)
   })
-  it('the Tape keeps every priced rung in odds order and bands from 1.33', () => {
+  it('the best rung is the biggest value over 1.33, ties to the shorter odds', () => {
+    const best = bestRung(satLines)
+    expect(best?.value).toBe(picksOf(satLines)[0].value)
+    expect(best?.rung.odd).toBeGreaterThan(1.33)
+    expect(bestRung([])).toBeNull()
+  })
+  it('the Tape keeps every priced rung in odds order, in bands over 1.33', () => {
     const tape = tapeOf(satLines)
     expect(tape.length).toBe(20) // 22 rungs less the two at 1.33 or under
     expect(tape.map((t) => t.odd)).toEqual([...tape.map((t) => t.odd)].sort((a, b) => a - b))
     const bands = tapeBands(tape)
-    expect(TAPE_BANDS[0]).toEqual({ name: '1.33–1.6', lo: 1.33, hi: 1.6 })
-    expect(bands[0].name).toBe('1.6–2.5') // the empty 1.33–1.6 band drops out
-    expect(tapeBands([{ odd: 1.4, value: -0.3, pick: null }])[0].name).toBe('1.33–1.6')
-    expect(bands.reduce((s, b) => s + b.share, 0)).toBeCloseTo(1, 10)
+    expect(TAPE_BANDS[0]).toEqual({ name: '1.34–1.60', lo: 1.33, hi: 1.6 })
+    expect(bands[0].name).toBe('1.61–2.50') // the empty 1.34–1.60 band drops out
+    expect(bands.reduce((s, b) => s + b.items.length, 0)).toBe(tape.length)
+    const at = (odd: number) => tapeBands([{ odd, value: -0.3, pick: null }])[0].name
+    expect(at(1.4)).toBe('1.34–1.60')
+    expect(at(1.6)).toBe('1.34–1.60') // a band's top belongs to it
+    expect(at(1.61)).toBe('1.61–2.50')
+    expect(at(12)).toBe('5.01–12.00')
+    expect(at(12.5)).toBe('12.01+')
     expect(typical([{ odd: 2, value: -0.2, pick: null }, { odd: 3, value: -0.4, pick: null }])).toBeCloseTo(-0.3, 10)
   })
 })
@@ -261,17 +272,6 @@ describe('k in 10 and 1 in N', () => {
   })
   it('never says 10 in 10', () => {
     expect(landWords(0.97).strong).toBe('Nearly all')
-  })
-})
-
-describe('the pip strip', () => {
-  it('always has 10 pips and fills the last one partly', () => {
-    expect(pipFills(0.45).map((f) => Math.round(f * 100) / 100)).toEqual([1, 1, 1, 1, 0.5, 0, 0, 0, 0, 0])
-    const low = pipFills(0.096)
-    expect(low).toHaveLength(10)
-    expect(low[0]).toBeCloseTo(0.96, 10)
-    expect(pipFills(0.14)[1]).toBeCloseTo(0.4, 10) // 9.6% and 14% look different
-    expect(pipFills(1).every((f) => f === 1)).toBe(true)
   })
 })
 

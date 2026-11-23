@@ -124,6 +124,13 @@ function mount(data: BookCompare) {
   );
 }
 
+/** Opens a Tools row (How divided, Every line) and gives its body. */
+async function tool(name: string) {
+  const btn = await screen.findByRole("button", { name });
+  if (btn.getAttribute("aria-expanded") !== "true") fireEvent.click(btn);
+  return document.getElementById(btn.getAttribute("aria-controls")!)!;
+}
+
 const host = () => {
   const card = { open: vi.fn(), prefetch: vi.fn() };
   act(() => setPlayerCardHost(card));
@@ -135,6 +142,7 @@ describe("Player names on Our Estimates", () => {
     cleanup();
     vi.restoreAllMocks();
     setPlayerCardHost(null);
+    localStorage.clear();
   });
 
   it('opens the card from "Biggest the other way" when no line has ours above', async () => {
@@ -163,11 +171,10 @@ describe("Player names on Our Estimates", () => {
         pl("Mitchell Robinson", 42, 6.0, 6.5),
       ]),
     );
-    const sec = (
-      await screen.findByRole("heading", { level: 2, name: "How divided" })
-    ).closest("section")!;
+    const sec = await tool("How divided");
     const notes = sec.querySelector(".ic-strip .notes") as HTMLElement;
     expect(notes.textContent).toMatch(/biggest \+2(\.0)? Hart$/);
+    expect(notes.querySelector(".pc-link-face .head")).toBeTruthy();
     fireEvent.click(within(notes).getByRole("button", { name: "Hart" }));
     expect(card.open).toHaveBeenCalledWith({ id: 41, name: "Josh Hart" });
   });
@@ -175,9 +182,7 @@ describe("Player names on Our Estimates", () => {
   it("opens the card from a pinned mark's name and face, and keeps the mark's card up under it", async () => {
     const card = host();
     mount(night([pl("Josh Hart", 41, 9.0, 7.0)]));
-    const sec = (
-      await screen.findByRole("heading", { level: 2, name: "How divided" })
-    ).closest("section")!;
+    const sec = await tool("How divided");
     const field = sec.querySelector(".ic-fld") as HTMLElement;
     // a hover preview stays plain text; a pinned card links the name
     fireEvent.keyDown(field, { key: "End" });

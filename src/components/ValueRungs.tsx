@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { STAT_UNIT, clock, nightLabel, odds } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
 import {
+  bestRung,
   bigValueNote,
   byChance,
   byPlayer,
@@ -13,21 +14,19 @@ import {
   nightSum,
   pctText,
   picksOf,
-  pipFills,
   resultOf,
   rungLabel,
   rungName,
+  rungsServed,
   saveChoice,
   signed2,
+  tapeBands,
   tapeOf,
-  typical,
   who,
 } from '../lib/valueRungs'
-import type { Pick, PickGroup } from '../lib/valueRungs'
+import type { Pick, PickGroup, TapeItem } from '../lib/valueRungs'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
-import { RungTape } from './RungTape'
-import { RungTrack, ShapeBook } from './RungTrack'
 import './ValueRungs.css'
 
 const PHONE = '(max-width: 719px)'
@@ -48,8 +47,43 @@ function usePhone() {
   return phone
 }
 
-/** Value Rungs: the night's rungs where the odds pay more than our chance needs. Everything comes
- *  from the rungs the server sends; the notes are written from the data only. Comparison only. */
+/** The Value rungs tool row's header line: "0 of 380 rungs beat their price · closest Andrew
+ *  Nembhard 7+ assists at 1.47, −0.02". The name opens the player card, so this line sits beside
+ *  the row's button, never inside it. */
+export function ValueRungsLine({ data, lines }: { data: BookCompare; lines: Line[] }) {
+  const tape = useMemo(() => tapeOf(lines), [lines])
+  const best = useMemo(() => bestRung(lines), [lines])
+  if (!rungsServed(data)) return null
+  if (tape.length === 0) return <>The book's ladders didn't load for {nightLabel(data.date)}</>
+  const n = tape.filter((t) => t.pick).length
+  const l = best?.line
+  const p = l ? { id: l.playerId ?? 0, name: l.name } : null
+  return (
+    <>
+      <span className="vr-l-n">
+        <b className="num">{n}</b> of <b className="num">{tape.length.toLocaleString('en')}</b> rungs beat their price
+      </span>
+      {best && l && p && (
+        <span className="vr-l-best">
+          {' · '}
+          {n > 0 ? 'best' : 'closest'}{' '}
+          <span className="vr-l-who">
+            <PlayerLink player={p} decorative>
+              <PlayerHead player={p} team={l.team} size={20} />
+            </PlayerLink>
+            <PlayerLink player={p} />
+          </span>{' '}
+          {best.rung.n}+ {STAT_UNIT[l.stat]} at <span className="num">{odds(best.rung.odd)}</span>,{' '}
+          <span className="num">{signed2(best.value)}</span>
+        </span>
+      )}
+    </>
+  )
+}
+
+/** Value rungs, opened from Tools: the dot tape (every priced rung by odds band, against
+ *  break-even), then the rungs that beat their price, if any did. Everything comes from the rungs
+ *  the server sends; the notes are written from the data only. Comparison only. */
 export function ValueRungs({ data, lines, settled }: { data: BookCompare; lines: Line[]; settled: boolean }) {
   const phone = usePhone()
   const [chosen, setChosen] = useState<View | null>(() => loadChoice(VIEW, ['player', 'chance'] as const))
@@ -58,12 +92,9 @@ export function ValueRungs({ data, lines, settled }: { data: BookCompare; lines:
   const picks = useMemo(() => picksOf(lines), [lines])
   const tape = useMemo(() => tapeOf(lines), [lines])
 
-  // A server from before the rungs sends none at all: show nothing rather than a false "failed".
-  const served = data.games.some((g) => g.players.some((p) => p.rungs !== undefined))
-  if (!served || data.games.length === 0) return null
+  if (!rungsServed(data)) return null
 
   const label = nightLabel(data.date)
-  const rungs = lines.reduce((s, l) => s + (l.kind === 'player' ? l.rungs.length : 0), 0)
   const looks = data.games.map((g) => g.checked).sort()
   const last = looks[looks.length - 1] ?? ''
   const pick = (v: View) => {
@@ -71,73 +102,130 @@ export function ValueRungs({ data, lines, settled }: { data: BookCompare; lines:
     saveChoice(VIEW, v)
   }
 
-  return (
-    <section className="ic-sec vr" aria-labelledby="vr-h">
-      <div className="vr-h">
-        <h2 id="vr-h">
-          <NotchIcon />
-          Value Rungs
-        </h2>
-      </div>
-      <p className="vr-gloss">
-        <span className="vr-hide-s">Rungs where the odds pay more than our chance needs. </span>
-        <b>Value = our chance × odds − 1</b>: +0.30 means 1.30 back per 1, on average, if our chance is right.
-        <span className="vr-hide-s"> Only odds over 1.33; the book's chance has its margin removed.</span>
-      </p>
-      {!settled && rungs > 0 && (
-        <p className="vr-when">
-          <span className="ic-live" aria-hidden="true" />
-          Odds of&nbsp;<span className="num">{clock(last)}</span>, the last look. They can move until tip.
+  if (tape.length === 0)
+    return (
+      <div className="vr" role="status">
+        <p className="vr-failed">
+          <b>The book's ladders didn't load for {label}.</b> Our lines are kept. Value and rung scores need the
+          ladders, so this night is not in the record. Last try <span className="num">{clock(last)}</span>.
         </p>
-      )}
-      {rungs === 0 ? (
-        <div className="vr-empty" role="status">
-          <b>The book's ladders didn't load for {label}.</b>
-          <p>
-            Our lines are kept. Value and rung scores need the ladders, so this night is not in the record. Last try{' '}
-            <span className="num">{clock(last)}</span>.
-          </p>
-        </div>
-      ) : (
+      </div>
+    )
+
+  return (
+    <div className="vr">
+      <DotTape items={tape} />
+      <p className="vr-cap">
+        Each dot is one rung: our chance × its odds − 1. Right of the line pays more than it should.
+        {!settled && (
+          <span className="vr-when">
+            <span className="ic-live" aria-hidden="true" />
+            Odds of <span className="num">{clock(last)}</span>, the last look. They can move until tip.
+          </span>
+        )}
+      </p>
+      {picks.length > 0 && (
         <>
-          {picks.length > 0 && <PhoneSum picks={picks} total={tape.length} settled={settled} />}
-          {picks.length > 0 && <Tiles picks={picks} total={tape.length} settled={settled} where="top" />}
-          <RungTape items={tape} phone={phone} />
-          {picks.length === 0 ? (
-            <div className="vr-empty" role="status">
-              <b>No rung beat its price {settled ? 'that night' : 'so far tonight'}.</b>
-              <p>
-                Typical rung <span className="num">{signed2(typical(tape) ?? 0)}</span> a unit at our chances.{' '}
-                {settled ? `Nothing goes into the record for ${label}.` : 'Odds can move until tip.'}
-              </p>
+          <div className="vr-finds-h">
+            <h4>{settled ? `How the ${picks.length} went` : `Tonight's ${picks.length}`}</h4>
+            <div className="vr-seg" role="group" aria-label="Group value rungs">
+              <button type="button" aria-pressed={view === 'player'} onClick={() => pick('player')}>
+                By Player
+              </button>
+              <button type="button" aria-pressed={view === 'chance'} onClick={() => pick('chance')}>
+                By Hit Chance
+              </button>
             </div>
-          ) : (
-            <>
-              <div className="vr-finds-h">
-                <h3>{settled ? `How the ${picks.length} went` : `Tonight's ${picks.length}`}</h3>
-                <div className="ic-seg vr-seg" role="group" aria-label="Group value rungs">
-                  <button type="button" aria-pressed={view === 'player'} onClick={() => pick('player')}>
-                    By Player
-                  </button>
-                  <button type="button" aria-pressed={view === 'chance'} onClick={() => pick('chance')}>
-                    By Hit Chance
-                  </button>
-                </div>
-              </div>
-              <Legend />
-              <Finds
-                picks={picks}
-                view={view}
-                limit={phone ? 4 : 6}
-                more={more}
-                onMore={(k) => setMore((m) => ({ ...m, [k]: !m[k] }))}
-              />
-              <Tiles picks={picks} total={tape.length} settled={settled} where="after" />
-            </>
-          )}
+          </div>
+          <Sum picks={picks} settled={settled} />
+          <Finds
+            picks={picks}
+            view={view}
+            limit={phone ? 4 : 6}
+            more={more}
+            onMore={(k) => setMore((m) => ({ ...m, [k]: !m[k] }))}
+          />
         </>
       )}
-    </section>
+    </div>
+  )
+}
+
+/** The value scale's ends: −1 (our chance 0) on the left; the right end leaves room for the rungs
+ *  that beat their price, up to +1 (anything past it sits at the edge). */
+function scaleOf(items: TapeItem[]) {
+  const lo = -1
+  const top = items.reduce((m, i) => Math.max(m, i.value), 0)
+  const hi = Math.min(1, Math.max(0.1, top * 1.08))
+  const at = (v: number) => ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * 100
+  return { hi, at }
+}
+
+/** The dot tape: one row per odds band, a dot per rung at its value, the band's average as a tall
+ *  mark and the break-even line through every row. Drawn in CSS percentages, so it needs no
+ *  measuring; the numbers are in the text beside it. */
+function DotTape({ items }: { items: TapeItem[] }) {
+  const bands = tapeBands(items)
+  const s = scaleOf(items)
+  const be = s.at(0)
+  const ticks = [-1, -0.5, ...(s.hi >= 0.5 ? [0.5] : [])]
+  return (
+    <div className="vr-tape" style={{ '--vr-be': `${be.toFixed(2)}%` } as CSSProperties}>
+      <div className="vr-axis" aria-hidden="true">
+        <span />
+        <span className="vr-ax">
+          {ticks.map((t) => (
+            <i key={t} className="num" style={{ left: `${s.at(t).toFixed(2)}%` }}>
+              {signed2(t)}
+            </i>
+          ))}
+          <i className="be" style={{ left: `${be.toFixed(2)}%` }}>
+            Break-even
+          </i>
+        </span>
+        <span />
+      </div>
+      <ol>
+        {bands.map((b) => (
+          <li key={b.name}>
+            <span className="vr-tb">
+              <b className="num">{b.name}</b>
+              <span>
+                <span className="num">{b.items.length.toLocaleString('en')}</span> rungs
+              </span>
+            </span>
+            <span className="vr-strip" aria-hidden="true">
+              {b.items.map((it, i) => (
+                <i key={i} className={it.pick ? 'up' : undefined} style={{ left: `${s.at(it.value).toFixed(2)}%` }} />
+              ))}
+              <i className="avg" style={{ left: `${s.at(b.avg).toFixed(2)}%` }} />
+            </span>
+            <span className="vr-ta">
+              Average <b className="num">{signed2(b.avg)}</b>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+/** One line in place of the old tiles: what our chances say of the picks, or how they went. */
+function Sum({ picks, settled }: { picks: Pick[]; settled: boolean }) {
+  const s = nightSum(picks)
+  if (settled)
+    return (
+      <p className="vr-sum">
+        <b className="num">{s.hits}</b> of <span className="num">{s.n}</span> landed (our chances said{' '}
+        <span className="num">{s.said.toFixed(1)}</span>) ·{' '}
+        <b className={`num ${s.net >= 0 ? 'good' : 'bad'}`}>{signed2(s.net)}</b> at one unit each
+      </p>
+    )
+  return (
+    <p className="vr-sum">
+      Our chances say <b className="num">{s.said.toFixed(1)}</b> of <span className="num">{s.n}</span> land ·{' '}
+      <b className="num">{signed2(s.marked)}</b> on average if they are right
+    </p>
   )
 }
 
@@ -172,10 +260,7 @@ function Finds({
         if (conc && concAt === g.key)
           notes.push(
             <aside className="vr-note-m" key="c">
-              <h4>
-                <LinkIcon />
-                One player, one call
-              </h4>
+              <h5>One player, one call</h5>
               <p>{conc.text}</p>
               <small>
                 Written from the data · {conc.n} picks · {conc.players} players
@@ -185,10 +270,7 @@ function Finds({
         if (big && bigAt === g.key)
           notes.push(
             <aside className="vr-note-m" key="b">
-              <h4>
-                <InfoIcon />
-                {big.title}
-              </h4>
+              <h5>{big.title}</h5>
               <p>{big.text}</p>
               <dl>
                 <dt>Out of 100 like it</dt>
@@ -213,7 +295,7 @@ function Finds({
                 ))}
               </ul>
               {g.picks.length > limit && (
-                <button type="button" className="secondary vr-more" aria-expanded={!!all} onClick={() => onMore(`${view}:${g.key}`)}>
+                <button type="button" className="vr-more" aria-expanded={!!all} onClick={() => onMore(`${view}:${g.key}`)}>
                   <Chevron />
                   {all ? 'Show fewer' : `Show ${g.picks.length - limit} more ${g.line ? `${g.title} rungs` : g.title.toLowerCase()}`}
                 </button>
@@ -254,7 +336,7 @@ function GroupHead({ group: g, settled }: { group: PickGroup; settled: boolean }
       <div className="vr-g-head">
         <span className="vr-face">
           <PlayerLink player={who} decorative>
-            <PlayerHead player={who} team={l.team} size={38} />
+            <PlayerHead player={who} team={l.team} size={36} />
           </PlayerLink>
           <span className="vr-face-team" aria-hidden="true">
             <TeamLogo abbrev={l.team} size={16} />
@@ -281,6 +363,8 @@ function GroupHead({ group: g, settled }: { group: PickGroup; settled: boolean }
   )
 }
 
+/** One rung that beat its price: its value as a plain bold number (no stamp box), the rung and its
+ *  odds, our chance against what the odds need, then where it stands. */
 function PickRow({ pick: p, showName }: { pick: Pick; showName: boolean }) {
   const r = p.rung
   const l = p.line
@@ -293,40 +377,28 @@ function PickRow({ pick: p, showName }: { pick: Pick; showName: boolean }) {
       className={showName ? 'vr-row vr-row-who' : 'vr-row'}
       aria-label={`${l.name}, ${rungLabel(r, STAT_UNIT[l.stat])}${pending}`}
     >
-      <span className="vr-stamp" aria-hidden="true">
+      <span className="vr-val" aria-hidden="true">
         <b className="num">{signed2(p.value)}</b>
         <small>value</small>
       </span>
-      {showName && (
-        <span className="vr-who">
-          <PlayerLink player={who} decorative>
-            <PlayerHead player={who} team={l.team} size={24} />
-          </PlayerLink>
-          <PlayerLink player={who} />
-        </span>
-      )}
       <span className="vr-rung">
-        <b aria-hidden="true">{rungName(l.stat, r.n)}</b>{' '}
-        <span className="at" aria-hidden="true">
-          at <span className="num">{odds(r.odd)}</span>
+        {showName && (
+          <span className="vr-who">
+            <PlayerLink player={who} decorative>
+              <PlayerHead player={who} team={l.team} size={24} />
+            </PlayerLink>
+            <PlayerLink player={who} />
+          </span>
+        )}
+        <span className="vr-rl" aria-hidden="true">
+          <b>{rungName(l.stat, r.n)}</b> at <span className="num">{odds(r.odd)}</span>
         </span>
       </span>
       <span className="vr-chance" aria-hidden="true">
-        <RungTrack ours={p.ours} book={r.book} odd={r.odd} />
         <span className="vr-ct">
-          <span>
-            Ours <b>{pctText(p.ours)}</b>
-          </span>
-          <span>
-            needs <b>{pctText(p.price)}</b>
-          </span>
-          <span>
-            book <span className="num">{pctText(r.book)}</span>
-          </span>
+          Ours <b className="num">{pctText(p.ours)}</b> · needs <span className="num">{pctText(p.price)}</span> · book{' '}
+          <span className="num">{pctText(r.book)}</span>
         </span>
-      </span>
-      <span className="vr-pips" aria-hidden="true">
-        <Pips p={p.ours} />
         <span className="vr-pw">
           {words.pre}
           <b>{words.strong}</b>
@@ -335,19 +407,6 @@ function PickRow({ pick: p, showName }: { pick: Pick; showName: boolean }) {
       </span>
       <ResultSlot pick={p} />
     </li>
-  )
-}
-
-/** The fixed 10-pip strip: filled for our chance in tenths, the last pip partly. */
-function Pips({ p }: { p: number }) {
-  return (
-    <span className="vr-pip-strip">
-      {pipFills(p).map((f, i) => (
-        <span className="vr-pip" key={i}>
-          {f > 0.02 && <span style={{ width: `${Math.round(f * 100)}%` }} />}
-        </span>
-      ))}
-    </span>
   )
 }
 
@@ -392,188 +451,6 @@ function ResultSlot({ pick: p }: { pick: Pick }) {
         </small>
       </span>
     </span>
-  )
-}
-
-function Tiles({ picks, total, settled, where }: { picks: Pick[]; total: number; settled: boolean; where: 'top' | 'after' }) {
-  const s = nightSum(picks)
-  const conc = concentration(picks)
-  const hero = (
-    <div className="vr-tile first">
-      <div className="vr-hero">
-        <span className="vr-outline">{s.n}</span>
-        <span className="of">/ {total.toLocaleString('en')}</span>
-      </div>
-      <div className="sub">rungs beat their price · {((s.n / Math.max(total, 1)) * 100).toFixed(1)}%</div>
-    </div>
-  )
-  const note = (
-    <div className="vr-tile note">
-      <LinkIcon />
-      <div>
-        <b>
-          {s.n} picks · {s.players} players.
-        </b>{' '}
-        {conc ? `${conc.count} of the ${conc.n} are ${conc.name}: they land or miss together.` : 'Picks on one player land or miss together.'}
-      </div>
-    </div>
-  )
-  const tile = (big: ReactNode, sub: ReactNode, cls = '') => (
-    <div className="vr-tile">
-      <div className={`big ${cls}`}>{big}</div>
-      <div className="sub">{sub}</div>
-    </div>
-  )
-  return (
-    <div className={`vr-tiles ${where}`}>
-      {hero}
-      {settled ? (
-        <>
-          {tile(
-            <>
-              {s.hits} <small>of {s.n} landed</small>
-            </>,
-            `our chances said ${s.said.toFixed(1)}`,
-          )}
-          {tile(
-            <>
-              {signed2(s.net)}
-              <small>u</small>
-            </>,
-            'one unit each, at the odds',
-            s.net >= 0 ? 'good' : 'bad',
-          )}
-          {s.top &&
-            s.withoutTop != null &&
-            tile(
-              <>
-                {signed2(s.withoutTop)}
-                <small>u</small>
-              </>,
-              <>
-                Without the biggest hit · one <span className="num">{odds(s.top.rung.odd)}</span> hit
-              </>,
-              s.withoutTop >= 0 ? 'good' : 'bad',
-            )}
-        </>
-      ) : (
-        <>
-          {tile(
-            <>
-              {s.said.toFixed(1)} <small>of {s.n}</small>
-            </>,
-            'land, if our chances are right',
-          )}
-          {tile(
-            <>
-              {signed2(s.marked)}
-              <small>u</small>
-            </>,
-            'on average, if our chances are right',
-          )}
-          {tile(
-            <>
-              {signed2(-s.n)}
-              <small>u</small>
-            </>,
-            'if none land · a miss costs 1',
-          )}
-        </>
-      )}
-      {note}
-    </div>
-  )
-}
-
-/** Phones: two lines in place of the tiles at the top, so the first rung is on the first screen. */
-function PhoneSum({ picks, total, settled }: { picks: Pick[]; total: number; settled: boolean }) {
-  const s = nightSum(picks)
-  return (
-    <div className="vr-ph-sum">
-      <div className="vr-hero">
-        <span className="vr-outline">{s.n}</span>
-        <span className="of">/ {total.toLocaleString('en')}</span>
-      </div>
-      <div className="t">
-        rungs beat their price.
-        <br />
-        {settled ? (
-          <>
-            <b>{s.hits} landed</b> (said {s.said.toFixed(1)}) ·{' '}
-            <b className={s.net >= 0 ? 'good' : 'bad'}>{signed2(s.net)}u</b>
-          </>
-        ) : (
-          <>
-            Our chances say <b>{s.said.toFixed(1)}</b> land.
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function Legend() {
-  return (
-    <div className="vr-legend" aria-hidden="true">
-      <span>
-        <svg viewBox="0 0 26 14">
-          <rect className="o" x="1" y="3" width="24" height="8" rx="3" />
-        </svg>
-        Ours
-      </span>
-      <span>
-        <ShapeBook />
-        <span>
-          Book<span className="vr-hide-s">, margin off</span>
-        </span>
-      </span>
-      <span>
-        <svg viewBox="0 0 26 14">
-          <rect className="tr" x="1" y="4" width="24" height="7" rx="3" />
-          <rect className="nt" x="12" y="0" width="2.5" height="14" />
-        </svg>
-        <span>
-          Price<span className="vr-hide-s">: the chance the odds need (1 ÷ odds)</span>
-        </span>
-      </span>
-      <span>
-        <svg viewBox="0 0 26 14">
-          <rect className="tr" x="1" y="4" width="24" height="7" rx="3" />
-          <rect className="vl" x="13" y="4" width="10" height="7" />
-          <rect className="nt" x="12" y="0" width="2.5" height="14" />
-        </svg>
-        <span className="vr-hide-s">Ours above the price: the value</span>
-        <span className="vr-ph-in">Value</span>
-      </span>
-    </div>
-  )
-}
-
-function NotchIcon() {
-  return (
-    <svg className="ic-i vr-hi" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 15h18" />
-      <path d="M12 6v13" />
-      <path d="M8 9h8" />
-    </svg>
-  )
-}
-
-function LinkIcon() {
-  return (
-    <svg className="ic-i vr-ni" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
-      <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
-    </svg>
-  )
-}
-
-function InfoIcon() {
-  return (
-    <svg className="ic-i vr-ni" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v5M12 7.6v.4" />
-    </svg>
   )
 }
 

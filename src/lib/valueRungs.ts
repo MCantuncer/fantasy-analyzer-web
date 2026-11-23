@@ -6,7 +6,7 @@
 // A rung beats its price when our chance is above the price, which is the same as value > 0.
 
 import { MIN_ODD, PLAYER_STATS, STAT_UNIT, odds, statOf } from './iddaaCompare'
-import type { Closer, CompareRung, CompareTally, Line, Stat } from './iddaaCompare'
+import type { BookCompare, Closer, CompareRung, CompareTally, Line, Stat } from './iddaaCompare'
 
 const MINUS = '−'
 
@@ -169,6 +169,12 @@ export interface TapeItem {
   pick: Pick | null
 }
 
+/** Whether the server sent rungs at all: one from before the rungs sends none, and then the page
+ *  shows nothing rather than a false "failed". */
+export function rungsServed(data: BookCompare): boolean {
+  return data.games.length > 0 && data.games.some((g) => g.players.some((p) => p.rungs !== undefined))
+}
+
 /** The night's value picks: rungs with value over 0 at odds over 1.33, biggest value first. */
 export function picksOf(lines: Line[]): Pick[] {
   const out: Pick[] = []
@@ -196,25 +202,37 @@ export function tapeOf(lines: Line[]): TapeItem[] {
   return out.sort((a, b) => a.odd - b.odd)
 }
 
-/** The Tape's odds bands; the first starts at the 1.33 floor. */
+/** The dot tape's odds bands, each from just over its floor up to and including its top: the
+ *  first starts over the 1.33 floor (1.34–1.60), the last is open (12.01+). */
 export const TAPE_BANDS: { name: string; lo: number; hi: number }[] = [
-  { name: '1.33–1.6', lo: MIN_ODD, hi: 1.6 },
-  { name: '1.6–2.5', lo: 1.6, hi: 2.5 },
-  { name: '2.5–5', lo: 2.5, hi: 5 },
-  { name: '5–12', lo: 5, hi: 12 },
-  { name: '12+', lo: 12, hi: Infinity },
+  { name: '1.34–1.60', lo: MIN_ODD, hi: 1.6 },
+  { name: '1.61–2.50', lo: 1.6, hi: 2.5 },
+  { name: '2.51–5.00', lo: 2.5, hi: 5 },
+  { name: '5.01–12.00', lo: 5, hi: 12 },
+  { name: '12.01+', lo: 12, hi: Infinity },
 ]
 
-/** The Tape's bands with their rungs and average value; empty bands drop out. Each band's width is
- *  half its share of the rungs and half an equal share, so the 12+ shelf stays readable. */
+/** The dot tape's rows: each band's rungs and their average value; empty bands drop out. */
 export function tapeBands(items: TapeItem[]) {
-  const bands = TAPE_BANDS.map((b) => {
-    const its = items.filter((i) => i.odd >= b.lo && i.odd < b.hi)
-    return { ...b, items: its, avg: its.length ? its.reduce((s, i) => s + i.value, 0) / its.length : 0, share: 0 }
+  return TAPE_BANDS.map((b) => {
+    const its = items.filter((i) => i.odd > b.lo && i.odd <= b.hi)
+    return { ...b, items: its, avg: its.length ? its.reduce((s, i) => s + i.value, 0) / its.length : 0 }
   }).filter((b) => b.items.length > 0)
-  const total = bands.reduce((s, b) => s + b.items.length, 0)
-  for (const b of bands) b.share = 0.5 * (b.items.length / total) + 0.5 / bands.length
-  return bands
+}
+
+/** The night's best priced rung: the biggest value, so the one nearest break-even on a night when
+ *  none beat its price. Ties go to the shorter odds. */
+export function bestRung(lines: Line[]): { line: Line; rung: CompareRung; value: number } | null {
+  let best: { line: Line; rung: CompareRung; value: number } | null = null
+  for (const l of lines) {
+    if (l.kind !== 'player') continue
+    for (const r of l.rungs) {
+      if (r.value == null || r.odd <= MIN_ODD) continue
+      if (!best || r.value > best.value || (r.value === best.value && r.odd < best.rung.odd))
+        best = { line: l, rung: r, value: r.value }
+    }
+  }
+  return best
 }
 
 /** The night's typical rung: the mean value over every priced rung. */
@@ -231,11 +249,6 @@ export function landWords(p: number): { pre: string; strong: string; post: strin
   const k = Math.round(p * 10)
   if (k >= 10) return { pre: '', strong: 'Nearly all', post: ` land · ${pctText(p)}` }
   return { pre: '', strong: `${k} in 10`, post: ` land · ${10 - k} lose` }
-}
-
-/** The fixed 10-pip strip: how full each pip is, the last one partly, so 9.6% and 14% differ. */
-export function pipFills(p: number): number[] {
-  return Array.from({ length: 10 }, (_, i) => Math.max(0, Math.min(1, p * 10 - i)))
 }
 
 /** The night's sums. Net counts one unit on each settled pick at the book's odds. */
