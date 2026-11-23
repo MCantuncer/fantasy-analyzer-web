@@ -23,7 +23,7 @@ function Face({ p, size }: { p: Pick<RecapPlayer, 'player_id' | 'name' | 'pro_te
   return <PlayerHead player={{ id: p.player_id, name: p.name }} team={nbaAbbrev(p.pro_team_id)} size={size} />
 }
 
-/** The three game balls as compact rows: the card posted to League Chat and its preview. */
+/** The three game balls: stacked on phones, three across from 760px. The card posted to League Chat and its preview. */
 function BallRows({
   recap: r,
   d,
@@ -43,7 +43,9 @@ function BallRows({
       {p && (
         <li className="fs-ball">
           <span className="fs-lab">Player</span>
-          <Face p={p} size={32} />
+          <span className="fs-pic">
+            <Face p={p} size={36} />
+          </span>
           <span className="fs-who">
             <span className="fs-name">{p.name}</span>
             <span className="fs-sub num">
@@ -56,7 +58,9 @@ function BallRows({
       {tw && (
         <li className="fs-ball">
           <span className="fs-lab">Team</span>
-          <TeamCrest name={name(tw.sides[0].team_id)} colour={colours.get(tw.sides[0].team_id)} size={30} />
+          <span className="fs-pic">
+            <TeamCrest name={name(tw.sides[0].team_id)} colour={colours.get(tw.sides[0].team_id)} size={32} />
+          </span>
           <span className="fs-who">
             <span className="fs-name">{name(tw.sides[0].team_id)}</span>
             <span className="fs-sub">
@@ -71,7 +75,9 @@ function BallRows({
       {tp && (
         <li className="fs-ball">
           <span className="fs-lab">Pickup</span>
-          <Face p={tp} size={32} />
+          <span className="fs-pic">
+            <Face p={tp} size={36} />
+          </span>
           <span className="fs-who">
             <span className="fs-name">{tp.name}</span>
             <span className="fs-sub">
@@ -135,7 +141,7 @@ export function FilmShare({
       </h2>
       <div className="fs-card fs-preview" aria-label="Preview">
         <span className="fs-card-head">
-          <FilmSlate size={16} aria-hidden="true" />
+          <FilmSlate size={18} aria-hidden="true" />
           Week {r.period} Film Room
         </span>
         <BallRows recap={r} d={d} name={name} colours={colours} />
@@ -197,7 +203,7 @@ export function FilmPostCard({
   return (
     <div className="fs-card">
       <span className="fs-card-head">
-        <FilmSlate size={16} aria-hidden="true" />
+        <FilmSlate size={18} aria-hidden="true" />
         Week {period} Film Room
       </span>
       {r && <BallRows recap={r} d={readRecap(r, null)} name={name} colours={colours} />}
