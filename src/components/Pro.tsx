@@ -130,12 +130,15 @@ function ProToast({ me, onClose }: { me: Me; onClose: () => void }) {
 export function ProProvider({
   me,
   signedIn,
+  visitorLocked = false,
   theme,
   onNeedAccount,
   children,
 }: {
   me: Me | undefined
   signedIn: boolean
+  /** Signed out, plans on: the sample league's Pro spots show their locks (the API blanks them). */
+  visitorLocked?: boolean
   theme: Theme
   onNeedAccount: () => void
   children: ReactNode
@@ -162,12 +165,12 @@ export function ProProvider({
   const api = useMemo<ProApi>(
     () => ({
       me,
-      has: (feature: PlanFeature) => !preview && hasFeature(me, feature),
+      has: (feature: PlanFeature) => (signedIn ? !preview && hasFeature(me, feature) : !visitorLocked),
       open: () => (signedIn ? setSheet(true) : needAccount.current()),
       previewFree: preview,
       setPreviewFree,
     }),
-    [me, preview, signedIn, setPreviewFree],
+    [me, preview, signedIn, visitorLocked, setPreviewFree],
   )
   const closeSheet = useCallback(() => setSheet(false), [])
   const closeWelcome = useCallback(() => setWelcome(null), [])
