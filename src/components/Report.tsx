@@ -274,6 +274,7 @@ export function Report({
               creds={creds}
               picks={picks}
               onPicks={setPicks}
+              onCheck={openCheck}
             />
           ) : (
             <TradeCheck key={checkOpened} report={report} keep={keep} creds={creds} />

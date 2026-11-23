@@ -1,4 +1,5 @@
-import type { CategoryOutlook, SeasonRow, TeamBuild } from '../api/client'
+import type { CategoryOutlook, SeasonRow, ShopDeal, ShopReport, ShopTeam, TeamBuild } from '../api/client'
+import { tradeKey } from './format'
 
 /** Your playoff odds today and where they rank in the league (1 = best), from the season table. */
 export interface OddsToday {
@@ -70,4 +71,46 @@ export function lastName(name: string): string {
   return parts.length > 1 && /^(Jr\.?|Sr\.?|II|III|IV)$/.test(parts[parts.length - 1])
     ? parts[parts.length - 2]
     : parts[parts.length - 1]
+}
+
+/** Trade Park's "Every team": the deals that hold up, the teams with no lift, the teams with nothing. */
+export interface ShopMarket {
+  /** Every deal that holds up, grouped by team: teams in the order of their best deal, best first within each. */
+  deals: ShopDeal[]
+  /** Teams where packages pass the checks but none raises your playoff odds. */
+  noLift: ShopTeam[]
+  /** Teams with no package that works for both. */
+  none: ShopTeam[]
+}
+
+/**
+ * Groups a shop result by partner team. A team's best deal that missed the overall list still
+ * gets its row, so every team with a deal can be put on the table.
+ */
+export function shopMarket(data: ShopReport): ShopMarket {
+  const seen = new Set<string>()
+  const byTeam = new Map<number, ShopDeal[]>()
+  const add = (d: ShopDeal) => {
+    const key = tradeKey(d)
+    if (seen.has(key)) return
+    seen.add(key)
+    const list = byTeam.get(d.partner_team_id)
+    if (list) list.push(d)
+    else byTeam.set(d.partner_team_id, [d])
+  }
+  data.deals.forEach(add)
+  for (const t of data.teams) if (t.best) add(t.best)
+  const rest = data.teams.filter((t) => !byTeam.has(t.team_id))
+  return {
+    deals: [...byTeam.values()].flat(),
+    noLift: rest.filter((t) => t.deals_found > 0),
+    none: rest.filter((t) => t.deals_found === 0),
+  }
+}
+
+/** Every team's filter: all deals, the ones that send every picked player, or the ones that send one player. */
+export type DealFilter = 'all' | 'every' | number
+
+export function dealMatches(d: Pick<ShopDeal, 'give' | 'uses_all'>, f: DealFilter): boolean {
+  return f === 'all' ? true : f === 'every' ? d.uses_all : d.give.some((p) => p.id === f)
 }
