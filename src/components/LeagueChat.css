@@ -500,10 +500,6 @@
   top: 18px;
 }
 
-.feed-moment .feed-post {
-  padding: 0;
-}
-
 /* Trades: "Trade" in ink, then the sides side by side (stacked on phones), each with + and a face. */
 .feed-trade {
   display: flex;
