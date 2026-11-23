@@ -374,3 +374,110 @@ describe('LeagueChat react and reply', () => {
     await waitFor(() => expect(vi.mocked(deletePost).mock.calls[0][1]).toBe(1))
   })
 })
+
+describe('LeagueChat trade moment', () => {
+  afterEach(cleanup)
+  const me = { team_id: 3, team_name: 'Kucukesat Aspavas' }
+  const withTrade = (reactions: FeedItem['reactions'], who: typeof me | null = me) =>
+    ({ ...page, me: who, items: items.map((i) => (i.id === 'tx:t' ? { ...i, reactions } : i)) }) as FeedPage
+  function renderChat() {
+    return render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+  }
+
+  it('shows overlapping crests, "Trade" and each side with what it gets', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(withTrade({ counts: {}, mine: [] }))
+    const { container } = renderChat()
+    await within(container).findByText('Mikal Bridges')
+    const trade = container.querySelector('.feed-moment-trade')!
+    expect(trade.querySelectorAll('.feed-node-pair .crest')).toHaveLength(2)
+    expect(trade.querySelector('.feed-trade-head')?.textContent).toMatch(/^Trade/)
+    expect(trade.querySelector('.feed-trade-kind svg')).not.toBeNull()
+    expect(trade.querySelector('.feed-pill')).toBeNull()
+    const sides = [...trade.querySelectorAll('.feed-trade-sides .feed-side')]
+    expect(sides.map((s) => s.querySelector('.feed-side-team')?.textContent)).toEqual([
+      'Kucukesat Aspavas(you) get',
+      'Cayyolu Bastards get',
+    ])
+    expect(sides.map((s) => s.querySelectorAll('.feed-side-list img').length)).toEqual([1, 1])
+    expect(sides[0].textContent).toContain('Mikal Bridges')
+    expect(sides[1].textContent).toContain('Jalen Green')
+  })
+
+  it('asks "Who won it?" with crest buttons and hides the split until you vote', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(withTrade({ counts: { 'won:3': 2, 'won:6': 1 }, mine: [] }))
+    vi.mocked(react).mockClear()
+    vi.mocked(react).mockResolvedValue({
+      target: 'tx:t',
+      reactions: { counts: { 'won:3': 2, 'won:6': 2 }, mine: ['won:6'] },
+    })
+    const { container } = renderChat()
+    await within(container).findByText('Mikal Bridges')
+    const trade = container.querySelector('.feed-moment-trade') as HTMLElement
+    const vote = trade.querySelector('.chat-vote')!
+    expect(vote.querySelector('.chat-vote-q')?.textContent).toBe('Who won it?Vote to see the split')
+    const group = within(trade).getByRole('group', { name: 'Who won the trade?' })
+    const btns = [...group.querySelectorAll('button')]
+    expect(btns.map((b) => b.className)).toEqual(['chat-vote-btn', 'chat-vote-btn'])
+    expect(btns.map((b) => b.querySelector('.chat-vote-name')?.textContent)).toEqual([
+      'Kucukesat Aspavas',
+      'Cayyolu Bastards',
+    ])
+    expect(btns.every((b) => b.querySelector('.crest'))).toBe(true)
+    expect(btns.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false'])
+    expect(vote.textContent).not.toMatch(/%|votes/)
+    expect(vote.querySelector('.chat-vote-split')).toBeNull()
+    // The old small chips are gone.
+    expect(trade.querySelector('.chip, .feed-vote, .kpi-label')).toBeNull()
+
+    fireEvent.click(btns[1])
+    await waitFor(() => expect(vi.mocked(react).mock.calls[0]?.slice(1, 4)).toEqual(['tx:t', 'won:6', true]))
+    await waitFor(() => expect(vote.querySelector('.chat-vote-q')?.textContent).toBe('Who won it?4 votes'))
+    expect(btns.map((b) => b.querySelector('.num')?.textContent)).toEqual(['50%', '50%'])
+    expect(btns.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true'])
+  })
+
+  it("shows your pick ringed, each side's %, the split bar in crest colours and the count after voting", async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(withTrade({ counts: { 'won:3': 3, 'won:6': 1, smart: 1 }, mine: ['won:3'] }))
+    vi.mocked(react).mockClear()
+    vi.mocked(react).mockResolvedValue({ target: 'tx:t', reactions: { counts: { 'won:6': 1, smart: 1 }, mine: [] } })
+    const { container } = renderChat()
+    await within(container).findByText('Mikal Bridges')
+    const vote = container.querySelector('.feed-moment-trade .chat-vote') as HTMLElement
+    expect(vote.querySelector('.chat-vote-q')?.textContent).toBe('Who won it?4 votes')
+    const btns = [...vote.querySelectorAll('button.chat-vote-btn')]
+    expect(btns.map((b) => b.querySelector('.num')?.textContent)).toEqual(['75%', '25%'])
+    expect(btns.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
+    const bar = vote.querySelector('.chat-vote-split')!
+    expect(bar.getAttribute('aria-hidden')).toBe('true')
+    const parts = [...bar.querySelectorAll('span')] as HTMLElement[]
+    expect(parts.map((s) => s.style.flexGrow)).toEqual(['3', '1'])
+    expect(parts.every((s) => s.style.getPropertyValue('--team'))).toBe(true)
+
+    // Tapping your pick again takes the vote back, and the split hides.
+    fireEvent.click(btns[0])
+    await waitFor(() => expect(vi.mocked(react).mock.calls[0]?.slice(1, 4)).toEqual(['tx:t', 'won:3', false]))
+    await waitFor(() => expect(vote.querySelector('.chat-vote-q')?.textContent).toBe('Who won it?Vote to see the split'))
+    expect(vote.querySelector('.chat-vote-split')).toBeNull()
+  })
+
+  it('says "1 vote" for one, and shows no vote in the Moves Feed', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(withTrade({ counts: { 'won:6': 1 }, mine: ['won:6'] }))
+    const { container, unmount } = renderChat()
+    await within(container).findByText('Mikal Bridges')
+    const vote = container.querySelector('.chat-vote')!
+    expect(vote.querySelector('.chat-vote-n')?.textContent).toBe('1 vote')
+    expect([...vote.querySelectorAll('.num')].map((n) => n.textContent)).toEqual(['1', '0%', '100%'])
+    expect(vote.querySelectorAll('.chat-vote-split span')).toHaveLength(1)
+    unmount()
+
+    vi.mocked(fetchFeed).mockResolvedValue(withTrade({ counts: {}, mine: [] }, null))
+    const feed = renderChat()
+    await within(feed.container).findByText('Mikal Bridges')
+    expect(feed.container.querySelector('.feed-moment-trade .chat-vote')).toBeNull()
+    expect(feed.container.querySelector('.feed-moment-trade')?.textContent).toContain('Cayyolu Bastards get')
+  })
+})

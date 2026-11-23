@@ -433,10 +433,10 @@
   padding: 0;
 }
 
+/* Trades: "Trade" in ink, then the sides side by side (stacked on phones), each with + and a face. */
 .feed-trade {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   min-width: 0;
 }
 
@@ -444,12 +444,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 28px;
+  /* Clear the second, overlapping crest on the spine. */
+  padding-left: 8px;
 }
 
-.feed-trade-head .feed-pill.trade {
-  background: var(--feed-chip);
+.feed-trade-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
   color: var(--text);
-  box-shadow: none;
+}
+
+.feed-trade-kind svg {
+  flex: none;
+}
+
+.feed-trade-sides {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 12px 24px;
+  margin-top: 10px;
 }
 
 .feed-side {
@@ -465,14 +482,28 @@
   gap: 8px;
   min-width: 0;
   font-size: 13px;
+  color: var(--muted);
+}
+
+.feed-side-head .crest {
+  flex: none;
 }
 
 .feed-side-team {
   min-width: 0;
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.feed-side-team b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.feed-side-team .feed-you {
+  margin-left: 4px;
+  vertical-align: -1px;
 }
 
 .feed-side-list {
@@ -484,9 +515,100 @@
   gap: 6px;
 }
 
-.feed-trade .feed-vote,
-.feed-moment .feed-replies {
+/* "Who won it?": 44px soft buttons with crest, name and (once you've voted) %, your pick ringed in
+   ink, then a 6px split bar in the two crest colours. */
+.chat-vote {
+  max-width: 520px;
+  margin-top: 14px;
   min-width: 0;
+}
+
+.chat-vote-q {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.chat-vote-q b {
+  font-weight: 650;
+}
+
+.chat-vote-n {
+  color: var(--muted);
+}
+
+.chat-vote-n .num {
+  font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
+}
+
+.chat-vote-btns {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.chat-vote-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--feed-chip);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 550;
+  text-align: left;
+}
+
+.chat-vote-btn .crest {
+  flex: none;
+}
+
+.chat-vote-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-vote-btn .num {
+  flex: none;
+  font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-weight: 700;
+}
+
+.chat-vote-btn[aria-pressed='true'] {
+  background: var(--feed-chip-on);
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-vote-btn:hover {
+    background: var(--feed-chip-on);
+  }
+}
+
+.chat-vote-split {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin-top: 8px;
+}
+
+.chat-vote-split span {
+  flex-basis: 0;
+  border-radius: 3px;
+  background: var(--team);
 }
 
 /* The end of the wire. */
@@ -967,6 +1089,11 @@
 
   .feed-moment-move .feed-node {
     top: 12px;
+  }
+
+  .feed-trade-sides,
+  .chat-vote-btns {
+    grid-auto-flow: row;
   }
 }
 
