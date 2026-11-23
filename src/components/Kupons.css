@@ -123,12 +123,15 @@
   color: var(--faint);
 }
 
-/* totals: Total odds and Probability at the same size (Can 11-22), the sum written under the odds */
+/* totals: Total odds and Probability at the same size (Can 11-22), the sum written under the odds.
+   The total never shrinks; a result too long to sit beside it ("Lost on Ingram 25+" in a narrow
+   slip) takes its own row under it instead of running into it. */
 .ic-ku-tot {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px 12px;
   margin-top: 16px;
 }
 .ic-ku-tot > div {
@@ -137,7 +140,12 @@
   gap: 2px;
   min-width: 0;
 }
+.ic-ku-tot > div:first-child {
+  flex: 1 0 auto;
+}
 .ic-ku-tot .r {
+  flex: 1 0 auto;
+  max-width: 100%;
   align-items: flex-end;
   text-align: right;
 }
@@ -161,6 +169,8 @@
   margin-right: 2px;
 }
 .ic-ku-tot .prod {
+  width: 0;
+  min-width: 100%;
   margin-top: 2px;
   font-size: 13px;
   line-height: 18px;
@@ -186,6 +196,8 @@
   color: var(--bad);
 }
 .ic-ku-tot .was {
+  width: 0;
+  min-width: 100%;
   font-size: 13px;
   line-height: 18px;
   color: var(--muted);
