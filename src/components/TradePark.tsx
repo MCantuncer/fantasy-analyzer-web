@@ -67,7 +67,8 @@ export function TradePark({ report, keep, creds, picks, onPicks, searched, onSea
   )
   const shop = useQuery({
     queryKey: ['shop', report.league.id, report.league.season, report.team_id, searched, keep, creds?.swid ?? null],
-    queryFn: () => fetchShop(report.league.id, report.team_id, report.league.season, searched, keep, creds),
+    queryFn: ({ signal }) =>
+      fetchShop(report.league.id, report.team_id, report.league.season, searched, keep, creds, signal),
     enabled: searched.length > 0,
     retry: false,
     staleTime: 5 * 60_000,

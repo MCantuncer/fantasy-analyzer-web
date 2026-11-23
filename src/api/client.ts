@@ -131,8 +131,23 @@ export class ApiError extends Error {
 // request. Reads ask again a few times before failing; writes never do, so a post isn't sent twice.
 const READ_RETRY_MS = [500, 1500, 3000]
 
-function sleep(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+/** Waits ``ms``; a caller that gives up (``signal``) stops the wait at once. */
+function sleep(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new ApiError(0, 'aborted', 'Cancelled.'))
+      return
+    }
+    const onAbort = () => {
+      clearTimeout(id)
+      reject(new ApiError(0, 'aborted', 'Cancelled.'))
+    }
+    const id = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal?.addEventListener('abort', onAbort, { once: true })
+  })
 }
 
 async function request<T>(
@@ -142,14 +157,15 @@ async function request<T>(
   creds: Credentials | null,
   timeoutMs?: number,
   retries: readonly number[] = READ_RETRY_MS,
+  signal?: AbortSignal,
 ): Promise<T> {
   for (let attempt = 0; ; attempt += 1) {
     try {
-      return await requestOnce<T>(method, path, body, creds, timeoutMs)
+      return await requestOnce<T>(method, path, body, creds, timeoutMs, signal)
     } catch (e) {
       const dropped = e instanceof ApiError && e.code !== 'timeout' && isTransient(e)
       if (!dropped || attempt >= retries.length) throw e
-      await sleep(retries[attempt])
+      await sleep(retries[attempt], signal)
     }
   }
 }
@@ -161,7 +177,9 @@ async function requestOnce<T>(
   body: unknown,
   creds: Credentials | null,
   timeoutMs?: number,
+  signal?: AbortSignal,
 ): Promise<T> {
+  if (signal?.aborted) throw new ApiError(0, 'aborted', 'Cancelled.')
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
@@ -173,8 +191,17 @@ async function requestOnce<T>(
   const token = loadToken()
   if (token) headers.Authorization = `Bearer ${token}`
   // A request that never answers (a stalled cold start, a dropped connection) must not spin forever.
-  const controller = timeoutMs ? new AbortController() : null
-  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : undefined
+  // The caller's signal (react-query cancelling a stale search) aborts the same fetch.
+  const controller = timeoutMs || signal ? new AbortController() : null
+  let timedOut = false
+  const timer = timeoutMs
+    ? setTimeout(() => {
+        timedOut = true
+        controller?.abort()
+      }, timeoutMs)
+    : undefined
+  const onAbort = () => controller?.abort()
+  signal?.addEventListener('abort', onAbort, { once: true })
   let res: Response
   try {
     res = await fetch(`${BASE}${path}`, {
@@ -184,12 +211,14 @@ async function requestOnce<T>(
       signal: controller?.signal,
     })
   } catch {
-    if (controller?.signal.aborted) {
+    if (signal?.aborted) throw new ApiError(0, 'aborted', 'Cancelled.')
+    if (timedOut) {
       throw new ApiError(0, 'timeout', 'The server took too long to answer. It may be waking up, so try again.')
     }
     throw new ApiError(0, 'network', 'Could not reach the analyzer server.')
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null)
@@ -203,8 +232,14 @@ async function requestOnce<T>(
 }
 
 /** A read: asked again if Render or the network drops it. */
-function post<T>(path: string, body: unknown, creds: Credentials | null = null, timeoutMs?: number): Promise<T> {
-  return request<T>('POST', path, body, creds, timeoutMs)
+function post<T>(
+  path: string,
+  body: unknown,
+  creds: Credentials | null = null,
+  timeoutMs?: number,
+  signal?: AbortSignal,
+): Promise<T> {
+  return request<T>('POST', path, body, creds, timeoutMs, READ_RETRY_MS, signal)
 }
 
 /** A write (or a paid check): sent once, since a dropped request may still have reached the server. */
@@ -531,17 +566,22 @@ export function fetchShop(
   offerPlayerIds: number[],
   keepPlayerIds: number[],
   creds: Credentials | null,
+  signal?: AbortSignal,
 ) {
+  // Sorted, so {Allen, Mitchell} and {Mitchell, Allen} hit the same report in the server's cache.
+  const byId = (ids: number[]) => [...ids].sort((a, b) => a - b)
   return post<ShopReport>(
     '/api/shop',
     {
       league_id: leagueId,
       team_id: teamId,
       season,
-      offer_player_ids: offerPlayerIds,
-      keep_player_ids: keepPlayerIds,
+      offer_player_ids: byId(offerPlayerIds),
+      keep_player_ids: byId(keepPlayerIds),
     },
     creds,
+    undefined,
+    signal,
   )
 }
 
@@ -671,6 +711,7 @@ export function fetchTarget(
   playerId: number,
   keepPlayerIds: number[],
   creds: Credentials | null,
+  signal?: AbortSignal,
 ) {
   return post<TargetReport>(
     '/api/target',
@@ -682,6 +723,8 @@ export function fetchTarget(
       keep_player_ids: keepPlayerIds,
     },
     creds,
+    undefined,
+    signal,
   )
 }
 
