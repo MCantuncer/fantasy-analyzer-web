@@ -280,6 +280,34 @@ describe('Where we and the book disagree', () => {
     expect([...sec.querySelectorAll('.ic-gl-who b')].map((b) => b.textContent)).toEqual(['Bb', 'Cc'])
   })
 
+  it('pages by 12 on wider screens, and a new stat or game starts the list over', async () => {
+    const a = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    const b = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'BOS', home: 'GS' }
+    a.players = Array.from({ length: 20 }, (_, i) => pl(`A${i}`, 5 + (30 - i) * 0.1, 5))
+    b.players = Array.from({ length: 10 }, (_, i) => pl(`B${i}`, 5 + (10 - i) * 0.1, 5, { stat: 'ast' }))
+    mount(night([a, b]))
+    const sec = await section()
+    const count = () => sec.querySelectorAll('.ic-gl-rows > .ic-gl-row').length
+    expect(count()).toBe(12)
+    expect([...sec.querySelectorAll('.ic-gl-row.top')]).toHaveLength(3)
+    fireEvent.click(within(sec).getByRole('button', { name: 'Show 12 more' }))
+    expect(count()).toBe(24)
+    fireEvent.click(within(sec).getByRole('button', { name: 'Show 6 more' }))
+    expect(count()).toBe(30)
+    expect(within(sec).queryByRole('button', { name: /^Show \d+ more$/ })).toBeNull()
+    // a new stat tab starts over at 12
+    fireEvent.click(within(sec).getByRole('tab', { name: 'Rebounds 20' }))
+    expect(count()).toBe(12)
+    fireEvent.click(within(sec).getByRole('button', { name: 'Show 8 more' }))
+    expect(count()).toBe(20)
+    // and so does a game
+    fireEvent.click(within(sec).getByRole('tab', { name: 'All 30' }))
+    fireEvent.click(within(sec).getByRole('button', { name: 'Show 12 more' }))
+    expect(count()).toBe(24)
+    fireEvent.change(within(sec).getByRole('combobox', { name: 'Game' }), { target: { value: '1' } })
+    expect(count()).toBe(12)
+  })
+
   it('pages by 8 on phones', async () => {
     vi.stubGlobal('matchMedia', (q: string) => ({
       matches: q === '(max-width: 719px)',

@@ -69,7 +69,8 @@ interface Props {
   onHealth?: () => void
 }
 
-/** Phones show the disagree list 8 rows at a time ("Show 8 more"); wider screens show it whole. */
+/** The disagree list comes 12 rows at a time ("Show 12 more"), 8 on phones. */
+const PAGE = 12
 const PAGE_PHONE = 8
 const PHONE = '(max-width: 719px)'
 
@@ -269,7 +270,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
     setGame(l.game.game_id)
     setOpen(null)
     if (at < 0) setFold(true)
-    else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE)))
+    else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE))) // enough pages at either size
     setFlash(l.id)
   }
   useEffect(() => {
@@ -522,7 +523,7 @@ interface ListProps {
   settled: boolean
   stat: Stat | 'ALL'
   game: number | null
-  /** Phones show the list 8 rows at a time; this many pages of it are out. */
+  /** The list comes 12 rows at a time (8 on phones); this many pages of it are out. */
   pages: number
   fold: boolean
   open: string | null
@@ -543,8 +544,8 @@ function noBetWhy(l: Line): { short: string; rung: number | null } {
 
 /** Where we and the book disagree (The Slip Rail, Can 2026-11-23): one ranked list of player lines on
  *  the bare page, the first three set larger. Stat tabs and a game select on top; the lines with no bet
- *  gathered under one line that says why; ours level with or below the book behind a fold. Phones show
- *  8 rows at a time. */
+ *  gathered under one line that says why; ours level with or below the book behind a fold. The list
+ *  comes 12 rows at a time, 8 on phones. */
 function GapList(p: ListProps) {
   const { lines, settled, stat, game } = p
   const kupons = useKuponPicks(lines)
@@ -553,9 +554,10 @@ function GapList(p: ListProps) {
   const pool = lines.filter((l) => l.kind === 'player' && inGame(l) && l.gap != null)
   const shown = pool.filter((l) => stat === 'ALL' || l.stat === stat)
   const { above, rest } = ranked(shown, stat === 'ALL')
-  const limit = phone ? p.pages * PAGE_PHONE : Infinity
+  const page = phone ? PAGE_PHONE : PAGE
+  const limit = p.pages * page
   const rows = above.slice(0, limit)
-  const more = Math.min(PAGE_PHONE, above.length - rows.length)
+  const more = Math.min(page, above.length - rows.length)
   const noBet = above.filter((l) => !l.barem)
   const firstNoBet = rows.find((l) => !l.barem)?.id
   const restBets = rest.filter((l) => l.barem).length
