@@ -1851,43 +1851,7 @@ td.keep-cell {
   border-bottom: 1px solid var(--divider);
 }
 
-/* League chat */
-.chat-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 24px;
-  align-items: start;
-}
-
-.chat-main {
-  gap: 12px;
-  min-width: 0;
-}
-
-.chat-rail {
-  gap: 16px;
-  position: sticky;
-  top: 120px;
-}
-
-@media (max-width: 900px) {
-  .chat-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .chat-rail {
-    position: static;
-  }
-}
-
-.chat-filters {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-}
-
+/* Chips (filters and toggles, used across pages) */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -1927,152 +1891,16 @@ td.keep-cell {
   font-weight: 600;
 }
 
-.chat-day {
-  gap: 10px;
-}
-
-.chat-day-label {
-  margin: 8px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-
-.feed-pill {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: var(--track);
-  color: var(--text-2);
-}
-
-.feed-pill.waiver {
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-.feed-pill.trade {
-  background: var(--raised);
-  color: var(--accent-text);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.feed-team {
-  font-weight: 600;
-}
-
 .feed-pos {
   font-size: 12px;
   color: var(--muted);
   font-weight: 500;
 }
 
-.feed-vote .row {
-  flex-wrap: wrap;
-}
-
-.feed-social {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.feed-react,
-.feed-reply-toggle {
-  min-height: 32px;
-  padding: 0 4px;
-}
-
-.feed-reply-toggle {
-  margin-left: auto;
-}
-
-.feed-post {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 4px 0;
-}
-
-.feed-post.compact {
-  padding: 0;
-}
-
-.feed-post-body {
-  gap: 4px;
-  min-width: 0;
-  flex: 1;
-}
-
-.feed-post-head {
-  gap: 8px;
-  align-items: baseline;
-}
-
-.feed-delete {
-  margin-left: auto;
-  color: var(--muted);
-}
-
 .feed-text {
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.feed-avatar {
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--raised);
-  color: var(--accent-text);
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
-  font-weight: 700;
-  font-size: 12px;
-  overflow: hidden;
-}
-
-.feed-replies {
-  gap: 12px;
-  border-top: 1px solid var(--divider);
-  padding-top: 12px;
-}
-
-.composer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.card.composer {
-  padding: 12px;
-}
-
-.composer input {
-  flex: 1;
-  min-width: 0;
-  width: auto;
-}
-
-.composer-error {
-  flex-basis: 100%;
-}
-
-.chat-me {
-  gap: 4px;
-}
-
-.chat-me .link {
-  align-self: flex-start;
-  margin-top: 4px;
 }
 
 .faab-table {
