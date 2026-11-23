@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { useState, type ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { TradeIdea } from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { PlayerCardHost } from './PlayerCard'
 import { TradeItem, Trades } from './Trades'
 
@@ -53,12 +54,31 @@ describe('Trades', () => {
   it('names the kept players above the list, with the way to change them', () => {
     const onEditKeep = vi.fn()
     const { container } = show(
-      <Trades fair={[idea]} edge={[]} keepNames={['Kyshawn George', 'Jayson Tatum']} onEditKeep={onEditKeep} />,
+      <Trades
+        fair={[idea]}
+        edge={[]}
+        kept={[ref(5, 'Kyshawn George'), ref(6, 'Jayson Tatum')]}
+        onEditKeep={onEditKeep}
+      />,
     )
     const view = within(container)
     expect(container.querySelector('.trades-kept')).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
     fireEvent.click(view.getByRole('button', { name: 'Change in My Team' }))
     expect(onEditKeep).toHaveBeenCalledOnce()
+  })
+
+  it('opens the card from each kept name, each with a small face', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = show(<Trades fair={[idea]} edge={[]} kept={[ref(5, 'Kyshawn George'), ref(6, 'Jayson Tatum')]} />)
+    const line = container.querySelector('.trades-kept') as HTMLElement
+    expect(line).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
+    expect(line.querySelectorAll('.pin .head')).toHaveLength(2)
+    // The comma and the full stop stay on the line of the name they follow.
+    expect([...line.querySelectorAll('.pin')].map((p) => p.textContent)).toEqual(['Kyshawn George,', 'Jayson Tatum.'])
+    fireEvent.click(within(line).getByRole('button', { name: 'Jayson Tatum' }))
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 6 }))
+    act(() => setPlayerCardHost(null))
   })
 
   it('opens on Fair when a trade helps both teams', () => {
@@ -117,7 +137,9 @@ describe('TradeItem', () => {
     // Open: no separate chip list, the offer's own names (and the drop) open the card.
     expect(screen.queryByRole('region', { name: 'Players in this deal' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Davion Mitchell' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Kris Dunn' })).toBeInTheDocument()
+    const dunn = screen.getByRole('button', { name: 'Kris Dunn' })
+    // The drop has no face in the lanes, so his line carries a small one.
+    expect(dunn.closest('.pin')?.querySelector('.pc-link-face .head')).not.toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Jaylen Brown' }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(toggle).toHaveAttribute('aria-expanded', 'true')

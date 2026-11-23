@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, within } from '@testing-library/react'
+import { act, fireEvent, render, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AnalysisReport, OfferCheck, PlayerRef } from '../api/client'
 import sample from '../test/offer-check-1for2.json'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { TradeCheck } from './TradeCheck'
 import { TradeCheckHero } from './TradeCheckHero'
 
@@ -27,6 +28,19 @@ describe('TradeCheckHero', () => {
     expect([...container.querySelectorAll('.tck-hero-delta')].map((d) => d.textContent?.trim())).toEqual(['+10', '−7'])
     expect(view.getByText('You send')).toBeInTheDocument()
     expect(view.getByText('Bane')).toBeInTheDocument()
+  })
+
+  it('opens the card from each name and face in the deal', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = render(
+      <TradeCheckHero check={check} give={give} get={get} myName="Kucukesat Aspavas" partnerName="Horns" />,
+    )
+    const deal = container.querySelector('.tck-hero-deal') as HTMLElement
+    expect(deal.querySelectorAll('button.pc-link-face .head')).toHaveLength(3)
+    fireEvent.click(within(deal).getByRole('button', { name: 'Bane' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Desmond Bane' }))
+    act(() => setPlayerCardHost(null))
   })
 
   it('names another team in place of You, with its own buttons', () => {
@@ -104,6 +118,19 @@ describe('TradeCheck picker (phone)', () => {
     expect(view.getByText(/\+1 cut\./)).toBeInTheDocument()
     expect(go).toBeEnabled()
     expect(new URLSearchParams(window.location.search).get('check')).toBe('t9.g1.r11-12')
+  })
+
+  it("opens each picked player's card from his name in the tray", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = renderCheck('/?tab=park&check=t9')
+    fireEvent.click(within(container).getByRole('button', { name: /^Jarrett Allen/ }))
+    fireEvent.click(within(container).getByRole('button', { name: /^Josh Giddey/ }))
+    const tray = container.querySelector('.tck-tray-names') as HTMLElement
+    expect(tray).toHaveTextContent('Allen')
+    fireEvent.click(within(tray).getByRole('button', { name: 'Giddey' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 11 }))
+    act(() => setPlayerCardHost(null))
   })
 
   it('drops players who have moved since the link was made, and waits to check', () => {

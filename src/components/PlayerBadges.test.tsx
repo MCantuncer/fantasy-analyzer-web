@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { PlayerBadge } from '../api/client'
-import { InjuryTag, PlayerBadges } from './PlayerBadges'
+import type { PlayerBadge, PlayerRef } from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
+import { BadgeNotes, InjuryTag, PlayerBadges } from './PlayerBadges'
 
 const keystone = { kind: 'keystone', category: 'BLK', reason: 'His owner leans on him for blocks.' } as PlayerBadge
 const hot = { kind: 'hot', reason: 'Playing well above his line.' } as PlayerBadge
@@ -50,5 +51,23 @@ describe('InjuryTag', () => {
     expect(screen.getByText('DTD')).toBeInTheDocument()
     rerender(<InjuryTag status="ACTIVE" />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('BadgeNotes', () => {
+  afterEach(() => {
+    cleanup()
+    setPlayerCardHost(null)
+  })
+
+  it("opens the player's card from his name, with a small face", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const p = { id: 5, name: 'Evan Mobley', pro_team: 'CLE', badges: [keystone] } as unknown as PlayerRef
+    const { container } = render(<BadgeNotes players={[p]} />)
+    expect(container.querySelector('li')).toHaveTextContent('Keystone · BLK Evan Mobley: His owner leans on him for blocks.')
+    expect(container.querySelector('.pin button.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Evan Mobley' }))
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 5 }))
   })
 })

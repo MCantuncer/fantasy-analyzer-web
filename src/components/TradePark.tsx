@@ -35,6 +35,7 @@ import {
 import { CatStrip } from './CatStrip'
 import { MaybeHandshake } from './MaybeHandshake'
 import { PlayerLink } from './PlayerCard'
+import { PlayerInline, PlayerList } from './PlayerInline'
 import { TeamCrest } from './TeamCrest'
 import { EndLabel, OddsPlate, TheirSide, TradeTable, Wants } from './TradeTable'
 import './TradePark.css'
@@ -69,6 +70,11 @@ function sameSet(a: number[], b: number[]) {
 
 function lastNames(players: { name: string }[]) {
   return players.map((p) => lastName(p.name)).join(' + ')
+}
+
+/** The same "Allen + Mobley", each last name opening that player's card. */
+function LastNames({ players, tail }: { players: PlayerRef[]; tail?: string }) {
+  return <PlayerList players={players} sep=" + " name={(p) => lastName(p.name)} face={false} tail={tail} />
 }
 
 /** "15-21-0" -> 15 wins, for the Every team order. */
@@ -147,6 +153,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
   const updating = data != null && !current && !failed
   const status = finding ? 'Finding deals' : updating ? 'Updating' : null
   const who = lastNames(pickedPlayers)
+  const whoLinks = <LastNames players={pickedPlayers} />
 
   // The deal on the table: the best one, until a row below the table puts another there.
   const market = useMemo(() => (data ? shopMarket(data) : null), [data])
@@ -271,10 +278,12 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
     <div className="park-rail" ref={railRef}>
       {pickedPlayers.map((p) => (
         <span key={p.id} className="park-chip">
-          <span className="park-face park-you">
-            <PlayerHead player={p} size={32} team={p.pro_team} />
-          </span>
-          {lastName(p.name)}
+          <PlayerLink player={p} decorative>
+            <span className="park-face park-you">
+              <PlayerHead player={p} size={32} team={p.pro_team} />
+            </span>
+          </PlayerLink>
+          <PlayerLink player={p}>{lastName(p.name)}</PlayerLink>
           <button
             type="button"
             className="park-chip-x"
@@ -432,7 +441,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
       <>
         <EndLabel end="get" />
         <p className="park-note">
-          Checking {teams.length} rosters for {who}
+          Checking {teams.length} rosters for {whoLinks}
         </p>
         <div className="park-loading" aria-hidden="true">
           <span className="tt-skel" style={{ height: 48, width: '60%' }} />
@@ -445,13 +454,13 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
   } else {
     const working = updating ? (
       <p className="park-note">
-        Showing {lastNames(data.offered)} · updating for {who}
+        Showing <LastNames players={data.offered} /> · updating for {whoLinks}
       </p>
     ) : failed ? (
       <div className="park-err" role="alert">
         <WarningCircle size={18} aria-hidden="true" />
         <span>
-          Couldn't update for {who}. {shop.error?.message}
+          Couldn't update for <LastNames players={pickedPlayers} tail="." /> {shop.error?.message}
         </span>
         <button type="button" className="tt-btn" onClick={() => shop.refetch()}>
           <ArrowClockwise size={18} aria-hidden="true" />
@@ -514,7 +523,9 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
         <EndLabel end="get" />
         {working}
         <div className="park-block tt-fade">
-          <span className="park-block-h2">No deal for {lastNames(data.offered)}</span>
+          <span className="park-block-h2">
+            No deal for <LastNames players={data.offered} />
+          </span>
           <p>All {data.teams.length} rosters checked. None looks like a win for them and helps you.</p>
           <div className="tt-actions">
             {!full && (
@@ -551,7 +562,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
                     `Pick up to ${MAX_PICKS} · deals load as you pick`
                   ) : (
                     <>
-                      <span className="park-who-label">{who} · </span>
+                      <span className="park-who-label">{whoLinks} · </span>
                       {shopping.length} of {MAX_PICKS}
                     </>
                   )}
@@ -644,20 +655,20 @@ function DealNotes({ deal: d }: { deal: ShopDeal }) {
   if (d.my_drop)
     notes.push(
       <>
-        You drop <PlayerLink player={d.my_drop} /> to make room.
+        You drop <PlayerInline player={d.my_drop} /> to make room.
       </>,
     )
   if (d.my_add)
     notes.push(
       <>
-        You send more than you get back: pick up <PlayerLink player={d.my_add} /> from free agency. The odds include
+        You send more than you get back: pick up <PlayerInline player={d.my_add} /> from free agency. The odds include
         him.
       </>,
     )
   if (d.their_drop)
     notes.push(
       <>
-        They would likely drop <PlayerLink player={d.their_drop} />.
+        They would likely drop <PlayerInline player={d.their_drop} tail="." />
       </>,
     )
   for (const w of d.warnings ?? []) notes.push(w)
@@ -724,7 +735,6 @@ function EveryTeam({ data, market, onTable, colours, onPick }: EveryTeamProps) {
       ]
     : []
   const onTableKey = onTable ? tradeKey(onTable) : null
-  const nobody = offered.map((p) => lastName(p.name)).join(' or ')
 
   return (
     <section className="park-market" aria-labelledby="park-every">
@@ -756,8 +766,17 @@ function EveryTeam({ data, market, onTable, colours, onPick }: EveryTeamProps) {
         {market.noLift.map((t) => (
           <li key={t.team_id} className="park-drow park-dim">
             <span className="park-dg">
+              <span className="head-stack">
+                {offered.slice(0, 3).map((p) => (
+                  <PlayerLink key={p.id} player={p} decorative>
+                    <PlayerHead player={p} size={40} team={p.pro_team} />
+                  </PlayerLink>
+                ))}
+              </span>
               <span className="park-dwho">
-                <span className="park-dnm">{nobody}</span>
+                <span className="park-dnm">
+                  <PlayerList players={offered} sep=" or " name={(p) => lastName(p.name)} face={false} />
+                </span>
                 <span className="park-dmt num">
                   {t.deals_found} {t.deals_found === 1 ? 'deal passes' : 'deals pass'} the checks
                 </span>

@@ -1,5 +1,6 @@
-import { render, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { P, pickup, report, trade } from '../test/newsSince'
 import { BestMove } from './BestMove'
 import { Outlook } from './Outlook'
@@ -48,5 +49,24 @@ describe('Outlook for a scouted team', () => {
     expect(container.querySelector('.ol-rung.scout svg')?.getAttribute('aria-label')).toBe('Horns')
     expect(container.textContent).toMatch(/Horns, projected \d/)
     expect(container.textContent).not.toContain('You')
+  })
+})
+
+describe('BestMove player cards', () => {
+  afterEach(() => {
+    cleanup()
+    setPlayerCardHost(null)
+  })
+
+  it('opens the card from the drop and add notes, each with a small face', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const idea = { ...trade(THEM, [P.mitchell], [P.morant], 0.4, 0.5), acceptance: 0.6, my_drop: P.lopez }
+    const { container } = render(<BestMove report={report({ trades: [idea] })} />)
+    const note = container.querySelector('.bm-note') as HTMLElement
+    expect(note).toHaveTextContent(`and drop ${P.lopez.name}`)
+    expect(note.querySelector('.pin button.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(within(note).getByRole('button', { name: P.lopez.name }))
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: P.lopez.id }))
   })
 })
