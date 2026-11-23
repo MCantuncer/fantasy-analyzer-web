@@ -21,7 +21,8 @@ import { dashRecord, lastName, oddsToday, strongIn, wantedCategories } from '../
 import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
 import { CatStrip } from './CatStrip'
 import { MaybeHandshake } from './MaybeHandshake'
-import { PlayerLink } from './PlayerCard'
+import { DealChips, PlayerLink } from './PlayerCard'
+import { PlayerInline } from './PlayerInline'
 import { HeadStack, PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import { EndLabel, OddsPlate, TheirSide, TradeTable, Wants, type CrestTeam } from './TradeTable'
@@ -310,7 +311,16 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
         label="Your odds with him"
         value={data.fit.playoff_pct_after}
         from={data.fit.playoff_pct_before}
-        note={`Ceiling: he comes free${data.fit.my_drop ? `, ${data.fit.my_drop.name} goes` : ''}`}
+        note={
+          <>
+            Ceiling: he comes free
+            {data.fit.my_drop && (
+              <>
+                , <PlayerInline player={data.fit.my_drop} /> goes
+              </>
+            )}
+          </>
+        }
       />
     )
   } else if (today) {
@@ -413,7 +423,9 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
               </div>
               {data && <OwnerFacts data={data} />}
               {data?.owner.target_is_star && (
-                <p className="tf-note">{him.name} is one of their two most valued players, so expect to overpay on paper.</p>
+                <p className="tf-note">
+                  <PlayerLink player={him} /> is one of their two most valued players, so expect to overpay on paper.
+                </p>
               )}
             </div>
             {target.isError ? (
@@ -441,7 +453,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
                     <PaperPlaneTilt size={20} aria-hidden="true" />
                     <b>No offer to send</b>
                     <p>
-                      No package for {him.name} helps you and looks like a win for {ownerName}.
+                      No package for <PlayerLink player={him} /> helps you and looks like a win for {ownerName}.
                     </p>
                     <div className="tt-actions">
                       <button type="button" className="tt-btn" onClick={() => check([], [him.id])}>
@@ -465,6 +477,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
                             <OfferRow offer={o} on={on} onPick={() => setOfferIndex(i)} />
                             {on && (
                               <div className="tf-offer-open">
+                                <DealChips deal={o} />
                                 <TheirSide
                                   partner={ownerName}
                                   pitch={o.pitch}

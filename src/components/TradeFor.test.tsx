@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AnalysisReport, PlayerRef, TargetOffer, TargetReport } from '../api/client'
 import * as client from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { TradeFor } from './TradeFor'
 
 const player = (id: number, name: string, over: Partial<PlayerRef> = {}) =>
@@ -139,6 +140,7 @@ function setup(keep: number[] = []) {
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  setPlayerCardHost(null)
 })
 
 describe('TradeFor, nothing picked', () => {
@@ -215,6 +217,37 @@ describe('TradeFor, a player picked', () => {
     expect(within(container).getByRole('status').textContent).toBe('Best offer: Tatum for Mobley, odds 54 to 56')
     fireEvent.click(screen.getByRole('button', { name: 'Check This Trade' }))
     expect(onCheck).toHaveBeenLastCalledWith({ partner: 1, give: [1], get: [21], mode: 'sending', cut: 4 })
+  })
+
+  it("shows the opened offer's players as chips, and links the ceiling's drop", async () => {
+    vi.spyOn(client, 'fetchTarget').mockResolvedValue(targetReport([offer]))
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = setup()
+    fireEvent.click(screen.getByRole('button', { name: /Evan Mobley/ }))
+    const chips = await screen.findByRole('region', { name: 'Players in this deal' })
+    expect(container.querySelector('.tf-offer-open')).toContainElement(chips)
+    expect(chips.querySelectorAll('.head')).toHaveLength(3)
+    fireEvent.click(within(chips).getByRole('button', { name: 'Cam Spencer' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 4 }))
+  })
+
+  it("links the ceiling's drop on the centre line when there is no offer", async () => {
+    vi.spyOn(client, 'fetchTarget').mockResolvedValue(targetReport([]))
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = setup()
+    fireEvent.click(screen.getByRole('button', { name: /Evan Mobley/ }))
+    await screen.findByText('No offer to send')
+    const note = container.querySelector('.tt-plate-note') as HTMLElement
+    expect(note).toHaveTextContent('Ceiling: he comes free, Neemias Queta goes')
+    expect(note.querySelector('.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(within(note).getByRole('button', { name: 'Neemias Queta' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 9 }))
+    // "No package for Evan Mobley": his name opens his card too.
+    const block = container.querySelector('.tf-block') as HTMLElement
+    fireEvent.click(within(block).getByRole('button', { name: 'Evan Mobley' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 21 }))
   })
 
   it('offers his teammates in the foot, and clears back to the fits', async () => {

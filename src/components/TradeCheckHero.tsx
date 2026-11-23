@@ -3,6 +3,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import { injuryShort } from '../lib/injury'
 import { ACCEPTANCE_WORD, CALL, PARTNER_CALL, checkSummary, pointChange, reasonTail, surname } from '../lib/tradeCheck'
+import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import './TradeCheckHero.css'
@@ -64,14 +65,18 @@ function Side({ label, players }: { label: string; players: PlayerRef[] }) {
         {players.map((p) => (
           <li key={p.id}>
             <span className="tck-hero-face">
-              <PlayerHead player={p} size={44} team={p.pro_team} />
+              <PlayerLink player={p} decorative>
+                <PlayerHead player={p} size={44} team={p.pro_team} />
+              </PlayerLink>
               {p.injury_status !== 'ACTIVE' && (
                 <span className={`tck-hero-inj${p.injury_status === 'OUT' ? ' out' : ''}`} aria-hidden="true">
                   {injuryShort(p.injury_status)}
                 </span>
               )}
             </span>
-            <span className="tck-hero-name">{surname(p.name)}</span>
+            <span className="tck-hero-name">
+              <PlayerLink player={p}>{surname(p.name)}</PlayerLink>
+            </span>
           </li>
         ))}
       </ul>

@@ -15,7 +15,8 @@ import { InjuryBadges } from './InjuryBadges'
 import { ordinal, pct, ptsDiff } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
-import { PlayerChips } from './PlayerCard'
+import { PlayerChips, PlayerLink } from './PlayerCard'
+import { PlayerInline } from './PlayerInline'
 import { SpotDays } from './MoveTiming'
 import { teamLogoUrl } from '../lib/league'
 import {
@@ -197,9 +198,14 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
         <>
           {sharedDrop && (
             <p className="pk-shared">
-              <PlayerHead player={sharedDrop} size={28} team={sharedDrop.pro_team} />
+              <PlayerLink player={sharedDrop} decorative>
+                <PlayerHead player={sharedDrop} size={28} team={sharedDrop.pro_team} />
+              </PlayerLink>
               <span>
-                Each one replaces <strong>{sharedDrop.name}</strong>
+                Each one replaces{' '}
+                <strong>
+                  <PlayerLink player={sharedDrop} />
+                </strong>
               </span>
               {sameStart && <span className="pk-from num">from {pct(first.playoff_pct_before)}</span>}
             </p>
@@ -309,7 +315,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                         <ul className="reasons">
                           {addGame?.state === 'out' && (
                             <li>
-                              {p.add.name} is listed out
+                              <PlayerLink player={p.add} /> is listed out
                               {addGame.back
                                 ? `; expected back ${new Date(`${addGame.back}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })}`
                                 : ''}
@@ -328,14 +334,15 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                           )}
                           {p.open_spot_by_trade ? (
                             <li>
-                              {p.drop.name} has trade value ({Math.round(p.drop.percent_owned)}% owned), so don't
-                              release him: move him in a trade that brings back fewer players, then add {p.add.name}.
+                              <PlayerLink player={p.drop} /> has trade value ({Math.round(p.drop.percent_owned)}%
+                              owned), so don't release him: move him in a trade that brings back fewer players, then add{' '}
+                              <PlayerInline player={p.add} face={false} tail="." />
                             </li>
                           ) : (
                             <li>
                               <ArrowsLeftRight size={14} aria-hidden="true" className="fa-swap" /> You drop{' '}
-                              {p.drop.name} ({p.drop.positions.join('/')}, {Math.round(p.drop.percent_owned)}% owned):
-                              replaceable from free agency.
+                              <PlayerLink player={p.drop} /> ({p.drop.positions.join('/')},{' '}
+                              {Math.round(p.drop.percent_owned)}% owned): replaceable from free agency.
                             </li>
                           )}
                         </ul>
