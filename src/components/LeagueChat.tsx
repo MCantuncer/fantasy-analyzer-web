@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FeedSkeleton } from './Skeleton'
+import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
@@ -158,12 +159,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
         ) : (
           onVerify && (
-            <div className="verify-banner">
-              <span>Manage a team here? Verify it to post, reply and react.</span>
-              <button type="button" onClick={onVerify}>
-                Verify
-              </button>
-            </div>
+            <VerifyBanner detail="Verify it to post, reply and react." action="Verify" onClick={onVerify} />
           )
         )}
 
