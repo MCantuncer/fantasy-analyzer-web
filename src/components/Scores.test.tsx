@@ -245,12 +245,12 @@ describe('Scores', () => {
       most_within: 5.5,
       lines: [
         { player_id: 2, name: 'Amen Thompson', pro_team_id: 10, pts: 20, minutes: 18, line_pts: 16, line_minutes: 34, final: 31.2, rest: 11.2, minutes_left: 15.6 },
-        { player_id: 3, name: 'Tari Eason', pro_team_id: 10, pts: 2, minutes: 10, line_pts: 11, line_minutes: 24, final: 8.1, rest: 6.1, minutes_left: 12 },
+        { player_id: 3, name: 'Tari Eason', pro_team_id: 10, pts: 2, minutes: 10, line_pts: 11, line_minutes: 24, final: 8.1, rest: 6.1, minutes_left: 12, fouls: 5 },
         { player_id: 4, name: 'Victor Wembanyama', pro_team_id: 24, pts: 25, minutes: 17, line_pts: 24, line_minutes: 33, final: 40.5, rest: 15.5, minutes_left: 16 },
       ],
       quarters: {
         period: 2,
-        away: { pro_team_id: 10, pregame: [29, 28, 29, 27], real: [33, 28], live: [33, 28, 28.6, 26.3] },
+        away: { pro_team_id: 10, pregame: [29, 28, 29, 27], real: [33, 28], live: [33, 28, 28.6, 26.3], fouls: 1, bonus: true },
         home: { pro_team_id: 24, pregame: [28, 28, 28, 27], real: [25, 24], live: [25, 24, 28.4, 27.3] },
       },
     }
@@ -261,7 +261,7 @@ describe('Scores', () => {
     const panel = await screen.findByRole('region', { name: 'Live line' })
     expect(within(panel).getByText(/as of Half/)).toBeInTheDocument()
     const rows = within(panel).getAllByRole('listitem')
-    expect(rows.map((r) => r.textContent?.split(':')[0])).toEqual(['Amen Thompson', 'Tari Eason'])
+    expect(rows.map((r) => r.querySelector('.lvl-who')?.textContent)).toEqual(['Amen Thompson', 'Tari Eason'])
     expect(rows[0]).toHaveTextContent('20 now, ends about 31, +15 against his line of 16.')
     expect(rows[1]).toHaveTextContent('−3')
     expect(within(panel).getByText(/half of finals land within 3.1 points/)).toBeInTheDocument()
@@ -270,6 +270,8 @@ describe('Scores', () => {
     const table = within(panel).getByRole('table')
     expect(table).toHaveAccessibleName(/Houston Rockets: 1st 33; 2nd 28 so far, about 28 by its end; 3rd about 29; 4th about 26/)
     expect(within(table).getByText('was 27')).toBeInTheDocument()
+    expect(within(table).getByText('Bonus')).toBeInTheDocument()
+    expect(rows[1]).toHaveTextContent('5 fouls')
     // The other team's players once the switch shows them.
     fireEvent.click(screen.getByRole('button', { name: 'San Antonio Spurs' }))
     expect(within(screen.getByRole('region', { name: 'Live line' })).getAllByRole('listitem')).toHaveLength(1)

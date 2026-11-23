@@ -862,6 +862,8 @@ export interface LivePlayerLine {
   final: number
   rest: number
   minutes_left: number
+  /** Personal fouls so far; null when ESPN's box can't be read. */
+  fouls?: number | null
 }
 
 /** One side's quarters in a game in progress. */
@@ -873,6 +875,10 @@ export interface LiveQuarterSide {
   real: number[]
   /** Q1-Q4 now: real when played, real so far plus the rest in progress, our number moved by the score after. */
   live: number[]
+  /** Team fouls in the quarter in progress; null when not known. */
+  fouls?: number | null
+  /** The other side is in the penalty: each foul gives this side free throws. Null when not known. */
+  bonus?: boolean | null
 }
 
 export interface LiveQuarters {

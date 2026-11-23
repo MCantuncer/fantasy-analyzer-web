@@ -39,14 +39,38 @@ export function honesty(data: LiveLines): string {
   return `At this point half of finals land within ${h} points of our number; 8 in 10 within ${m}.`;
 }
 
+export type FoulTag = { text: string; level: "trouble" | "five" | "out" };
+
+/** His fouls when they cost him minutes (api app/liveline.py foul_share): foul trouble is the quarter he
+    plays next + 1 (2 in the 1st, 3 in the 2nd, 4 in the 3rd), then 5, then fouled out at 6. */
+export function foulTag(
+  fouls: number | null | undefined,
+  elapsed: number,
+): FoulTag | null {
+  if (!fouls) return null;
+  if (fouls >= 6) return { text: "Fouled out", level: "out" };
+  if (fouls === 5) return { text: "5 fouls", level: "five" };
+  const quarter =
+    elapsed % 12 === 0 ? elapsed / 12 + 1 : Math.ceil(elapsed / 12);
+  return fouls >= quarter + 1
+    ? { text: `${fouls} fouls`, level: "trouble" }
+    : null;
+}
+
 /** What a screen reader hears after a row's name. */
-export function rowSentence(r: LivePlayerLine): string {
+export function rowSentence(r: LivePlayerLine, elapsed = 0): string {
   const v = vsLine(r);
   const against =
     v.dir === "even"
       ? "on his line"
       : `${v.text} against his line of ${Math.round(r.line_pts)}`;
-  return `${r.pts} now, ends about ${Math.round(r.final)}, ${against}.`;
+  const tag = foulTag(r.fouls, elapsed);
+  const fouls = tag
+    ? tag.level === "out"
+      ? " Fouled out."
+      : ` ${tag.text}: fewer minutes left.`
+    : "";
+  return `${r.pts} now, ends about ${Math.round(r.final)}, ${against}.${fouls}`;
 }
 
 export type QuarterCell =
@@ -101,5 +125,6 @@ export function quarterSentence(
         ? `${ord[i]} ${c.sofar} so far, about ${c.value} by its end`
         : `${ord[i]} about ${c.value}`,
   );
-  return `${name}: ${parts.join("; ")}; about ${gameCell(side, period).ends} in all.`;
+  const bonus = side.bonus ? " In the bonus." : "";
+  return `${name}: ${parts.join("; ")}; about ${gameCell(side, period).ends} in all.${bonus}`;
 }

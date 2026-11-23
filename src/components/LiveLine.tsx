@@ -4,6 +4,7 @@ import { fetchLiveLines } from "../api/client";
 import type { Game } from "../api/client";
 import type { Credentials } from "../lib/credentials";
 import {
+  foulTag,
   honesty,
   rowSentence,
   scaleOf,
@@ -79,8 +80,9 @@ export function LiveLine({
           <p className="lvl-note lvl-qnote small muted">
             Played quarters are real; the rest is our number, moved by the
             score. A team ahead of the margin we called gives back about 6.5% of
-            the extra each quarter left. Half of quarters land within 4 points
-            of our number.
+            the extra each quarter left; a team in the bonus scores about 0.1
+            more a minute left in the quarter. Half of quarters land within 4
+            points of our number.
           </p>
         </>
       )}
@@ -97,11 +99,24 @@ export function LiveLine({
           <ol className="lvl-rows">
             {rows.map((r) => {
               const v = vsLine(r);
+              const pf = foulTag(r.fouls, data.elapsed ?? 0);
               return (
                 <li key={r.player_id} className="lvl-row">
                   <span className="lvl-name">
-                    <PlayerLink player={{ id: r.player_id, name: r.name }} />
-                    <span className="sr-only">: {rowSentence(r)}</span>
+                    <span className="lvl-who">
+                      <PlayerLink player={{ id: r.player_id, name: r.name }} />
+                    </span>
+                    {pf && (
+                      <span
+                        className={`lvl-pf lvl-pf-${pf.level}`}
+                        aria-hidden="true"
+                      >
+                        {pf.text}
+                      </span>
+                    )}
+                    <span className="sr-only">
+                      : {rowSentence(r, data.elapsed ?? 0)}
+                    </span>
                   </span>
                   <span className="lvl-track" aria-hidden="true">
                     <span
@@ -136,7 +151,7 @@ export function LiveLine({
           <p className="lvl-note small muted">
             From his line at tip-off, his night so far and the score. A quiet
             start isn't made up later; a big lead or deficit costs starters
-            minutes. {honesty(data)}
+            minutes, and so do foul trouble and 5 fouls. {honesty(data)}
           </p>
         </>
       )}

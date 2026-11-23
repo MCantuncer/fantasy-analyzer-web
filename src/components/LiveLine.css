@@ -62,11 +62,34 @@
 }
 .lvl-name {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 550;
+}
+.lvl-who {
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 550;
+}
+/* Fouls that cost him minutes: foul trouble quiet, 5 fouls and fouled out in the warning red. */
+.lvl-pf {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.lvl-pf-five,
+.lvl-pf-out {
+  color: var(--bad);
+  background: var(--bad-soft);
 }
 .lvl-track {
   position: relative;

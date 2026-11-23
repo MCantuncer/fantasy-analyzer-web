@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LiveLines, LivePlayerLine } from "../api/client";
 import {
+  foulTag,
   gameCell,
   honesty,
   quarterCells,
@@ -106,5 +107,41 @@ describe("live quarters", () => {
     expect(quarterSentence("Detroit Pistons", side, 3)).toBe(
       "Detroit Pistons: 1st 31; 2nd 29; 3rd 16 so far, about 30 by its end; 4th about 26; about 116 in all.",
     );
+  });
+});
+
+describe("fouls", () => {
+  it("tags fouls only when they cost minutes", () => {
+    expect(foulTag(null, 24)).toBeNull();
+    expect(foulTag(2, 6)).toEqual({ text: "2 fouls", level: "trouble" }); // 2 in the 1st
+    expect(foulTag(2, 12)).toBeNull(); // end of the 1st: the 2nd allows 2
+    expect(foulTag(3, 12)).toEqual({ text: "3 fouls", level: "trouble" });
+    expect(foulTag(3, 30)).toBeNull();
+    expect(foulTag(4, 30)?.level).toBe("trouble");
+    expect(foulTag(5, 40)).toEqual({ text: "5 fouls", level: "five" });
+    expect(foulTag(6, 40)).toEqual({ text: "Fouled out", level: "out" });
+  });
+
+  it("says so to screen readers", () => {
+    expect(rowSentence(row({ fouls: 4 }), 30)).toMatch(
+      /4 fouls: fewer minutes left\.$/,
+    );
+    expect(rowSentence(row({ fouls: 6, final: 6 }), 30)).toMatch(
+      /Fouled out\.$/,
+    );
+    expect(rowSentence(row({ fouls: 1 }), 30)).toMatch(/line of 26\.$/);
+  });
+
+  it("marks a side in the bonus", () => {
+    const side = {
+      pro_team_id: 8,
+      pregame: [29, 28, 28, 27],
+      real: [31, 29, 16],
+      live: [31, 29, 30.4, 26],
+    };
+    expect(
+      quarterSentence("Detroit Pistons", { ...side, bonus: true }, 3),
+    ).toMatch(/in all\. In the bonus\.$/);
+    expect(quarterSentence("Detroit Pistons", side, 3)).toMatch(/in all\.$/);
   });
 });
