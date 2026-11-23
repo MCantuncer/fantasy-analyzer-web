@@ -231,6 +231,41 @@ describe('Scores', () => {
     expect(screen.queryByText(/no quarter or game clock/)).toBeNull()
   })
 
+  it('shows where each player of the shown team ends tonight under a live box score', async () => {
+    const live = { ...DAY, live: true, games: [{ ...DAY.games[0], status: 'live', clock: 'Half' }] }
+    const lines = {
+      league_id: 1,
+      season: 2027,
+      day: 4,
+      game_id: 7,
+      status: 'live',
+      clock: 'Half',
+      elapsed: 24,
+      half_within: 3.1,
+      most_within: 5.5,
+      lines: [
+        { player_id: 2, name: 'Amen Thompson', pro_team_id: 10, pts: 20, minutes: 18, line_pts: 16, line_minutes: 34, final: 31.2, rest: 11.2, minutes_left: 15.6 },
+        { player_id: 3, name: 'Tari Eason', pro_team_id: 10, pts: 2, minutes: 10, line_pts: 11, line_minutes: 24, final: 8.1, rest: 6.1, minutes_left: 12 },
+        { player_id: 4, name: 'Victor Wembanyama', pro_team_id: 24, pts: 25, minutes: 17, line_pts: 24, line_minutes: 33, final: 40.5, rest: 15.5, minutes_left: 16 },
+      ],
+    }
+    const fetchMock = mockApi({ '/api/scores/games': () => live, '/api/scores': () => live, '/api/scores/live-lines': () => lines })
+    renderScores()
+    await screen.findAllByText('Half')
+    fireEvent.click(screen.getAllByRole('button', { name: /HOU/ })[0])
+    const panel = await screen.findByRole('region', { name: 'Live line' })
+    expect(within(panel).getByText(/as of Half/)).toBeInTheDocument()
+    const rows = within(panel).getAllByRole('listitem')
+    expect(rows.map((r) => r.textContent?.split(':')[0])).toEqual(['Amen Thompson', 'Tari Eason'])
+    expect(rows[0]).toHaveTextContent('20 now, ends about 31, +15 against his line of 16.')
+    expect(rows[1]).toHaveTextContent('−3')
+    expect(within(panel).getByText(/half of finals land within 3.1 points/)).toBeInTheDocument()
+    expect(bodies(fetchMock, '/api/scores/live-lines')).toContainEqual(expect.objectContaining({ game_id: 7 }))
+    // The other team's players once the switch shows them.
+    fireEvent.click(screen.getByRole('button', { name: 'San Antonio Spurs' }))
+    expect(within(screen.getByRole('region', { name: 'Live line' })).getAllByRole('listitem')).toHaveLength(1)
+  })
+
   it('shows a break as a paused word with no clock', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve(
