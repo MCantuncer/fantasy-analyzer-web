@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Binoculars, Scales, Table, Target, Ticket, UserFocus, X } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, X } from '@phosphor-icons/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ApiError,
@@ -17,85 +17,13 @@ import type { Theme } from '../lib/theme'
 import { ProMark } from './Pro'
 import './ProSheet.css'
 
-// Small drawings of the real spots, in the tile's text colour.
-const DRAW: Record<string, ReactNode> = {
-  next: (
-    <svg viewBox="0 0 72 30" fill="currentColor">
-      {[0, 10, 20, 30, 40, 50, 60].map((x) => (
-        <g key={x}>
-          <rect x={x} y="3" width="6" height="2" rx="1" opacity=".5" />
-          <rect x={x} y="11" width="6" height="12" rx="2.5" />
-        </g>
-      ))}
-    </svg>
-  ),
-  call: (
-    <svg viewBox="0 0 72 30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <circle cx="5" cy="8" r="4" />
-      <circle cx="5" cy="22" r="4" />
-      <path d="M13 8h20M13 22h14" />
-      <rect x="42" y="2" width="29" height="26" rx="6" />
-      <path d="M48 9h12M48 21h12" />
-      <path d="M66 18.5l-3.5 2.5 3.5 2.5" />
-    </svg>
-  ),
-  box: (
-    <svg viewBox="0 0 72 30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <rect x="1" y="1" width="70" height="28" rx="5" />
-      <path d="M1 10h70M1 19.5h70M24 1v28M40 1v28M56 1v28" />
-    </svg>
-  ),
-  estimates: (
-    <svg
-      viewBox="0 0 72 30"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 2h62a3 3 0 0 1 3 3v5a5 5 0 0 0 0 10v5a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-5a5 5 0 0 0 0-10V5a3 3 0 0 1 3-3z" />
-      <path d="M14 10l2.5 2.5L21 8M14 20l2.5 2.5L21 18" />
-      <path d="M27 11h30M27 21h22" />
-    </svg>
-  ),
-  book: (
-    <svg viewBox="0 0 72 30" fill="currentColor">
-      <rect x="0" y="3" width="26" height="5" rx="2.5" opacity=".4" />
-      <rect x="6" y="12.5" width="20" height="5" rx="2.5" opacity=".4" />
-      <rect x="2" y="22" width="24" height="5" rx="2.5" opacity=".4" />
-      <rect x="34.2" y="0" width="1.6" height="30" rx=".8" />
-      <rect x="44" y="3" width="28" height="5" rx="2.5" />
-      <rect x="44" y="12.5" width="22" height="5" rx="2.5" />
-      <rect x="44" y="22" width="26" height="5" rx="2.5" />
-    </svg>
-  ),
-  scout: (
-    <svg
-      viewBox="0 0 72 30"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="10" cy="9" r="5" />
-      <path d="M1 28c1-6 5-9 9-9s8 3 9 9" />
-      <path d="M26 18V6M21.5 10.5 26 6l4.5 4.5" />
-      <circle cx="46" cy="9" r="5" />
-      <path d="M37 28c1-6 5-9 9-9s8 3 9 9" />
-      <path d="M62 6v12M57.5 13.5 62 18l4.5-4.5" />
-    </svg>
-  ),
-}
-
-const TILES = [
-  { draw: 'next', Icon: UserFocus, name: 'Next game', line: 'His line for tonight, on cards, swaps and My Players' },
-  { draw: 'call', Icon: Target, name: 'Our call', line: 'Final score and total, locked at tip-off' },
-  { draw: 'box', Icon: Table, name: 'Pre-game box', line: "Each player's line, before tip" },
-  { draw: 'estimates', Icon: Ticket, name: 'Our Estimates', line: 'Picks, Kupons, Why not, Over the Price' },
-  { draw: 'book', Icon: Scales, name: 'Sportsbook vs', line: "iddaa's lines beside ours, with our record" },
-  { draw: 'scout', Icon: Binoculars, name: 'Scouting Report', line: 'How both teams come in, on match cards' },
+// What Pro adds, in the order a fan meets it: the player card first, the full page last.
+const ADDS = [
+  { name: 'Next-game line', line: 'Every player’s line for tonight, on player cards and FA swaps' },
+  { name: 'Our call', line: 'Our final score and total for every game, locked at tip-off' },
+  { name: 'Our Estimates', line: 'Tonight’s picks with how sure we are, Kupons, and every result kept' },
+  { name: 'Sportsbook vs', line: 'iddaa’s lines beside ours, and our record against them' },
+  { name: 'Pre-game box and Scouting Report', line: 'Each player’s line before tip, and how both teams come in' },
 ] as const
 
 const SYNC_TRIES = [1500, 3000, 5000, 8000]
@@ -204,42 +132,46 @@ export function ProSheet({ theme, onClose, onPro }: { theme: Theme; onClose: () 
             Free runs your league. Pro adds the games.
           </h2>
           <p className="pro-sheet-sub">One plan for your account, in every league you add.</p>
-          <ul className="pro-tiles">
-            {TILES.map(({ draw, Icon, name, line }) => (
-              <li key={name} className="pro-tile">
-                <span className="pro-tile-draw" aria-hidden="true">
-                  {DRAW[draw]}
+          <ul className="pro-adds">
+            {ADDS.map(({ name, line }) => (
+              <li key={name}>
+                <span className="pro-add-tick" aria-hidden="true">
+                  <Check size={12} weight="bold" />
                 </span>
-                <b className="pro-tile-nm">
-                  <Icon size={17} aria-hidden="true" />
-                  {name}
-                </b>
-                <span className="pro-tile-line">{line}</span>
+                <span>
+                  <b>{name}</b>
+                  <span>{line}</span>
+                </span>
               </li>
             ))}
           </ul>
         </div>
         <div className="pro-sheet-foot">
-          <div>
-            <div className="pro-seg" role="radiogroup" aria-label="Billing">
-              {(['month', 'year'] as const).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="radio"
-                  aria-checked={interval === key}
-                  onClick={() => setInterval(key)}
-                >
-                  {PRICES[key].name}
-                  {key === 'year' && <span className="pro-seg-off">35% off</span>}
-                </button>
-              ))}
-            </div>
-            <p className="pro-price">
-              <b className="num">{price.amount}</b>
-              <span className="pro-price-per">{price.per}</span>
-              <span className="pro-price-alt">{price.alt}</span>
-            </p>
+          <div className="pro-plans" role="radiogroup" aria-label="Billing">
+            {(['year', 'month'] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="radio"
+                aria-checked={interval === key}
+                aria-label={key === 'year' ? `Yearly, ${PRICES.year.amount} ${PRICES.year.per}, save 35%` : `Monthly, ${PRICES.month.amount} ${PRICES.month.per}`}
+                className="pro-plan-opt"
+                onClick={() => setInterval(key)}
+              >
+                <span className="pro-radio" aria-hidden="true" />
+                <span className="pro-opt-t">
+                  <b>
+                    {PRICES[key].name}
+                    {key === 'year' && <span className="pro-save">Save 35%</span>}
+                  </b>
+                  <span>{PRICES[key].alt}</span>
+                </span>
+                <span className="pro-opt-p">
+                  <b className="num">{PRICES[key].amount}</b>
+                  <span>{key === 'year' ? '/ year' : '/ month'}</span>
+                </span>
+              </button>
+            ))}
           </div>
           <div>
             <button type="button" className="pro-start" disabled={busy || !config.data || closed} onClick={start}>

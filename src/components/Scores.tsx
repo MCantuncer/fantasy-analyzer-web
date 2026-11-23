@@ -39,6 +39,9 @@ import { useEscapeLayer } from '../lib/escapeStack'
 import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallTotal, CallVerdict } from './OurCall'
 import { shortNick } from '../lib/ourCall'
 import { PreGameBox } from './PreGameBox'
+import { LiveLine } from './LiveLine'
+import { ProCall } from './Pro'
+import { useFeature } from '../lib/pro'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
 
 interface Props {
@@ -63,6 +66,8 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const [lens, setLens] = useState<Lens>('all')
   // While a game's box score is open the summary line steps aside (Can, 2026-11-22).
   const [boxOpen, setBoxOpen] = useState(false)
+  // Our call is Pro: a Free account's games come without it (and an admin's Free preview drops it here).
+  const showCalls = useFeature('game_calls')
   const qc = useQueryClient()
   const key = [leagueId, season, day, teamId, creds?.swid ?? null] as const
   // The games come first, straight from the NBA calendar; scores, box scores and who sits fill in after.
@@ -146,6 +151,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
   const sitsByDay = new Map((sits.data?.days ?? []).map((d) => [d.day, d.sits]))
   const data: ScoreDay = {
     ...base,
+    games: showCalls ? base.games : base.games.map((g) => (g.call ? { ...g, call: null } : g)),
     day: shownDay ?? base.day,
     week: base.week.map((d) => ({ ...d, sits: sitsByDay.get(d.day) ?? d.sits })),
   }
@@ -521,6 +527,13 @@ function GameBoard({
         rivalId={rivalId}
         rivalColour={rivalColour}
         abbrev={abbrev}
+        after={
+          open.status === 'live'
+            ? (side) => (
+                <LiveLine game={open} team={side} day={day} leagueId={leagueId} season={season} creds={creds} />
+              )
+            : undefined
+        }
         onClose={() => close(true)}
         onHop={(d) => {
           const t = d === 'prev' ? prev : next
@@ -846,6 +859,7 @@ function GameCard({
   const cold = known && !stake
   const final = game.status === 'final'
   const call = game.call ?? null
+  const showCalls = useFeature('game_calls')
   const faces = [
     ...mine.map((p) => ({ ...p, side: 'you' as const })),
     ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
@@ -941,6 +955,7 @@ function GameCard({
           <span className="muted">None of your players</span>
         )}
         {call && <CallLabel call={call} />}
+        {scheduled && !call && !showCalls && <ProCall />}
         </span>
         {/* As the open box's tab, the foot reads like the box head: time left and the day. */}
         <span className="sc-foot-b" aria-hidden="true">
@@ -1260,6 +1275,7 @@ function BoxScore({
   rivalId = null,
   rivalColour,
   abbrev,
+  after,
   ...nav
 }: BoxNav & {
   game: Game
@@ -1269,6 +1285,8 @@ function BoxScore({
   rivalId?: number | null
   rivalColour?: string
   abbrev: Map<number, string>
+  /** Under the table, for the team shown: the live line while the game is on. */
+  after?: (side: Game['away']) => ReactNode
 }) {
   // It opens in place under its game, so it never scrolls the page (Front Row).
   // The header row stays in view while you scroll down the players. A table that fits sticks
@@ -1386,6 +1404,7 @@ function BoxScore({
           )}
         </table>
       </div>
+      {after?.(side)}
       {fa && (
         <p className="small muted box-foot">
           Best free agent in this game:{' '}

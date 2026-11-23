@@ -566,7 +566,13 @@ export default function App() {
   }
 
   return (
-    <ProProvider me={me.data} signedIn={signedIn} theme={theme} onNeedAccount={() => setJoining('signup')}>
+    <ProProvider
+      me={me.data}
+      signedIn={signedIn}
+      visitorLocked={!!sample.data?.pro_locked}
+      theme={theme}
+      onNeedAccount={() => setJoining('signup')}
+    >
       <header className="topbar">
         <div className="topbar-inner">
           <button

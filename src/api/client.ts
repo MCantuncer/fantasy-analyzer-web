@@ -795,6 +795,23 @@ export interface PregameSide {
   players: PregamePlayer[]
   out: { player_id: number; name: string; injury_status: string; owner_team_id: number | null }[]
   team_line: { shown: number; rest: number; total: number; call: number; gap: number }
+  /** Points by quarter (api app/quarters.py); missing from an API before it. */
+  quarters?: PregameQuarters | null
+}
+
+/** One side's points by quarter before tip-off: Our call cut into four, and what moved each quarter. */
+export interface PregameQuarters {
+  /** Whole points Q1-Q4; they add up to the rounded sum of raw (about a point under the call: overtime). */
+  points: number[]
+  raw: number[]
+  /** The call x the league's share of a game's points in each quarter. */
+  league: number[]
+  /** The favourite's fast start and 4th-quarter fade (the underdog the other way). */
+  favourite: number[]
+  /** The team's own quarter habit and what the opponent allows. */
+  shape: number[]
+  /** This season's games in the habit (0: last season's alone). */
+  games: number
 }
 
 export type PregameTermKind = 'matchup' | 'home_court' | 'three_point_luck' | 'back_to_back'
@@ -826,6 +843,51 @@ export function fetchPregame(
 ) {
   return post<PregameBox>(
     '/api/scores/pregame',
+    { league_id: leagueId, season, game_id: gameId, day },
+    creds,
+    SCORES_TIMEOUT_MS,
+  )
+}
+
+/** One player in a game in progress (POST /api/scores/live-lines). */
+export interface LivePlayerLine {
+  player_id: number
+  name: string
+  pro_team_id: number
+  pts: number
+  minutes: number
+  line_pts: number
+  line_minutes: number
+  /** Where his points land at the end of regulation, from here. */
+  final: number
+  rest: number
+  minutes_left: number
+}
+
+/** A game in progress: each player's live line, and how far finals land from it at this point. */
+export interface LiveLines {
+  league_id: number
+  season: number
+  day: number
+  game_id: number
+  status: 'scheduled' | 'live' | 'final'
+  clock: string | null
+  elapsed: number | null
+  half_within: number
+  most_within: number
+  lines: LivePlayerLine[]
+}
+
+/** A game in progress: where each player's night ends (Pro). Empty lines before tip-off or without a clock. */
+export function fetchLiveLines(
+  leagueId: number,
+  season: number | null,
+  gameId: number,
+  day: number | null,
+  creds: Credentials | null,
+) {
+  return post<LiveLines>(
+    '/api/scores/live-lines',
     { league_id: leagueId, season, game_id: gameId, day },
     creds,
     SCORES_TIMEOUT_MS,

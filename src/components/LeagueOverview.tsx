@@ -11,6 +11,7 @@ import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
 import { TeamCrest } from './TeamCrest'
+import { VerifyBanner } from './VerifyBanner'
 import { todayMatters, useTodayMatchup } from '../lib/todayData'
 import { TodayLoading, TodayMatchup, type TodaySide } from './TodayMatchup'
 import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
@@ -355,12 +356,11 @@ export function LeagueOverview({
   return (
     <div className="overview stack">
       {!verified && (
-        <div className="verify-banner">
-          <span>Manage a team here? Pick it to see your best moves, trades and playoff odds.</span>
-          <button type="button" onClick={onVerify}>
-            Pick my team
-          </button>
-        </div>
+        <VerifyBanner
+          detail="Pick it to see your best moves, trades and playoff odds."
+          action="Pick my team"
+          onClick={onVerify}
+        />
       )}
 
       <div className="league-head">

@@ -1,0 +1,584 @@
+/* Stave: Quarter by quarter in the pre-game box (Can, 2026-11-23). Four stalls read like a linescore; each
+   team has its own lane: one flat club shade (our number ±4 points, "half land here") drawn to the same
+   scale as the numbers, the outlined whole numbers at their true height, one thin thread. Prefix qtr-. */
+.qtr {
+  --s: 6; /* px a point, the same for every game */
+  --lane: 108px;
+  --lab: 200px;
+  --game: 112px;
+  --gap: 10px;
+  --n: 40px;
+  --qtr-ink: 80%;
+  --qtr-shade: 15%;
+  --qtr-fill: 34%;
+  --qtr-hollow: color-mix(in srgb, var(--text) 7%, transparent);
+  position: relative;
+  padding: 22px 20px 0;
+  border-bottom: 1px solid var(--divider);
+}
+:root[data-theme='light'] .qtr {
+  --qtr-ink: 56%;
+  --qtr-shade: 14%;
+  --qtr-fill: 26%;
+  --qtr-hollow: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.qtr-head {
+  display: grid;
+  grid-template-columns: var(--lab) minmax(0, 1fr);
+  column-gap: var(--gap);
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.qtr-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.qtr-hl {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 550;
+  text-wrap: balance;
+}
+
+/* ---------- the stave ---------- */
+.qtr-grid {
+  position: relative;
+  display: grid;
+  column-gap: var(--gap);
+  grid-template-columns: var(--lab) repeat(4, minmax(0, 1fr)) var(--game);
+  grid-template-rows: 40px var(--lane-a, var(--lane)) var(--lane-b, var(--lane)) 10px;
+}
+.qtr-stall {
+  grid-row: 1 / -1;
+  border-radius: var(--radius-tile);
+  background: var(--plate, color-mix(in srgb, var(--text) 5%, transparent));
+}
+.qtr-stall.g {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+.qtr-stall.pa,
+.qtr-stall.pb {
+  display: none;
+}
+.qtr-qh {
+  grid-row: 1;
+  align-self: center;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.15;
+  color: var(--text-2);
+}
+.qtr [data-q='0'] {
+  grid-column: 2;
+}
+.qtr [data-q='1'] {
+  grid-column: 3;
+}
+.qtr [data-q='2'] {
+  grid-column: 4;
+}
+.qtr [data-q='3'] {
+  grid-column: 5;
+}
+.qtr [data-q='g'] {
+  grid-column: 6;
+}
+.qtr-grid [data-lane='a'] {
+  grid-row: 2;
+}
+.qtr-grid [data-lane='b'] {
+  grid-row: 3;
+}
+.qtr-lab {
+  grid-column: 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding-right: 8px;
+}
+.qtr-city {
+  align-self: flex-start;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: underline 2px var(--c);
+  text-underline-offset: 5px;
+}
+.qtr-lean {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.qtr-lean.even {
+  color: var(--text-2);
+}
+.qtr-size {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.qtr-size .num {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.qtr-svg {
+  grid-column: 2 / 6;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.qtr-shade {
+  fill: color-mix(in srgb, var(--c) var(--qtr-shade), transparent);
+}
+.qtr-thread {
+  fill: none;
+  stroke: color-mix(in srgb, var(--c) var(--qtr-ink), var(--text));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.qtr-cell {
+  position: relative;
+  min-width: 0;
+}
+.qtr-n {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--y, 0px));
+  transform: translate(-50%, -50%);
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--n);
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--qtr-hollow);
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--c) var(--qtr-ink), var(--text));
+}
+.qtr-n.fill {
+  color: color-mix(in srgb, var(--c) var(--qtr-fill), transparent);
+  -webkit-text-stroke-width: 1.7px;
+}
+.qtr-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 8px;
+  text-align: center;
+}
+.qtr-game .n {
+  font-size: 22px;
+  font-weight: 650;
+}
+.qtr-game .s {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.qtr-sum {
+  display: none;
+}
+.qtr-honest {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  max-width: 96ch;
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.qtr-honest .num {
+  color: var(--text-2);
+  font-weight: 650;
+}
+.qtr-key {
+  flex: none;
+  width: 22px;
+  height: 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text-2) 22%, transparent);
+  transform: translateY(1px);
+}
+
+/* ---------- how we got it: closed by default ---------- */
+.qtr-how {
+  margin: 12px -20px 0;
+  border-top: 1px solid var(--divider);
+}
+.qtr-how-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 20px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.qtr-how-btn:hover {
+  background: color-mix(in srgb, var(--raised) 60%, transparent);
+}
+.qtr-how-btn .hint {
+  font-weight: 400;
+  color: var(--muted);
+}
+.qtr-chev {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.qtr-how-btn[aria-expanded='true'] .qtr-chev {
+  transform: rotate(90deg);
+}
+.qtr-disc {
+  position: relative;
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.qtr-disc.open {
+  grid-template-rows: 1fr;
+}
+.qtr-disc > div {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 200ms;
+}
+.qtr-disc.open > div {
+  visibility: visible;
+  transition-delay: 0s;
+}
+.qtr-disc-in {
+  padding: 4px 20px 18px;
+}
+.qtr-teams {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--track);
+}
+.qtr-teams button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.qtr-teams button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 650;
+  box-shadow:
+    inset 0 -2px 0 var(--c),
+    0 1px 2px rgb(0 0 0 / 0.15);
+}
+.qtr-pr {
+  display: grid;
+  grid-template-columns: var(--lab) repeat(4, minmax(0, 1fr)) var(--game);
+  column-gap: var(--gap);
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.qtr-pr.tot {
+  margin-top: -1px;
+  border-bottom: 0;
+  border-top: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
+}
+.qtr-pr.hd {
+  min-height: 0;
+  padding: 0 0 6px;
+}
+.qtr-pr.hd .qtr-pv {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--muted);
+}
+.qtr-pl {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-right: 8px;
+}
+.qtr-pl b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.qtr-pl span {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.qtr-pv {
+  text-align: center;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.qtr-pv.z {
+  color: var(--faint);
+}
+.qtr-pv.gm {
+  font-size: 13px;
+  color: var(--muted);
+}
+.qtr-pill {
+  display: inline-block;
+  min-width: 46px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 650;
+}
+.qtr-pill.up {
+  background: color-mix(in srgb, var(--c) 26%, transparent);
+}
+.qtr-pill.dn {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) var(--qtr-ink), var(--text));
+}
+.qtr-pv .to {
+  margin: 0 3px;
+  font-family: var(--font-ui, inherit);
+  color: var(--muted);
+}
+.qtr-pv b {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.qtr-pnote {
+  max-width: 92ch;
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* ---------- motion: once per game per session ---------- */
+.qtr.draw .qtr-shade {
+  animation: qtr-fade 500ms ease-out both 80ms;
+}
+.qtr.draw .qtr-n {
+  animation: qtr-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(200ms + var(--i) * 60ms);
+}
+.qtr.draw .qtr-thread {
+  stroke-dasharray: 1;
+  animation: qtr-draw 800ms cubic-bezier(0.3, 0.7, 0.2, 1) both 300ms;
+}
+@keyframes qtr-rise {
+  from {
+    transform: translate(-50%, calc(-50% - var(--y)));
+    opacity: 0;
+  }
+}
+@keyframes qtr-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes qtr-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qtr,
+  .qtr * {
+    animation: none !important;
+  }
+  .qtr-disc,
+  .qtr-chev {
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ---------- phones: lanes get their own label rows, no Game column ---------- */
+@media (max-width: 640px) {
+  .qtr {
+    --s: 4.5;
+    --lane: 80px;
+    --gap: 6px;
+    --n: 30px;
+    padding: 18px 16px 0;
+  }
+  .qtr-head {
+    display: block;
+    margin-bottom: 10px;
+  }
+  .qtr-head h3 {
+    margin-bottom: 6px;
+  }
+  .qtr-hl {
+    font-size: 15px;
+  }
+  .qtr-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: 36px auto var(--lane-a, var(--lane)) auto var(--lane-b, var(--lane)) 4px;
+  }
+  .qtr [data-q='0'] {
+    grid-column: 1;
+  }
+  .qtr [data-q='1'] {
+    grid-column: 2;
+  }
+  .qtr [data-q='2'] {
+    grid-column: 3;
+  }
+  .qtr [data-q='3'] {
+    grid-column: 4;
+  }
+  .qtr-grid [data-q='g'],
+  .qtr-stall.full {
+    display: none;
+  }
+  .qtr-stall.pa,
+  .qtr-stall.pb {
+    display: block;
+  }
+  .qtr-stall.pa {
+    grid-row: 3;
+  }
+  .qtr-stall.pb {
+    grid-row: 5;
+  }
+  .qtr-qh {
+    font-size: 12.5px;
+  }
+  .qtr-lab {
+    grid-column: 1 / -1;
+    display: block;
+    padding: 10px 0 8px;
+    line-height: 1.5;
+  }
+  .qtr-lab[data-lane='a'] {
+    grid-row: 2;
+  }
+  .qtr-lab[data-lane='b'] {
+    grid-row: 4;
+  }
+  .qtr-lab > * {
+    display: inline;
+  }
+  .qtr-lean,
+  .qtr-size {
+    margin: 0 0 0 8px;
+  }
+  .qtr-city {
+    font-size: 14px;
+  }
+  .qtr-cell[data-lane='a'],
+  .qtr-svg[data-lane='a'] {
+    grid-row: 3;
+  }
+  .qtr-cell[data-lane='b'],
+  .qtr-svg[data-lane='b'] {
+    grid-row: 5;
+  }
+  .qtr-svg {
+    grid-column: 1 / -1;
+  }
+  .qtr-sum {
+    display: block;
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .qtr-sum .num {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .qtr-honest {
+    margin-top: 8px;
+    font-size: 12.5px;
+  }
+  .qtr-how {
+    margin: 12px -16px 0;
+  }
+  .qtr-how-btn {
+    padding: 10px 16px;
+  }
+  .qtr-how-btn .hint {
+    display: none;
+  }
+  .qtr-disc-in {
+    padding: 4px 16px 16px;
+  }
+  .qtr-teams {
+    display: flex;
+    width: 100%;
+  }
+  .qtr-teams button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+  }
+  .qtr-pr {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 6px;
+    padding: 10px 0;
+  }
+  .qtr-pr .qtr-pl {
+    grid-column: 1 / -1;
+  }
+  .qtr-pr.hd .qtr-pl,
+  .qtr-pv.gm {
+    display: none;
+  }
+  .qtr-pv {
+    font-size: 13.5px;
+  }
+  .qtr-pill {
+    min-width: 0;
+    padding: 3px 7px;
+  }
+  .qtr-pv .to {
+    margin: 0 2px;
+  }
+}
+@media (max-width: 380px) {
+  .qtr {
+    --n: 28px;
+  }
+  .qtr-pv {
+    font-size: 13px;
+  }
+  .qtr-pv b {
+    font-size: 14px;
+  }
+}
