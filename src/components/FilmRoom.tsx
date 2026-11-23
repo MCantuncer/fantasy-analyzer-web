@@ -619,9 +619,12 @@ function YourWeekRest({
               {adds.length ? (
                 adds.map((a) => (
                   <div key={a.player_id} className="fr-add">
-                    <Name p={a} className="fr-yt-name" />
-                    <span className="fr-yt-sub">
-                      Added {dayName(a.weekday)} · {afterLine(a.after, true)}
+                    <Face p={a} size={28} />
+                    <span className="fr-add-t">
+                      <Name p={a} className="fr-yt-name" />
+                      <span className="fr-yt-sub">
+                        Added {dayName(a.weekday)} · {afterLine(a.after, true)}
+                      </span>
                     </span>
                   </div>
                 ))

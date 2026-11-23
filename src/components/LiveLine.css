@@ -74,6 +74,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.lvl-who button.pc-link {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* Fouls that cost him minutes: foul trouble quiet, 5 fouls and fouled out in the warning red. */
 .lvl-pf {
   flex: none;

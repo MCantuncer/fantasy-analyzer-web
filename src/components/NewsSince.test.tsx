@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { act } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { AFTER, BEFORE, CHANGES } from '../test/newsSince'
 import { NewsSince } from './NewsSince'
 
@@ -45,6 +46,34 @@ describe('NewsSince', () => {
     expect(onGo).toHaveBeenCalledWith('trades')
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
     expect(onDismiss).toHaveBeenCalled()
+  })
+
+  it("puts a face on the best move's row that opens his card, outside the row's button", () => {
+    const open = vi.fn()
+    const onGo = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      render(
+        <NewsSince
+          changes={CHANGES}
+          before={BEFORE}
+          after={AFTER}
+          running={false}
+          progress={1}
+          onDismiss={() => {}}
+          onGo={onGo}
+        />,
+      )
+      const best = screen.getByRole('button', { name: /Best move/ })
+      const face = within(best.closest('li')!).getByRole('button', { name: 'Ayo Dosunmu' })
+      expect(best.contains(face)).toBe(false)
+      expect(face.querySelector('.head')).not.toBeNull()
+      fireEvent.click(face)
+      expect(open).toHaveBeenCalledWith(expect.objectContaining({ name: 'Ayo Dosunmu' }))
+      expect(onGo).not.toHaveBeenCalled()
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
   })
 
   it('keeps the rest of the league in one line that opens into lanes', () => {

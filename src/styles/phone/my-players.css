@@ -44,7 +44,7 @@
     display: inline;
   }
 
-  .mp-name .pc-link {
+  .mp-name > .pc-link {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -196,7 +196,7 @@
     gap: 6px;
   }
   .mp .mp-name,
-  .mp .mp-name .pc-link {
+  .mp .mp-name > .pc-link {
     font-size: 15px;
     font-weight: 650;
     letter-spacing: -0.012em;
@@ -205,13 +205,13 @@
   .mp .mp-name {
     overflow: hidden;
   }
-  .mp .mp-name .pc-link {
+  .mp .mp-name > .pc-link {
     padding-inline-end: 2px;
   }
-  .mp .mp-name .pc-link-split {
+  .mp .mp-name > .pc-link-split {
     gap: 0;
   }
-  .mp .mp-name .pc-link-split .pc-link-name {
+  .mp .mp-name > .pc-link-split .pc-link-name {
     flex: 0 1 auto;
     padding-inline-end: 1px;
   }
@@ -453,7 +453,7 @@
   }
 
   /* bench and IR recede */
-  .mp .mp-row.mp-sub .mp-name .pc-link {
+  .mp .mp-row.mp-sub .mp-name > .pc-link {
     font-weight: 500;
     color: var(--text-2);
   }
@@ -521,7 +521,7 @@
     padding-inline: 8px;
   }
   .mp .mp-name,
-  .mp .mp-name .pc-link {
+  .mp .mp-name > .pc-link {
     font-size: 14px;
   }
   .mp .mp-row,

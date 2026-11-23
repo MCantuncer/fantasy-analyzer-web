@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { DayLineup, LineupSpot, ScoreDay } from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { game, line } from '../test/fixtures'
 import { MyPlayers } from './MyPlayers'
 
@@ -223,6 +224,26 @@ describe('MyPlayers', () => {
       'href',
       'https://fantasy.espn.com/basketball/team?leagueId=1&teamId=3&seasonId=2027',
     )
+  })
+
+  it('opens the player card from the names in the swap note and the night line', async () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      mockApi()
+      renderIt()
+      const note = await screen.findByRole('note')
+      fireEvent.click(within(note).getByRole('button', { name: 'Braun' }))
+      expect(open).toHaveBeenLastCalledWith({ id: 13, name: 'Christian Braun' })
+      fireEvent.click(within(note).getByRole('button', { name: 'Bey' }))
+      expect(open).toHaveBeenLastCalledWith({ id: 12, name: 'Saddiq Bey' })
+      // "idle: Bey" in the night line.
+      const night = document.querySelector<HTMLElement>('.mp-night')!
+      fireEvent.click(within(night).getByRole('button', { name: 'Bey' }))
+      expect(open).toHaveBeenCalledTimes(3)
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
   })
 
   it('says nothing when there is nothing to swap', async () => {

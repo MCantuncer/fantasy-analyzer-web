@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WeekRecap } from '../api/client'
 import { teamColours } from '../lib/league'
+import { setPlayerCardHost } from '../lib/playerCard'
 import week2 from '../test/recap-week2.json'
 import { FilmRoomPage, FilmRoomPicker } from './FilmRoom'
 
@@ -64,6 +65,21 @@ describe('Film Room', () => {
     expect(container.querySelectorAll('.fr-stats tbody tr')).toHaveLength(5)
     fireEvent.click(screen.getByRole('button', { name: 'Show all 10' }))
     expect(container.querySelectorAll('.fr-stats tbody tr')).toHaveLength(10)
+  })
+
+  it('gives each of your adds a small face, and the names open the player card', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      const { container } = show()
+      const adds = [...container.querySelectorAll<HTMLElement>('.fr-add')]
+      expect(adds.length).toBeGreaterThan(0)
+      expect(adds.every((a) => a.querySelector('.head'))).toBe(true)
+      fireEvent.click(within(adds[0]).getByRole('button', { name: 'Isaiah Jackson' }))
+      expect(open).toHaveBeenCalledWith({ id: 4432170, name: 'Isaiah Jackson' })
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
   })
 
   it('leaves your tape and your week out for someone who has not verified a team', () => {

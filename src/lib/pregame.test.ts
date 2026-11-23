@@ -94,6 +94,11 @@ describe('pre-game box', () => {
     expect(gains.length).toBeGreaterThan(0)
     expect(gains.length).toBeLessThanOrEqual(4)
     expect(gains[0].pts).toBeGreaterThanOrEqual(gains[gains.length - 1].pts)
+    // Each gain carries the player, so his name opens the player card.
+    for (const g of gains) {
+      const p = box.away.players.find((x) => x.player_id === g.player_id)
+      expect(p?.name).toBe(g.full_name)
+    }
     expect(outShare(box.home).share).toBeNull()
   })
 

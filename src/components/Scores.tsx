@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bone, ScoresSkeleton } from './Skeleton'
 import {
+  Fragment,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -846,6 +847,8 @@ function GameCard({
   onPick: (e: MouseEvent<HTMLButtonElement>) => void
 }) {
   const scheduled = game.status === 'scheduled'
+  // A game with nothing to open is a plain card, so its names can open the player card themselves.
+  const plain = scheduled && !(game.call ?? null)
   const mine = myPlayersIn(game, teamId, upcoming)
   const lead = leader(game)
   const top = best(game.lines)
@@ -905,7 +908,13 @@ function GameCard({
           <span className="game-mine game-faces">
             {faces.map((p) => (
               <span key={p.player_id} className={`face-ring ${p.side}`}>
-                <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
+                {plain ? (
+                  <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
+                    <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
+                  </PlayerLink>
+                ) : (
+                  <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
+                )}
               </span>
             ))}
             {mine.length > 0 && <span className="sr-only">Your players: {mine.map((p) => p.name).join(', ')}</span>}
@@ -947,7 +956,19 @@ function GameCard({
           </>
         ) : mine.length > 0 ? (
           <span className="game-foot-text">
-            {mine.length === 1 ? 'Yours' : `${mine.length} of yours`}: {mine.map((p) => shortName(p.name)).join(', ')}
+            {mine.length === 1 ? 'Yours' : `${mine.length} of yours`}:{' '}
+            {plain
+              ? mine.map((p, i) => (
+                  <Fragment key={p.player_id}>
+                    {i > 0 && ' '}
+                    {/* The comma stays with the name: a line can break right after the link. */}
+                    <span className="sc-keep">
+                      <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
+                      {i < mine.length - 1 && ','}
+                    </span>
+                  </Fragment>
+                ))
+              : mine.map((p) => shortName(p.name)).join(', ')}
           </span>
         ) : rostered > 0 ? (
           <span className="muted">{rostered} rostered in your league</span>

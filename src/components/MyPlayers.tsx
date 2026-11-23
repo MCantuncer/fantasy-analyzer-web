@@ -267,7 +267,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </ul>
         {leftOut && leftOut.line && (
           <p className="mp-left-out small">
-            {lastName(leftOut.spot.name)}'s <b className="num">{leftOut.line.pts}</b> pts sat on your bench while{' '}
+            <Last spot={leftOut.spot} tail="'s" /> <b className="num">{leftOut.line.pts}</b> pts sat on your bench while{' '}
             {c.idle === 1 ? 'a starting slot was' : `${c.idle} starting slots were`} idle.
           </p>
         )}
@@ -303,10 +303,10 @@ function SwapNote({ swap, espn }: { swap: Swap; espn: string }) {
   return (
     <div className="mp-swap-note" role="note">
       <p>
-        <b>Swap before {tip}:</b> {lastName(swap.bench.spot.name)} plays from your bench,{' '}
+        <b>Swap before {tip}:</b> <Last spot={swap.bench.spot} /> plays from your bench,{' '}
         {swap.idle ? (
           <>
-            {lastName(swap.idle.spot.name)} has no game in {swap.slot}.
+            <Last spot={swap.idle.spot} /> has no game in {swap.slot}.
           </>
         ) : (
           <>your {swap.slot} slot is empty.</>
@@ -357,11 +357,11 @@ interface RowCtx {
   marks: Map<number, RowMark>
 }
 
-type RowMark = { kind: 'covers'; who: string }
+type RowMark = { kind: 'covers'; who: Pick<LineupSpot, 'player_id' | 'name'> }
 
 function callMarks(call: GameCall | null): Map<number, RowMark> {
   const m = new Map<number, RowMark>()
-  if (call?.fill) m.set(call.fill.sub.spot.player_id, { kind: 'covers', who: lastName(call.doubt.spot.name) })
+  if (call?.fill) m.set(call.fill.sub.spot.player_id, { kind: 'covers', who: call.doubt.spot })
   return m
 }
 
@@ -387,7 +387,7 @@ function Row({ row, ctx, swap, tray }: { row: PlayerRow; ctx: RowCtx; swap: bool
   const rated = !!play && play.tag !== 'Available'
   const mark = ctx.marks.get(spot.player_id) ?? null
   const rc = rated ? rowCall(row, ctx.call) : null
-  const words = playWords(spot, play, mark, rc)
+  const words = playWords(spot, play, mark, rc, callPeople(ctx.call))
   // The injury-report tag. Probable stays quiet: no tag, the number alone.
   const tag = rated && play.tag !== 'Probable' ? <PlayTag play={play} /> : null
   // Ruled out tonight in a slot that counts: the one state that dims his face.
@@ -766,7 +766,7 @@ function NightLine({ rows, counts: c, past, now }: { rows: PlayerRow[]; counts: 
   const next = rows
     .filter((r) => r.spot.starting && r.state === 'later' && r.game)
     .sort((a, b) => a.game!.start.localeCompare(b.game!.start))[0]
-  const idle = rows.filter((r) => r.spot.starting && r.state === 'idle').map((r) => lastName(r.spot.name))
+  const idle = rows.filter((r) => r.spot.starting && r.state === 'idle').map((r) => r.spot)
   const cd = next?.game ? countdown(next.game.start, now) : null
   return (
     <p className="mp-night">
@@ -784,7 +784,18 @@ function NightLine({ rows, counts: c, past, now }: { rows: PlayerRow[]; counts: 
       <span>
         <b className="num">{c.playing}</b> of <span className="num">{c.starters}</span> starting slots{' '}
         {past ? 'played' : 'play tonight'}
-        {idle.length > 0 && <span className="muted"> · {past ? 'sat' : 'idle'}: {idle.join(', ')}</span>}
+        {idle.length > 0 && (
+          <span className="muted">
+            {' '}
+            · {past ? 'sat' : 'idle'}:{' '}
+            {idle.map((spot, i) => (
+              <Fragment key={spot.player_id}>
+                {i > 0 && ' '}
+                <Last spot={spot} tail={i < idle.length - 1 ? ',' : undefined} />
+              </Fragment>
+            ))}
+          </span>
+        )}
       </span>
     </p>
   )
@@ -877,12 +888,20 @@ function PlayTag({ play }: { play: PlayChance }) {
  * play", "↑ Could be back Thu · 58% to play", "Missed 11 · 10% next game". The number is always in
  * ink and always labelled: a chance is not an outcome, so the tag carries the colour.
  */
-function playWords(spot: LineupSpot, play: PlayChance | null, mark: RowMark | null, rc: RowCall | null): ReactNode {
+function playWords(
+  spot: LineupSpot,
+  play: PlayChance | null,
+  mark: RowMark | null,
+  rc: RowCall | null,
+  people: Person[] = [],
+): ReactNode {
   if (mark?.kind === 'covers')
     return (
       <span className="mp-pw covers">
         <UserSwitch size={13} weight="bold" aria-hidden="true" />
-        <b className="mp-verb">Covers {mark.who}</b>
+        <b className="mp-verb">
+          Covers <Last spot={mark.who} />
+        </b>
       </span>
     )
   if (!play || play.tag === 'Available') return null
@@ -893,11 +912,11 @@ function playWords(spot: LineupSpot, play: PlayChance | null, mark: RowMark | nu
         <em> · </em>
         {wide ? (
           <>
-            <span className="mp-narrow">{t}</span>
-            <span className="mp-wide">{wide}</span>
+            <span className="mp-narrow">{named(t, people)}</span>
+            <span className="mp-wide">{named(wide, people)}</span>
           </>
         ) : (
-          t
+          named(t, people)
         )}
       </span>
     ) : null
@@ -915,7 +934,7 @@ function playWords(spot: LineupSpot, play: PlayChance | null, mark: RowMark | nu
   if (play.chance === 0)
     return rc?.verb ? (
       <span className="mp-pw">
-        <b className="mp-verb">{rc.verb}</b>
+        <b className="mp-verb">{named(rc.verb, people)}</b>
         <em> · </em>ruled out tonight
       </span>
     ) : (
@@ -941,7 +960,7 @@ function playWords(spot: LineupSpot, play: PlayChance | null, mark: RowMark | nu
     <span className="mp-pw">
       {rc?.verb && (
         <>
-          <b className="mp-verb">{rc.verb}</b>
+          <b className="mp-verb">{named(rc.verb, people)}</b>
           <em> · </em>
         </>
       )}
@@ -989,15 +1008,61 @@ function WhyBox({ play, now }: { play: PlayChance; now: number }) {
 
 /** "Gafford in at UTIL, Braun to SG": how the bench player gets into ``into`` (the doubt's slot). */
 function fillWords(f: Fill, into: string): ReactNode {
-  const sub = lastName(f.sub.spot.name)
+  const sub = <Last spot={f.sub.spot} />
   return f.slide ? (
     <>
-      <b>{sub}</b> in at {f.slot}, {lastName(f.slide.spot.name)} to {into}
+      <b>{sub}</b> in at {f.slot}, <Last spot={f.slide.spot} /> to {into}
     </>
   ) : (
     <>
       <b>{sub}</b> in at {f.slot}
     </>
+  )
+}
+
+type Person = Pick<LineupSpot, 'player_id' | 'name'>
+
+/** The players tonight's call can name in a row's words: the doubt and the bench player who covers him. */
+function callPeople(call: GameCall | null): Person[] {
+  if (!call) return []
+  return call.fill ? [call.fill.sub.spot, call.doubt.spot] : [call.doubt.spot]
+}
+
+const isLetter = (c: string | undefined) => !!c && /\p{L}/u.test(c)
+
+/** A row's words ("Burries covers", "Swap if Mara plays") with each named player's last name opening his card. */
+function named(text: string, people: Person[]): ReactNode {
+  let first: { at: number; who: Person; word: string } | null = null
+  for (const who of people) {
+    const word = lastName(who.name)
+    let at = text.indexOf(word)
+    while (at >= 0 && (isLetter(text[at - 1]) || isLetter(text[at + word.length]))) at = text.indexOf(word, at + 1)
+    if (at >= 0 && (!first || at < first.at)) first = { at, who, word }
+  }
+  if (!first) return text
+  const rest = text.slice(first.at + first.word.length)
+  const tail = /^\S*/.exec(rest)![0]
+  return (
+    <>
+      {text.slice(0, first.at)}
+      <Last spot={first.who} tail={tail || undefined} />
+      {named(rest.slice(tail.length), people)}
+    </>
+  )
+}
+
+/**
+ * His last name, opening his player card ("Gafford"). ``tail`` is punctuation that belongs to the
+ * name ("'s", ","): kept on its line, since a line can break right after the link.
+ */
+function Last({ spot, tail }: { spot: Person; tail?: string }) {
+  const link = <PlayerLink player={{ id: spot.player_id, name: spot.name }}>{lastName(spot.name)}</PlayerLink>
+  if (!tail) return link
+  return (
+    <span className="mp-keep">
+      {link}
+      {tail}
+    </span>
   )
 }
 
@@ -1015,6 +1080,9 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
   const { doubt, play, fill } = call
   const name = lastName(doubt.spot.name)
   const sub = fill ? lastName(fill.sub.spot.name) : ''
+  // In the open tray the names open the player card; the strip (a button) and the lanes' label keep the words.
+  const nameL = <Last spot={doubt.spot} />
+  const subL = fill ? <Last spot={fill.sub.spot} /> : null
   const subTip = fill?.sub.game ? at(fill.sub.game.start) : null
   const end = Math.max(call.tip, subTip ?? 0)
   const span = Math.max(end - now, HOUR_MS)
@@ -1038,17 +1106,17 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
     call.verdict === 'wait' ? (
       late ? (
         <>
-          Still no word on {name}. <span className="mp-call-soft">Decide by {time(subTip!)}.</span>
+          Still no word on <Last spot={doubt.spot} tail="." /> <span className="mp-call-soft">Decide by {time(subTip!)}.</span>
         </>
       ) : (
         <>
-          Leave {name} in. <span className="mp-call-soft">Wait for the word.</span>
+          Leave {nameL} in. <span className="mp-call-soft">Wait for the word.</span>
         </>
       )
     ) : (
       <>
-        {play.chance < 0.3 ? `Swap ${name} out now.` : 'Decide now.'}{' '}
-        <span className="mp-call-soft">{play.chance === 0 ? "He's ruled out." : `${sub} locks first.`}</span>
+        {play.chance < 0.3 ? <>Swap {nameL} out now.</> : 'Decide now.'}{' '}
+        <span className="mp-call-soft">{play.chance === 0 ? "He's ruled out." : <>{subL} locks first.</>}</span>
       </>
     )
   const lanes: { key: string; who: PlayerRow; t: number; role: string }[] = [
@@ -1131,19 +1199,19 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
             <p className="mp-call-why">
               {ruledOut ? (
                 <>
-                  Nothing to wait for: <b>swap {sub} in by {time(subTip)}</b>, when his game locks.
+                  Nothing to wait for: <b>swap {subL} in by {time(subTip)}</b>, when his game locks.
                 </>
               ) : late ? (
                 <>
-                  No word on {name} yet. <b>Decide by {time(subTip)}</b>, when {sub} locks.
+                  No word on {nameL} yet. <b>Decide by {time(subTip)}</b>, when {subL} locks.
                 </>
               ) : call.free ? (
                 <>
-                  {sub} tips {gapWords} after {name}: <b>waiting is free until {time(subTip)}.</b>
+                  {subL} tips {gapWords} after <Last spot={doubt.spot} tail=":" /> <b>waiting is free until {time(subTip)}.</b>
                 </>
               ) : (
                 <>
-                  {sub} tips at <span className="num">{time(subTip)}</span>, before {name}'s word lands.
+                  {subL} tips at <span className="num">{time(subTip)}</span>, before <Last spot={doubt.spot} tail="'s" /> word lands.
                 </>
               )}
             </p>
@@ -1183,7 +1251,7 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
                   <span>
                     {call.planB ? (
                       <>
-                        <b>{sub}</b> takes {lastName(call.planB.row.spot.name)}'s spot
+                        <b>{subL}</b> takes <Last spot={call.planB.row.spot} tail="'s" /> spot
                         <span className="mp-wide">
                           {' '}
                           (<span className="num">{pct(call.planB.row.spot.play!.chance)}</span> to play) by{' '}
@@ -1192,10 +1260,10 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
                       </>
                     ) : call.verdict === 'now' ? (
                       <>
-                        <span className="num">{pct(play.chance)}</span> he plays, {sub} sits
+                        <span className="num">{pct(play.chance)}</span> he plays, {subL} sits
                       </>
                     ) : (
-                      <>{sub} stays on the bench</>
+                      <>{subL} stays on the bench</>
                     )}
                   </span>
                 </li>

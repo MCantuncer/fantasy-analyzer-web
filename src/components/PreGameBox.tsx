@@ -466,9 +466,15 @@ function OutLine({ side, teamId }: { side: PregameSide; teamId: number }) {
       <b>Out tonight</b>{' '}
       {side.out.map((o, i) => (
         <span key={o.player_id}>
-          {i > 0 && ', '}
-          <s>{initial(o.name)}</s>
-          {o.owner_team_id === teamId && <span className="pg-yours"> (yours)</span>}
+          {i > 0 && ' '}
+          {/* The comma stays with the name: a line can break right after the link. */}
+          <span className="pg-keep">
+            <s>
+              <PlayerLink player={{ id: o.player_id, name: o.name }}>{initial(o.name)}</PlayerLink>
+            </s>
+            {o.owner_team_id === teamId && <span className="pg-yours"> (yours)</span>}
+            {i < side.out.length - 1 && ','}
+          </span>
         </span>
       ))}
       {share != null && gains.length > 0 ? (
@@ -476,9 +482,13 @@ function OutLine({ side, teamId }: { side: PregameSide; teamId: number }) {
           {' '}
           · <span className="num">{share}</span> a game to share:{' '}
           {gains.map((g, i) => (
-            <span key={g.name}>
-              {i > 0 && ', '}
-              {g.name} <span className="num">+{g.pts}</span>
+            <span key={g.player_id}>
+              {i > 0 && ' '}
+              <span className="pg-keep">
+                <PlayerLink player={{ id: g.player_id, name: g.full_name }}>{g.name}</PlayerLink>{' '}
+                <span className="num">+{g.pts}</span>
+                {i < gains.length - 1 && ','}
+              </span>
             </span>
           ))}
         </>

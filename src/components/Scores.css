@@ -488,3 +488,8 @@
     transition: none;
   }
 }
+
+/* A linked name and its comma stay on one line. */
+.sc-keep {
+  white-space: nowrap;
+}

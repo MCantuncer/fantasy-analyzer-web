@@ -291,7 +291,7 @@
 }
 
 /* One line per name: a long one ends in an ellipsis, and its injury pill stays beside it. */
-.mp-name button.pc-link {
+.mp-name > button.pc-link {
   display: block;
   max-width: 100%;
   overflow: hidden;
@@ -299,12 +299,12 @@
   white-space: nowrap;
 }
 
-.mp-name button.pc-link.pc-link-split {
+.mp-name > button.pc-link.pc-link-split {
   display: inline-flex;
   align-items: center;
 }
 
-.mp-name .pc-link-split .pc-link-name {
+.mp-name > .pc-link-split .pc-link-name {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
@@ -1383,4 +1383,9 @@
 
 .mp-lane.tiny .mp-lane-who {
   left: 9px;
+}
+
+/* A linked name and the punctuation that belongs to it ("Mara's", "Bey,") stay on one line. */
+.mp-keep {
+  white-space: nowrap;
 }

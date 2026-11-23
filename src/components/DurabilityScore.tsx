@@ -3,6 +3,8 @@ import type { KeyboardEvent, MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { PlayerRef } from '../api/client'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { usePlayerCard } from '../lib/playerCard'
+import { PlayerLink } from './PlayerCard'
 import './DurabilityScore.css'
 
 // Share of his team's games a typical regular plays (the API's LEAGUE_SHARE, 0.728).
@@ -27,6 +29,7 @@ export function DurabilityScore({ player, prefix = '' }: { player: PlayerRef; pr
   const chip = useRef<HTMLSpanElement>(null)
   const pop = useRef<HTMLDivElement>(null)
   const id = useId()
+  const card = usePlayerCard()
 
   const close = useCallback(() => {
     setOpen(false)
@@ -109,7 +112,20 @@ export function DurabilityScore({ player, prefix = '' }: { player: PlayerRef; pr
           >
             <div className="dur-pop-head">
               <div>
-                <div className="dur-pop-name">{player.name}</div>
+                <div
+                  className="dur-pop-name"
+                  // His card replaces this explainer: focus goes back to the chip first, so closing the card lands there.
+                  onClickCapture={
+                    card
+                      ? () => {
+                          chip.current?.focus()
+                          setOpen(false)
+                        }
+                      : undefined
+                  }
+                >
+                  <PlayerLink player={{ id: player.id, name: player.name }} />
+                </div>
                 <div className="dur-pop-score">
                   <span className="tnum">{score}</span>
                   <span className="dur-pop-of">/100 durability</span>
