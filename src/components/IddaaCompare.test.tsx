@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Me } from '../api/client'
-import type { BookCompare, CompareGame } from '../lib/iddaaCompare'
+import type { BookCompare, CompareGame, ComparePlayer } from '../lib/iddaaCompare'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { IddaaCompare } from './IddaaCompare'
 import { ProProvider } from './Pro'
 
@@ -165,5 +166,152 @@ describe('Game picks', () => {
     expect(section.querySelector('.ic-gp-sc')!.textContent).toContain('Our score')
     expect(section.querySelector('.hollow, .ic-gp-conf, .ic-gp-ring')).toBeNull()
     expect(within(section).queryByRole('button', { name: /What this means/ })).toBeNull()
+  })
+})
+
+describe('Where we and the book disagree', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    setPlayerCardHost(null)
+  })
+
+  /** A player line with rungs 1+ up to 12+, so the bet is the highest rung at or under ours. */
+  const pl = (name: string, ours: number, book: number, over: Partial<ComparePlayer> = {}): ComparePlayer => ({
+    name,
+    player_id: name.length,
+    team: 'NY',
+    stat: 'reb',
+    played: null,
+    ladder: [],
+    rungs: Array.from({ length: 12 }, (_, i) => ({ n: i + 1, odd: 1.4 + i * 0.3, book: 0.5, ours: 0.55, value: null, hit: null })),
+    ours,
+    book,
+    actual: null,
+    gap: ours - book,
+    ours_hit: null,
+    book_hit: null,
+    closer: null,
+    ...over,
+  })
+  const section = async () => (await screen.findByRole('heading', { level: 2, name: /Where we and the book disagree/ })).closest('section')!
+
+  it('is one ranked list: the top three larger, no duel cards, no Players/Games switch and no match chips', async () => {
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    g.players = [pl('Aa', 8.3, 7.4), pl('Bb', 6.8, 6.0), pl('Cc', 5.6, 5.0), pl('Dd', 4.2, 4.0), pl('Ee', 3.0, 3.5)]
+    mount(night([g]))
+    const sec = await section()
+    expect(sec.querySelector('.ic-gl-sm')!.textContent).toBe('4 of 5 lines ours above')
+    const rows = [...sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')]
+    expect(rows.map((r) => r.querySelector('.ic-gl-who b')!.textContent)).toEqual(['Aa', 'Bb', 'Cc', 'Dd'])
+    expect(rows.map((r) => r.classList.contains('top'))).toEqual([true, true, true, false])
+    expect(rows.map((r) => r.querySelector('.ic-gl-rk')!.textContent)).toEqual(['1', '2', '3', '4'])
+    // the row: the signed gap, Book · Ours, the bet with its own odds and our chance
+    expect(rows[0].querySelector('.ic-gl-gap')!.textContent).toBe('Gap +0.9')
+    expect(rows[0].querySelector('.bo')!.textContent).toBe('Book 7.4 · Ours 8.3')
+    expect(rows[0].querySelector('.ic-gl-pb b')!.textContent).toBe('8+')
+    expect(rows[0].querySelector('.ic-gl-od b')!.textContent).toBe('3.50')
+    expect(rows[0].querySelector('.ic-ch')!.textContent).toBe('55%')
+    expect(rows[0].querySelector('.ic-gl-trk')!.getAttribute('aria-hidden')).toBe('true')
+    // gone: the duel stage, the Players/Games switch, the old day bar's match chips, the row sentence
+    expect(document.querySelector('.ic-duel, .ic-stage, .ic-seg, .ic-chip, .ic-games, .ic-nc')).toBeNull()
+    expect(sec.textContent).not.toMatch(/we expect .* than the book/)
+    // stat tabs in the site's order with counts; the native game select
+    expect(within(within(sec).getByRole('tablist', { name: 'Stat' })).getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'All 5',
+      '3PM 0',
+      'Rebounds 5',
+      'Assists 0',
+      'Steals 0',
+      'Blocks 0',
+      'Points 0',
+    ])
+    const select = within(sec).getByRole('combobox', { name: 'Game' }) as HTMLSelectElement
+    expect([...select.options].map((o) => o.textContent)).toEqual(['All Games', 'IND @ NY'])
+  })
+
+  it('gives each row two targets: the player card and the rungs', async () => {
+    const card = { open: vi.fn(), prefetch: vi.fn() }
+    setPlayerCardHost(card)
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    g.players = [pl('Jayson Tatum', 8.3, 7.4)]
+    mount(night([g]))
+    const sec = await section()
+    const row = sec.querySelector('.ic-gl-row') as HTMLElement
+    const player = within(row).getByRole('button', { name: 'Jayson Tatum, Rebounds, 8+. Opens the player card' })
+    fireEvent.click(player)
+    expect(card.open).toHaveBeenCalledWith({ id: 12, name: 'Jayson Tatum' })
+    const rungs = within(row).getByRole('button', { name: /Show the rungs/ })
+    expect(rungs.contains(player) || player.contains(rungs)).toBe(false)
+    expect(rungs.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(rungs)
+    expect(rungs.getAttribute('aria-expanded')).toBe('true')
+    expect(document.getElementById(rungs.getAttribute('aria-controls')!)!.querySelector('.ic-row-open')).toBeTruthy()
+  })
+
+  it('gathers the lines with no bet under one line, and says what the fold holds', async () => {
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    const high = (name: string, ours: number, book: number) =>
+      pl(name, ours, book, { rungs: [{ n: 4, odd: 1.6, book: 0.5, ours: 0.45, value: null, hit: null }] })
+    g.players = [pl('Aa', 8.3, 7.4), high('Toppin', 3.9, 3.5), high('Green', 3.6, 3.5), pl('Dd', 4.0, 4.5), pl('Ee', 3.0, 3.5), high('Ff', 2.0, 3)]
+    mount(night([g]))
+    const sec = await section()
+    const grp = sec.querySelector('.ic-gl-grp')!
+    expect(grp.textContent).toBe('No bet on these 2: iddaa’s lowest rung is above ours.')
+    expect(grp.nextElementSibling!.querySelector('.ic-gl-nb')!.textContent).toBe('No betLowest rung 4+')
+    const fold = within(sec).getByRole('button', { name: /Ours level with or below the book/ })
+    expect(fold.textContent).toContain('Ours level with or below the book 3')
+    expect(fold.textContent).toContain('2 still have a bet. iddaa only prices overs, so the rest carry none.')
+    expect(fold.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(fold)
+    expect(sec.querySelectorAll('#ic-gl-rest > .ic-gl-row')).toHaveLength(3)
+  })
+
+  it('filters by game with the select', async () => {
+    const a = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    const b = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'BOS', home: 'GS' }
+    a.players = [pl('Aa', 8.3, 7.4)]
+    b.players = [pl('Bb', 6.8, 6.0), pl('Cc', 5.6, 5.0)]
+    mount(night([a, b]))
+    const sec = await section()
+    expect(sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')).toHaveLength(3)
+    fireEvent.change(within(sec).getByRole('combobox', { name: 'Game' }), { target: { value: '2' } })
+    expect([...sec.querySelectorAll('.ic-gl-who b')].map((b) => b.textContent)).toEqual(['Bb', 'Cc'])
+  })
+
+  it('pages by 8 on phones', async () => {
+    vi.stubGlobal('matchMedia', (q: string) => ({
+      matches: q === '(max-width: 719px)',
+      media: q,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    g.players = Array.from({ length: 11 }, (_, i) => pl(`P${i}`, 5 + (11 - i) * 0.1, 5))
+    mount(night([g]))
+    const sec = await section()
+    expect(sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')).toHaveLength(8)
+    fireEvent.click(within(sec).getByRole('button', { name: 'Show 3 more' }))
+    expect(sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')).toHaveLength(11)
+    expect(within(sec).queryByRole('button', { name: /more$/ })).toBeNull()
+  })
+
+  it('shows what he got once final, with a green edge light when ours was closer', async () => {
+    const g = { ...game(1, 'final', '2026-11-22T00:00:00Z'), away_score: 101, home_score: 99 }
+    g.players = [
+      pl('Won', 8.3, 7.4, { actual: 9, ours_hit: true, book_hit: false, closer: 'ours' }),
+      pl('Lost', 6.8, 6.0, { actual: 4, ours_hit: false, book_hit: true, closer: 'book' }),
+    ]
+    mount(night([g]))
+    const sec = await section()
+    const [won, lost] = [...sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')]
+    expect(won.querySelector('.ic-gl-got')!.textContent).toBe('Got 9, bet won')
+    expect(won.classList.contains('closer')).toBe(true)
+    expect(won.querySelector('.ic-gl-trk .rs')).toBeTruthy()
+    expect(won.querySelector('.ic-gl-rs')!.textContent).toBe('Won')
+    expect(lost.querySelector('.ic-gl-got')!.textContent).toBe('Got 4, bet lost')
+    expect(lost.classList.contains('closer')).toBe(false)
+    expect(lost.querySelector('.ic-gl-rs')!.textContent).toBe('Lost')
   })
 })

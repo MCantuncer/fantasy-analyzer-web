@@ -2,16 +2,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   BookOpenText,
+  CaretDown,
   CaretRight,
   Check,
   Clock,
   Prohibit,
   Pulse,
+  Scales,
   Target,
   Ticket,
   X,
 } from '@phosphor-icons/react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
 import { fetchBookCompare } from '../api/client'
@@ -67,8 +69,7 @@ interface Props {
   onHealth?: () => void
 }
 
-const PAGE = 12
-/** Phones show fewer rows before "Show all": ranks 4 to 11. */
+/** Phones show the disagree list 8 rows at a time ("Show 8 more"); wider screens show it whole. */
 const PAGE_PHONE = 8
 const PHONE = '(max-width: 719px)'
 
@@ -236,15 +237,14 @@ function isTonight(data: BookCompare | undefined): boolean {
 }
 
 function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void }) {
-  const [group, setGroup] = useState<'players' | 'games'>('players')
   const [stat, setStat] = useState<Stat | 'ALL'>('ALL')
   const [game, setGame] = useState<number | null>(null)
-  const [showAll, setShowAll] = useState(false)
+  const [pages, setPages] = useState(1)
   const [fold, setFold] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
   const [motion, setMotion] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
-  // The open match card: Our Estimates from a match chip or a game's score; Form from a Kupon pick.
+  // The open match card: Our Estimates from a game's "Player estimates"; Form from a Kupon pick.
   const [card, setCardState] = useState<{ id: number; view: 'form' | 'estimates'; side: 'away' | 'home' } | null>(
     null,
   )
@@ -254,23 +254,22 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   useEffect(() => {
     if (first.current) first.current = false
     else setMotion(true) // the bands tug and the marks draw on a change, never on load
-  }, [group, stat, game])
+  }, [stat, game])
 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
-  const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
+  const stage = useMemo(() => stageOf(lines, stat, game), [lines, stat, game])
   const cardGame = card == null ? null : (data.games.find((g) => g.game_id === card.id) ?? null)
 
   /** "See in game" on a mark card: filter to that game, bring the line forward and ring it. */
   const see = (l: Line) => {
     const pool = lines.filter((x) => x.kind === l.kind && x.game.game_id === l.game.game_id && x.gap != null)
     const at = ranked(pool, true).above.findIndex((x) => x.id === l.id)
-    setGroup(l.kind === 'player' ? 'players' : 'games')
     setStat('ALL')
     setGame(l.game.game_id)
     setOpen(null)
     if (at < 0) setFold(true)
-    if (at < 0 || at >= 3 + PAGE_PHONE) setShowAll(true)
+    else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE)))
     setFlash(l.id)
   }
   useEffect(() => {
@@ -298,50 +297,42 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
           <Empty data={data} onDay={onDay} />
         </div>
       ) : (
-        <div className={`ic-sheet${motion ? ' motion' : ''}`}>
-            <NightCard
-              data={data}
-              lines={lines}
-              settled={settled}
-              game={game}
-              onGame={(g) => {
-                setGame(g)
-                setOpen(null)
-                setCard(g) // Can 2026-11-22: a match opens its card of player lines
-              }}
-            />
-            <GapList
-              lines={lines}
-              settled={settled}
-              group={group}
-              stat={stat}
-              game={game}
-              showAll={showAll}
-              fold={fold}
-              open={open}
-              flash={flash}
-              onGroup={(g) => {
-                setGroup(g)
-                setStat('ALL')
-                setOpen(null)
-              }}
-              onStat={(s) => {
-                setStat(s)
-                setOpen(null)
-              }}
-              onShowAll={() => setShowAll(true)}
-              onFold={() => setFold((f) => !f)}
-              onOpen={(id) => setOpen((o) => (o === id ? null : id))}
-            />
+        <>
+          <GapList
+            lines={lines}
+            games={data.games}
+            settled={settled}
+            stat={stat}
+            game={game}
+            pages={pages}
+            fold={fold}
+            open={open}
+            flash={flash}
+            onStat={(s) => {
+              setStat(s)
+              setPages(1)
+              setOpen(null)
+            }}
+            onGame={(g) => {
+              setGame(g)
+              setPages(1)
+              setOpen(null)
+            }}
+            onMore={() => setPages((p) => p + 1)}
+            onFold={() => setFold((f) => !f)}
+            onOpen={(id) => setOpen((o) => (o === id ? null : id))}
+          />
+          <div className={`ic-sheet${motion ? ' motion' : ''}`}>
             <StatCloser lines={lines} game={game} />
             <RungScorecard data={data} lines={lines} settled={settled} />
-        </div>
+          </div>
+        </>
       )}
       <RungRecord nights={data.nights} day={data.day} />
       {data.games.length > 0 && (
         <div className={`ic-sheet${motion ? ' motion' : ''}`}>
           <ValueRungs data={data} lines={lines} settled={settled} />
-          <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
+          <HowDivided lines={lines} group="players" game={game} stage={stage} onSee={see} />
           <GameBoxes data={data} lines={lines} settled={settled} />
         </div>
       )}
@@ -457,121 +448,6 @@ function LookLine({ data }: { data: BookCompare }) {
 
 const ORDER = { final: 0, live: 1, scheduled: 2 } as const
 
-/** The night in one card: where the games stand, how the judged lines have gone so far, and the
- *  games themselves as the page's game filter (final first, then live, then still to come). */
-function NightCard({
-  data,
-  lines,
-  settled,
-  game,
-  onGame,
-}: {
-  data: BookCompare
-  lines: Line[]
-  settled: boolean
-  game: number | null
-  onGame: (g: number | null) => void
-}) {
-  const looks = data.games.map((g) => g.checked).sort()
-  const count = (st: CompareGame['status']) => data.games.filter((g) => g.status === st).length
-  const where = [
-    count('final') && `${count('final')} final`,
-    count('live') && `${count('live')} live`,
-    count('scheduled') && `${count('scheduled')} to come`,
-  ].filter(Boolean)
-  const t = tallyOf(lines)
-  const games = [...data.games].sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.tip.localeCompare(b.tip))
-  return (
-    <div className="ic-nc">
-      <div className="ic-status">
-        <span className="ic-date">{nightLabel(data.date)}</span>
-        <span>{settled ? `${data.games.length} games, all final` : where.join(' · ')}</span>
-        <span className="ic-opt">
-          <span className="num">{t.n}</span> lines · <span className="num">{t.above}</span> Ours above
-        </span>
-        <span className="ic-look">
-          {!settled && <span className="ic-live" />}
-          {settled ? 'Last looks ' : 'Last look '}
-          <span className="num">
-            {settled && looks.length > 1
-              ? `${clock(looks[0])}–${clock(looks[looks.length - 1])}`
-              : clock(looks[looks.length - 1] ?? '')}
-          </span>
-        </span>
-      </div>
-      {t.judged > 0 && (
-        <div className="ic-tally-line">
-          <span className="ic-tl-say">
-            {settled ? '' : 'So far: '}We won <b className="g">{t.oursCloser}</b> of <b>{t.judged}</b> · Book won{' '}
-            <b>{t.bookCloser}</b>
-            {t.level > 0 && (
-              <>
-                {' '}
-                · Level <b>{t.level}</b>
-              </>
-            )}
-          </span>
-          <Split t={t} />
-          <span className="ic-tl-band">Each line settled on one book line, win or lose</span>
-        </div>
-      )}
-      <div className="ic-games" role="group" aria-label="Game">
-        <button type="button" className="ic-chip ic-chip-all" aria-pressed={game == null} onClick={() => onGame(null)}>
-          All Games
-        </button>
-        {games.map((g) => {
-          const gt = tallyOf(lines.filter((l) => l.game.game_id === g.game_id))
-          const score = g.away_score != null && g.home_score != null ? `${g.away_score}–${g.home_score}` : ''
-          return (
-            <button
-              key={g.game_id}
-              type="button"
-              className="ic-chip ic-chip-g"
-              aria-pressed={game === g.game_id}
-              onClick={() => onGame(game === g.game_id ? null : g.game_id)}
-            >
-              <span className="ic-chip-h">
-                <TeamLogo abbrev={g.away} size={18} />
-                {g.away} @ {g.home}
-                <TeamLogo abbrev={g.home} size={18} />
-              </span>
-              <span className="ic-chip-s">
-                {g.status === 'final' ? (
-                  <>
-                    Final <span className="num">{score}</span>
-                  </>
-                ) : g.status === 'live' ? (
-                  <>
-                    <span className="ic-live" aria-hidden="true" />
-                    Live <span className="num">{score}</span>
-                  </>
-                ) : (
-                  <>
-                    Tip <span className="num">{clock(g.tip)}</span>
-                  </>
-                )}
-              </span>
-              <span className="ic-chip-f">
-                {g.status === 'final' && gt.judged ? (
-                  <>
-                    Won: Ours <span className="num">{gt.oursCloser}</span>, Book{' '}
-                    <span className="num">{gt.bookCloser}</span>
-                  </>
-                ) : (
-                  <>
-                    {g.status === 'scheduled' ? 'Read at' : 'Kept as read at'}{' '}
-                    <span className="num">{clock(g.checked)}</span>
-                  </>
-                )}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 /** Who was nearer, as a bar: green for us, the track for level, muted for the book. */
 function Split({ t }: { t: Tally }) {
   return (
@@ -642,218 +518,386 @@ function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
 
 interface ListProps {
   lines: Line[]
+  games: CompareGame[]
   settled: boolean
-  group: 'players' | 'games'
   stat: Stat | 'ALL'
   game: number | null
-  showAll: boolean
+  /** Phones show the list 8 rows at a time; this many pages of it are out. */
+  pages: number
   fold: boolean
   open: string | null
-  onGroup: (g: 'players' | 'games') => void
+  flash: string | null
   onStat: (s: Stat | 'ALL') => void
-  onShowAll: () => void
+  onGame: (g: number | null) => void
+  onMore: () => void
   onFold: () => void
   onOpen: (id: string) => void
-  flash: string | null
 }
 
+/** Why a player line has no bet: iddaa's lowest priced rung sits above ours, or every rung it prices
+ *  is 1.33 or less. */
+function noBetWhy(l: Line): { short: string; rung: number | null } {
+  const low = l.rungs[0]
+  return low ? { short: `Lowest rung ${low.n}+`, rung: low.n } : { short: `Odds ${MIN_ODD.toFixed(2)} or less`, rung: null }
+}
+
+/** Where we and the book disagree (The Slip Rail, Can 2026-11-23): one ranked list of player lines on
+ *  the bare page, the first three set larger. Stat tabs and a game select on top; the lines with no bet
+ *  gathered under one line that says why; ours level with or below the book behind a fold. Phones show
+ *  8 rows at a time. */
 function GapList(p: ListProps) {
-  const { lines, settled, group, stat, game } = p
-  const stats = group === 'players' ? PLAYER_STATS : GAME_STATS
+  const { lines, settled, stat, game } = p
+  const kupons = useKuponPicks(lines)
+  const phone = usePhone()
   const inGame = (l: Line) => game == null || l.game.game_id === game
-  const pool = lines.filter((l) => stats.includes(l.stat) && inGame(l) && l.gap != null)
+  const pool = lines.filter((l) => l.kind === 'player' && inGame(l) && l.gap != null)
   const shown = pool.filter((l) => stat === 'ALL' || l.stat === stat)
   const { above, rest } = ranked(shown, stat === 'ALL')
-  const page = usePhone() ? PAGE_PHONE : PAGE
-  const limit = p.showAll ? Infinity : page
-  const count = (g: 'players' | 'games') =>
-    lines.filter((l) => (g === 'players' ? l.kind === 'player' : l.kind === 'game') && inGame(l) && l.gap != null)
-      .length
-  const top = above.slice(0, 3)
-  const list = above.slice(3)
-  const hidden = Math.max(0, list.length - limit)
+  const limit = phone ? p.pages * PAGE_PHONE : Infinity
+  const rows = above.slice(0, limit)
+  const more = Math.min(PAGE_PHONE, above.length - rows.length)
+  const noBet = above.filter((l) => !l.barem)
+  const firstNoBet = rows.find((l) => !l.barem)?.id
+  const restBets = rest.filter((l) => l.barem).length
   const most = rest[0]
-  const waiting = group === 'players' && pool.length === 0 && !settled
+  const waiting = pool.length === 0 && !settled
+  const games = [...p.games].sort((a, b) => ORDER[a.status] - ORDER[b.status] || a.tip.localeCompare(b.tip))
+  const allRungs = noBet.every((l) => l.rungs.length > 0)
+  const noRungs = noBet.every((l) => l.rungs.length === 0)
+  const row = (l: Line, rank: number) => (
+    <GapRow
+      key={l.id}
+      line={l}
+      rank={rank}
+      top={rank > 0 && rank <= 3}
+      settled={settled}
+      open={p.open === l.id}
+      flash={p.flash === l.id}
+      kupons={l.barem ? (kupons.get(kuponKey(l, l.barem.at + 0.5)) ?? []) : []}
+      onOpen={p.onOpen}
+    />
+  )
   return (
-    <section className={`ic-sec${waiting ? ' ic-waiting' : ''}`} aria-labelledby="ic-h-list">
-      <div className="ic-controls">
-        <div className="ic-ctrl-top">
-          <div className="ic-seg" role="group" aria-label="Lines">
-            {(['players', 'games'] as const).map((g) => (
-              <button key={g} type="button" aria-pressed={group === g} onClick={() => p.onGroup(g)}>
-                {g === 'players' ? 'Players' : 'Games'}
-                <span className="num">{count(g)}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="ic-tabs" role="tablist" aria-label="Stat">
-          <button type="button" role="tab" className="ic-tab" aria-selected={stat === 'ALL'} onClick={() => p.onStat('ALL')}>
-            All<span className="num">{pool.length}</span>
+    <section className="ic-gl" aria-labelledby="ic-h-list">
+      <div className="ic-gl-head">
+        <h2 id="ic-h-list">
+          <Scales size={22} aria-hidden="true" />
+          Where we and the book disagree
+        </h2>
+        {shown.length > 0 && (
+          <span className="ic-gl-sm">
+            <b className="num">{above.length}</b> of <b className="num">{shown.length}</b> lines ours above
+          </span>
+        )}
+      </div>
+      <div className="ic-gl-bar">
+        <div className="ic-gl-tabs" role="tablist" aria-label="Stat">
+          <button type="button" role="tab" className="ic-gl-tab" aria-selected={stat === 'ALL'} onClick={() => p.onStat('ALL')}>
+            All <span className="num">{pool.length}</span>
           </button>
-          {stats.map((s) => {
+          {PLAYER_STATS.map((s) => {
             const c = pool.filter((l) => l.stat === s).length
             return (
               <button
                 key={s}
                 type="button"
                 role="tab"
-                className="ic-tab"
+                className="ic-gl-tab"
                 aria-selected={stat === s}
                 disabled={!c}
                 onClick={() => p.onStat(s)}
               >
-                {STAT_NAME[s]}
-                <span className="num">{c}</span>
+                {STAT_NAME[s]} <span className="num">{c}</span>
               </button>
             )
           })}
         </div>
-        <label className="ic-stat-sel">
-          <span className="sr-only">Stat</span>
-          <select value={stat} onChange={(e) => p.onStat(e.target.value as Stat | 'ALL')}>
-            <option value="ALL">{`All Stats · ${pool.length}`}</option>
-            {stats.map((s) => {
-              const c = pool.filter((l) => l.stat === s).length
-              return (
-                <option key={s} value={s} disabled={!c}>
-                  {`${STAT_NAME[s]} · ${c}`}
-                </option>
-              )
-            })}
+        <label className="ic-gl-sel">
+          <span className="sr-only">Game</span>
+          <select value={game ?? ''} onChange={(e) => p.onGame(e.target.value === '' ? null : Number(e.target.value))}>
+            <option value="">All Games</option>
+            {games.map((g) => (
+              <option key={g.game_id} value={g.game_id}>{`${g.away} @ ${g.home}`}</option>
+            ))}
           </select>
-          <Chevron />
+          <CaretDown size={16} aria-hidden="true" />
         </label>
       </div>
-      <div className="ic-sec-h ic-stage-h">
-        <div>
-          <h2 id="ic-h-list">{settled ? 'The biggest gaps, and how they landed' : 'Where we and the book disagree most'}</h2>
-        </div>
-      </div>
-      <div className="ic-explain">
-        <p>
-          {stat === 'ALL'
-            ? 'Ranked by gap in bands, so a +0.5 steal and a +2.5 point gap compare fairly.'
-            : `${STAT_NAME[stat]}: ranked by the raw gap.`}{' '}
-          <span className="num">{above.length}</span> of <span className="num">{shown.length}</span> have Ours above.
-        </p>
-        <Key judged={lines.some((l) => l.oursHit != null)} />
-      </div>
       {waiting && (
-        <p className="ic-none">
+        <p className="ic-gl-none">
           No player bets from iddaa yet. Once it prices a player, he gets one bet here: the line, its own odds and how
           sure we are.
         </p>
       )}
-      {top.length > 0 && <DuelStage lines={top} flash={p.flash} />}
-      {list.length > 0 && (
-        <>
-          <h3 className="ic-rest-h">The rest of the gaps</h3>
-          <ColHead />
-        </>
-      )}
-      {above.length === 0 ? (
-        pool.length > 0 && <p className="ic-none">
-          No line had Ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.{' '}
-          {most && most.book != null && most.ours != null && (
+      {above.length === 0
+        ? shown.length > 0 && (
+            <p className="ic-gl-none">
+              No line had ours above the book{stat === 'ALL' ? '' : ` in ${STAT_NAME[stat]}`}.
+              {most && most.book != null && most.ours != null && (
+                <>
+                  {' '}
+                  Biggest the other way: <b>{`${most.name} ${STAT_NAME[most.stat]}`}</b>, Book{' '}
+                  <span className="num">{most.book.toFixed(1)}</span> vs Ours{' '}
+                  <span className="num">{most.ours.toFixed(1)}</span>.
+                </>
+              )}
+            </p>
+          )
+        : (
             <>
-              Biggest the other way: <b>{`${most.kind === 'player' ? most.name : most.gameLabel} ${STAT_NAME[most.stat]}`}</b>,
-              Book {value(most, 'book')} vs Ours {value(most, 'ours')}.
+              <div className="ic-gl-colh" aria-hidden="true">
+                <span />
+                <span>Player</span>
+                <span>Gap · Book · Ours</span>
+                <span>Bet</span>
+                <span>Odds</span>
+                <span>Our chance</span>
+              </div>
+              <ol className="ic-gl-rows">
+                {rows.map((l, i) => (
+                  <Fragment key={l.id}>
+                    {l.id === firstNoBet && (
+                      <li className="ic-gl-grp">
+                        <Prohibit size={16} aria-hidden="true" />
+                        <span>
+                          No bet on these <b className="num">{noBet.length}</b>:{' '}
+                          {allRungs
+                            ? 'iddaa’s lowest rung is above ours.'
+                            : noRungs
+                              ? `iddaa prices them at ${MIN_ODD.toFixed(2)} or less.`
+                              : `iddaa’s lowest rung is above ours, or its odds are ${MIN_ODD.toFixed(2)} or less.`}
+                        </span>
+                      </li>
+                    )}
+                    {row(l, i + 1)}
+                  </Fragment>
+                ))}
+              </ol>
             </>
           )}
-        </p>
-      ) : (
-        list.length > 0 && (
-          <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
-            {list.slice(0, limit).map((l, i) => (
-              <Row
-                key={l.id}
-                line={l}
-                i={i}
-                rank={i + 4}
-                settled={settled}
-                open={p.open === l.id}
-                flash={p.flash === l.id}
-                onOpen={p.onOpen}
-              />
-            ))}
-          </ol>
-        )
+      {more > 0 && (
+        <button type="button" className="ic-gl-more" onClick={p.onMore}>
+          Show <span className="num">{more}</span> more
+          <CaretDown size={16} aria-hidden="true" />
+        </button>
       )}
-      <div className="ic-list-foot">
-        {hidden > 0 && (
-          <button type="button" className="secondary" onClick={p.onShowAll}>
-            Show all {above.length} above the book
+      {rest.length > 0 && (
+        <>
+          <button type="button" className="ic-gl-fold" aria-expanded={p.fold} aria-controls="ic-gl-rest" onClick={p.onFold}>
+            <span className="fl">
+              <b>Ours level with or below the book</b> <span className="num">{rest.length}</span>
+            </span>
+            <span className="fs">
+              {restBets === 0 ? (
+                'iddaa only prices overs, so none of them carries a bet.'
+              ) : (
+                <>
+                  <span className="num">{restBets}</span> still {restBets === 1 ? 'has' : 'have'} a bet. iddaa only
+                  prices overs, so the rest carry none.
+                </>
+              )}
+            </span>
+            <CaretDown size={18} aria-hidden="true" />
           </button>
-        )}
-        {rest.length > 0 && (
-          <button type="button" className="ic-fold-btn" aria-expanded={p.fold} onClick={p.onFold}>
-            <Chevron />
-            Ours level with or below the book <span className="num">{rest.length}</span>
-          </button>
-        )}
-        {p.fold && (
-          <ol className={`ic-rows${p.open ? ' has-open' : ''}`}>
-            {rest.slice(0, p.showAll ? undefined : page).map((l, i) => (
-              <Row
-                key={l.id}
-                line={l}
-                i={i}
-                rank={0}
-                settled={settled}
-                open={p.open === l.id}
-                flash={p.flash === l.id}
-                onOpen={p.onOpen}
-              />
-            ))}
-          </ol>
-        )}
-      </div>
+          {p.fold && (
+            <ol className="ic-gl-rows" id="ic-gl-rest">
+              {rest.map((l) => row(l, 0))}
+            </ol>
+          )}
+        </>
+      )}
     </section>
   )
 }
 
-/** How to read a line, once, instead of a paragraph. */
-function Key({ judged }: { judged: boolean }) {
+/** A gap on a short track: the book's tick at 28%, our dot a band's worth of gap further on (a full band
+ *  fills the track), the stretch between them in ink; once the game is final, the result as a third mark.
+ *  Decoration only: the numbers beside it say the same. */
+function GapTrack({ line: l }: { line: Line }) {
+  const at = (bands: number) => Math.max(0, Math.min(1, 0.28 + bands * 0.72))
+  const ours = at(l.score)
+  const res = l.game.status === 'final' && l.actual != null && l.book != null ? at((l.actual - l.book) / l.band) : null
+  const x = (v: number) => ({ '--x': v.toFixed(4) }) as CSSProperties
   return (
-    <span className="ic-key" aria-label="How to read a line: the book's number, the gap, our number">
-      <span>
-        <span className="kb">5.3</span>Book
-      </span>
-      <span>
-        <span className="kg">+2.3</span>Gap
-      </span>
-      <span>
-        <span className="ko">7.6</span>Ours
-      </span>
-      <span>
-        <span className="kp">1.95</span>the book's odds
-      </span>
-      {judged && (
-        <span>
-          <span className="ic-key-ok">
-            <CheckIcon />
-          </span>
-          won on the book's line
-        </span>
-      )}
+    <span className="ic-gl-trk" aria-hidden="true">
+      <i className="ln" />
+      <i className="sg" style={{ '--a': Math.min(0.28, ours).toFixed(4), '--b': Math.max(0.28, ours).toFixed(4) } as CSSProperties} />
+      <i className="tk" style={x(0.28)} />
+      {res != null && <i className="rs" style={x(res)} />}
+      <i className="dt" style={x(ours)} />
     </span>
   )
 }
 
-function ColHead() {
+/** One line of the list. Two targets side by side, never nested: the face and name open the player
+ *  card, and the rest of the row (gap, bet, odds, our chance) opens the book's rungs under it. */
+function GapRow({
+  line: l,
+  rank,
+  top,
+  settled,
+  open,
+  flash,
+  kupons,
+  onOpen,
+}: {
+  line: Line
+  rank: number
+  top: boolean
+  settled: boolean
+  open: boolean
+  flash: boolean
+  kupons: string[]
+  onOpen: (id: string) => void
+}) {
+  const card = usePlayerCard()
+  const id = l.playerId ?? 0
+  const who = { id, name: l.name }
+  const b = l.barem
+  const g = l.game
+  const final = g.status === 'final'
+  const live = !final && (g.status === 'live' || l.tipped)
+  const done = final && l.oursHit != null
+  const panel = `ic-gl-open-${l.id.replace(/[^\w-]/g, '_')}`
+  const why = lostWhy(l)
+  const none = b ? null : noBetWhy(l)
+  const person = (
+    <>
+      <span className="ic-gl-face" aria-hidden="true">
+        <PlayerHead player={{ id, name: l.name }} team={l.team} size={top ? 48 : 40} />
+        {l.team && (
+          <span className="ic-gl-disc" style={{ '--tc': teamLight(l.team) ?? 'transparent' } as CSSProperties}>
+            <TeamLogo abbrev={l.team} size={16} fallback />
+          </span>
+        )}
+      </span>
+      <span className="ic-gl-who">
+        <b>{l.name}</b>
+        <span>
+          {STAT_NAME[l.stat]} · {l.gameLabel}
+          <span className="tip">
+            {' · '}
+            {final ? (
+              'Final'
+            ) : live ? (
+              'Live'
+            ) : (
+              <span className="num">{clock(g.tip)}</span>
+            )}
+          </span>
+        </span>
+      </span>
+    </>
+  )
+  const book = l.book == null ? '–' : l.book.toFixed(1)
+  const ours = l.ours == null ? '–' : l.ours.toFixed(1)
   return (
-    <div className="ic-colhead ic-grid" aria-hidden="true">
-      <span />
-      <span />
-      <span>Line</span>
-      <div className="ic-lane">
-        <span className="l">Book</span>
-        <span className="c">Gap</span>
-        <span className="r">Ours</span>
-      </div>
-      <span className="ic-ch-slot">Result</span>
-    </div>
+    <li
+      className={`ic-gl-row${top ? ' top' : ''}${b ? '' : ' nob'}${open ? ' is-open' : ''}${
+        final && l.closer === 'ours' ? ' closer' : ''
+      }${flash ? ' ic-flash' : ''}`}
+      data-line={l.id}
+    >
+      <span className="ic-gl-rk num" aria-hidden="true">
+        {rank || ''}
+      </span>
+      {card && id > 0 ? (
+        <button
+          type="button"
+          className="ic-gl-pw"
+          aria-haspopup="dialog"
+          aria-label={`${l.name}, ${STAT_NAME[l.stat]}${b ? `, ${b.label}` : ''}. Opens the player card`}
+          onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
+          onPointerDown={() => card.prefetch(who)}
+          onClick={() => card.open(who)}
+        >
+          {person}
+        </button>
+      ) : (
+        <span className="ic-gl-pw">{person}</span>
+      )}
+      <button
+        type="button"
+        className="ic-gl-det"
+        aria-expanded={open}
+        aria-controls={open ? panel : undefined}
+        onClick={() => onOpen(l.id)}
+      >
+        <span className="sr-only">{`${l.name}, ${STAT_NAME[l.stat]}: `}</span>
+        <span className="ic-gl-gp">
+          {final && l.actual != null ? (
+            <b className="ic-gl-got num">
+              {done &&
+                (l.oursHit ? (
+                  <Check className="ok" size={14} weight="bold" aria-hidden="true" />
+                ) : (
+                  <X className="no" size={14} weight="bold" aria-hidden="true" />
+                ))}
+              Got {num(l.actual)}
+              {done && <span className="sr-only">{l.oursHit ? ', bet won' : ', bet lost'}</span>}
+            </b>
+          ) : final && l.played === false ? (
+            <b className="ic-gl-got">Didn’t play</b>
+          ) : (
+            <b className="ic-gl-gap num">
+              <span className="sr-only">Gap </span>
+              {signed(l.gap ?? 0, l.stat)}
+            </b>
+          )}
+          <GapTrack line={l} />
+          <span className="bo">
+            Book <b className="num">{book}</b> · Ours <b className="num">{ours}</b>
+          </span>
+        </span>
+        {b ? (
+          <>
+            <span className="ic-gl-pb">
+              <span className="lab">Bet</span>
+              <b className="num">{b.label}</b>
+              <KuponTag kupons={kupons} named />
+            </span>
+            <span className="ic-gl-od">
+              <b className="num">{b.odd != null ? odds(b.odd) : '–'}</b>
+              <span>odds</span>
+            </span>
+            {done ? (
+              <span className={`ic-gl-rs ${l.oursHit ? 'ok' : 'no'}`}>{l.oursHit ? 'Won' : 'Lost'}</span>
+            ) : b.sure != null ? (
+              <Chance value={b.sure} className="ic-gl-ch" />
+            ) : (
+              <span className="ic-gl-ch" />
+            )}
+          </>
+        ) : (
+          <span className="ic-gl-nb">
+            <Prohibit size={16} aria-hidden="true" />
+            <span>
+              <b>No bet</b>
+              <span>
+                {none!.rung != null ? (
+                  <>
+                    Lowest rung <span className="num">{none!.rung}+</span>
+                  </>
+                ) : (
+                  none!.short
+                )}
+              </span>
+            </span>
+          </span>
+        )}
+        <span className="sr-only">{open ? '. Hide the rungs' : '. Show the rungs'}</span>
+      </button>
+      {why && (
+        <p className="ic-gl-why">
+          <b>Why</b> {why}
+        </p>
+      )}
+      {open && (
+        <div className="ic-gl-open" id={panel}>
+          <RowOpen line={l} settled={settled} />
+        </div>
+      )}
+    </li>
   )
 }
 
@@ -928,360 +972,11 @@ function resultValue(l: Line) {
   return num(l.actual)
 }
 
-/** The duel stage's shared scale, in bands: wide enough for every card's gap and result. */
-function stageScale(lines: Line[]) {
-  let lo = -0.25
-  let hi = 0.5
-  for (const l of lines) {
-    hi = Math.max(hi, l.score + 0.25)
-    lo = Math.min(lo, l.score - 0.25)
-    if (l.actual != null && l.book != null && l.stat !== 'WIN') {
-      const r = (l.actual - l.book) / l.band
-      hi = Math.max(hi, r + 0.25)
-      lo = Math.min(lo, r - 0.25)
-    }
-  }
-  return { lo: Math.max(-2, lo), hi: Math.min(2.6, hi) }
-}
-
-/** The top three gaps as duel cards: the book's number facing ours across the gap, on one ruler. */
-function DuelStage({ lines, flash }: { lines: Line[]; flash: string | null }) {
-  const scale = stageScale(lines)
-  return (
-    <div className="ic-stage">
-      {lines.map((l, i) => (
-        <DuelCard key={l.id} line={l} rank={i + 1} scale={scale} flash={flash === l.id} />
-      ))}
-    </div>
-  )
-}
-
-function DuelCard({
-  line: l,
-  rank,
-  scale,
-  flash,
-}: {
-  line: Line
-  rank: number
-  scale: { lo: number; hi: number }
-  flash: boolean
-}) {
-  const g = l.game
-  const final = g.status === 'final' && l.closer != null
-  const unit = STAT_UNIT[l.stat]
-  const cap1 =
-    l.stat === 'WIN'
-      ? 'Each tick: 20 points of chance'
-      : `Each tick: one band, ${num(l.band)} ${l.band === 1 ? unit.replace(/s$/, '') : unit}`
-  return (
-    <article
-      className={`ic-duel${final ? ' has-res' : ''}${flash ? ' ic-flash' : ''}`}
-      data-line={l.id}
-      aria-label={`Number ${rank}: ${l.kind === 'player' ? l.name : l.gameLabel}, ${STAT_NAME[l.stat]}`}
-    >
-      <header>
-        <span className="ic-rkd" aria-hidden="true">
-          {rank}
-        </span>
-        <Face line={l} />
-        <div className="ic-dw">
-          <b>{l.kind === 'player' ? <NameLink line={l} /> : l.gameLabel}</b>
-          <span>
-            <em>{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</em>
-            {l.kind === 'player' && <> · {l.gameLabel}</>}
-          </span>
-        </div>
-        <span className="ic-when">
-          {g.status === 'final' ? (
-            'Final'
-          ) : g.status === 'live' || l.tipped ? (
-            <>
-              <span className="ic-live" aria-hidden="true" />
-              Live
-            </>
-          ) : (
-            <>
-              Tip <span className="num">{clock(g.tip)}</span>
-            </>
-          )}
-        </span>
-      </header>
-      <div className="ic-faceoff">
-        <span className="lab bk">
-          Book
-          {l.price && (
-            <>
-              {' · '}
-              <Px line={l} long />
-            </>
-          )}
-        </span>
-        <span className="lab ou">Ours</span>
-        <span className="v bk">{value(l, 'book')}</span>
-        <span className="wire" aria-hidden="true">
-          <span className="gap">{signed(l.gap ?? 0, l.stat)}</span>
-        </span>
-        <span className="v ou">{value(l, 'ours')}</span>
-        {final && (
-          <>
-            <HitWord line={l} side="book" />
-            <HitWord line={l} side="ours" />
-          </>
-        )}
-      </div>
-      <StageRuler line={l} scale={scale} />
-      <div className="ic-duel-cap">{cap1}</div>
-      <DuelSlot line={l} />
-    </article>
-  )
-}
-
 /** The settled duel in a few words: "11+ won", "Under 11 lost", "Book won"; a winner pick stays right or wrong. */
 function callWord(l: Line, side: 'ours' | 'book', ok: boolean): string {
   if (l.stat === 'WIN') return ok ? 'right' : 'wrong'
   if (side === 'book') return ok ? 'Book won' : 'Book lost'
   return `${l.barem?.label ?? 'Ours'} ${ok ? 'won' : 'lost'}`
-}
-
-/** "✓ Over won" or "✗ Over lost" under ours, "✓ Book won" / "✗ Book lost" under the book's: how a bet settled. */
-function HitWord({ line: l, side }: { line: Line; side: 'ours' | 'book' }) {
-  const ok = side === 'ours' ? l.oursHit : l.bookHit
-  if (ok == null) return <span className={`hw ${side === 'ours' ? 'ou' : 'bk'}`} />
-  return (
-    <span className={`hw ${side === 'ours' ? 'ou' : 'bk'} ${ok ? 'ok' : 'no'}`}>
-      {ok ? <CheckIcon /> : <XIcon />}
-      {callWord(l, side, ok)}
-    </span>
-  )
-}
-
-/** One duel's ruler on the stage's shared scale: the book's tick, the warm bar to ours, the result pin. */
-function StageRuler({ line: l, scale }: { line: Line; scale: { lo: number; hi: number } }) {
-  const x = (b: number) => ((Math.max(scale.lo, Math.min(scale.hi, b)) - scale.lo) / (scale.hi - scale.lo)) * 100
-  const b0 = x(0)
-  const o = x(l.score)
-  const ticks: number[] = []
-  for (let k = Math.ceil(scale.lo); k <= Math.floor(scale.hi); k++) if (k !== 0) ticks.push(k)
-  const res = l.actual != null && l.book != null && l.stat !== 'WIN' ? x((l.actual - l.book) / l.band) : null
-  const label = `The book's line, then ours ${signed(l.gap ?? 0, l.stat)} away${
-    l.actual != null && l.stat !== 'WIN' ? `, and the result ${num(l.actual)}` : ''
-  }.`
-  return (
-    <div className="ic-sruler" role="img" aria-label={label}>
-      <i className="ax" />
-      {ticks.map((k) => (
-        <i key={k} className="tk" style={{ left: `${x(k)}%` }} />
-      ))}
-      <i className={`bar${(l.gap ?? 0) < 0 ? ' dn' : ''}`} style={{ left: `${Math.min(b0, o)}%`, width: `${Math.abs(o - b0)}%` }} />
-      <i className="bk" style={{ left: `${b0}%` }} />
-      {res != null && <i className="pin" style={{ left: `${res}%` }} />}
-      {(res == null || Math.abs(res - b0) >= 16) && (
-        <span className="lbl" style={{ left: `${Math.max(6, b0)}%` }}>
-          Book
-        </span>
-      )}
-      {res != null && (
-        <span className="lbl r" style={{ left: `${Math.max(8, Math.min(92, res))}%` }}>
-          Result {num(l.actual ?? 0)}
-        </span>
-      )}
-    </div>
-  )
-}
-
-/** The duel's footer: the plain sentence before the game, Playing during it, then who was nearer. */
-function DuelSlot({ line: l }: { line: Line }) {
-  const g = l.game
-  if (g.status === 'final' && (l.closer || l.actual != null)) {
-    const say =
-      l.kind === 'player' && l.actual != null ? (
-        <>
-          Finished with <b>{num(l.actual)}</b> {l.actual === 1 ? STAT_UNIT[l.stat].replace(/s$/, '') : STAT_UNIT[l.stat]}.
-        </>
-      ) : (
-        <>{cap(plain(l, true))}.</>
-      )
-    return (
-      <div className={`ic-dslot${l.closer === 'ours' ? ' ours' : ''}`}>
-        <span>{say}</span>
-        <Verdict line={l} />
-      </div>
-    )
-  }
-  if (l.tipped)
-    return (
-      <div className="ic-dslot live">
-        <span>
-          <span className="ic-live" aria-hidden="true" />
-          Playing now
-        </span>
-        <span className="sub">
-          {l.barem ? (
-            <>
-              on <span className="num">{l.barem.label}</span>
-              {l.barem.odd != null && (
-                <>
-                  {' at '}
-                  <span className="num">{odds(l.barem.odd)}</span>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              kept as read at <span className="num">{clock(g.checked)}</span>
-            </>
-          )}
-        </span>
-      </div>
-    )
-  if (l.barem) {
-    const sure = sureOf(l.barem)
-    return (
-      <div className="ic-dslot pre bet">
-        <span>
-          Our bet <b>{l.barem.label}</b>
-          {l.barem.odd != null && (
-            <>
-              {' at '}
-              <b>{odds(l.barem.odd)}</b>
-            </>
-          )}
-        </span>
-        {sure && (
-          <span className="sub">
-            <span className="num">{sure}</span> sure
-          </span>
-        )}
-      </div>
-    )
-  }
-  return (
-    <div className="ic-dslot pre">
-      <span>{cap(plain(l, false))}.</span>
-    </div>
-  )
-}
-
-function Row({
-  line: l,
-  i,
-  rank,
-  settled,
-  open,
-  flash,
-  onOpen,
-}: {
-  line: Line
-  i: number
-  rank: number
-  settled: boolean
-  open: boolean
-  flash: boolean
-  onOpen: (id: string) => void
-}) {
-  return (
-    <li className={`ic-row${open ? ' is-open' : ''}${flash ? ' ic-flash' : ''}`} data-line={l.id}>
-      <button type="button" className="ic-row-main ic-grid" aria-expanded={open} onClick={() => onOpen(l.id)}>
-        <span className="ic-rk">{rank || ''}</span>
-        <Face line={l} />
-        <Who line={l} />
-        <Lane line={l} i={i} />
-        <ResultSlot line={l} />
-      </button>
-      {lostWhy(l) && (
-        <p className="ic-row-why">
-          <b>Why</b> {lostWhy(l)}
-        </p>
-      )}
-      {open && <RowOpen line={l} settled={settled} />}
-    </li>
-  )
-}
-
-/** Where the result lands: a quiet well until tip-off, "Playing" during the game, then the result
- *  and who was nearer. A soft green light marks the slot (never the row) when we were closer. */
-function ResultSlot({ line: l }: { line: Line }) {
-  const g = l.game
-  if (g.status === 'final') {
-    return (
-      <div className={`ic-slot fin${l.closer === 'ours' ? ' ours' : ''}`}>
-        <span className="ic-slot-res">
-          <span className="lab">Result</span>
-          <b>{resultValue(l) ?? '–'}</b>
-        </span>
-        <Verdict line={l} />
-      </div>
-    )
-  }
-  if (l.tipped)
-    return (
-      <div className="ic-slot live">
-        <span className="ic-live" aria-hidden="true" />
-        Playing
-        <span className="sub">
-          {l.barem ? (
-            <>
-              on <span className="num">{l.barem.label}</span>
-              {l.barem.odd != null && (
-                <>
-                  {' · '}
-                  <span className="num">{odds(l.barem.odd)}</span>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              kept at <span className="num">{clock(g.checked)}</span>
-            </>
-          )}
-        </span>
-      </div>
-    )
-  if (l.barem) return <BetSlot line={l} />
-  if (l.kind === 'player' && l.book != null)
-    return (
-      <div className="ic-slot wait bet none">
-        <span className="ic-slot-vd none">
-          <b>No bet</b>
-          <span>odds 1.33 or less</span>
-        </span>
-      </div>
-    )
-  return (
-    <div className="ic-slot wait">
-      <span className="sub">
-        Tip <span className="num">{clock(g.tip)}</span>
-      </span>
-    </div>
-  )
-}
-
-/** Before tip-off, the one bet we take on the line (Can 2026-11-22): the barem, its own odds and our
- *  confidence that it wins. */
-function BetSlot({ line: l }: { line: Line }) {
-  const b = l.barem
-  if (!b) return null
-  const sure = sureOf(b)
-  return (
-    <div
-      className="ic-slot wait bet"
-      title={`Our bet: ${b.label}${b.odd != null ? ` at ${odds(b.odd)}` : ''}${sure ? `, ${sure} sure` : ''}. Tip ${clock(l.game.tip)}`}
-    >
-      <span className="ic-slot-res">
-        <span className="lab">Bet</span>
-        <b>{b.label}</b>
-      </span>
-      <span className="ic-slot-vd">
-        {b.odd != null && <b className="num">{odds(b.odd)}</b>}
-        {sure && (
-          <span>
-            <span className="num">{sure}</span> sure
-          </span>
-        )}
-      </span>
-    </div>
-  )
 }
 
 /** Who won the row's duel, in words: green for us, calm for the book; under it the barem it was
@@ -1364,73 +1059,6 @@ function Pair({ away, home, size = 24 }: { away: string; home: string; size?: nu
       <TeamLogo abbrev={away} size={size} fallback />
       <TeamLogo abbrev={home} size={size} fallback />
     </span>
-  )
-}
-
-function Who({ line: l }: { line: Line }) {
-  if (l.kind === 'player') {
-    return (
-      <div className="ic-who">
-        <div className="ic-nm">
-          <NameLink line={l} />
-        </div>
-        <div className="ic-sub ic-sub-l">
-          <b>{STAT_NAME[l.stat]}</b> · {plain(l, settledOf(l))}
-        </div>
-        <div className="ic-sub ic-sub-s">
-          <b>{STAT_NAME[l.stat]}</b> · {l.gameLabel}
-        </div>
-      </div>
-    )
-  }
-  return (
-    <div className="ic-who">
-      <div className="ic-nm">
-        {l.gameLabel} <span className="ic-nm-st">{l.stat === 'TEAM' ? `${l.team} points` : STAT_NAME[l.stat]}</span>
-      </div>
-      <div className="ic-sub ic-sub-l">{cap(plain(l, settledOf(l)))}</div>
-    </div>
-  )
-}
-
-/** His name opens his player card. It sits inside the row's open/close button, so it is a tap
- * target only; keyboard users get the "Player details" button in the opened row. */
-function NameLink({ line: l }: { line: Line }) {
-  const card = usePlayerCard()
-  const id = l.playerId ?? 0
-  if (!card || id <= 0) return <>{l.name}</>
-  const who = { id, name: l.name }
-  return (
-    <span
-      className="ic-nm-link"
-      title={`${l.name}: player details`}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
-      onPointerDown={() => card.prefetch(who)}
-      onClick={(e) => {
-        e.stopPropagation()
-        card.open(who)
-      }}
-    >
-      {l.name}
-    </span>
-  )
-}
-
-function DetailsButton({ line: l }: { line: Line }) {
-  const card = usePlayerCard()
-  const id = l.playerId ?? 0
-  if (l.kind !== 'player' || !card || id <= 0) return null
-  const who = { id, name: l.name }
-  return (
-    <button
-      type="button"
-      className="secondary ic-card-btn"
-      aria-haspopup="dialog"
-      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
-      onClick={() => card.open(who)}
-    >
-      Player details
-    </button>
   )
 }
 
@@ -1666,7 +1294,6 @@ function RowOpen({ line: l, settled }: { line: Line; settled: boolean }) {
           Last look <span className="num">{clock(l.game.checked)}</span> · tip{' '}
           <span className="num">{clock(l.game.tip)}</span>
         </div>
-        <DetailsButton line={l} />
       </div>
     </div>
   )
@@ -1685,12 +1312,11 @@ function LadderRow({ n, chance, odd }: { n: number; chance: number; odd?: number
   )
 }
 
-/** The top three gaps the list shows right now (the duel stage), as the field's numbered marks. */
-function stageOf(lines: Line[], group: 'players' | 'games', stat: Stat | 'ALL', game: number | null) {
-  const stats = group === 'players' ? PLAYER_STATS : GAME_STATS
+/** The top three gaps the list shows right now (its larger first rows), as the field's numbered marks. */
+function stageOf(lines: Line[], stat: Stat | 'ALL', game: number | null) {
   const shown = lines.filter(
     (l) =>
-      stats.includes(l.stat) &&
+      l.kind === 'player' &&
       (game == null || l.game.game_id === game) &&
       l.gap != null &&
       (stat === 'ALL' || l.stat === stat),
