@@ -1,0 +1,100 @@
+/* The trade tools' head: title + Trade Park's switch on wider screens, one 3-way segment on phones.
+   Prefix tmo-. Page-own, so the global .segmented stays as it is. */
+.tmo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+}
+
+.tmo-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 650;
+}
+
+/* Segments: 44px targets (not the global 40), Title Case labels. */
+.tmo-seg {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--track);
+}
+
+.tmo-seg button {
+  min-height: 44px;
+  min-width: 120px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tmo-seg button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+.tmo-seg button[aria-pressed='false']:hover {
+  color: var(--text);
+}
+
+.tmo-seg button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tmo-phone {
+  display: none;
+}
+
+/* Phones: the bottom bar has one Trades item, so the segment reaches all three tools. The query is the
+   bottom bar's own (styles/phone/bottom-bar.css, PHONE_QUERY in CourtMark.tsx): wider screens keep the
+   top tab row, so they get the title and Trade Park's switch instead. Keep the two in step. */
+@media (max-width: 640px) {
+  .tmo-head {
+    min-height: 0;
+  }
+
+  /* The title stays for screen readers; the segment says where you are. */
+  .tmo-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .tmo-wide,
+  .tmo-check {
+    display: none;
+  }
+
+  .tmo-phone {
+    display: grid;
+    width: 100%;
+  }
+
+  .tmo-phone button {
+    min-width: 0;
+    padding: 0 4px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tmo-phone button {
+    font-size: 12.5px;
+  }
+}

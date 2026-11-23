@@ -49,6 +49,12 @@ const SHORT: Record<string, string> = {
 /** The bottom bar keeps four sections in reach; the rest sit behind More. */
 const PHONE_FIRST = ['moves', 'park', 'team', 'league']
 
+/**
+ * Sections the bottom bar folds into another one: Trade For is reached from the Trades segment
+ * (Trade Park · Trade For · Check a Trade), so it leaves More and lights Trades while it is open.
+ */
+const BAR_ALIAS: Record<string, string> = { 'trade-for': 'park' }
+
 function SectionIcon({ id, active, size }: { id: string; active: boolean; size: number }) {
   const I = ICON[id]
   return I ? <I className="sn-ic" size={size} weight={active ? 'fill' : 'regular'} aria-hidden="true" /> : null
@@ -129,10 +135,14 @@ function BottomBar({
 }) {
   const [open, setOpen] = useState(false)
   const bar = useRef<HTMLElement>(null)
+  // An aliased section leaves the bar only when the section it folds into is there to reach it.
+  const has = (id: string | undefined) => sections.some((s) => s.id === id)
+  const shown = sections.filter((s) => !has(BAR_ALIAS[s.id]))
+  const lit = has(BAR_ALIAS[active]) ? BAR_ALIAS[active] : active
   // Five or fewer sections fit as they are; more keep the first four and fold the rest into More.
-  const first = sections.length <= 5 ? sections : PHONE_FIRST.flatMap((id) => sections.filter((s) => s.id === id))
-  const rest = sections.length <= 5 ? [] : sections.filter((s) => !first.includes(s))
-  const moreActive = rest.some((s) => s.id === active)
+  const first = shown.length <= 5 ? shown : PHONE_FIRST.flatMap((id) => shown.filter((s) => s.id === id))
+  const rest = shown.length <= 5 ? [] : shown.filter((s) => !first.includes(s))
+  const moreActive = rest.some((s) => s.id === lit)
 
   useEffect(() => {
     if (!open) return
@@ -159,10 +169,10 @@ function BottomBar({
               <button
                 type="button"
                 className="sn-more-item"
-                aria-current={active === s.id ? 'page' : undefined}
+                aria-current={lit === s.id ? 'page' : undefined}
                 onClick={() => pick(s.id)}
               >
-                <SectionIcon id={s.id} active={active === s.id} size={20} />
+                <SectionIcon id={s.id} active={lit === s.id} size={20} />
                 {s.label}
               </button>
             </li>
@@ -174,10 +184,10 @@ function BottomBar({
           key={s.id}
           type="button"
           className="sn-item"
-          aria-current={active === s.id ? 'page' : undefined}
+          aria-current={lit === s.id ? 'page' : undefined}
           onClick={() => pick(s.id)}
         >
-          <SectionIcon id={s.id} active={active === s.id} size={22} />
+          <SectionIcon id={s.id} active={lit === s.id} size={22} />
           <span>{SHORT[s.id] ?? s.label}</span>
         </button>
       ))}
@@ -191,7 +201,7 @@ function BottomBar({
           onClick={() => setOpen((o) => !o)}
         >
           <DotsThreeOutline className="sn-ic" size={22} weight={moreActive || open ? 'fill' : 'regular'} aria-hidden="true" />
-          <span>{moreActive ? (SHORT[active] ?? rest.find((s) => s.id === active)?.label) : 'More'}</span>
+          <span>{moreActive ? (SHORT[lit] ?? rest.find((s) => s.id === lit)?.label) : 'More'}</span>
         </button>
       )}
       {trailing}
