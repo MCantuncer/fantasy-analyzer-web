@@ -64,6 +64,8 @@ vi.mock('../api/client', async (orig) => ({
   createPost: vi.fn(),
   deletePost: vi.fn(async () => ({ ok: true })),
   react: vi.fn(),
+  // Failures show at once here; the real retry waits out a waking server for seconds.
+  retryDropped: vi.fn(() => false),
 }))
 
 describe('LeagueChat wire', () => {
@@ -136,9 +138,126 @@ describe('LeagueChat refresh', () => {
     await screen.findByText('Tristan da Silva')
     vi.mocked(fetchFeed).mockRejectedValue(new ApiError(500, 'server', 'Something broke.'))
     await act(() => client.refetchQueries({ queryKey: ['feed', 1, 2027] }))
-    await screen.findByText(/Couldn't refresh the feed just now/)
-    expect(screen.queryByText("Couldn't load the league feed")).toBeNull()
+    const stale = await screen.findByText(/Couldn't refresh just now\. Trying again shortly\./)
+    expect(stale.getAttribute('role')).toBe('status')
+    expect(stale.closest('li')?.className).toBe('feed-entry feed-stale')
+    expect(container.querySelector('.feed-wire > li:first-child')?.classList.contains('feed-stale')).toBe(true)
+    expect(screen.queryByText("Couldn't load the league feed.")).toBeNull()
     expect(container.querySelectorAll('.feed-wire .feed-line')).toHaveLength(2)
+  })
+})
+
+describe('LeagueChat states', () => {
+  afterEach(cleanup)
+  beforeEach(() => {
+    vi.mocked(fetchFeed).mockReset()
+    vi.mocked(fetchFeed).mockResolvedValue(page)
+  })
+
+  function renderFeed(me = false) {
+    if (me) {
+      const first = vi.mocked(fetchFeed).getMockImplementation()
+      vi.mocked(fetchFeed).mockImplementation(async (...args) => ({
+        ...(await first!(...args)),
+        me: { league_id: 1, season: 2027, team_id: 3, team_name: 'Kucukesat Aspavas' },
+      }))
+    }
+    return render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+  }
+
+  it('loads as the wire: a spine, a day bone and four line bones, with no cards', async () => {
+    vi.mocked(fetchFeed).mockImplementation(() => new Promise(() => {}))
+    const { container } = renderFeed()
+    const sk = container.querySelector('.sk-feed')!
+    expect(sk.getAttribute('aria-busy')).toBe('true')
+    expect(within(sk as HTMLElement).getByRole('status').textContent).toBe('Loading the league feed')
+    expect(sk.querySelectorAll('.sk-wire-day')).toHaveLength(1)
+    expect(sk.querySelectorAll('.sk-wire-line')).toHaveLength(4)
+    expect(sk.querySelectorAll('.sk-wire-line .sk-wire-node')).toHaveLength(4)
+    expect(sk.querySelector('.card')).toBeNull()
+  })
+
+  it("shows a quiet block, not a red card, when the feed never loaded, and tries again", async () => {
+    vi.mocked(fetchFeed).mockRejectedValue(new ApiError(503, 'unavailable', 'Service unavailable.'))
+    const { container } = renderFeed()
+    const block = await screen.findByRole('alert')
+    expect(block.className).toBe('feed-error')
+    expect(block.textContent).toContain("Couldn't load the league feed.")
+    expect(block.textContent).toContain('The server may be waking up.')
+    expect(container.querySelector('.card')).toBeNull()
+
+    vi.mocked(fetchFeed).mockResolvedValue(page)
+    fireEvent.click(within(block).getByRole('button', { name: 'Try again' }))
+    await screen.findByText('Tristan da Silva')
+    expect(container.querySelector('.feed-error')).toBeNull()
+  })
+
+  it("says what the server said when it isn't just waking up", async () => {
+    vi.mocked(fetchFeed).mockRejectedValue(new ApiError(404, 'not_found', 'This league is private.'))
+    renderFeed()
+    const block = await screen.findByRole('alert')
+    expect(block.textContent).toContain('This league is private.')
+    expect(block.textContent).not.toContain('waking up')
+  })
+
+  it('puts an empty week on the wire as a milestone, with the week before right under it', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue({ ...page, items: [], has_more: true })
+    const { container } = renderFeed()
+    const line = await screen.findByText('Nothing moved in the last 7 days.')
+    const li = line.closest('li')!
+    expect(li.className).toBe('feed-entry feed-empty')
+    expect(li.parentElement?.className).toBe('feed-wire')
+    const end = li.nextElementSibling!
+    expect(end.className).toBe('feed-entry feed-end is-near')
+    expect(within(end as HTMLElement).getByRole('button').textContent).toBe('Show the week before')
+    expect(container.querySelector('.card')).toBeNull()
+  })
+
+  it('names the filter that came up empty, and the season once there is no week before', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue({ ...page, items: page.items.filter((i) => i.kind !== 'trade') })
+    const { container } = renderFeed()
+    await screen.findByText('Tristan da Silva')
+    fireEvent.click(screen.getByRole('button', { name: 'Trades' }))
+    expect(screen.getByText('No trades yet this season.')).toBeTruthy()
+    expect(container.querySelectorAll('.feed-line, .feed-day')).toHaveLength(0)
+    expect(container.querySelector('.feed-end')).toBeNull()
+  })
+
+  it('reads "Loading…" on the end button while the week before loads', async () => {
+    vi.mocked(fetchFeed).mockImplementation(async (_ref, pageNo) =>
+      pageNo === 0 ? { ...page, has_more: true } : new Promise<FeedPage>(() => {}),
+    )
+    renderFeed()
+    fireEvent.click(await screen.findByRole('button', { name: 'Show the week before' }))
+    const busy = await screen.findByRole('button', { name: 'Loading…' })
+    expect(busy).toHaveProperty('disabled', true)
+    expect(busy.getAttribute('aria-busy')).toBe('true')
+  })
+
+  it('keeps the text while it posts, and says so under the field when the post fails', async () => {
+    let fail: (e: Error) => void = () => {}
+    vi.mocked(createPost).mockImplementation(() => new Promise((_, reject) => (fail = reject)))
+    renderFeed(true)
+    const input = (await screen.findByPlaceholderText('Talk to the league…')) as HTMLInputElement
+    fireEvent.change(input, { target: { value: "Who's streaming Wednesday?" } })
+    fireEvent.submit(input.closest('form')!)
+    const posting = await screen.findByRole('button', { name: 'Posting…' })
+    expect(posting).toHaveProperty('disabled', true)
+    expect(posting.getAttribute('aria-busy')).toBe('true')
+    expect(input.value).toBe("Who's streaming Wednesday?")
+    expect(input.readOnly).toBe(true)
+
+    await act(async () => fail(new ApiError(0, 'network', 'Failed to fetch')))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe("Couldn't post. Try again.")
+    expect(input.getAttribute('aria-describedby')).toBe(alert.id)
+    expect(input.value).toBe("Who's streaming Wednesday?")
+    expect(input.readOnly).toBe(false)
+    expect(screen.getByRole('button', { name: 'Post' })).toHaveProperty('disabled', false)
   })
 })
 

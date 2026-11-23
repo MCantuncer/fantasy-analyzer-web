@@ -4,13 +4,25 @@ import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
-import { createPost, deletePost, fetchFeed, fetchReplies, react, retryDropped, retryDroppedDelay } from '../api/client'
+import {
+  ApiError,
+  createPost,
+  deletePost,
+  fetchFeed,
+  fetchReplies,
+  isTransient,
+  react,
+  retryDropped,
+  retryDroppedDelay,
+} from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef } from '../api/client'
 import {
   ArrowBendUpLeft,
+  ArrowClockwise,
   ArrowsLeftRight,
   CaretDown,
   ChatCircle,
+  ClockCounterClockwise,
   Crown,
   FilmSlate,
   Gavel,
@@ -19,6 +31,7 @@ import {
   Trash,
   User,
   UserPlus,
+  WarningCircle,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import type { Credentials } from '../lib/credentials'
@@ -29,6 +42,7 @@ import {
   biggestBidId,
   dayDate,
   daySummary,
+  emptyLine,
   faabLeaderId,
   groupByDay,
   isMoment,
@@ -142,19 +156,9 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
   if (feed.isPending) {
     return <FeedSkeleton />
   }
-  // A failed refresh keeps the feed on screen; only a feed that never loaded shows the error card.
+  // A failed refresh keeps the feed on screen; only a feed that never loaded shows this block.
   if (!feed.data || !first) {
-    return (
-      <div className="card error stack">
-        <h2>Couldn't load the league feed</h2>
-        <p>{feed.error instanceof Error ? feed.error.message : 'Try again in a moment.'}</p>
-        <div className="row">
-          <button className="secondary" onClick={() => feed.refetch()}>
-            Try again
-          </button>
-        </div>
-      </div>
-    )
+    return <FeedError error={feed.error} retrying={feed.isFetching} onRetry={() => feed.refetch()} />
   }
 
   const teams = first.teams
@@ -192,12 +196,6 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
 
         {budget ? <FaabSummary teams={teams} budget={budget} myTeamId={myTeamId} colours={ctx.colours} /> : null}
 
-        {feed.isError && (
-          <p className="chat-stale small muted" role="status">
-            Couldn't refresh the feed just now. Trying again shortly.
-          </p>
-        )}
-
         <div className="feed-filters" role="group" aria-label="Show">
           {FILTERS.filter((f) => link || (f.id !== 'post' && f.id !== 'mine')).map((f) => {
             const FilterIcon = FILTER_ICONS[f.id]
@@ -216,41 +214,60 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           })}
         </div>
 
-        {(link || items.length > 0 || feed.hasNextPage) && (
-          <ol className="feed-wire" aria-label="League moves, newest first">
-            {link && (
-              <li className="feed-entry chat-compose">
-                <span className="feed-node" aria-hidden="true">
-                  <TeamCrest name={link.teamName} colour={ctx.colours.get(link.teamId)} size={28} />
-                </span>
-                <span className="feed-time" aria-hidden="true">
-                  Now
-                </span>
-                <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
-                <p className="chat-as">
-                  Posting as <b>{link.teamName}</b>
+        <ol className="feed-wire" aria-label="League moves, newest first">
+          {link && (
+            <li className="feed-entry chat-compose">
+              <span className="feed-node" aria-hidden="true">
+                <TeamCrest name={link.teamName} colour={ctx.colours.get(link.teamId)} size={28} />
+              </span>
+              <span className="feed-time" aria-hidden="true">
+                Now
+              </span>
+              <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
+              <p className="chat-as">
+                Posting as <b>{link.teamName}</b>
+              </p>
+            </li>
+          )}
+          {feed.isRefetchError && (
+            <li className="feed-entry feed-stale">
+              <span className="feed-node" aria-hidden="true" />
+              <span className="feed-stale-text" role="status">
+                <ArrowClockwise size={14} aria-hidden="true" />
+                Couldn't refresh just now. Trying again shortly.
+              </span>
+            </li>
+          )}
+          {items.length === 0 && (
+            <li className="feed-entry feed-empty">
+              <span className="feed-node" aria-hidden="true" />
+              <p className="feed-empty-text">{emptyLine(filter, feed.data.pages.length, feed.hasNextPage)}</p>
+            </li>
+          )}
+          {groupByDay(items).map((g) => (
+            <Day key={g.label} label={g.label} items={g.items} ctx={ctx} starts={starts} />
+          ))}
+          {feed.hasNextPage && (
+            <li className={items.length === 0 ? 'feed-entry feed-end is-near' : 'feed-entry feed-end'}>
+              <span className="feed-node" aria-hidden="true" />
+              <button
+                type="button"
+                className="chat-soft feed-more"
+                disabled={feed.isFetchingNextPage}
+                aria-busy={feed.isFetchingNextPage || undefined}
+                onClick={() => feed.fetchNextPage()}
+              >
+                <ClockCounterClockwise size={17} aria-hidden="true" />
+                {feed.isFetchingNextPage ? 'Loading…' : 'Show the week before'}
+              </button>
+              {feed.isFetchNextPageError && !feed.isFetchingNextPage && (
+                <p className="feed-end-note" role="status">
+                  Couldn't load the week before. Try again.
                 </p>
-              </li>
-            )}
-            {groupByDay(items).map((g) => (
-              <Day key={g.label} label={g.label} items={g.items} ctx={ctx} starts={starts} />
-            ))}
-            {feed.hasNextPage && (
-              <li className="feed-entry feed-end">
-                <span className="feed-node" aria-hidden="true" />
-                <button className="secondary" disabled={feed.isFetchingNextPage} onClick={() => feed.fetchNextPage()}>
-                  {feed.isFetchingNextPage ? 'Loading…' : 'Show the week before'}
-                </button>
-              </li>
-            )}
-          </ol>
-        )}
-
-        {items.length === 0 && (
-          <div className="card empty">
-            {filter === 'all' ? 'Nothing has happened in this league yet this week.' : 'Nothing like that this week.'}
-          </div>
-        )}
+              )}
+            </li>
+          )}
+        </ol>
       </div>
 
       {budget ? (
@@ -262,6 +279,33 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           <FaabList teams={teams} budget={budget} myTeamId={myTeamId} colours={ctx.colours} />
         </aside>
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * The feed never loaded: a quiet block, not a red card. A server that is waking up is the usual
+ * reason; anything else says what the server said.
+ */
+function FeedError({ error, retrying, onRetry }: { error: unknown; retrying: boolean; onRetry: () => void }) {
+  const why = error instanceof ApiError && !isTransient(error) ? error.message : 'The server may be waking up.'
+  return (
+    <div className="feed-error" role="alert">
+      <WarningCircle className="feed-error-icon" size={18} aria-hidden="true" />
+      <div className="feed-error-body">
+        <p className="feed-error-title">Couldn't load the league feed.</p>
+        <p className="feed-error-why">{why}</p>
+        <button
+          type="button"
+          className="chat-soft feed-retry"
+          disabled={retrying}
+          aria-busy={retrying || undefined}
+          onClick={onRetry}
+        >
+          <ArrowClockwise size={16} aria-hidden="true" />
+          {retrying ? 'Trying again…' : 'Try again'}
+        </button>
+      </div>
     </div>
   )
 }
@@ -975,6 +1019,11 @@ function Replies({ item, ctx, focus = false }: { item: FeedItem; ctx: Ctx; focus
   return (
     <div className="chat-thread">
       {replies.isLoading && <p className="chat-thread-note">Loading replies…</p>}
+      {replies.isError && rows.length === 0 && (
+        <p className="chat-thread-note" role="status">
+          Couldn't load the replies. Trying again shortly.
+        </p>
+      )}
       {rows.length > 0 && (
         <ul className="chat-replies" aria-label="Replies">
           {rows.map((p) => (
@@ -1099,6 +1148,7 @@ function Composer({
     },
   })
   const id = `compose-${target ?? 'chat'}`
+  const errorId = `${id}-error`
   return (
     <form
       className={target ? 'chat-compose-row chat-reply-row' : 'chat-compose-row'}
@@ -1117,19 +1167,24 @@ function Composer({
         maxLength={500}
         placeholder={placeholder}
         autoComplete="off"
+        // The text stays put while it posts, and after a failed post, so nothing typed is lost.
+        readOnly={send.isPending}
+        aria-describedby={send.isError ? errorId : undefined}
         onChange={(e) => setText(e.target.value)}
       />
       <button
         type="submit"
         className={target ? 'chat-soft' : 'chat-post'}
         disabled={!text.trim() || send.isPending}
+        aria-busy={send.isPending || undefined}
       >
-        {target ? 'Reply' : 'Post'}
+        {send.isPending ? 'Posting…' : target ? 'Reply' : 'Post'}
       </button>
-      {send.error && (
-        <span className="small bad composer-error" role="alert">
-          {send.error.message}
-        </span>
+      {send.isError && (
+        <p className="chat-compose-error" id={errorId} role="alert">
+          <WarningCircle size={14} aria-hidden="true" />
+          Couldn't post. Try again.
+        </p>
       )}
     </form>
   )

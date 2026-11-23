@@ -120,37 +120,46 @@ export function NewsSkeleton() {
   )
 }
 
+// Team, added player and dropped player widths for the four line bones, so the wire isn't a stripe.
+const FEED_LINES = [
+  [110, 120, 96],
+  [92, 100, 80],
+  [118, 84, 104],
+  [100, 112, 88],
+]
+
+/**
+ * The league feed's shape while it loads: the filters, then the wire with its spine, a day
+ * milestone and four move lines (crest on the spine, team, face and name, dropped name, bid).
+ * No cards: the wire has none either.
+ */
 export function FeedSkeleton() {
   return (
-    <Frame label="Loading the league feed">
-      <div className="card sk-card sk-compose">
-        <Bone w={36} h={36} className="sk-r8" />
-        <Bone h={40} className="sk-r8 sk-grow" />
-        <Bone w={64} h={40} className="sk-r8" />
+    <Frame label="Loading the league feed" className="sk-feed">
+      <div className="sk-feed-filters">
+        <Bone w={112} h={36} className="sk-r12" />
+        <Bone w={84} h={36} className="sk-r12" />
+        <Bone w={92} h={36} className="sk-r12" />
       </div>
-      <div className="sk-row">
-        <Bone w={104} h={34} round />
-        <Bone w={72} h={34} round />
-        <Bone w={80} h={34} round />
-      </div>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="card sk-card">
-          <div className="sk-row sk-center">
-            <Bone w={26} h={26} className="sk-r6" />
-            <Bone w={130} h={13} />
-            <Bone w={72} h={22} className="sk-r6 sk-end" />
-          </div>
-          {[0, 1].map((j) => (
-            <div key={j} className="sk-row sk-center sk-indent">
-              <Bone w={30} h={30} round />
-              <span className="sk-col">
-                <Bone w={j ? 96 : 132} h={13} />
-                {!j && <Bone w={90} h={10} />}
-              </span>
-            </div>
-          ))}
+      <div className="sk-wire">
+        <div className="sk-wire-day">
+          <span className="sk-wire-ring" aria-hidden="true" />
+          <Bone w={96} h={16} />
+          <Bone w={110} h={10} className="sk-wire-sum" />
         </div>
-      ))}
+        {FEED_LINES.map(([team, add, drop], i) => (
+          <div key={i} className="sk-wire-line">
+            <Bone w={24} h={24} className="sk-r8 sk-wire-node" />
+            <Bone w={team} h={13} />
+            <span className="sk-wire-add">
+              <Bone w={28} h={28} className="sk-r8" />
+              <Bone w={add} h={12} className="sk-wire-name" />
+            </span>
+            <Bone w={drop} h={11} className="sk-wire-drop" />
+            <Bone w={28} h={14} className="sk-wire-bid" />
+          </div>
+        ))}
+      </div>
     </Frame>
   )
 }

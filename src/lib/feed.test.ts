@@ -13,6 +13,7 @@ import {
   faabLeaderId,
   isMoment,
   timeRunStarts,
+  emptyLine,
 } from './feed'
 
 const teams: FeedTeam[] = [
@@ -210,5 +211,21 @@ describe('wire helpers', () => {
     expect(isMoment(claim)).toBe(false)
     expect(isMoment({ ...claim, replies: 1 })).toBe(true)
     expect(isMoment({ ...claim, kind: 'free_agent', reactions: { counts: { smart: 2 }, mine: [] } })).toBe(false)
+  })
+})
+
+describe('empty wire', () => {
+  it('names what the filter found nothing of, over the weeks loaded', () => {
+    expect(emptyLine('all', 1, true)).toBe('Nothing moved in the last 7 days.')
+    expect(emptyLine('trade', 1, true)).toBe('No trades in the last 7 days.')
+    expect(emptyLine('waiver', 2, true)).toBe('No waivers in the last 14 days.')
+    expect(emptyLine('free_agent', 1, true)).toBe('No free-agent adds in the last 7 days.')
+    expect(emptyLine('post', 1, true)).toBe('No posts in the last 7 days.')
+    expect(emptyLine('mine', 1, true)).toBe('Nothing from your team in the last 7 days.')
+  })
+
+  it('speaks of the season once its first week is loaded', () => {
+    expect(emptyLine('all', 1, false)).toBe('Nothing moved yet this season.')
+    expect(emptyLine('trade', 3, false)).toBe('No trades yet this season.')
   })
 })

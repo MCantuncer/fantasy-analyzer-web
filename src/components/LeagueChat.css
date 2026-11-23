@@ -173,7 +173,8 @@
   bottom: 10px;
 }
 
-.feed-day .feed-node::before {
+.feed-day .feed-node::before,
+.feed-empty .feed-node::before {
   content: '';
   width: 10px;
   height: 10px;
@@ -227,7 +228,9 @@
 
 .feed-row {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px;
+  /* Team and bid get what their content needs (the longest team name with its icon is ~150px, a
+     "Free agent" slot ~84px), so the player names get the rest. */
+  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
   grid-template-areas:
     'team add drop slot'
     '. meta meta meta';
@@ -285,16 +288,29 @@
   min-width: 0;
 }
 
+.feed-drop .feed-player {
+  gap: 6px;
+}
+
 .feed-face {
   display: inline-flex;
   flex: none;
 }
 
 .feed-pn {
+  display: flex;
   min-width: 0;
+  white-space: nowrap;
+}
+
+/* The name's own link carries the ellipsis (a button inside a clipped span would just be cut off),
+   so it only shortens when the column is truly out of room; its accessible name stays the full name. */
+.feed-pn button.pc-link {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .feed-add .feed-pn,
@@ -732,8 +748,19 @@
   color: var(--muted);
 }
 
-.chat-compose-row .composer-error {
+.chat-compose-row .chat-compose-error {
+  display: flex;
   flex-basis: 100%;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.chat-compose-error svg {
+  flex: none;
+  color: var(--muted);
 }
 
 .chat-as {
@@ -929,13 +956,15 @@
   }
 }
 
-@media (min-width: 1100px) {
+/* The rail takes 304px; below 1280 the wire needs that room for full player names, so the rail
+   folds into the summary row there. */
+@media (min-width: 1280px) {
   .feed-page.has-rail {
     grid-template-columns: minmax(0, 1fr) 248px;
   }
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   .feed-faab {
     display: none;
   }
@@ -945,9 +974,123 @@
   }
 }
 
-/* A refresh that failed while the feed stays on screen. */
-.chat-stale {
+/* States. An empty filter is a milestone on the wire, with "Show the week before" right under it. */
+.feed-empty {
+  padding-top: 8px;
+  padding-bottom: 16px;
+}
+
+.chat-compose + .feed-empty,
+.feed-stale + .feed-empty {
+  margin-top: 8px;
+}
+
+/* Nothing after it: let the spine run on a little and fade. */
+.feed-empty:last-child {
+  padding-bottom: 56px;
+}
+
+.feed-empty .feed-node {
+  top: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.feed-empty-text {
   margin: 0;
+  line-height: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feed-end.is-near {
+  padding-top: 0;
+  padding-bottom: 28px;
+}
+
+.feed-end.is-near .feed-node {
+  display: none;
+}
+
+.feed-more svg {
+  flex: none;
+  color: var(--text-2);
+}
+
+.feed-end-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* A refresh that failed: a muted node and one line at the top of the wire; the feed stays. */
+.feed-stale {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.feed-stale .feed-node {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.feed-stale .feed-node::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.feed-stale-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.feed-stale-text svg {
+  flex: none;
+}
+
+/* The feed never loaded: a quiet surface with no outline, the reason and "Try again". */
+.feed-error {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 12px;
+  max-width: 560px;
+  padding: 20px 24px;
+  border-radius: var(--radius-row);
+  background: var(--surface);
+}
+
+.feed-error-icon {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.feed-error-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.feed-error-why {
+  margin: 2px 0 14px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.feed-retry {
+  justify-self: start;
+}
+
+.feed-retry svg {
+  flex: none;
+  color: var(--text-2);
 }
 
 /* Desktop: the time sits in the gutter, so a moment's own time is for screen readers only. */
@@ -1154,6 +1297,12 @@
   }
 }
 
+@media (max-width: 759px) {
+  .feed-error {
+    padding: 16px;
+  }
+}
+
 /* Narrow phones: two teams in the FAAB summary row. */
 @media (max-width: 374px) {
   .feed-faab-top > span:nth-child(3) {
@@ -1166,7 +1315,7 @@
 /* The act column fits the button with up to two reactions and a count, so bids stay in one column. */
 .feed-row.has-act {
   --act: 64px;
-  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px var(--act);
+  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
   grid-template-areas:
     'team add drop slot act'
     '. meta meta meta .';
