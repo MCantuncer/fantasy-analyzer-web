@@ -1,10 +1,15 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { dayDate, heroGame, shootingPct } from '../../lib/matchForm'
 import type { FormGame, FormStar, MatchForm, TeamForm } from '../../lib/matchForm'
+import { setPlayerCardHost } from '../../lib/playerCard'
 import { FormView } from './FormView'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  setPlayerCardHost(null)
+})
 
 const star = (name: string, team: string, pts: number, id = pts): FormStar => ({
   player_id: id,
@@ -134,5 +139,44 @@ describe('Game Ball', () => {
     expect(heroGame(FORM, shown, null, true, 'home')?.game.game_id).toBe(5)
     expect(heroGame(FORM, shown, { side: 'away', game_id: 99 }, false, 'away')?.picked).toBe(false)
     expect(heroGame({ ...FORM, away: { ...IND, games: [] } }, { away: [], home: [] }, null, false, 'away')).toBeNull()
+  })
+  it("opens the star's and the other side's best player's cards from their names and faces", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    render(<FormView form={FORM} venueNeutral={false} initialSide="home" />)
+    const gb = within(ball())
+    fireEvent.click(gb.getByRole('button', { name: 'IND Lead 3' }))
+    expect(open).toHaveBeenLastCalledWith({ id: 33, name: 'IND Lead 3' })
+    fireEvent.click(gb.getByRole('button', { name: 'NY Lead 3' }))
+    expect(open).toHaveBeenLastCalledWith({ id: 23, name: 'NY Lead 3' })
+    // the faces open the same cards, out of the tab order beside the linked names
+    const faces = [...ball().querySelectorAll<HTMLButtonElement>('button.pc-link-face')]
+    expect(faces).toHaveLength(2)
+    expect(faces.every((f) => f.tabIndex === -1 && f.getAttribute('aria-hidden') === 'true')).toBe(true)
+    expect(faces[0].querySelector('.mf-gb-face img')).toBeTruthy()
+    expect(faces[1].querySelector('.head')).toBeTruthy()
+    fireEvent.click(faces[0])
+    expect(open).toHaveBeenLastCalledWith({ id: 33, name: 'IND Lead 3' })
+    expect(ball().textContent).toContain("Knicks' best: NY Lead 3")
+  })
+
+  it("puts a tapped row's Game Ball up with its star's name opening his card", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    render(<FormView form={FORM} venueNeutral={false} initialSide="away" />)
+    const row = screen.getByRole('button', { name: /^Nov 20, at CLE/ })
+    // the row is one button: its face stays a picture and its name is read in the row's label
+    expect(row.querySelector('button')).toBeNull()
+    expect(row.querySelector('.mf-r-mvp .head')).toBeTruthy()
+    fireEvent.click(row)
+    fireEvent.click(within(ball()).getByRole('button', { name: 'CLE Lead 1' }))
+    expect(open).toHaveBeenLastCalledWith({ id: 21, name: 'CLE Lead 1' })
+  })
+
+  it('keeps the names as plain text with no card to open', () => {
+    render(<FormView form={FORM} venueNeutral={false} initialSide="home" />)
+    expect(ball().querySelector('.pc-link')).toBeNull()
+    expect(within(ball()).getByText('IND Lead 3')).toBeTruthy()
+    expect(ball().querySelector('.mf-gb-other .head')).toBeTruthy()
   })
 })

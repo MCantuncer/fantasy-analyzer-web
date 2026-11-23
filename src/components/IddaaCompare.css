@@ -1209,6 +1209,13 @@
   padding-top: 10px;
   border-top: 1px solid var(--divider);
 }
+/* The player's small face beside his name (a game line has none). */
+.ic-teaser-pl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
 .ic-teaser-who {
   display: flex;
   flex-direction: column;

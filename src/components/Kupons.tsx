@@ -1,5 +1,5 @@
 import { Check, Clock, Lightning, LinkSimple, ShieldCheck, Ticket, User, X } from '@phosphor-icons/react'
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { WHY_NOT, couponsOf, fmtOdds, legWhy, whyNot } from '../lib/coupons'
 import type { Coupon, CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
@@ -10,6 +10,7 @@ import { usePlayerCard } from '../lib/playerCard'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { Chance } from './EstimateBits'
 import { KuponStack } from './KuponStack'
+import { PlayerLink } from './PlayerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './Kupons.css'
 
@@ -92,9 +93,16 @@ const MARKET: Record<string, string> = { WIN: 'Match result', MAR: 'Handicap', T
 const pctOf = (v: number) => Math.round(v * 100)
 const lastName = (name: string) => name.split(' ').slice(1).join(' ') || name
 
-/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short. */
-function shortOf(l: Leg): string {
-  return l.kind === 'player' ? `${lastName(l.line.name)} ${l.bet}` : l.bet
+const whoOf = (l: Leg) => ({ id: l.line.playerId ?? 0, name: l.line.name })
+
+/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short. A player's name opens his card. */
+function ShortOf({ leg: l }: { leg: Leg }) {
+  if (l.kind !== 'player') return <>{l.bet}</>
+  return (
+    <>
+      <PlayerLink player={whoOf(l)}>{lastName(l.line.name)}</PlayerLink> {l.bet}
+    </>
+  )
 }
 
 /** What the game gave the leg: "Got 19", "Final 108–115". */
@@ -187,7 +195,14 @@ function KuponSlip({
                 </b>
               ) : (
                 <b className="out no">
-                  {c.broke.length === 1 ? `Lost on ${shortOf(c.broke[0])}` : `Lost on ${c.broke.length} picks`}
+                  {c.broke.length === 1 ? (
+                    // one span, so the flex row keeps the words together as one line of text
+                    <span>
+                      Lost on <ShortOf leg={c.broke[0]} />
+                    </span>
+                  ) : (
+                    `Lost on ${c.broke.length} picks`
+                  )}
                 </b>
               )}
               <span className="was">
@@ -207,8 +222,15 @@ function KuponSlip({
       </div>
       {c.voided.length > 0 && (
         <p className="ic-ku-note">
-          {c.voided.map((v) => lastName(v.line.name)).join(', ')} sat out, so iddaa counts that pick at{' '}
-          <span className="num">1.00</span>.
+          <span>
+            {c.voided.map((v, i) => (
+              <Fragment key={v.id}>
+                {i > 0 && ', '}
+                <PlayerLink player={whoOf(v)}>{lastName(v.line.name)}</PlayerLink>
+              </Fragment>
+            ))}{' '}
+            sat out, so iddaa counts that pick at <span className="num">1.00</span>.
+          </span>
         </p>
       )}
       {gameOnly && !done && (
@@ -327,7 +349,7 @@ function KuponLeg({ leg: l, onMatch }: { leg: Leg; onMatch?: OpenMatch }) {
   const why = legWhy(l)
   const side = player ? l.line.team : (betFace(l.line)?.dot ?? l.line.team)
   const sideOf: 'away' | 'home' = side === g.home ? 'home' : 'away'
-  const who = { id: l.line.playerId ?? 0, name: l.line.name }
+  const who = whoOf(l)
   const open = player
     ? card && who.id > 0
       ? () => card.open(who)
