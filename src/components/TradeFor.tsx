@@ -1,22 +1,32 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import {
+  ArrowClockwise,
+  ArrowSquareOut,
+  CaretRight,
+  Lock,
+  MagnifyingGlass,
+  PaperPlaneTilt,
+  WarningCircle,
+  X,
+} from '@phosphor-icons/react'
+import { useMemo, useRef, useState } from 'react'
 import { fetchTarget } from '../api/client'
-import type { AnalysisReport, TargetOffer, TargetReport, TradeTarget } from '../api/client'
+import type { AnalysisReport, PlayerRef, TargetOffer, TargetReport } from '../api/client'
 import type { Credentials } from '../lib/credentials'
-import { names, pct } from '../lib/format'
-import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
-import { OddsMeter } from './BestMove'
-import { ImpactBars } from './ImpactBars'
-import { OddsChange } from './OddsChange'
-import { HeadStack, PlayerHead } from './PlayerHead'
-import { ACCEPTANCE } from './Trades'
-import { PitchCard } from './PitchCard'
+import { injuryShort } from '../lib/injury'
 import { teamColours } from '../lib/league'
-import { useKeepRowInView } from '../lib/useKeepRowInView'
-import { DealChips, PlayerLink } from './PlayerCard'
+import { ordinal, pct, signed } from '../lib/format'
+import type { CheckDeal } from '../lib/tradeCheck'
+import { dashRecord, lastName, oddsToday, strongIn, wantedCategories } from '../lib/tradeTable'
+import { shortValue, useRoundValues, valueTitle } from '../lib/tradeValue'
+import { CatStrip } from './CatStrip'
+import { MaybeHandshake } from './MaybeHandshake'
+import { PlayerLink } from './PlayerCard'
+import { HeadStack, PlayerHead } from './PlayerHead'
+import { TeamCrest } from './TeamCrest'
+import { EndLabel, OddsPlate, TheirSide, TradeTable, Wants, type CrestTeam } from './TradeTable'
+import { ACCEPTANCE } from './Trades'
 import './TradeFor.css'
-import { IntroSteps } from './IntroSteps'
-import { ReasonTiles } from './ReasonTiles'
 
 const FIT = {
   great: { label: 'Great fit', tone: 'good' },
@@ -34,315 +44,72 @@ const ANGLE: Record<TargetOffer['angle'], string> = {
 
 // The default list: the players who would help you most.
 const SUGGESTED = 8
+// The list while searching.
+const FOUND = 30
+// "What you can pay with": your most valued players, droppables left out.
+const PAY_WITH = 7
+// "Also on {team}": his teammates who help you most.
+const ALSO = 2
+// The API builds at most this many offers.
+const MAX_OFFERS = 3
+// The sticky top bar and tab row: picking from the foot scrolls the table back under them.
+const TOP_OFFSET = 128
 
-function cats(x: number) {
-  return `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}`
-}
-
-interface Candidate extends TradeTarget {
+interface Candidate {
+  player: PlayerRef
+  gain: number
+  teamId: number
   teamName: string
-}
-
-function Picker({
-  report,
-  selected,
-  onPick,
-}: {
-  report: AnalysisReport
-  selected: number | null
-  onPick: (id: number) => void
-}) {
-  const rounds = useRoundValues()
-  const [query, setQuery] = useState('')
-  const all = useMemo<Candidate[]>(
-    () => report.league_rosters.flatMap((t) => t.players.map((p) => ({ ...p, teamName: t.team_name }))),
-    [report.league_rosters],
-  )
-  const q = query.trim().toLowerCase()
-  const shown = q
-    ? all.filter((c) => c.player.name.toLowerCase().includes(q) || c.teamName.toLowerCase().includes(q)).slice(0, 30)
-    : [...all].sort((a, b) => b.my_cats_gain - a.my_cats_gain).slice(0, SUGGESTED)
-
-  return (
-    <section className="card flush" aria-labelledby="pick-target-title">
-      <div className="card-head">
-        <h2 id="pick-target-title">Pick a player</h2>
-      </div>
-      <div className="target-search">
-        <label htmlFor="target-query" className="sr-only">
-          Search players or teams
-        </label>
-        <input
-          id="target-query"
-          type="search"
-          placeholder="Search any rostered player or team"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          autoComplete="off"
-        />
-        <div className="small muted">{q ? `${shown.length} found` : 'Best fits for your build'}</div>
-      </div>
-      {shown.length === 0 ? (
-        <p className="empty">No rostered player matches “{query}”.</p>
-      ) : (
-        <ul className="target-list">
-          {shown.map((c) => (
-            <li key={c.player.id}>
-              <button
-                type="button"
-                className={c.player.id === selected ? 'target-row selected' : 'target-row'}
-                aria-pressed={c.player.id === selected}
-                onClick={() => onPick(c.player.id)}
-              >
-                <PlayerHead player={c.player} size={40} team={c.player.pro_team} />
-                <span className="target-who">
-                  <strong>{c.player.name}</strong>
-                  <span className="small muted">
-                    {c.player.positions.join('/')} · {c.teamName}
-                  </span>
-                </span>
-                <span className="target-nums num">
-                  <span title={valueTitle(rounds)}>{shortValue(c.player.perceived_value, rounds)}</span>
-                  <span
-                    className={c.my_cats_gain >= 0.05 ? 'good' : c.my_cats_gain < 0 ? 'bad' : 'muted'}
-                    title="Categories won per week if you added him"
-                  >
-                    {cats(c.my_cats_gain)}
-                  </span>
-                </span>
-                <svg className="target-cta" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M6 3.5l4.5 4.5L6 12.5" stroke="currentColor" strokeWidth="1.8" fill="none" />
-                </svg>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
-function Fit({ data }: { data: TargetReport }) {
-  const rounds = useRoundValues()
-  const fit = FIT[data.fit.label]
-  const t = data.target
-  return (
-    <section className="card best" aria-labelledby="target-title">
-      <div className="target-head">
-        <PlayerHead player={t} size={64} team={t.pro_team} />
-        <div className="target-head-text">
-          <span className="eyebrow">Trade For</span>
-          <h2 id="target-title" className="target-name">
-            <PlayerLink player={t} />
-          </h2>
-          <div className="small muted">
-            {t.positions.join('/')} · {data.owner.team_name} · trade value {shortValue(t.perceived_value, rounds)}
-          </div>
-          <div className={`tf-fit tf-fit-${fit.tone}`}>{fit.label}</div>
-        </div>
-      </div>
-      <OddsMeter before={data.fit.playoff_pct_before} after={data.fit.playoff_pct_after} />
-      <p className="small muted" style={{ margin: 0 }}>
-        If you added him for nothing{data.fit.my_drop ? ` and dropped ${data.fit.my_drop.name}` : ''}: your ceiling
-        for this trade. {cats(data.fit.my_cats_gain)} categories won per week.
-      </p>
-      <ImpactBars changes={data.fit.category_changes} label="Your weekly win chance per category" />
-    </section>
-  )
-}
-
-function Offer({
-  offer,
-  open,
-  onToggle,
-  partner,
-  colour,
-  teamCount,
-}: {
-  offer: TargetOffer
-  open: boolean
-  onToggle: () => void
-  partner: string
-  colour?: string
-  teamCount?: number
-}) {
-  const rounds = useRoundValues()
-  const acc = ACCEPTANCE[offer.acceptance_label]
-  const hero = offer.angle === 'best'
-  return (
-    <li className={`offer${hero ? ' offer-best' : ''}${open ? ' open' : ''}`}>
-      <button type="button" className="offer-row" aria-expanded={open} onClick={onToggle}>
-        <span className="offer-angle">
-          <span className={hero ? 'eyebrow accent' : 'eyebrow'}>{ANGLE[offer.angle]}</span>
-          <span className="small muted">{offer.angle_note}</span>
-        </span>
-        <span className="offer-swap">
-          <span>
-            <span className="label-sm">Give </span>
-            <HeadStack players={offer.give} size={24} />
-            <strong>{names(offer.give)}</strong>
-          </span>
-          <span>
-            <span className="label-sm">Get </span>
-            <HeadStack players={offer.get} size={24} />
-            <strong>{names(offer.get)}</strong>
-          </span>
-        </span>
-        <span className="accept">
-          <span className="label-sm">They say yes</span>
-          <span className={acc.tone}>{acc.label}</span>
-        </span>
-        <OddsChange before={offer.playoff_pct_before} after={offer.playoff_pct_after} />
-      </button>
-      {open && (
-        <div className="move-detail">
-          <div>
-            <DealChips deal={offer} />
-            <PitchCard partner={partner} colour={colour} teams={teamCount} pitch={offer.pitch} needs={offer.pitch_needs}>
-              <ReasonTiles
-                facts={offer.facts}
-                reasons={offer.reasons}
-                title="Why they might say yes"
-                valueGet={offer.value_they_get}
-                valueGive={offer.value_they_give}
-                myCats={offer.my_cats_gain}
-                theirCats={offer.their_cats_gain}
-                rounds={rounds}
-              />
-            </PitchCard>
-            <ul className="reasons">
-              {[...offer.give, ...offer.get]
-                .filter((p) => p.injury_prone && p.games_share != null)
-                .map((p) => (
-                  <li key={`prone-${p.id}`}>
-                    {p.name} often misses games (durability {Math.round((p.games_share ?? 0) * 100)} of 100, typical 73), so
-                    the odds count him for fewer games.
-                  </li>
-                ))}
-              {offer.my_drop && <li>You drop {offer.my_drop.name} to make room.</li>}
-              {offer.my_add && <li>Pick up {offer.my_add.name} from free agency for the open spot. The odds include him.</li>}
-              {offer.their_drop && <li>They would likely drop {offer.their_drop.name}.</li>}
-            </ul>
-          </div>
-          <ImpactBars changes={offer.category_changes} label="Your weekly win chance per category" />
-        </div>
-      )}
-    </li>
-  )
-}
-
-function Offers({
-  data,
-  leagueId,
-  season,
-  colours,
-}: {
-  data: TargetReport
-  leagueId: number
-  season: number
-  colours: Map<number, string>
-}) {
-  const [open, setOpen] = useState<number>(0)
-  const keepRow = useKeepRowInView(open)
-  return (
-    <section className="card flush" aria-labelledby="offers-title">
-      <div className="card-head">
-        <h2 id="offers-title">Offers to send</h2>
-        <a
-          className="small"
-          href={`https://fantasy.espn.com/basketball/team?leagueId=${leagueId}&teamId=${data.owner.team_id}&seasonId=${season}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Propose on ESPN
-        </a>
-      </div>
-      {/* With no offers the note is the empty text below, so it isn't shown twice. */}
-      {data.note && data.offers.length > 0 && <p className="target-note small">{data.note}</p>}
-      {data.offers.length === 0 ? (
-        <p className="empty">{data.note ?? 'No realistic offer for him right now.'}</p>
-      ) : (
-        <ol className="offer-list" onClickCapture={keepRow}>
-          {data.offers.map((o, i) => (
-            <Offer
-              key={`${o.give.map((p) => p.id).join('.')}-${o.get.map((p) => p.id).join('.')}`}
-              offer={o}
-              open={open === i}
-              onToggle={() => setOpen(open === i ? -1 : i)}
-              partner={data.owner.team_name}
-              colour={colours.get(data.owner.team_id)}
-              teamCount={colours.size || undefined}
-            />
-          ))}
-        </ol>
-      )}
-    </section>
-  )
-}
-
-function Owner({ data }: { data: TargetReport }) {
-  const o = data.owner
-  return (
-    <section className="card stack" aria-labelledby="owner-title">
-      <div>
-        <span className="eyebrow">His owner</span>
-        <h2 id="owner-title">{o.team_name}</h2>
-        <div className="small muted">
-          {o.record !== '0-0-0' ? `${o.record} · ` : ''}
-          {pct(o.playoff_pct)} playoff odds{o.outside_playoffs ? ' · outside the playoff spots' : ''}
-        </div>
-      </div>
-      <dl className="owner-facts">
-        <div>
-          <dt>Punts</dt>
-          <dd>{o.punts.length ? o.punts.join(', ') : 'Nothing'}</dd>
-        </div>
-        <div>
-          <dt>Needs</dt>
-          <dd>{o.needs.length ? o.needs.join(', ') : 'Nothing close'}</dd>
-        </div>
-        <div>
-          <dt>Strong in</dt>
-          <dd>{o.build.strong.length ? o.build.strong.join(', ') : 'Nothing stands out'}</dd>
-        </div>
-      </dl>
-      {o.target_is_star && (
-        <p className="small" style={{ margin: 0 }}>
-          {data.target.name} is one of their two most valued players, so expect to overpay on paper.
-        </p>
-      )}
-      {o.would_value.length > 0 && (
-        <div>
-          <div className="detail-label">Your players they'd value most</div>
-          <ul className="owner-wants">
-            {o.would_value.map((w) => (
-              <li key={w.player.id}>
-                <span className="tradefor-want">
-                  <PlayerHead player={w.player} size={28} team={w.player.pro_team} />
-                  <strong>
-                    <PlayerLink player={w.player} />
-                  </strong>
-                  {w.helps.length > 0 && <span className="small muted"> · helps their {w.helps.join(', ')}</span>}
-                </span>
-                <span className="num good">{cats(w.their_cats_gain)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </section>
-  )
 }
 
 interface Props {
   report: AnalysisReport
   keep: number[]
   creds: Credentials | null
+  /** Opens Check a Trade filled in with a deal. */
+  onCheck: (deal: CheckDeal) => void
 }
 
-export function TradeFor({ report, keep, creds }: Props) {
-  const [playerId, setPlayerId] = useState<number | null>(null)
+function outWord(p: PlayerRef) {
+  return p.injury_status !== 'ACTIVE' ? injuryShort(p.injury_status) : null
+}
+
+function lastNames(players: { name: string }[]) {
+  return players.map((p) => lastName(p.name)).join(' + ')
+}
+
+/** Status only when it matters: an injury word, or the keeper lock. */
+function Status({ player, kept }: { player: PlayerRef; kept: boolean }) {
+  const o = outWord(player)
+  return (
+    <>
+      {o && <span className="tt-tag tt-out">{o}</span>}
+      {kept && (
+        <span className="tt-status">
+          <Lock size={14} aria-hidden="true" />
+          Keeper
+        </span>
+      )}
+    </>
+  )
+}
+
+/**
+ * Trade For: the trading table seen from their end. The right end holds the search and the best
+ * fits for your build, the left end what you can pay with; once a player is picked his card and
+ * what he does for you take the right end, and his owner, the offers and your players they'd
+ * value take the left.
+ */
+export function TradeFor({ report, keep, creds, onCheck }: Props) {
+  const rounds = useRoundValues()
   const league = report.league
+  const [playerId, setPlayerId] = useState<number | null>(null)
+  const [query, setQuery] = useState('')
+  // Typing reopens the list over a picked player, until the next pick.
+  const [browsing, setBrowsing] = useState(false)
+  const [offerIndex, setOfferIndex] = useState(0)
+  const tableRef = useRef<HTMLDivElement>(null)
+
   const colours = useMemo(
     () =>
       teamColours(
@@ -351,6 +118,26 @@ export function TradeFor({ report, keep, creds }: Props) {
       ),
     [league.teams, report.team_id],
   )
+  const all = useMemo<Candidate[]>(
+    () =>
+      report.league_rosters.flatMap((t) =>
+        t.players.map((p) => ({ player: p.player, gain: p.my_cats_gain, teamId: t.team_id, teamName: t.team_name })),
+      ),
+    [report.league_rosters],
+  )
+  const today = oddsToday(report.season, report.team_id)
+  const wants = wantedCategories(report.categories)
+  const strong = Object.fromEntries(
+    wants.map((w) => [
+      w.category,
+      strongIn(report.builds, w.category, report.team_id).map<CrestTeam>((b) => ({
+        id: b.team_id,
+        name: b.team_name,
+        colour: colours.get(b.team_id),
+      })),
+    ]),
+  )
+
   const target = useQuery({
     queryKey: ['target', league.id, league.season, report.team_id, playerId, [...keep].sort(), creds?.swid ?? null],
     queryFn: ({ signal }) => fetchTarget(league.id, report.team_id, league.season, playerId!, keep, creds, signal),
@@ -359,47 +146,542 @@ export function TradeFor({ report, keep, creds }: Props) {
     staleTime: 5 * 60_000,
   })
 
-  return (
-    <div className="split trade-for">
-      <div className="narrow">
-        <Picker report={report} selected={playerId} onPick={setPlayerId} />
-      </div>
-      <div className="wide stack" style={{ gap: 16 }} aria-live="polite">
-        {playerId === null && (
-          <section className="card stack">
-            <span className="eyebrow">Trade For</span>
-            <h2>Who do you want?</h2>
-            <IntroSteps
-              steps={[
-                { icon: 'pick', title: 'Pick any player', detail: 'on another team' },
-                { icon: 'fit', title: 'See his fit', detail: 'your build and his owner’s needs' },
-                { icon: 'offers', title: 'Get 3 offers', detail: 'the best one and two fallbacks' },
-              ]}
-            />
-          </section>
-        )}
-        {playerId !== null && target.isPending && (
-          <section className="card row" role="status">
-            <svg className="spinner" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-              <circle cx="10" cy="10" r="8" stroke="var(--accent)" strokeWidth="2" fill="none" strokeDasharray="30 20" />
-            </svg>
-            <span>Building offers…</span>
-          </section>
-        )}
-        {target.error && (
-          <section className="card error stack">
-            <h2>Couldn't build offers</h2>
-            <p>{target.error.message}</p>
-          </section>
-        )}
-        {target.data && (
-          <>
-            <Fit data={target.data} />
-            <Offers data={target.data} leagueId={league.id} season={league.season} colours={colours} />
-            <Owner data={target.data} />
-          </>
-        )}
-      </div>
+  const pick = (id: number, scroll = false) => {
+    setPlayerId(id)
+    setBrowsing(false)
+    setOfferIndex(0)
+    if (scroll && tableRef.current) {
+      const top = tableRef.current.getBoundingClientRect().top + window.scrollY - TOP_OFFSET
+      if (window.scrollY > top) window.scrollTo({ top })
+    }
+  }
+  const clear = () => {
+    setPlayerId(null)
+    setQuery('')
+    setBrowsing(false)
+  }
+
+  const q = query.trim().toLowerCase()
+  const shown = q
+    ? all.filter((c) => c.player.name.toLowerCase().includes(q) || c.teamName.toLowerCase().includes(q)).slice(0, FOUND)
+    : [...all].sort((a, b) => b.gain - a.gain).slice(0, SUGGESTED)
+  const picked = playerId !== null ? all.find((c) => c.player.id === playerId) : undefined
+
+  const search = (
+    <div className="tf-search">
+      <MagnifyingGlass size={18} aria-hidden="true" />
+      <label htmlFor="target-query" className="sr-only">
+        Search players or teams
+      </label>
+      <input
+        id="target-query"
+        type="search"
+        placeholder="Search players or teams"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setBrowsing(true)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && playerId !== null) setBrowsing(false)
+        }}
+        autoComplete="off"
+      />
+      {q && <span className="tt-label tf-found num">{shown.length} found</span>}
     </div>
+  )
+
+  const fitList = (
+    <div>
+      <div className="tf-colh">
+        <span>{q ? 'Rostered players' : 'Best fits for your build'}</span>
+        <span className="tf-colh-gain">Cats a week</span>
+        <span className="tf-colh-val">Value</span>
+      </div>
+      {shown.length === 0 ? (
+        <p className="tf-none">No rostered player matches “{query}”.</p>
+      ) : (
+        <ul className="tf-rows">
+          {shown.map((c) => (
+            <li key={c.player.id}>
+              <FitRow
+                c={c}
+                colour={colours.get(c.teamId) ?? 'var(--muted)'}
+                selected={c.player.id === playerId}
+                onPick={() => pick(c.player.id)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+
+  if (!picked) {
+    const pay = [...report.roster]
+      .filter((p) => p.tier !== 'droppable')
+      .sort((a, b) => b.perceived_value - a.perceived_value)
+      .slice(0, PAY_WITH)
+    return (
+      <div className="tf" ref={tableRef}>
+        <TradeTable
+          label="Trade For"
+          lit="get"
+          oddsFirst
+          odds={today && <OddsPlate label="Your playoff odds" value={today.pct} sub={rankLine(today)} />}
+          get={
+            <>
+              <EndLabel end="get" />
+              {search}
+              {fitList}
+              {wants.length > 0 && (
+                <div>
+                  <div className="tt-label tf-block-h">What your build wants</div>
+                  <Wants wants={wants} strong={strong} />
+                </div>
+              )}
+            </>
+          }
+          give={
+            <>
+              <EndLabel end="give">
+                <span className="tt-label">What you can pay with</span>
+              </EndLabel>
+              <ul className="tf-rows">
+                {pay.map((p) => (
+                  <li key={p.id} className="tf-row tf-pay">
+                    <PlayerHead player={p} size={40} team={p.pro_team} />
+                    <span className="tf-who">
+                      <span className="tf-nm">
+                        <PlayerLink player={p} />
+                      </span>
+                      <span className="tf-mt">
+                        {p.positions.join(', ')} · {p.pro_team}
+                        <Status player={p} kept={keep.includes(p.id)} />
+                      </span>
+                    </span>
+                    <span className="tf-val num" title={valueTitle(rounds)}>
+                      {shortValue(p.perceived_value, rounds)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="tt-label">Keepers never go in an offer. Change them in My Team.</p>
+            </>
+          }
+        />
+      </div>
+    )
+  }
+
+  const data: TargetReport | undefined = target.data?.target.id === picked.player.id ? target.data : undefined
+  const offer = data && data.offers.length > 0 ? data.offers[Math.min(offerIndex, data.offers.length - 1)] : undefined
+  const him = data?.target ?? picked.player
+  const fit = data ? FIT[data.fit.label] : null
+  const ownerId = data?.owner.team_id ?? picked.teamId
+  const ownerName = data?.owner.team_name ?? picked.teamName
+  const ownerRow = report.season.find((r) => r.team_id === ownerId)
+  const also = all
+    .filter((c) => c.teamId === ownerId && c.player.id !== him.id)
+    .sort((a, b) => b.gain - a.gain)
+    .slice(0, ALSO)
+  const espn = `https://fantasy.espn.com/basketball/team?leagueId=${league.id}&teamId=${ownerId}&seasonId=${league.season}`
+  const teams = league.teams.length || undefined
+  const check = (give: number[], get: number[], cut: number | null = null) =>
+    onCheck({ partner: ownerId, give, get, mode: 'sending', cut })
+
+  let odds = null
+  if (offer) {
+    odds = (
+      <OddsPlate
+        label="Your playoff odds"
+        value={offer.playoff_pct_after}
+        from={offer.playoff_pct_before}
+        them={
+          offer.partner_playoff_pct_before != null && offer.partner_playoff_pct_after != null
+            ? { before: offer.partner_playoff_pct_before, after: offer.partner_playoff_pct_after }
+            : null
+        }
+      />
+    )
+  } else if (data) {
+    odds = (
+      <OddsPlate
+        label="Your odds with him"
+        value={data.fit.playoff_pct_after}
+        from={data.fit.playoff_pct_before}
+        note={`Ceiling: he comes free${data.fit.my_drop ? `, ${data.fit.my_drop.name} goes` : ''}`}
+      />
+    )
+  } else if (today) {
+    odds = (
+      <OddsPlate label="Your playoff odds" value={today.pct} sub="today" status={target.isError ? null : 'Building offers'} />
+    )
+  }
+
+  const announce = data
+    ? offer
+      ? `${ANGLE[offer.angle]}: ${lastNames(offer.give)} for ${lastNames(offer.get)}, odds ${Math.round(offer.playoff_pct_before * 100)} to ${Math.round(offer.playoff_pct_after * 100)}`
+      : `No offer to send for ${him.name}`
+    : target.isError
+      ? `Couldn't build offers for ${him.name}`
+      : `Building offers for ${him.name}`
+
+  return (
+    <div className="tf" ref={tableRef}>
+      <TradeTable
+        label={`Trading for ${him.name}`}
+        lit="get"
+        busy={target.isFetching}
+        announce={announce}
+        odds={odds}
+        get={
+          <>
+            <EndLabel end="get">
+              <button type="button" className="tf-clear" aria-label={`Clear ${him.name}`} onClick={clear}>
+                <X size={18} aria-hidden="true" />
+              </button>
+            </EndLabel>
+            {search}
+            {browsing ? (
+              fitList
+            ) : (
+              <div className="tf-card">
+                <PlayerHead player={him} size={64} team={him.pro_team} />
+                <div className="tf-card-text">
+                  <h2 className="tf-card-nm">
+                    <PlayerLink player={him} />
+                  </h2>
+                  <div className="tf-mt">
+                    {him.positions.join('/')} · {him.pro_team} · <b className="num">{shortValue(him.perceived_value, rounds)}</b>{' '}
+                    trade value
+                    <Status player={him} kept={false} />
+                  </div>
+                  <div className="tf-fitw">
+                    {fit && <span className={`tf-fitw-word ${fit.tone}`}>{fit.label}</span>}
+                    <span className="num">{signed(data?.fit.my_cats_gain ?? picked.gain)} cats a week</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        }
+        get2={
+          data ? (
+            <CatStrip
+              changes={data.fit.category_changes}
+              categories={league.categories.length ? league.categories : undefined}
+              title="What he does for you"
+              summary={
+                <>
+                  <span className={`num tf-sum ${data.fit.my_cats_gain >= 0 ? 'good' : 'bad'}`}>
+                    {signed(data.fit.my_cats_gain)}
+                  </span>{' '}
+                  categories won a week
+                </>
+              }
+            />
+          ) : target.isError ? undefined : (
+            <span className="tt-skel" style={{ height: 112 }} aria-hidden="true" />
+          )
+        }
+        give={
+          <>
+            <EndLabel end="give">
+              {data && (
+                <span className="tt-label num">
+                  {data.offers.length} of {MAX_OFFERS} offers
+                </span>
+              )}
+            </EndLabel>
+            <div className="tf-owner">
+              <span className="tt-label">His owner</span>
+              <div className="tf-partner">
+                <TeamCrest name={ownerName} colour={colours.get(ownerId)} size={32} />
+                <div>
+                  <div className="tf-partner-nm">{ownerName}</div>
+                  <div className="tf-partner-mt num">
+                    {[
+                      ownerRow && ownerRow.current_record !== '0-0-0' ? dashRecord(ownerRow.current_record) : null,
+                      `${pct(data?.owner.playoff_pct ?? ownerRow?.playoff_pct ?? 0)} playoff odds`,
+                      data?.owner.outside_playoffs ? 'outside the playoff spots' : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                </div>
+              </div>
+              {data && <OwnerFacts data={data} />}
+              {data?.owner.target_is_star && (
+                <p className="tf-note">{him.name} is one of their two most valued players, so expect to overpay on paper.</p>
+              )}
+            </div>
+            {target.isError ? (
+              <div className="tf-block tt-fade">
+                <WarningCircle size={20} aria-hidden="true" />
+                <b>Couldn't build offers</b>
+                <p>{target.error.message}</p>
+                <div className="tt-actions">
+                  <button type="button" className="tt-btn" onClick={() => target.refetch()}>
+                    <ArrowClockwise size={18} aria-hidden="true" />
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            ) : !data ? (
+              <div className="tf-loading" aria-hidden="true">
+                <span className="tt-skel" style={{ height: 22, width: '60%' }} />
+                <span className="tt-skel" style={{ height: 136 }} />
+                <span className="tt-skel" style={{ height: 200 }} />
+              </div>
+            ) : (
+              <div className="tf-offers tt-fade">
+                {!offer ? (
+                  <div className="tf-block">
+                    <PaperPlaneTilt size={20} aria-hidden="true" />
+                    <b>No offer to send</b>
+                    <p>
+                      No package for {him.name} helps you and looks like a win for {ownerName}.
+                    </p>
+                    <div className="tt-actions">
+                      <button type="button" className="tt-btn" onClick={() => check([], [him.id])}>
+                        <MaybeHandshake size={18} />
+                        Check a Trade With Them
+                      </button>
+                      <a className="tt-btn tt-btn-ghost" href={espn} target="_blank" rel="noreferrer">
+                        Propose on ESPN
+                        <ArrowSquareOut size={18} aria-hidden="true" />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="tf-offer-block">
+                    {data.note && <p className="tf-note">{data.note}</p>}
+                    <ol className="tf-offer-list">
+                      {data.offers.map((o, i) => {
+                        const on = o === offer
+                        return (
+                          <li key={`${o.give.map((p) => p.id).join('.')}-${o.get.map((p) => p.id).join('.')}`}>
+                            <OfferRow offer={o} on={on} onPick={() => setOfferIndex(i)} />
+                            {on && (
+                              <div className="tf-offer-open">
+                                <TheirSide
+                                  partner={ownerName}
+                                  pitch={o.pitch}
+                                  needs={o.pitch_needs}
+                                  teams={teams}
+                                  valueGet={o.value_they_get}
+                                  valueGive={o.value_they_give}
+                                  theirCats={o.their_cats_gain}
+                                  rounds={rounds}
+                                  actions={
+                                    <button
+                                      type="button"
+                                      className="tt-btn"
+                                      onClick={() =>
+                                        check(
+                                          o.give.map((p) => p.id),
+                                          o.get.map((p) => p.id),
+                                          o.my_drop?.id ?? null,
+                                        )
+                                      }
+                                    >
+                                      <MaybeHandshake size={18} />
+                                      Check This Trade
+                                    </button>
+                                  }
+                                />
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ol>
+                    <a className="tt-btn tt-btn-ghost tf-espn" href={espn} target="_blank" rel="noreferrer">
+                      Propose on ESPN
+                      <ArrowSquareOut size={18} aria-hidden="true" />
+                    </a>
+                  </div>
+                )}
+                {data.owner.would_value.length > 0 && (
+                  <div>
+                    <div className="tt-list-head">
+                      <span className="tt-label">Your players they’d value most</span>
+                      <span className="tt-label">Their cats a week</span>
+                    </div>
+                    <ul className="tf-rows">
+                      {data.owner.would_value.map((w) => {
+                        const kept = keep.includes(w.player.id)
+                        return (
+                          <li key={w.player.id} className="tf-row tf-wrow">
+                            <PlayerHead player={w.player} size={40} team={w.player.pro_team} />
+                            <span className="tf-who">
+                              <span className="tf-nm">
+                                <PlayerLink player={w.player} />
+                              </span>
+                              <span className="tf-mt">
+                                <Status player={w.player} kept={kept} />
+                                {w.helps.length > 0 && <span className="tf-helps">helps their {w.helps.join(', ')}</span>}
+                              </span>
+                            </span>
+                            <span
+                              className={`tf-gain num ${w.their_cats_gain > 0 ? 'good' : w.their_cats_gain < 0 ? 'bad' : ''}`}
+                            >
+                              {signed(w.their_cats_gain)}
+                            </span>
+                            {kept ? (
+                              <span className="tt-label tf-not">Not offered</span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="tt-btn tt-btn-ghost tf-check"
+                                aria-label={`Check ${lastName(w.player.name)} for ${lastName(him.name)}`}
+                                onClick={() => check([w.player.id], [him.id])}
+                              >
+                                <MaybeHandshake size={18} />
+                                Check
+                              </button>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        }
+        foot={
+          also.length > 0 && (
+            <div className="tf-also">
+              <div className="tf-also-h">
+                <span className="tt-label">Also on {ownerName}</span>
+                <span className="tt-label">Cats a week · Value</span>
+              </div>
+              <ul className="tf-also-l">
+                {also.map((c) => (
+                  <li key={c.player.id}>
+                    <FitRow c={c} onPick={() => pick(c.player.id, true)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      />
+    </div>
+  )
+}
+
+function rankLine(t: { rank: number; teams: number }) {
+  return `today · ${ordinal(t.rank)} best of ${t.teams}`
+}
+
+/** A player you could trade for: face, name, position and owner (or club), fit and value. */
+function FitRow({
+  c,
+  colour,
+  selected = false,
+  onPick,
+}: {
+  c: Candidate
+  /** The owner's crest colour. Leave out to show his NBA club instead of the owner (rows of one team). */
+  colour?: string
+  selected?: boolean
+  onPick: () => void
+}) {
+  const rounds = useRoundValues()
+  const o = outWord(c.player)
+  return (
+    <button type="button" className="tf-row tf-fit" aria-pressed={selected} onClick={onPick}>
+      <PlayerHead player={c.player} size={40} team={c.player.pro_team} />
+      <span className="tf-who">
+        <span className="tf-nm">{c.player.name}</span>
+        <span className="tf-mt">
+          {c.player.positions.join('/')} ·{' '}
+          {colour !== undefined ? (
+            <>
+              <TeamCrest name={c.teamName} colour={colour} size={16} />
+              {c.teamName}
+            </>
+          ) : (
+            c.player.pro_team
+          )}
+          {o && <span className="tt-tag tt-out">{o}</span>}
+        </span>
+      </span>
+      <span className={`tf-gain num ${c.gain >= 0.05 ? 'good' : c.gain < 0 ? 'bad' : ''}`}>
+        <span className="sr-only">, categories won a week </span>
+        {signed(c.gain)}
+      </span>
+      <span className="tf-val num">
+        <span className="sr-only">, trade value </span>
+        {shortValue(c.player.perceived_value, rounds)}
+      </span>
+      <CaretRight className="tf-chev" size={16} aria-hidden="true" />
+    </button>
+  )
+}
+
+/** Needs, Strong in and Punts as neutral tags. */
+function OwnerFacts({ data }: { data: TargetReport }) {
+  const o = data.owner
+  const facts: [string, string[]][] = [
+    ['Needs', o.needs],
+    ['Strong in', o.build.strong],
+    ['Punts', o.punts],
+  ]
+  return (
+    <dl className="tf-facts">
+      {facts.map(([k, cats]) => (
+        <div key={k}>
+          <dt>{k}</dt>
+          <dd>
+            {cats.length
+              ? cats.map((c) => (
+                  <span key={c} className="tt-tag">
+                    {c}
+                  </span>
+                ))
+              : 'Nothing'}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+/** One offer: the angle, who goes each way, the accept word and your odds. On the table when picked. */
+function OfferRow({ offer: o, on, onPick }: { offer: TargetOffer; on: boolean; onPick: () => void }) {
+  const acc = ACCEPTANCE[o.acceptance_label]
+  return (
+    <button type="button" className="tf-offer" aria-current={on || undefined} onClick={onPick}>
+      <span className="tf-offer-top">
+        <span className="tf-offer-angle">{ANGLE[o.angle]}</span>
+        <span className={`tf-offer-acc ${acc.tone}`}>
+          <span className="sr-only">, chance they say yes: </span>
+          {acc.label}
+        </span>
+      </span>
+      <span className="tf-offer-swap">
+        <span className="tf-offer-side">
+          <HeadStack players={o.give} size={28} />
+          <span className="tf-offer-names">{lastNames(o.give)}</span>
+        </span>
+        <span className="tf-offer-to" aria-hidden="true">
+          →
+        </span>
+        <span className="sr-only"> for </span>
+        <span className="tf-offer-side">
+          <HeadStack players={o.get} size={28} />
+          <span className="tf-offer-names">{lastNames(o.get)}</span>
+        </span>
+      </span>
+      <span className="tf-offer-odds num">
+        <span className="sr-only">, your playoff odds </span>
+        {pct(o.playoff_pct_before)} → <b>{pct(o.playoff_pct_after)}</b>
+      </span>
+    </button>
   )
 }

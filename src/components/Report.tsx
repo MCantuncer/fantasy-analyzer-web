@@ -283,7 +283,7 @@ export function Report({
             <TradeCheck key={checkOpened} report={report} keep={keep} creds={creds} />
           ))}
 
-        {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
+        {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} onCheck={openCheck} />}
 
         {tab === 'team' && (
           <>

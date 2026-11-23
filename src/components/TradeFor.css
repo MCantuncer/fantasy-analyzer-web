@@ -1,30 +1,255 @@
-/* Trade For: faces in the player picker, the target card, the offers and the owner's wants. */
-.trade-for .target-row {
-  grid-template-columns: 40px minmax(0, 1fr) auto auto;
-  min-height: 64px;
-}
+/* Trade For (tf-): the trading table seen from their end. The table itself is TradeTable (tt-). */
 
-.trade-for .target-head {
-  justify-content: flex-start;
+/* ---------- Search ---------- */
+.tf-search {
+  display: flex;
   align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+  color: var(--muted);
 }
 
-.trade-for .target-head-text {
+.tf-search:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tf-search svg {
+  flex: none;
+}
+
+.tf-search input:not([type='checkbox']) {
   flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  outline: none;
+}
+
+.tf-found {
+  flex: none;
+}
+
+.tf-clear {
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
+}
+
+.tt button.tf-clear {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+}
+
+.tt button.tf-clear:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+/* ---------- Rows ---------- */
+.tf-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tf-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: var(--radius-row);
+}
+
+.tf-who {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
-/* How much he helps you, as a dot + word under the team line, so the name keeps the full width. */
-.trade-for .tf-fit {
+.tf-nm {
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tf-nm .pc-link {
+  color: inherit;
+}
+
+/* A linked name is a button, so it takes the ellipsis itself. */
+.tf-nm button.pc-link {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.tf-mt {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tf-mt b {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tf-mt .crest {
+  margin: 0 4px 0 2px;
+  vertical-align: -4px;
+}
+
+.tf-mt .tt-tag,
+.tf-mt .tt-status {
+  height: 20px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+
+.tf-helps {
+  margin-left: 6px;
+}
+
+/* Their-value rows start with the status: no gap before it. */
+.tf-wrow .tf-mt > :first-child {
+  margin-left: 0;
+}
+
+.tf-val {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.tf-gain {
+  font-size: 15px;
+  font-weight: 650;
+  text-align: right;
+}
+
+/* Best fits: a button per row, the fit under "Cats a week", the value under "Value". */
+.tf-colh {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px 52px 20px;
+  gap: 12px;
+  padding-bottom: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tf-colh-gain,
+.tf-colh-val {
+  text-align: right;
+}
+
+.tt button.tf-fit {
+  width: calc(100% + 16px);
+  grid-template-columns: 40px minmax(0, 1fr) 72px 52px 20px;
+  min-height: 60px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  text-align: left;
+}
+
+.tt button.tf-fit:hover {
+  background: var(--raised);
+}
+
+.tt button.tf-fit[aria-pressed='true'] {
+  background: var(--raised);
+  box-shadow: inset 3px 0 0 var(--partner);
+}
+
+.tf-chev {
+  color: var(--muted);
+}
+
+.tf-none {
+  padding: 12px 0;
+  color: var(--text-2);
+}
+
+.tf-block-h {
+  margin-bottom: 8px;
+}
+
+/* ---------- His card ---------- */
+.tf-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.tf-card-text {
+  min-width: 0;
+}
+
+.tf-card-nm {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 650;
+}
+
+.tf-card-nm .pc-link {
+  color: inherit;
+}
+
+.tf-card .tf-mt {
+  white-space: normal;
+}
+
+.tf-fitw {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tf-fitw-word {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
-  font-size: 13px;
   font-weight: 600;
 }
 
-.trade-for .tf-fit::before {
+.tf-fitw-word::before {
   content: '';
   width: 7px;
   height: 7px;
@@ -32,47 +257,351 @@
   background: currentColor;
 }
 
-.trade-for .tf-fit-good {
-  color: var(--good);
+.tf-sum {
+  font-weight: 650;
 }
 
-.trade-for .tf-fit-warn {
-  color: var(--warn);
+/* ---------- His owner ---------- */
+.tf-owner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.trade-for .tf-fit-bad {
-  color: var(--bad);
-}
-
-.trade-for .offer-swap > span {
+.tf-partner {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+}
+
+.tf-partner-nm {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.tf-partner-mt {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tf-facts {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 4px 32px;
+  margin: 8px 0 0;
+}
+
+.tf-facts dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tf-facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tf-note {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* ---------- Offers ---------- */
+.tf-offers,
+.tf-offer-block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* The honest empty block, and the error. */
+.tf-block {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 16px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+}
+
+.tf-block > svg {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.tf-block b {
+  font-size: 15px;
+}
+
+.tf-block p {
+  grid-column: 2;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tf-block .tt-actions {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.tf-block .tt-btn {
+  flex: 0 1 auto;
+}
+
+.tf-offer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tt button.tf-offer {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius-row);
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 500;
+  text-align: left;
+}
+
+.tt button.tf-offer:hover {
+  background: var(--raised);
+}
+
+.tt button.tf-offer[aria-current='true'] {
+  background: var(--raised);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.tf-offer-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tf-offer-angle {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.tf-offer-acc {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.tf-offer-swap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
 
-.trade-for .offer-swap .head-stack {
-  margin-right: 0;
-}
-
-.trade-for .offer-swap .label-sm {
-  min-width: 30px;
-}
-
-.trade-for .offer-swap strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tradefor-want {
+.tf-offer-side {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
-/* The face takes ~52px from the name column; widen the picker so names fit. */
-.split.trade-for > .narrow {
-  flex-basis: 390px;
+.tf-offer-side .head-stack {
+  margin-right: 0;
+}
+
+.tf-offer-names {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tf-offer-to {
+  color: var(--muted);
+}
+
+.tf-offer-odds {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tf-offer-odds b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.tf-offer-open {
+  padding: 16px 0 8px;
+}
+
+.tt .tf-espn {
+  align-self: flex-start;
+}
+
+/* Your players they'd value: gain, then Check (or "Not offered" for a keeper). */
+.tf-wrow {
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  min-height: 60px;
+}
+
+.tt button.tf-check {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.tf-not {
+  min-width: 44px;
+  text-align: right;
+}
+
+.tf-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Also on his team (the foot) ---------- */
+.tf-also {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: center;
+  gap: 0 24px;
+  padding: 12px 24px;
+}
+
+.tf-also-h {
+  display: flex;
+  flex-direction: column;
+}
+
+.tf-also-l {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- The turned table ---------- */
+@media (max-width: 899px) {
+  .tf-also {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 12px 16px;
+  }
+
+  .tf-also-h {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .tf-also-l {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tf-block .tt-btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- Phones: fit over value on the right, gain over Check ---------- */
+@media (max-width: 640px) {
+  .tf-colh {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .tf-colh-val {
+    display: none;
+  }
+
+  .tf-colh-gain::after {
+    content: ' · Value';
+  }
+
+  .tt button.tf-fit {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'f w a'
+      'f w b';
+    row-gap: 0;
+    column-gap: 10px;
+  }
+
+  .tf-fit > .head {
+    grid-area: f;
+  }
+
+  .tf-fit > .tf-who {
+    grid-area: w;
+  }
+
+  .tf-fit > .tf-gain {
+    grid-area: a;
+    align-self: end;
+  }
+
+  .tf-fit > .tf-val {
+    grid-area: b;
+    align-self: start;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+  }
+
+  .tf-chev {
+    display: none;
+  }
+
+  .tf-wrow {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'f w g'
+      'f w b';
+    row-gap: 0;
+    column-gap: 10px;
+  }
+
+  .tf-wrow > .head {
+    grid-area: f;
+  }
+
+  .tf-wrow > .tf-who {
+    grid-area: w;
+  }
+
+  .tf-wrow > .tf-gain {
+    grid-area: g;
+  }
+
+  .tf-wrow > .tf-check,
+  .tf-wrow > .tf-not {
+    grid-area: b;
+    justify-self: end;
+  }
+
+  .tf-wrow .tf-mt {
+    white-space: normal;
+  }
+
+  .tf-facts {
+    gap: 4px 20px;
+  }
+
+  .tf-card-nm {
+    font-size: 18px;
+    line-height: 24px;
+  }
 }
