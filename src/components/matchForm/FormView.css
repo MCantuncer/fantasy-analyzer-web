@@ -567,6 +567,12 @@
   border-radius: 50%;
   background: var(--surface);
 }
+/* The face opens the star's card too (PlayerLink, decorative): the button takes the face's grid spot. */
+.mf-gb button.pc-link.mf-gb-facelink {
+  grid-area: face;
+  align-self: start;
+  border-radius: var(--radius-tile);
+}
 .mf-gb-id {
   grid-area: id;
   min-width: 0;

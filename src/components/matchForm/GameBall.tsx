@@ -5,6 +5,7 @@ import { headshotUrl } from '../../lib/league'
 import { HERO_LIGHT, dayDate, losersBest, nick, possessive, shootingPct, typeTag } from '../../lib/matchForm'
 import type { FormGame, FormStar } from '../../lib/matchForm'
 import { teamLight } from '../../lib/nbaTeams'
+import { PlayerLink } from '../PlayerCard'
 import { PlayerHead, TeamLogo } from '../PlayerHead'
 import { TypeTag } from './BoxScores'
 
@@ -64,9 +65,13 @@ export function GameBall({
       </div>
       {s ? (
         <div className="mf-gb-body" key={game.game_id}>
-          <HeroFace star={s} />
+          <PlayerLink player={{ id: s.player_id, name: s.name }} decorative className="mf-gb-facelink">
+            <HeroFace star={s} />
+          </PlayerLink>
           <div className="mf-gb-id">
-            <p className="mf-gb-name">{s.name}</p>
+            <p className="mf-gb-name">
+              <PlayerLink player={{ id: s.player_id, name: s.name }} />
+            </p>
             <span className="mf-gb-who">
               <b>{nick(s.team)}</b> · Game Score <span className="num">{s.game_score.toFixed(1)}</span>
             </span>
@@ -92,9 +97,14 @@ export function GameBall({
       <div className="mf-gb-other">
         {lb && (
           <>
-            <PlayerHead player={{ id: lb.player_id, name: lb.name }} team={lb.team} size={34} />
+            <PlayerLink player={{ id: lb.player_id, name: lb.name }} decorative>
+              <PlayerHead player={{ id: lb.player_id, name: lb.name }} team={lb.team} size={34} />
+            </PlayerLink>
             <span className="ot">
-              {possessive(nick(loser))} best: <b>{lb.name}</b>{' '}
+              {possessive(nick(loser))} best:{' '}
+              <b>
+                <PlayerLink player={{ id: lb.player_id, name: lb.name }} />
+              </b>{' '}
               <span className="nw">
                 · <span className="num">{lb.reb}</span> REB
               </span>{' '}

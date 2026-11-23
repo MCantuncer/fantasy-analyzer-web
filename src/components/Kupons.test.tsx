@@ -80,6 +80,24 @@ function night(players = false): BookCompare {
   }
 }
 
+/** Last night settled: every game pick won, Ann Shooter's 20+ lost and Bo Scorer sat out. */
+function lostAndSatOut(): BookCompare {
+  const data = night(true)
+  data.games = data.games.map((g) => ({
+    ...g,
+    status: 'final',
+    away_score: 100,
+    home_score: 99,
+    markets: g.markets.map((m) => ({ ...m, ours_hit: true })),
+    players: g.players.map((p) =>
+      p.player_id === 77
+        ? { ...p, played: true, actual: 12, rungs: (p.rungs ?? []).map((r) => ({ ...r, hit: false })) }
+        : { ...p, played: false },
+    ),
+  }))
+  return data
+}
+
 const show = (data: BookCompare, onMatch = vi.fn()) =>
   render(<Kupons data={data} lines={linesOf(data, NOW)} onMatch={onMatch} />)
 
@@ -157,5 +175,24 @@ describe("Tonight's Kupons", () => {
     expect(slip.querySelector('.was')!.textContent).toMatch(/^Probability was ~\d+%$/)
     expect(slip.querySelectorAll('.ic-ku-leg.lost')).toHaveLength(1)
     expect(slip.querySelectorAll('.ic-ku-leg.won')).toHaveLength(2)
+  })
+  it("opens the player's card from the name a Kupon lost on and from a name that sat out", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = show(lostAndSatOut())
+    const lost = [...container.querySelectorAll('.ic-ku-tot .out.no')].find((el) => el.textContent === 'Lost on Shooter 20+')
+    expect(lost).toBeTruthy()
+    fireEvent.click(within(lost as HTMLElement).getByRole('button', { name: 'Shooter' }))
+    expect(open).toHaveBeenCalledWith({ id: 77, name: 'Ann Shooter' })
+    const sat = [...container.querySelectorAll('.ic-ku-note')].find((el) => el.textContent?.startsWith('Scorer sat out'))
+    expect(sat!.textContent).toBe('Scorer sat out, so iddaa counts that pick at 1.00.')
+    fireEvent.click(within(sat as HTMLElement).getByRole('button', { name: 'Scorer' }))
+    expect(open).toHaveBeenLastCalledWith({ id: 78, name: 'Bo Scorer' })
+  })
+
+  it('keeps the lost-on and sat-out names as plain text with no card to open', () => {
+    const { container } = show(lostAndSatOut())
+    expect([...container.querySelectorAll('.ic-ku-tot .out.no')].some((el) => el.textContent === 'Lost on Shooter 20+')).toBe(true)
+    expect(container.querySelector('.ic-ku-tot button, .ic-ku-note button')).toBeNull()
   })
 })

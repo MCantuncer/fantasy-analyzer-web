@@ -53,6 +53,7 @@ import { ProInside } from './ProInside'
 import { upgradeRequired } from '../lib/plans'
 import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerLink } from './PlayerCard'
 import { RungLadder, RungNote } from './RungTrack'
 import { Kupons } from './Kupons'
 import { OurRecord } from './OurRecord'
@@ -219,10 +220,15 @@ export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
       </span>
       {top && !settled && (
         <span className="ic-teaser-row">
-          <span className="ic-teaser-who">
-            <b>{top.kind === 'player' ? top.name : top.gameLabel}</b>
-            <span>
-              Biggest gap tonight · {top.stat === 'TEAM' ? `${top.team} points` : STAT_NAME[top.stat]}
+          <span className="ic-teaser-pl">
+            {top.kind === 'player' && (
+              <PlayerHead player={{ id: top.playerId ?? 0, name: top.name }} team={top.team} size={32} />
+            )}
+            <span className="ic-teaser-who">
+              <b>{top.kind === 'player' ? top.name : top.gameLabel}</b>
+              <span>
+                Biggest gap tonight · {top.stat === 'TEAM' ? `${top.team} points` : STAT_NAME[top.stat]}
+              </span>
             </span>
           </span>
           <Lane line={top} i={0} />
@@ -565,7 +571,11 @@ function GapList(p: ListProps) {
               {most && most.book != null && most.ours != null && (
                 <>
                   {' '}
-                  Biggest the other way: <b>{`${most.name} ${STAT_NAME[most.stat]}`}</b>, Book{' '}
+                  Biggest the other way:{' '}
+                  <b>
+                    <PlayerLink player={{ id: most.playerId ?? 0, name: most.name }} /> {STAT_NAME[most.stat]}
+                  </b>
+                  , Book{' '}
                   <span className="num">{most.book.toFixed(1)}</span> vs Ours{' '}
                   <span className="num">{most.ours.toFixed(1)}</span>.
                 </>
@@ -1284,7 +1294,7 @@ function HowDivided({
     // a press anywhere but a strip or the card puts the card away
     const away = (e: PointerEvent) => {
       const t = e.target as Element | null
-      if (!t?.closest?.('.ic-fld, .ic-mc, .ic-mc-scrim')) setAct(null)
+      if (!t?.closest?.('.ic-fld, .ic-mc, .ic-mc-scrim, .pc-layer')) setAct(null)
     }
     document.addEventListener('pointerdown', away)
     return () => document.removeEventListener('pointerdown', away)
@@ -1392,7 +1402,13 @@ function HowDivided({
               ) : (
                 <>
                   biggest {signed(best.gap ?? 0, s)}{' '}
-                  {best.kind === 'player' ? best.name.split(' ').slice(-1)[0] : best.gameLabel}
+                  {best.kind === 'player' ? (
+                    <PlayerLink player={{ id: best.playerId ?? 0, name: best.name }}>
+                      {best.name.split(' ').slice(-1)[0]}
+                    </PlayerLink>
+                  ) : (
+                    best.gameLabel
+                  )}
                 </>
               )}
             </div>
@@ -1660,9 +1676,23 @@ function MarkCard({
     >
       {sheet && <span className="ic-mc-grab" aria-hidden="true" />}
       <div className="ic-mc-h">
-        <Face line={l} />
+        {open && l.kind === 'player' ? (
+          <PlayerLink player={{ id: l.playerId ?? 0, name: l.name }} decorative>
+            <Face line={l} />
+          </PlayerLink>
+        ) : (
+          <Face line={l} />
+        )}
         <div className="ic-mc-who">
-          <b>{l.kind === 'player' ? l.name : l.gameLabel}</b>
+          <b>
+            {l.kind !== 'player' ? (
+              l.gameLabel
+            ) : open ? (
+              <PlayerLink player={{ id: l.playerId ?? 0, name: l.name }} />
+            ) : (
+              l.name
+            )}
+          </b>
           <span>
             {what}
             {l.kind === 'player' && <> · {l.gameLabel}</>} · {gameWhen(l)}
