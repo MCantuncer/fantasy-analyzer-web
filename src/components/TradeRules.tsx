@@ -221,7 +221,7 @@ function RulesEditor({
       )}
       {kept.length > 0 && (
         <p className="small muted rules-keep">
-          <strong>Always kept:</strong> <PlayerList players={kept} />. Never suggested as trades or drops; change the list
+          <strong>Always kept:</strong> <PlayerList players={kept} tail="." /> Never suggested as trades or drops; change the list
           in My Team.
         </p>
       )}

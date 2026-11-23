@@ -39,7 +39,6 @@ describe('TradeCheckMoves', () => {
     expect(sheet.getByRole('radio', { name: /Jalen Green/ })).not.toBeChecked()
   })
 
-
   it('names the cut and pickups, and changes the cut in a sheet', () => {
     const onCut = vi.fn()
     const { container } = render(

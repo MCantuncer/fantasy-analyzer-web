@@ -16,6 +16,7 @@ import { ordinal, pct, ptsDiff } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { PlayerChips, PlayerLink } from './PlayerCard'
+import { PlayerInline } from './PlayerInline'
 import { SpotDays } from './MoveTiming'
 import { teamLogoUrl } from '../lib/league'
 import {
@@ -333,15 +334,15 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                           )}
                           {p.open_spot_by_trade ? (
                             <li>
-                              <PlayerLink player={p.drop} /> has trade value ({Math.round(p.drop.percent_owned)}% owned),
-                              so don't release him: move him in a trade that brings back fewer players, then add{' '}
-                              <PlayerLink player={p.add} />.
+                              <PlayerLink player={p.drop} /> has trade value ({Math.round(p.drop.percent_owned)}%
+                              owned), so don't release him: move him in a trade that brings back fewer players, then add{' '}
+                              <PlayerInline player={p.add} face={false} tail="." />
                             </li>
                           ) : (
                             <li>
                               <ArrowsLeftRight size={14} aria-hidden="true" className="fa-swap" /> You drop{' '}
-                              <PlayerLink player={p.drop} /> ({p.drop.positions.join('/')}, {Math.round(p.drop.percent_owned)}% owned):
-                              replaceable from free agency.
+                              <PlayerLink player={p.drop} /> ({p.drop.positions.join('/')},{' '}
+                              {Math.round(p.drop.percent_owned)}% owned): replaceable from free agency.
                             </li>
                           )}
                         </ul>

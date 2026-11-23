@@ -74,6 +74,8 @@ describe('Trades', () => {
     const line = container.querySelector('.trades-kept') as HTMLElement
     expect(line).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
     expect(line.querySelectorAll('.pin .head')).toHaveLength(2)
+    // The comma and the full stop stay on the line of the name they follow.
+    expect([...line.querySelectorAll('.pin')].map((p) => p.textContent)).toEqual(['Kyshawn George,', 'Jayson Tatum.'])
     fireEvent.click(within(line).getByRole('button', { name: 'Jayson Tatum' }))
     expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 6 }))
     act(() => setPlayerCardHost(null))

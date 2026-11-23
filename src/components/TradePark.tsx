@@ -73,8 +73,8 @@ function lastNames(players: { name: string }[]) {
 }
 
 /** The same "Allen + Mobley", each last name opening that player's card. */
-function LastNames({ players }: { players: PlayerRef[] }) {
-  return <PlayerList players={players} sep=" + " name={(p) => lastName(p.name)} face={false} />
+function LastNames({ players, tail }: { players: PlayerRef[]; tail?: string }) {
+  return <PlayerList players={players} sep=" + " name={(p) => lastName(p.name)} face={false} tail={tail} />
 }
 
 /** "15-21-0" -> 15 wins, for the Every team order. */
@@ -460,7 +460,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
       <div className="park-err" role="alert">
         <WarningCircle size={18} aria-hidden="true" />
         <span>
-          Couldn't update for {whoLinks}. {shop.error?.message}
+          Couldn't update for <LastNames players={pickedPlayers} tail="." /> {shop.error?.message}
         </span>
         <button type="button" className="tt-btn" onClick={() => shop.refetch()}>
           <ArrowClockwise size={18} aria-hidden="true" />
@@ -668,7 +668,7 @@ function DealNotes({ deal: d }: { deal: ShopDeal }) {
   if (d.their_drop)
     notes.push(
       <>
-        They would likely drop <PlayerInline player={d.their_drop} />.
+        They would likely drop <PlayerInline player={d.their_drop} tail="." />
       </>,
     )
   for (const w of d.warnings ?? []) notes.push(w)

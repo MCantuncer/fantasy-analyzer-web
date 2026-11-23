@@ -201,7 +201,7 @@ export function TradeItem({
           )}
           {t.their_drop && (
             <li>
-              They would likely drop <PlayerInline player={t.their_drop} />.
+              They would likely drop <PlayerInline player={t.their_drop} tail="." />
             </li>
           )}
           {extra}
@@ -442,7 +442,7 @@ export function Trades({
           <span className="trades-kept-names">
             <LockSimple size={14} weight="fill" aria-hidden="true" />
             <span>
-              <strong>Always kept:</strong> <PlayerList players={kept} />.
+              <strong>Always kept:</strong> <PlayerList players={kept} tail="." />
             </span>
           </span>
           {onEditKeep && (

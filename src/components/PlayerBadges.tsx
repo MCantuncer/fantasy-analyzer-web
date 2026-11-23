@@ -152,7 +152,7 @@ export function BadgeNotes({ players }: { players: PlayerRef[] }) {
               <BadgeIcon kind={b.kind} />
               {badgeLabel(b)}
             </span>{' '}
-            <PlayerInline player={p} />: {b.reason}
+            <PlayerInline player={p} tail=":" /> {b.reason}
           </li>
         )),
       )}
