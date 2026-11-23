@@ -390,6 +390,61 @@
   font-weight: 600;
 }
 
+/* Biggest bid this week: the claiming team's colour rises from its node as soft light (no edge, it
+   fades to nothing), a crown in ink and a 20px amount. The light is --feed-big (set on the line) at
+   --feed-light strength; --feed-big-bleed is how far it may reach left of the wire. Everything for
+   this moment lives in this block and the two media blocks right under it, so it tunes or reverts
+   alone. */
+.feed-line.is-big {
+  --feed-big-bleed: 52px;
+}
+
+.feed-line.is-big::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -24px -12px -24px calc(0px - var(--feed-big-bleed));
+  background: radial-gradient(
+    300px 50px at calc(var(--node-x) + var(--feed-big-bleed)) 48px,
+    color-mix(in srgb, var(--feed-big, transparent) var(--feed-light), transparent),
+    transparent
+  );
+  /* The light may not reach the page edge, so its left end fades out instead of stopping. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--feed-big-bleed));
+  mask-image: linear-gradient(to right, transparent, #000 var(--feed-big-bleed));
+  pointer-events: none;
+}
+
+.feed-entry.is-big .feed-bid {
+  font-size: 20px;
+}
+
+.feed-meta-big {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  font-weight: 650;
+}
+
+@media (max-width: 1099px) {
+  .feed-line.is-big {
+    --feed-big-bleed: 16px;
+  }
+}
+
+/* Phones: the line is two rows, so the light sits lower and reaches a little higher. */
+@media (max-width: 759px) {
+  .feed-line.is-big::before {
+    inset: -40px -16px -24px -16px;
+    background: radial-gradient(
+      240px 60px at calc(var(--node-x) + 16px) 66px,
+      color-mix(in srgb, var(--feed-big, transparent) var(--feed-light), transparent),
+      transparent
+    );
+  }
+}
+
 /* Moments: posts, trades and moves with replies get a soft surface; what's inside is as before. */
 .feed-moment {
   margin: 8px 0;
