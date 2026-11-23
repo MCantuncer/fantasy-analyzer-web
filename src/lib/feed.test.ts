@@ -10,6 +10,11 @@ import {
   matches,
   tradeSides,
   wonVotes,
+  beatenBids,
+  dayDate,
+  faabLeaderId,
+  isMoment,
+  timeRunStarts,
 } from './feed'
 
 const teams: FeedTeam[] = [
@@ -143,5 +148,97 @@ describe('day summary and biggest bid', () => {
     expect(biggestBidId([claim, small, fa])).toBe('tx:a')
     expect(biggestBidId([claim, { ...small, bid: 4 }])).toBeNull()
     expect(biggestBidId([{ ...claim, bid: 0 }, fa])).toBeNull()
+  })
+})
+
+describe('wire helpers', () => {
+  it('lists the bids a claim beat, with amounts only in FAAB leagues', () => {
+    const two: FeedItem = {
+      ...claim,
+      losing_bids: [
+        { team_id: 6, bid: 3 },
+        { team_id: 3, bid: 1 },
+      ],
+    }
+    expect(beatenBids(two, 100)).toEqual({
+      count: 2,
+      unit: 'bid',
+      rows: [
+        { teamId: 6, bid: 3 },
+        { teamId: 3, bid: 1 },
+      ],
+    })
+    expect(beatenBids(claim, null)).toEqual({ count: 1, unit: 'claim', rows: [{ teamId: 6, bid: null }] })
+    expect(beatenBids(claim, 0)?.unit).toBe('claim')
+  })
+
+  it('shows nothing for an uncontested claim or a move that is not a waiver claim', () => {
+    expect(beatenBids({ ...claim, losing_bids: [] }, 100)).toBeNull()
+    expect(beatenBids({ ...claim, losing_bids: undefined }, 100)).toBeNull()
+    expect(beatenBids({ ...claim, kind: 'free_agent' }, 100)).toBeNull()
+    expect(beatenBids(trade, 100)).toBeNull()
+  })
+
+  it('prints the time once for each run of moves in the same minute', () => {
+    const at = (id: string, time: string, extra: Partial<FeedItem> = {}): FeedItem => ({
+      ...claim,
+      id,
+      at: `2026-11-22T${time}`,
+      ...extra,
+    })
+    const items = [
+      at('a', '15:00:09'),
+      at('b', '15:00:07'),
+      at('c', '15:00:02', { replies: 1 }),
+      at('d', '14:59:58'),
+      at('e', '11:30:00', { kind: 'free_agent' }),
+    ]
+    expect([...timeRunStarts(items)]).toEqual(['a', 'd', 'e'])
+  })
+
+  it('gives posts and trades their own time and starts a new run after them', () => {
+    const items: FeedItem[] = [
+      { ...claim, id: 'a', at: '2026-11-22T15:00:09' },
+      { ...post, id: 'p', at: '2026-11-22T15:00:05' },
+      { ...claim, id: 'b', at: '2026-11-22T15:00:03' },
+      { ...trade, id: 't', at: '2026-11-22T15:00:02' },
+      { ...trade, id: 'u', at: '2026-11-22T15:00:01' },
+    ]
+    expect([...timeRunStarts(items)]).toEqual(['a', 'p', 'b', 't', 'u'])
+  })
+
+  it('starts a new run on a new day even at the same clock time', () => {
+    const items = [
+      { ...claim, id: 'a', at: '2026-11-22T15:00:00' },
+      { ...claim, id: 'b', at: '2026-11-21T15:00:00' },
+    ]
+    expect([...timeRunStarts(items)]).toEqual(['a', 'b'])
+    expect(timeRunStarts([]).size).toBe(0)
+  })
+
+  it('dates the Today and Yesterday milestones only', () => {
+    const now = new Date('2026-11-23T18:00:00')
+    const date = (iso: string) =>
+      new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+    expect(dayDate('2026-11-23T09:00:00', now)).toBe(date('2026-11-23T09:00:00'))
+    expect(dayDate('2026-11-22T15:00:00', now)).toBe(date('2026-11-22T15:00:00'))
+    expect(dayDate('2026-11-22T15:00:00', now)).toMatch(/22/)
+    expect(dayDate('2026-11-21T15:00:00', now)).toBeNull()
+  })
+
+  it('names the one FAAB leader, never a tie or an unspent league', () => {
+    expect(faabLeaderId(teams)).toBe(8)
+    expect(faabLeaderId([...teams, { id: 10, name: 'Tie', abbrev: 'TIE', faab_spent: 9 }])).toBeNull()
+    expect(faabLeaderId(teams.map((t) => ({ ...t, faab_spent: 0 })))).toBeNull()
+    expect(faabLeaderId(teams.map((t) => ({ ...t, faab_spent: null })))).toBeNull()
+    expect(faabLeaderId([])).toBeNull()
+  })
+
+  it('breaks posts, trades and moves with replies out into moments', () => {
+    expect(isMoment(post)).toBe(true)
+    expect(isMoment(trade)).toBe(true)
+    expect(isMoment(claim)).toBe(false)
+    expect(isMoment({ ...claim, replies: 1 })).toBe(true)
+    expect(isMoment({ ...claim, kind: 'free_agent', reactions: { counts: { smart: 2 }, mine: [] } })).toBe(false)
   })
 })

@@ -132,3 +132,62 @@ export function biggestBidId(items: FeedItem[]): string | null {
   const at = bids.filter((i) => i.bid === top)
   return at.length === 1 ? at[0].id : null
 }
+
+/**
+ * The claims a waiver pickup beat, as data for the "Beat 2 bids [crest] $1 [crest] $1" meta row.
+ * Bids in FAAB leagues; claims on waiver priority otherwise, where there is no amount to show.
+ * Null when the move isn't a waiver claim or nobody else claimed the player.
+ */
+export function beatenBids(
+  item: FeedItem,
+  budget: number | null | undefined,
+): { count: number; unit: 'bid' | 'claim'; rows: { teamId: number; bid: number | null }[] } | null {
+  if (item.kind !== 'waiver') return null
+  const lost = item.losing_bids ?? []
+  if (lost.length === 0) return null
+  const faab = !!budget
+  return {
+    count: lost.length,
+    unit: faab ? 'bid' : 'claim',
+    rows: lost.map((b) => ({ teamId: b.team_id, bid: faab ? b.bid : null })),
+  }
+}
+
+/**
+ * The items whose time prints on the wire: the first of each run of moves made in the same minute
+ * on the same day, so a waiver run shows "3:00 PM" once. Posts and trades always print their own time
+ * and end the run before them (a move with replies stays in its run).
+ */
+export function timeRunStarts(items: FeedItem[]): Set<string> {
+  const starts = new Set<string>()
+  let run: string | null = null
+  for (const item of items) {
+    const standalone = item.kind === 'post' || item.kind === 'trade'
+    const d = new Date(item.at)
+    const key = `${startOfDay(d)} ${timeLabel(item.at)}`
+    if (standalone || key !== run) starts.add(item.id)
+    run = standalone ? null : key
+  }
+  return starts
+}
+
+/** The date under a "Today" or "Yesterday" milestone, e.g. "Sun, Nov 22". Null for older days, whose label is the date. */
+export function dayDate(iso: string, now: Date = new Date()): string | null {
+  const label = dayLabel(iso, now)
+  if (label !== 'Today' && label !== 'Yesterday') return null
+  return new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+/** The team that has spent the most FAAB, for "Most" on the rail. Null when nobody has spent or the top is shared. */
+export function faabLeaderId(teams: FeedTeam[]): number | null {
+  const spent = teams.filter((t) => (t.faab_spent ?? 0) > 0)
+  if (spent.length === 0) return null
+  const most = Math.max(...spent.map((t) => t.faab_spent ?? 0))
+  const at = spent.filter((t) => t.faab_spent === most)
+  return at.length === 1 ? at[0].id : null
+}
+
+/** Whether an item breaks out of its line into a moment: something people talk about. */
+export function isMoment(item: FeedItem): boolean {
+  return item.kind === 'post' || item.kind === 'trade' || item.replies > 0
+}
