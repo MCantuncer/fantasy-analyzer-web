@@ -460,17 +460,3 @@ export function scoreRows(tally: CompareTally[], lines: Line[]): ScoreRow[] {
   rows.push({ stat: 'ALL', rungs: w, ours, book, read: readBetter(ours, book), split: all })
   return rows
 }
-
-/** How far the book's line sat above ours on this night, per stat: the median over player rows of
- *  book minus ours (the tally's median_gap is ours minus book). The book sells overs only, so its
- *  ladders tend to sit high. Only stats with at least LIFT_MIN compared rows. */
-export const LIFT_MIN = 5
-export function bookLift(tally: CompareTally[]): { stat: Stat; lift: number }[] {
-  const out: { stat: Stat; lift: number }[] = []
-  for (const stat of ['PTS', 'REB', 'AST', '3PM'] as Stat[]) {
-    const t = tally.find((x) => statOf(x.stat) === stat)
-    if (t?.median_gap == null || t.compared < LIFT_MIN) continue
-    out.push({ stat, lift: -t.median_gap })
-  }
-  return out
-}

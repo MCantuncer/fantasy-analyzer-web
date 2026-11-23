@@ -43,7 +43,7 @@ import {
   marketPair,
   MIN_ODD,
 } from '../lib/iddaaCompare'
-import type { BookCompare, CompareGame, Line, Stat, Tally } from '../lib/iddaaCompare'
+import type { BookCompare, CompareGame, Line, Stat } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
 import { teamLight } from '../lib/nbaTeams'
 import { usePlayerCard } from '../lib/playerCard'
@@ -54,13 +54,13 @@ import { upgradeRequired } from '../lib/plans'
 import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import { RungLadder, RungNote } from './RungTrack'
-import { RecordRibbon, RungRecord } from './RungRecord'
 import { Kupons } from './Kupons'
-import { RungScorecard } from './RungScorecard'
+import { OurRecord } from './OurRecord'
 import { ValueRungs } from './ValueRungs'
 import { HowToRead } from './HowToRead'
 import { Chance, KuponTag, useKuponPicks } from './EstimateBits'
 import { kuponKey } from '../lib/coupons'
+import { unitsSigned } from '../lib/ourRecord'
 import './IddaaCompare.css'
 
 interface Props {
@@ -148,7 +148,6 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
         </div>
       </div>
       {how && <HowToRead bands={data?.bands ?? null} onClose={() => setHow(false)} />}
-      <RecordRibbon nights={data?.nights} />
       {q.isPending && <Skeleton />}
       {q.error && (
         <section className="card error stack" role="alert">
@@ -159,7 +158,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
         <Night data={data} onDay={setDay} key={data.day ?? 0} />
       ) : (
         // Without a night the running record still shows (it reads its own record).
-        <RungRecord />
+        <OurRecord data={null} />
       )}
       {data && <LookLine data={data} />}
     </div>
@@ -323,13 +322,9 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
             onFold={() => setFold((f) => !f)}
             onOpen={(id) => setOpen((o) => (o === id ? null : id))}
           />
-          <div className={`ic-sheet${motion ? ' motion' : ''}`}>
-            <StatCloser lines={lines} game={game} />
-            <RungScorecard data={data} lines={lines} settled={settled} />
-          </div>
         </>
       )}
-      <RungRecord nights={data.nights} day={data.day} />
+      <OurRecord data={data} lines={lines} />
       {data.games.length > 0 && (
         <div className={`ic-sheet${motion ? ' motion' : ''}`}>
           <ValueRungs data={data} lines={lines} settled={settled} />
@@ -448,74 +443,6 @@ function LookLine({ data }: { data: BookCompare }) {
 }
 
 const ORDER = { final: 0, live: 1, scheduled: 2 } as const
-
-/** Who was nearer, as a bar: green for us, the track for level, muted for the book. */
-function Split({ t }: { t: Tally }) {
-  return (
-    <span className="ic-split" aria-hidden="true">
-      {t.oursCloser > 0 && <span className="o" style={{ flex: t.oursCloser }} />}
-      {t.level > 0 && <span className="lv" style={{ flex: t.level }} />}
-      {t.bookCloser > 0 && <span className="i" style={{ flex: t.bookCloser }} />}
-    </span>
-  )
-}
-
-/** Who was closer, stat by stat: under the list, once any line is judged. */
-function StatCloser({ lines, game }: { lines: Line[]; game: number | null }) {
-  const mine = lines.filter((l) => game == null || l.game.game_id === game)
-  if (!tallyOf(mine).judged) return null
-  const row = (s: Stat) => {
-    const t = tallyOf(mine.filter((l) => l.stat === s))
-    if (!t.n) return null
-    return (
-      <li key={s}>
-        <span className="ic-st">{STAT_NAME[s]}</span>
-        {t.judged ? (
-          <>
-            <Split t={t} />
-            <span className="ic-tx">
-              We won <b className="g">{t.oursCloser}</b> · Book won <b>{t.bookCloser}</b>
-            </span>
-            <span className="ic-mm">
-              {s === 'WIN' ? (
-                <>
-                  Our pick won <span className="num">{t.ours}</span> of <span className="num">{t.judged}</span>
-                </>
-              ) : (
-                t.oursMiss != null &&
-                t.bookMiss != null && (
-                  <>
-                    Off on average: Ours <span className="num">{num(t.oursMiss)}</span> · Book{' '}
-                    <span className="num">{num(t.bookMiss)}</span>
-                  </>
-                )
-              )}
-            </span>
-          </>
-        ) : (
-          <span className="ic-tx ic-none-yet">No results yet</span>
-        )}
-      </li>
-    )
-  }
-  return (
-    <section className="ic-sec" aria-labelledby="ic-h-closer">
-      <div className="ic-sec-h">
-        <div>
-          <h2 id="ic-h-closer">Who won, stat by stat</h2>
-          <p className="ic-sub">
-            Each line is settled on one of the book's lines: our number takes the over or the under, and the result decides
-            who won. Never both, never level.
-          </p>
-        </div>
-      </div>
-      <div className="ic-t-group">Players</div>
-      <ul className="ic-t-list">{PLAYER_STATS.map(row)}</ul>
-      <div className="ic-t-group">Games</div>
-      <ul className="ic-t-list">{GAME_STATS.map(row)}</ul>
-    </section>
-  )
-}
 
 interface ListProps {
   lines: Line[]
@@ -1878,7 +1805,7 @@ function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; 
           {n.settled > 0 ? (
             <>
               Won <b className="num">{n.won}</b> of <b className="num">{n.settled}</b> {n.settled === 1 ? 'bet' : 'bets'} ·{' '}
-              <b className="num">{signedUnits(n.net)}</b> at 1 a bet
+              <b className="num">{unitsSigned(n.net)}</b> at 1 a bet
             </>
           ) : (
             <>
@@ -1901,8 +1828,6 @@ function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; 
     </section>
   )
 }
-
-const signedUnits = (v: number) => (v > 0 ? `+${v.toFixed(2)}` : v < 0 ? `−${Math.abs(v).toFixed(2)}` : '0.00')
 
 /** A club logo on a disc, lit by the club's colour. */
 function GpDisc({ team }: { team: string }) {

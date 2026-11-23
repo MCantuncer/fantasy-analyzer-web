@@ -1,0 +1,207 @@
+/* Our record on Our Estimates (The Slip Rail): three counts on the bare page, then one "Running record"
+   row that opens the record. ic-rec- prefix. No cards, tiles or outlines; green and coral only for a
+   settled result (the night's net). */
+.ic-rec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 20px;
+}
+.ic-rec-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.ic-rec-head h2 svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-rec-sm {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-rec-sm b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* The three counts */
+.ic-rec-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-rec-count {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 4px 0;
+}
+.ic-rec-n {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 8px;
+}
+.ic-rec-n > b {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 640;
+}
+.ic-rec-n > span {
+  font-size: 15px;
+  color: var(--muted);
+}
+.ic-rec-l {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.ic-rec-l i,
+.ic-rec-sm i {
+  font-style: italic;
+}
+.ic-rec-s {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-rec-s b {
+  font-weight: 640;
+  color: var(--text-2);
+}
+.ic-rec-s b.good {
+  color: var(--good);
+}
+.ic-rec-s b.bad {
+  color: var(--bad);
+}
+
+/* The record could not load: one quiet line and a way to try again */
+.ic-rec-err {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin: 16px 0 0 !important;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-rec-err button {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Running record: one disclosure row with a hover fill, the record opening under it */
+.ic-rec-fold {
+  margin-top: 24px;
+}
+.ic-rec-more {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--ic-hover);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-rec-more:hover {
+  background: var(--accent-soft);
+}
+.ic-rec-mt {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ic-rec-mt b {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ic-rec-mt span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-rec-more svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-rec-more[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.ic-rec-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 24px 0 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ic-rec-more {
+    transition: background-color 120ms ease;
+  }
+}
+
+@media (max-width: 719px) {
+  .ic-rec-head {
+    margin-bottom: 16px;
+  }
+  .ic-rec-head h2 {
+    font-size: 19px;
+  }
+  .ic-rec-counts {
+    gap: 8px;
+  }
+  .ic-rec-n {
+    gap: 0 4px;
+  }
+  .ic-rec-n > b {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  .ic-rec-n > span {
+    font-size: 13px;
+  }
+  .ic-rec-l {
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .ic-rec-s {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .ic-rec-more {
+    padding: 12px;
+    gap: 12px;
+  }
+  .ic-rec-detail {
+    gap: 24px;
+    padding-top: 16px;
+  }
+}

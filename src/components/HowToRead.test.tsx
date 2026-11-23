@@ -35,10 +35,12 @@ describe('How to read', () => {
       'Gap',
       'Closer',
       'Value rungs',
+      'Rungs read closer',
       'Bands',
     ])
     expect(dialog.textContent).toContain('Points 5, rebounds and assists 2, 3PM, steals and blocks 1')
     expect(dialog.textContent).toContain('+1 rebounds and +2.5 points weigh the same')
+    expect(dialog.textContent).toContain('scoring every rung asks both sides the same fair question') // from the old Scorecard
   })
 
   it('closes on Esc and gives focus back to the button that opened it', () => {
