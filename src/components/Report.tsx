@@ -20,7 +20,8 @@ import { TradeOfTheDay } from './TradeOfTheDay'
 import { FeedbackContext } from './TradeFeedback'
 import { TradePark } from './TradePark'
 import { TradeCheck } from './TradeCheck'
-import { CHECK_PARAM } from '../lib/tradeCheck'
+import { CHECK_PARAM, EMPTY_DEAL, encodeDeal, type CheckDeal } from '../lib/tradeCheck'
+import { TradeModes, type TradeMode } from './TradeModes'
 import { Trades } from './Trades'
 import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
@@ -102,6 +103,8 @@ export function Report({
   const [parkMode, setParkMode] = useState<'find' | 'check'>(() =>
     new URLSearchParams(window.location.search).has(CHECK_PARAM) ? 'check' : 'find',
   )
+  // Bumped by openCheck, so a check that is already open starts again on the new deal.
+  const [checkOpened, setCheckOpened] = useState(0)
 
   // Trade feedback and saved rules belong to the verified manager: a team picked before the ESPN
   // check gets the same moves without them.
@@ -143,14 +146,29 @@ export function Report({
     })
   }
 
-  // From a team on the League tab to Check a Trade with that team across from you.
-  const checkWith = (teamId: number) => {
+  // Opens Check a Trade filled in with a deal (a team, players each way, sending or received),
+  // the same way a shared check link does.
+  const openCheck = (deal: CheckDeal) => {
     const q = new URLSearchParams(window.location.search)
-    q.set(CHECK_PARAM, `t${teamId}`)
+    const value = encodeDeal(deal)
+    if (value) q.set(CHECK_PARAM, value)
+    else q.delete(CHECK_PARAM)
     window.history.replaceState(null, '', `?${q.toString()}`)
+    setCheckOpened((n) => n + 1)
     setParkMode('check')
     onTab('park')
     window.scrollTo({ top: 0 })
+  }
+
+  // The trade tools' segment: Trade Park (finding deals), Trade For, or Check a Trade.
+  const tradeMode: TradeMode = tab === 'trade-for' ? 'trade-for' : parkMode === 'check' ? 'check' : 'park'
+  const onTradeMode = (mode: TradeMode) => {
+    if (mode === 'trade-for') {
+      onTab('trade-for')
+      return
+    }
+    setParkMode(mode === 'check' ? 'check' : 'find')
+    onTab('park')
   }
 
   const shopPlayer = (id: number) => {
@@ -248,31 +266,22 @@ export function Report({
           </>
         )}
 
-        {tab === 'park' && (
-          <>
-            <div className="segmented tck-park-modes" role="group" aria-label="Trade Park">
-              <button type="button" aria-pressed={parkMode === 'find'} onClick={() => setParkMode('find')}>
-                Find Deals
-              </button>
-              <button type="button" aria-pressed={parkMode === 'check'} onClick={() => setParkMode('check')}>
-                Check a Trade
-              </button>
-            </div>
-            {parkMode === 'find' ? (
-              <TradePark
-                report={report}
-                keep={keep}
-                creds={creds}
-                picks={picks}
-                onPicks={setPicks}
-                searched={searched}
-                onSearch={setSearched}
-              />
-            ) : (
-              <TradeCheck report={report} keep={keep} creds={creds} />
-            )}
-          </>
-        )}
+        {(tab === 'park' || tab === 'trade-for') && <TradeModes mode={tradeMode} onMode={onTradeMode} />}
+
+        {tab === 'park' &&
+          (parkMode === 'find' ? (
+            <TradePark
+              report={report}
+              keep={keep}
+              creds={creds}
+              picks={picks}
+              onPicks={setPicks}
+              searched={searched}
+              onSearch={setSearched}
+            />
+          ) : (
+            <TradeCheck key={checkOpened} report={report} keep={keep} creds={creds} />
+          ))}
 
         {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} />}
 
@@ -306,7 +315,7 @@ export function Report({
                 creds={creds}
                 film={film}
                 onFilm={onFilm}
-                onCheckTrade={checkWith}
+                onCheckTrade={(teamId) => openCheck({ ...EMPTY_DEAL, partner: teamId })}
               />
             ) : (
               <Season rows={report.season} myTeamId={report.team_id} playoffTeams={report.league.playoff_teams} />
@@ -359,7 +368,7 @@ export function Report({
           </div>
         )}
 
-        {tab !== 'chat' && tab !== 'park' && tab !== 'scores' && tab !== 'news' && (
+        {tab !== 'chat' && tab !== 'park' && tab !== 'trade-for' && tab !== 'scores' && tab !== 'news' && (
           <details className="footnote">
             <summary>How this works</summary>
             <ul>
