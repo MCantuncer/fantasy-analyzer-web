@@ -161,11 +161,33 @@ describe('Game picks', () => {
     expect(rows[0].querySelector('.bo')!.textContent).toBe('Book NY −4.5 · Ours NY −2')
     expect(rows[1].querySelector('.ic-ch')!.textContent).toBe('51%') // 9 parts the book's even 1.90s, 1 part our 58%
     expect(rows[2].textContent).toContain('Ours NY 64%')
-    expect(rows[2].querySelector('.nb')!.textContent).toBe('No betNY odds 1.33 or less')
+    // No bet is one quiet line: the word, a dot only for the eye, then why, on a shorter row
+    expect(rows[2]).toHaveClass('none')
+    expect(rows[2].querySelector('.nb')!.textContent).toBe('No bet·NY odds 1.33 or less')
+    const nb = rows[2].querySelector('.nb > span')!
+    expect([...nb.children].map((c) => c.tagName)).toEqual(['B', 'I', 'SPAN'])
+    expect(nb.querySelector('.dot')).toHaveAttribute('aria-hidden', 'true')
     // the score is solid, our chance is a number: no hollow digits, no ring buttons or popovers
     expect(section.querySelector('.ic-gp-sc')!.textContent).toContain('Our score')
     expect(section.querySelector('.hollow, .ic-gp-conf, .ic-gp-ring')).toBeNull()
     expect(within(section).queryByRole('button', { name: /What this means/ })).toBeNull()
+  })
+
+  it("carries each club's light into the head seam, and leaves an unknown club to the ink fade", async () => {
+    const known = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    known.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
+    const odd = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'XYZ' }
+    odd.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
+    mount(night([known, odd]))
+    const section = (await screen.findByRole('heading', { level: 2, name: 'Game picks' })).closest('section')!
+    const [a, b] = [...section.querySelectorAll<HTMLElement>('.ic-gp-game')]
+    // teamLight(): IND gold, NY orange
+    expect(a.style.getPropertyValue('--ta')).toBe('#F2B233')
+    expect(a.style.getPropertyValue('--tb')).toBe('#F07F2E')
+    // no colour for a club we don't know: the CSS falls back to the plain ink for that side
+    expect(b.style.getPropertyValue('--ta')).toBe('')
+    expect(b.style.getPropertyValue('--tb')).toBe('#F07F2E')
+    expect(b.querySelector('.nb')!.textContent).toBe('No bet·NY odds 1.33 or less')
   })
 })
 
