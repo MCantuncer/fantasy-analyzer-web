@@ -1,0 +1,10 @@
+/* A small face and a linked name inside a sentence (PlayerInline.tsx). Every class is prefixed pin. */
+.pin {
+  white-space: nowrap;
+}
+
+.pin > .pc-link-face,
+.pin > .head {
+  margin-inline-end: 5px;
+  vertical-align: -0.3em;
+}

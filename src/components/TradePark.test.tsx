@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import type { AnalysisReport, PlayerRef, ShopDeal, ShopReport } from '../api/client'
 import * as client from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { TradePark } from './TradePark'
 
 const player = (id: number, name: string, over: Partial<PlayerRef> = {}) =>
@@ -156,6 +157,7 @@ afterEach(() => {
   cleanup()
   vi.useRealTimers()
   vi.restoreAllMocks()
+  setPlayerCardHost(null)
 })
 
 describe('TradePark, nothing picked', () => {
@@ -225,6 +227,19 @@ describe('TradePark, picking', () => {
     expect(screen.getByText('4 of 4')).toBeInTheDocument()
   })
 
+  it("opens a picked player's card from his chip in the rail", async () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = setup()
+    fireEvent.click(screen.getByRole('button', { name: 'Shop Jarrett Allen' }))
+    await act(() => vi.advanceTimersByTimeAsync(710))
+    await screen.findByRole('button', { name: 'Stop shopping Jarrett Allen' })
+    const chip = container.querySelector('.park-chip') as HTMLElement
+    expect(chip.querySelector('button.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(within(chip).getByRole('button', { name: 'Allen' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 3 }))
+  })
+
   it('folds the roster into the rail once, when the first result lands, and Add opens it again', async () => {
     const { container } = setup()
     const allen = screen.getByRole('button', { name: 'Shop Jarrett Allen' })
@@ -234,6 +249,8 @@ describe('TradePark, picking', () => {
     await act(() => vi.advanceTimersByTimeAsync(710))
     await screen.findByRole('button', { name: 'Stop shopping Jarrett Allen' })
     expect(container.querySelector('.park-page')).toHaveClass('park-folded')
+    // The chip's face and last name open his card (a plain name outside a league).
+    expect(container.querySelector('.park-chip')?.textContent).toBe('Allen')
     const add = screen.getByRole('button', { name: 'Add' })
     expect(add).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(add)
@@ -315,6 +332,18 @@ describe('TradePark, the deal on the table', () => {
     fireEvent.click(show)
     expect(screen.getByRole('button', { name: 'Hide' })).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByText('Kartal Bulls')).toBeInTheDocument()
+  })
+
+  it('opens the card from the no-lift row, its faces and the shopped names', async () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = await picked()
+    const dim = container.querySelector('.park-drow.park-dim') as HTMLElement
+    expect(dim.querySelectorAll('.head-stack button.pc-link-face .head')).toHaveLength(2)
+    fireEvent.click(within(dim).getByRole('button', { name: 'Mitchell' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 4 }))
+    fireEvent.click(within(container.querySelector('.park-who-label') as HTMLElement).getByRole('button', { name: 'Allen' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 3 }))
   })
 
   it('filters the rows client-side', async () => {

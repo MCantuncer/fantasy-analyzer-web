@@ -119,7 +119,7 @@ export function Report({
   // "Anyone untouchable?" is asked once, while nobody is kept. A manager whose moves already leave
   // keepers out has answered; so has one who asks for an update with new keepers.
   const [asked, markAsked] = useUntouchableAsked(leagueId, season, teamId)
-  const keptNow = report.roster.filter((p) => keep.includes(p.id)).map((p) => p.name)
+  const keptNow = report.roster.filter((p) => keep.includes(p.id))
   const reworking = rerunning && keepChanged && keep.length > 0
   const asking = !asked && !tradesPending && !reworking && (keep.length === 0 || keepChanged)
   useEffect(() => {
@@ -180,7 +180,7 @@ export function Report({
       <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'moves' && (
           <>
-            {reworking && <UntouchableWorking names={keptNow} />}
+            {reworking && <UntouchableWorking players={keptNow} />}
             {asking && (
               <Untouchable
                 roster={report.roster}
@@ -242,7 +242,7 @@ export function Report({
                       categories={report.league.categories}
                       teams={report.league.teams}
                       myTeamId={report.team_id}
-                      keepNames={keepChanged ? [] : keptNow}
+                      kept={keepChanged ? [] : keptNow}
                       onEditKeep={() => onTab('team')}
                       keep={keep}
                       onToggleKeep={onToggleKeep}

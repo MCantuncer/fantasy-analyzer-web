@@ -30,6 +30,7 @@ import {
 } from '../lib/tradeCheck'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { PlayerHead } from './PlayerHead'
+import { PlayerList } from './PlayerInline'
 import { TeamCrest } from './TeamCrest'
 import { TradeCheckResult } from './TradeCheckResult'
 import './TradeCheck.css'
@@ -211,8 +212,12 @@ function Tray({
         <Slots players={get} side="get" onRemove={(id) => onRemove('get', id)} />
       </div>
       <div className="tck-tray-names">
-        <span>{give.map((p) => surname(p.name)).join(' · ')}</span>
-        <span>{get.map((p) => surname(p.name)).join(' · ')}</span>
+        <span>
+          <PlayerList players={give} sep=" · " name={(p) => surname(p.name)} face={false} />
+        </span>
+        <span>
+          <PlayerList players={get} sep=" · " name={(p) => surname(p.name)} face={false} />
+        </span>
       </div>
       {cuts > 0 && (
         <p className="tck-cut-note">

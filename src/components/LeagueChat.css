@@ -1116,8 +1116,10 @@
     gap: 4px;
   }
 
-  .feed-drop .feed-face {
-    display: none;
+  /* Every row about a player shows his face, so the dropped player keeps a small one on phones. */
+  .feed-drop .feed-face .head {
+    width: 20px !important;
+    height: 20px !important;
   }
 
   .feed-add .feed-face .head {
