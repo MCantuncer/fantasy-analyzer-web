@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COUPONS, bestSet, candidates, couponOf, couponsOf, fmtOdds, legWhy, legWords, pays, whyNot } from './coupons'
+import { COUPONS, bestSet, bookFar, candidates, couponOf, couponsOf, fmtOdds, legWhy, legWords, pays, whyNot } from './coupons'
 import type { Leg } from './coupons'
 import { linesOf } from './iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer, Line } from './iddaaCompare'
@@ -236,5 +236,34 @@ describe('why a lost leg lost', () => {
     ]
     const picks = whyNot(lines)
     expect(picks.map((l) => [l.line.name, l.bet, l.odd])).toEqual([['Payton Pritchard', '8+', 5.99]])
+  })
+
+  it('leaves out a player whose line sits far over the book\'s own (Ingram back from his Achilles)', () => {
+    const rung = (n: number, odd: number, ours: number) => ({ n, odd, ours, book: 1 / odd, value: ours * odd - 1, hit: null })
+    const line = (name: string, id: number, game: number, stat: string, ours: number, book: number, rungs: ReturnType<typeof rung>[]) =>
+      ({
+        kind: 'player',
+        stat,
+        name,
+        playerId: id,
+        ours,
+        book,
+        game: { game_id: game, status: 'scheduled', tip: '2026-11-24T01:30:00Z' },
+        rungs,
+        played: null,
+        actual: null,
+      }) as unknown as Line
+    const lines = [
+      // the night of 2026-11-23: ours 21 pts and 4.5 ast at full minutes, the book 13.7 and 2.5
+      line('Brandon Ingram', 1, 1, 'PTS', 21, 13.7, [rung(17, 2.09, 0.73), rung(25, 5.9, 0.31)]),
+      line('Brandon Ingram', 1, 1, 'AST', 4.5, 2.5, [rung(4, 2.38, 0.65), rung(6, 6.86, 0.32)]),
+      // 20% over the book (the widest on the saved nights after Ingram) stays in
+      line('Tyrese Proctor', 2, 2, 'PTS', 11.9, 9.9, [rung(13, 2.6, 0.45)]),
+      // far over in ratio but under 2 apart (small counts): stays in
+      line('Donovan Clingan', 3, 3, 'BLK', 2.2, 1.2, [rung(3, 3.0, 0.4)]),
+    ]
+    expect([...bookFar(lines)]).toEqual(['id:1'])
+    expect(candidates(lines).map((c) => c.line.name)).toEqual(['Tyrese Proctor', 'Donovan Clingan'])
+    expect(whyNot(lines).map((l) => l.line.name)).toEqual(['Donovan Clingan', 'Tyrese Proctor'])
   })
 })
