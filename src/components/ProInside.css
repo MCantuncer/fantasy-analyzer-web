@@ -59,8 +59,11 @@ button.pi-back:hover {
   mask-image: linear-gradient(to bottom, #000 0, #000 var(--pi-solid, 56%), transparent var(--pi-gone, 96%));
 }
 
-.pi-peek .ic-gp-game:first-child {
-  padding-top: 14px;
+/* One column below 1100px: room under the Example line. Two columns: the heads line up. */
+@media (max-width: 1099px) {
+  .pi-peek .ic-gp-game:first-child {
+    padding-top: 14px;
+  }
 }
 
 .pi-ex {
