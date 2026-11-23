@@ -58,8 +58,10 @@
   display: none;
 }
 
-/* Phones: the bottom bar has one Trades item, so the segment reaches all three tools. */
-@media (max-width: 759px) {
+/* Phones: the bottom bar has one Trades item, so the segment reaches all three tools. The query is the
+   bottom bar's own (styles/phone/bottom-bar.css, PHONE_QUERY in CourtMark.tsx): wider screens keep the
+   top tab row, so they get the title and Trade Park's switch instead. Keep the two in step. */
+@media (max-width: 640px) {
   .tmo-head {
     min-height: 0;
   }

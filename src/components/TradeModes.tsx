@@ -13,7 +13,8 @@ const PHONE: { id: TradeMode; label: string }[] = [
 /**
  * The head of the trade tools. Wider screens show the page title with Trade Park's own switch
  * (Find Deals | Check a Trade), or a Check a Trade button on Trade For, since the tab row already
- * holds both tools. Phones, where the bottom bar has one Trades item, get one 3-way segment instead.
+ * holds both tools. Phones, where the bottom bar (and its one Trades item) replaces the tab row, get one
+ * 3-way segment instead, at the bottom bar's own breakpoint.
  */
 export function TradeModes({ mode, onMode }: { mode: TradeMode; onMode: (mode: TradeMode) => void }) {
   const forTab = mode === 'trade-for'
