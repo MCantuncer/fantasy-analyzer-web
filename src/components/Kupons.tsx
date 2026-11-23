@@ -1,256 +1,89 @@
-import { CaretRight } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Check, Clock, Lightning, LinkSimple, ShieldCheck, Ticket, User, X } from '@phosphor-icons/react'
+import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
 import { WHY_NOT, couponsOf, fmtOdds, legWhy, whyNot } from '../lib/coupons'
-import type { CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
-import { useEscapeLayer } from '../lib/escapeStack'
-import { STAT_NAME, betFace, clock, nightLabel } from '../lib/iddaaCompare'
+import type { Coupon, CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
+import { STAT_NAME, STAT_UNIT, betFace, clock, nightLabel } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
 import { teamLight } from '../lib/nbaTeams'
-import { band } from '../lib/ourCall'
 import { usePlayerCard } from '../lib/playerCard'
+import { Chance } from './EstimateBits'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './Kupons.css'
 
-/** Tonight's Kupons (Can 2026-11-22): four ready-made iddaa bet slips at the top of Our Estimates,
- *  safest to boldest, built from iddaa's own odds and our chance for each pick (lib/coupons). "Kupon"
- *  is iddaa's own word, kept in Turkish on purpose and always set in italics with a hint, so it never
- *  reads as a slip in translation. Comparison only: nothing here feeds the model. */
+/** Tonight's Kupons (The Slip Rail, Can 2026-11-23): iddaa's bet slips at the top of Our Estimates,
+ *  built from iddaa's own odds and our chance for each pick (lib/coupons). From 900px they sit side by
+ *  side in a fixed order. "Kupon" is iddaa's own word, kept in Turkish and always set in italics.
+ *  Comparison only: nothing here feeds the model. */
 /** Opens a game's match card on its Form view, on the side the pick backs. */
 export type OpenMatch = (gameId: number, side: 'away' | 'home') => void
 
 export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Line[]; onMatch?: OpenMatch }) {
   const slots = useMemo(() => couponsOf(lines), [lines])
   const shots = useMemo(() => whyNot(lines), [lines])
-  // Before player bets, Matches Only is the same picks as Highest Confidence: one wide slip holds both
-  // (Can 2026-11-22), so Surprise still ends the row.
+  // While Matches Only has the same picks as Highest Confidence, one slip holds both (Can 2026-11-22),
+  // so the rail drops to three and Surprise still ends it.
   const twin = slots.find((s) => s.spec.kind === 'matches' && s.same === 'safe') ?? null
   const shown = twin ? slots.filter((s) => s !== twin) : slots
-  const built = slots.filter((s) => s.coupon)
-  const [open, setOpen] = useState<CouponKind | null>(() => remembered() ?? built[0]?.spec.kind ?? null)
-  const [pop, setPop] = useState<string | null>(null)
-  useEscapeLayer(pop != null, () => setPop(null))
-  if (!built.length) return null
+  if (!slots.some((s) => s.coupon)) return null
 
   const latest = data.day === data.days[data.days.length - 1]
   const final = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const waiting = slots.some((s) => s.why === 'waiting')
-  const settled = built.filter((s) => s.coupon!.result != null)
-  const firstTip = data.games
-    .filter((g) => g.status === 'scheduled')
-    .map((g) => g.tip)
-    .sort()[0]
-  const checked = data.games
-    .map((g) => g.checked)
-    .filter(Boolean)
-    .sort()
-    .pop()
-  const date = nightLabel(data.date)
-  const toggle = (k: CouponKind) => {
-    const next = open === k ? null : k
-    setOpen(next)
-    try {
-      localStorage.setItem('ic-ku-open', next ?? '')
-    } catch {
-      /* a per-viewer convenience only */
-    }
-  }
-  const won = settled.filter((s) => s.coupon!.result === 'won')
+  const left = data.games.filter((g) => g.status !== 'final').length
   return (
-    <section className="ic-ku ic-ku-sheet" aria-labelledby="ic-ku-h">
+    <section className="ic-ku" aria-labelledby="ic-ku-h">
       <div className="ic-ku-head">
         <h2 id="ic-ku-h">
-          {latest ? (final ? "Last night's " : "Tonight's ") : null}
-          <KuponTerm />
-          {latest ? null : ` for ${date}`}
+          <Ticket size={22} aria-hidden="true" />
+          <span>
+            {latest ? (final ? "Last night's " : "Tonight's ") : null}
+            <i>Kupons</i>
+            {latest ? null : ` for ${nightLabel(data.date)}`}
+          </span>
         </h2>
-        <p>
-          {final ? (
-            <>
-              Four ready-made <K s="Kupons" /> for {date}, safest to boldest. Every pick on a <K /> has to win for it
-              to pay.
-            </>
+        <span className="ic-ku-hint">iddaa's bet slips</span>
+      </div>
+      <ol className={`ic-ku-rail${twin ? ' three' : ''}`}>
+        {shown.map((s) =>
+          s.coupon ? (
+            <KuponSlip
+              key={s.spec.kind}
+              slot={s}
+              coupon={s.coupon}
+              waiting={waiting}
+              also={s.spec.kind === 'safe' && twin ? twin.spec : null}
+              sameAs={s.same ? slots.find((o) => o.spec.kind === s.same)!.spec.title : null}
+              onMatch={onMatch}
+            />
           ) : (
-            <>
-              Four ready-made <K s="Kupons" /> for {latest ? 'tonight' : date}, safest to boldest, from iddaa's own
-              odds and our chance for each pick.
-            </>
-          )}
-        </p>
-      </div>
-      <div className="ic-ku-night">
-        {final ? (
-          <>
-            <span>
-              <b>Final</b> · {date}
-            </span>
-            <span>
-              <b className="num">{won.length}</b> of <b className="num">{settled.length}</b> <K s="Kupons" /> won
-            </span>
-          </>
-        ) : (
-          <>
-            <span>
-              {latest && <i className="ic-ku-gold" aria-hidden="true" />}
-              <b>{latest ? 'Tonight' : 'Night'}</b> · {date}
-            </span>
-            <span>
-              <b className="num">{built.length}</b> <K s={built.length === 1 ? 'Kupon' : 'Kupons'} />
-              {waiting ? ' ready' : ''}
-            </span>
-            {waiting && (
-              <span>
-                Players Only after <b className="num">19:00</b>
-              </span>
-            )}
-            {checked && (
-              <span>
-                Updated <b className="num">{clock(checked)}</b>
-              </span>
-            )}
-            {firstTip && (
-              <span className="r">
-                First tip <b className="num">{clock(firstTip)}</b>
-              </span>
-            )}
-          </>
+            <QuietSlip key={s.spec.kind} slot={s} left={latest && !final ? left : null} />
+          ),
         )}
-      </div>
-      <ol className={`ic-ku-rack${twin ? ' three' : ''}`}>
-        {shown.map((s) => (
-          <KuponSlip
-            key={s.spec.kind}
-            slot={s}
-            waiting={waiting}
-            also={s.spec.kind === 'safe' && twin ? twin.spec : null}
-            sameAs={s.same ? slots.find((o) => o.spec.kind === s.same)!.spec.title : null}
-            open={open === s.spec.kind}
-            onToggle={() => toggle(s.spec.kind)}
-            pop={pop}
-            onPop={setPop}
-            onMatch={onMatch}
-          />
-        ))}
       </ol>
-      {shots.length > 0 && <WhyNot legs={shots} pop={pop} onPop={setPop} onMatch={onMatch} />}
-      <Rules />
+      {shots.length > 0 && <WhyNot legs={shots} onMatch={onMatch} />}
     </section>
   )
 }
 
-function remembered(): CouponKind | null {
-  try {
-    const v = localStorage.getItem('ic-ku-open')
-    return v === 'safe' || v === 'players' || v === 'matches' || v === 'surprise' ? v : null
-  } catch {
-    return null
-  }
-}
-
-/** The word in italics, everywhere it appears. */
-function K({ s = 'Kupon' }: { s?: string }) {
-  return <i className="ku">{s}</i>
-}
-
-/** The section title's word: a 44px button that explains it on hover, focus or tap. */
-function KuponTerm() {
-  const [open, setOpen] = useState(false)
-  const btn = useRef<HTMLButtonElement>(null)
-  useEscapeLayer(open, () => {
-    setOpen(false)
-    btn.current?.focus()
-  })
-  useEffect(() => {
-    if (!open) return
-    const down = (e: PointerEvent) => {
-      if (!(e.target as Element | null)?.closest?.('.ic-ku-term, .ic-ku-hint')) setOpen(false)
-    }
-    document.addEventListener('pointerdown', down)
-    return () => document.removeEventListener('pointerdown', down)
-  }, [open])
+/** The slip's mark: Phosphor regular at 20px; Matches Only keeps its two circles. */
+function Ico({ k }: { k: CouponKind }) {
+  if (k === 'safe') return <ShieldCheck className="ic-ku-ico" size={20} aria-hidden="true" />
+  if (k === 'players') return <User className="ic-ku-ico" size={20} aria-hidden="true" />
+  if (k === 'surprise') return <Lightning className="ic-ku-ico" size={20} aria-hidden="true" />
   return (
-    <>
-      <button
-        ref={btn}
-        type="button"
-        className="ic-ku-term"
-        aria-expanded={open}
-        aria-controls="ic-ku-hint"
-        aria-describedby="ic-ku-hint"
-        onClick={() => setOpen((o) => !o)}
-        onPointerEnter={(e) => e.pointerType === 'mouse' && setOpen(true)}
-        onPointerLeave={(e) => e.pointerType === 'mouse' && setOpen(false)}
-        onFocus={(e) => e.currentTarget.matches(':focus-visible') && setOpen(true)}
-        onBlur={() => setOpen(false)}
-      >
-        <i>Kupons</i>
-        <svg className="ic-ku-info" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.3" />
-          <path d="M8 7.3v3.9" />
-          <circle cx="8" cy="4.9" r=".5" fill="currentColor" />
-        </svg>
-      </button>
-      <span className="ic-ku-hint" id="ic-ku-hint" role="tooltip" hidden={!open}>
-        <K /> is iddaa's word for a bet slip: a few picks whose odds multiply. All of them must win for it to pay.
-      </span>
-    </>
-  )
-}
-
-const ICONS: Record<CouponKind | 'clock', string[]> = {
-  safe: ['M10 2.6 4 4.8v4.6c0 3.7 2.6 6.4 6 8 3.4-1.6 6-4.3 6-8V4.8z', 'm7.3 9.9 1.9 1.9 3.6-3.7'],
-  players: ['M3.8 17c.9-3 3.3-4.6 6.2-4.6s5.3 1.6 6.2 4.6'],
-  matches: [],
-  surprise: ['M11.2 2.5 4.8 11h4.6l-.8 6.5 6.6-8.6h-4.7z'],
-  clock: ['M10 6v4.2l2.8 1.8'],
-}
-
-function Ico({ k, size = 18, cls = 'ic-ku-ico' }: { k: CouponKind | 'clock'; size?: number; cls?: string }) {
-  return (
-    <svg className={cls} viewBox="0 0 20 20" width={size} height={size} aria-hidden="true">
-      {k === 'players' && <circle cx="10" cy="7" r="3.3" />}
-      {k === 'matches' && (
-        <>
-          <circle cx="7.4" cy="10" r="4.6" />
-          <circle cx="12.6" cy="10" r="4.6" />
-        </>
-      )}
-      {k === 'clock' && <circle cx="10" cy="10" r="7" />}
-      {ICONS[k].map((d) => (
-        <path key={d} d={d} />
-      ))}
+    <svg className="ic-ku-ico ic-ku-two" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+      <circle cx="7.4" cy="10" r="4.6" />
+      <circle cx="12.6" cy="10" r="4.6" />
     </svg>
   )
 }
-
-const Tick = ({ size = 12 }: { size?: number }) => (
-  <svg className="ic-ku-tick" viewBox="0 0 12 12" width={size} height={size} aria-hidden="true">
-    <path d="M2.2 6.4l2.4 2.4 5.2-5.4" />
-  </svg>
-)
-const Cross = ({ size = 10 }: { size?: number }) => (
-  <svg className="ic-ku-cross" viewBox="0 0 10 10" width={size} height={size} aria-hidden="true">
-    <path d="M1.5 1.5l7 7" />
-    <path d="M8.5 1.5l-7 7" />
-  </svg>
-)
-const Link = () => (
-  <svg className="ic-ku-link" viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
-    <path d="M6 8a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.6.6" />
-    <path d="M8 6a2.6 2.6 0 0 0-3.7 0l-2 2a2.6 2.6 0 0 0 3.7 3.7l.6-.6" />
-  </svg>
-)
-const Chev = () => (
-  <svg className="ic-ku-chev" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-    <path d="M2.5 4.5 6 8l3.5-3.5" />
-  </svg>
-)
 
 const MARKET: Record<string, string> = { WIN: 'Match result', MAR: 'Handicap', TOT: 'Total points' }
 const pctOf = (v: number) => Math.round(v * 100)
 const lastName = (name: string) => name.split(' ').slice(1).join(' ') || name
 
-/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short, for the stub. */
+/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short. */
 function shortOf(l: Leg): string {
   return l.kind === 'player' ? `${lastName(l.line.name)} ${l.bet}` : l.bet
 }
@@ -262,645 +95,312 @@ function gotOf(l: Leg): string {
   return l.line.actual == null ? '' : `Got ${Math.round(l.line.actual * 10) / 10}`
 }
 
-/** A leg in words for screen readers and the ring card's title. */
-function wordsOf(l: Leg): string {
-  if (l.kind === 'player') return `${l.line.name} ${l.bet} ${STAT_NAME[l.stat].toLowerCase()}`
-  return l.bet
-}
+/** The odds a leg counts at: a void leg (the player sat out) pays 1.00. */
+const oddOf = (l: Leg) => (l.result === 'void' ? 1 : l.odd)
 
 function KuponSlip({
   slot,
+  coupon: c,
   waiting,
   also = null,
   sameAs,
-  open,
-  onToggle,
-  pop,
-  onPop,
   onMatch,
 }: {
   slot: CouponSlot
+  coupon: Coupon
   waiting: boolean
-  /** A second Kupon with exactly these picks, shown in the same slip (Matches Only before player bets). */
+  /** A second Kupon with exactly these picks, shown in the same slip (Matches Only while the same). */
   also?: CouponSpec | null
   sameAs: string | null
-  open: boolean
-  onToggle: () => void
-  pop: string | null
-  onPop: (id: string | null) => void
   onMatch?: OpenMatch
 }) {
-  const { spec, coupon: c } = slot
-  const id = `ic-ku-${spec.kind}`
-  const aim = spec.kind === 'surprise' ? '15' : '4.50'
-  if (!c) {
-    return (
-      <li className="ic-ku-slip quiet">
-        <div className="ic-ku-stub">
-          <div className="ic-ku-name">
-            <Ico k={spec.kind} />
-            <h3>{spec.title}</h3>
-            <span className="ku-tag">
-              {slot.why === 'waiting' ? (
-                <>
-                  At <b className="num">19:00</b>
-                </>
-              ) : (
-                'Not tonight'
-              )}
-            </span>
-          </div>
-          <p className="ic-ku-wait">
-            {slot.why === 'waiting' && <Ico k="clock" size={20} cls="ic-ku-ico clk" />}
-            <span>
-              {slot.why === 'waiting' ? (
-                <>
-                  <b>
-                    Player bets come in <span className="nw">usually after 19:00</span>
-                  </b>
-                  <span className="aim">
-                    <span className="nw">
-                      Aiming for total odds of about <b className="num">{aim}</b>
-                    </span>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <b>Not enough picks tonight</b>
-                  <span className="aim">
-                    One pick per game can't reach about <span className="num">{aim}</span>.
-                  </span>
-                </>
-              )}
-            </span>
-          </p>
-        </div>
-      </li>
-    )
-  }
+  const { spec } = slot
   const n = c.legs.length
   const done = c.result != null
-  const wonN = c.legs.filter((l) => l.result === 'won').length
+  const won = c.result === 'won'
   const gameOnly = waiting && !also && c.legs.every((l) => l.kind === 'game') && spec.only !== 'game'
-  const openLabel = done
-    ? `${spec.title}${also ? ` and ${also.title}` : ''}: ${c.result}, ${wonN} of ${n} picks won. Show the picks`
-    : `${spec.title}${also ? ` and ${also.title}` : ''}: total odds ${fmtOdds(c.listed)}, probability about ${pctOf(c.chance)}%. Show the ${n} picks`
+  // "Until player bets come in" only while they are still to come; once they are in, it's tonight.
+  const same = waiting ? 'Same picks until player bets come in' : 'Same picks tonight'
   return (
-    <li
-      className={`ic-ku-slip${c.result === 'won' ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}${open ? ' open' : ''}${sameAs ? ' same' : ''}${also ? ' wide' : ''}`}
-    >
-      <div className="ic-ku-stub">
-        <div className="ic-ku-name">
-          {also ? (
-            <h3 className="ic-ku-pair">
-              <span className="ic-ku-also">
-                <Ico k={spec.kind} />
-                {spec.title}
+    <li className={`ic-ku-slip${won ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}`} id={`ic-ku-${spec.kind}`}>
+      <div className="ic-ku-sh">
+        {also ? (
+          <h3 className="ic-ku-names">
+            <span>
+              <Ico k={spec.kind} />
+              {spec.title}
+            </span>
+            <span className="sr-only"> and </span>
+            <span>
+              <Ico k={also.kind} />
+              {also.title}
+            </span>
+          </h3>
+        ) : (
+          <h3>
+            <span>
+              <Ico k={spec.kind} />
+              {spec.title}
+            </span>
+          </h3>
+        )}
+        {also && !done && (
+          <p className="ic-ku-same">
+            <LinkSimple size={14} aria-hidden="true" />
+            {same}
+          </p>
+        )}
+        <span className="ic-ku-n">
+          <span className="num">{n}</span> {n === 1 ? 'pick' : 'picks'}
+        </span>
+      </div>
+      <div className="ic-ku-tot">
+        <div>
+          <span className="lab">Total odds</span>
+          <b className="big num">{fmtOdds(won ? c.odds : c.listed)}</b>
+          <span className="prod num">{c.legs.map((l) => fmtOdds(won ? oddOf(l) : l.odd)).join(' × ')}</span>
+        </div>
+        <div className="r">
+          {done ? (
+            <>
+              <span className="lab">Result</span>
+              {won ? (
+                <b className="out ok">
+                  <Check size={16} weight="bold" aria-hidden="true" />
+                  Won
+                </b>
+              ) : (
+                <b className="out no">
+                  {c.broke.length === 1 ? `Lost on ${shortOf(c.broke[0])}` : `Lost on ${c.broke.length} picks`}
+                </b>
+              )}
+              <span className="was">
+                Probability was <span className="num">~{pctOf(c.chance)}%</span>
               </span>
-              <span className="sr-only"> and </span>
-              <span className="ic-ku-also">
-                <Ico k={also.kind} />
-                {also.title}
-              </span>
-            </h3>
+            </>
           ) : (
             <>
-              <Ico k={spec.kind} />
-              <h3>{spec.title}</h3>
-            </>
-          )}
-          {c.result === 'won' ? (
-            <span className="ku-tag ok">
-              <Tick />
-              Won
-            </span>
-          ) : c.result === 'lost' ? (
-            <span className="ku-tag no">
-              <Cross />
-              Lost
-            </span>
-          ) : also ? (
-            <span className="ku-tag merged">
-              <Link />
-              Merged for now
-            </span>
-          ) : (
-            <span className="ku-tag">
-              <b className="num">{n}</b> picks
-            </span>
-          )}
-          {!sameAs && (
-            <span className="cnt" aria-hidden="true">
-              <span className="num">{n}</span> picks
-              <Chev />
-            </span>
-          )}
-        </div>
-        {also && !done && (
-          <p className="ic-ku-note ic-ku-until">
-            <Ico k="clock" size={14} />
-            <span>Same picks until player bets come in</span>
-          </p>
-        )}
-        <div className="ic-ku-heroes">
-          <div className="tot">
-            <span className="lab">Total odds</span>
-            <b className="num big">{fmtOdds(c.result === 'won' ? c.odds : c.listed)}</b>
-          </div>
-          {c.result === 'lost' ? (
-            c.broke.length === 1 ? (
-              <div className="pay broke">
-                <span className="lab">Lost on</span>
-                <b className="who1">{shortOf(c.broke[0])}</b>
-                <span className="got">
-                  {gotOf(c.broke[0])}
-                  {c.broke[0].kind === 'player' ? `, needed ${c.broke[0].at}` : ''}
-                </span>
-              </div>
-            ) : (
-              <div className="pay broke">
-                <span className="lab">
-                  Lost on <b className="num">{c.broke.length}</b> picks
-                </span>
-                {c.broke.slice(0, 2).map((b) => (
-                  <b key={b.id} className="who2">
-                    {shortOf(b)}
-                  </b>
-                ))}
-                {c.broke.length > 2 && <span className="got">+{c.broke.length - 2}</span>}
-              </div>
-            )
-          ) : (
-            <div className="pay chance">
-              <span className="lab">{done ? 'Probability was' : 'Probability'}</span>
-              <b className="num big">
-                <small className="approx">~</small>
+              <span className="lab">Probability</span>
+              <b className="big num">
+                <span className="tl">~</span>
                 {pctOf(c.chance)}%
               </b>
-            </div>
+            </>
           )}
         </div>
-        {c.result === 'lost' && (
-          <p className="ic-ku-odds">
-            <span>
-              Probability was <b className="num">{pctOf(c.chance)}%</b>
-            </span>
-          </p>
-        )}
-        {c.voided.length > 0 && (
-          <p className="ic-ku-note">
-            <span>
-              {c.voided.map((v) => lastName(v.line.name)).join(', ')} sat out, so iddaa counts that pick at{' '}
-              <b className="num">1.00</b>: total odds <span className="num">{fmtOdds(c.listed)}</span> became{' '}
-              <span className="num">{fmtOdds(c.odds)}</span>.
-            </span>
-          </p>
-        )}
-        {gameOnly && !done && (
-          <p className="ic-ku-note">
-            <Ico k="clock" size={14} />
-            <span>Game lines only for now · may change when player bets come in</span>
-          </p>
-        )}
-        {sameAs && (
-          <p className="ic-ku-note">
-            <span>
-              Same {n} picks as {sameAs} until player bets come in.
-            </span>
-          </p>
-        )}
-        {!sameAs && (
-          <button
-            type="button"
-            className="ic-ku-open"
-            aria-expanded={open}
-            aria-controls={`${id}-picks`}
-            aria-label={openLabel}
-            onClick={onToggle}
-          />
-        )}
       </div>
-      {!sameAs && (
+      {c.voided.length > 0 && (
+        <p className="ic-ku-note">
+          {c.voided.map((v) => lastName(v.line.name)).join(', ')} sat out, so iddaa counts that pick at{' '}
+          <span className="num">1.00</span>.
+        </p>
+      )}
+      {gameOnly && !done && (
+        <p className="ic-ku-note">
+          <Clock size={14} aria-hidden="true" />
+          Game lines only for now. May change when player bets come in.
+        </p>
+      )}
+      {sameAs ? (
+        <p className="ic-ku-note">
+          {waiting ? `Same ${n} picks as ${sameAs} until player bets come in.` : `Same ${n} picks as ${sameAs} tonight.`}
+        </p>
+      ) : (
         <>
-          <ol className="ic-ku-picks" id={`${id}-picks`} aria-label={`${spec.title} picks`}>
+          <div className="ic-ku-seam" aria-hidden="true" />
+          <div className="ic-ku-cols" aria-hidden="true">
+            <span>Bet</span>
+            <span>Odds</span>
+            <span>Our chance</span>
+          </div>
+          <ol className="ic-ku-legs" aria-label={`${spec.title} picks`}>
             {c.legs.map((l, i) => (
-              <KuponPick key={l.id} leg={l} id={`${id}-${i}`} pop={pop} onPop={onPop} onMatch={onMatch} />
+              <li key={l.id} style={{ '--i': i } as CSSProperties}>
+                <KuponLeg leg={l} onMatch={onMatch} />
+              </li>
             ))}
           </ol>
-          <p className="ic-ku-foot">
-            {done ? (
-              <>
-                <b className="num">{wonN}</b> of <b className="num">{n}</b> picks won
-              </>
-            ) : (
-              <>
-                <b className="num">{n}</b> picks ·{' '}
-                {spec.minChance != null ? (
-                  <>
-                    aimed at <span className="num">{spec.aimFrom ?? aim}+</span>,{' '}
-                    <span className="num">{Math.round(spec.minChance * 100)}%+</span> probability
-                  </>
-                ) : (
-                  <>aimed at about {aim}</>
-                )}
-              </>
-            )}
-          </p>
         </>
       )}
     </li>
   )
 }
 
-/** The face: the player's head (no under-light here) or the team's logo; both logos for a total. */
-function Face({ leg: l }: { leg: Leg }) {
-  const g = l.line.game
-  if (l.kind === 'player')
-    return (
-      <span className="ic-ku-face" aria-hidden="true">
-        <PlayerHead player={{ id: l.line.playerId ?? 0, name: l.line.name }} team={l.line.team} size={32} />
-      </span>
-    )
-  if (l.stat === 'TOT')
-    return (
-      <span className="ic-ku-face pair" aria-hidden="true">
-        <TeamLogo abbrev={g.away} size={22} fallback />
-        <TeamLogo abbrev={g.home} size={22} fallback />
-      </span>
-    )
-  const team = betFace(l.line)?.dot ?? l.line.team
+/** A Kupon the night can't fill: a quiet slip with the reason. */
+function QuietSlip({ slot, left }: { slot: CouponSlot; left: number | null }) {
+  const { spec } = slot
+  const wait = slot.why === 'waiting'
+  // "Needs 3 games, one pick each" only when that is the reason: too few games still to come.
+  const few = !wait && spec.perGame == null && left != null && left < spec.min
   return (
-    <span className="ic-ku-face" aria-hidden="true">
-      <TeamLogo abbrev={team || l.line.team} size={32} fallback />
-    </span>
-  )
-}
-
-/** A player's name opens his player card, as names do everywhere else on Our Estimates. */
-export function PickName({ line: l }: { line: Line }) {
-  const card = usePlayerCard()
-  const id = l.playerId ?? 0
-  if (!card || id <= 0)
-    return (
-      <span className="nm" aria-hidden="true">
-        {l.name}
-      </span>
-    )
-  const who = { id, name: l.name }
-  return (
-    <button
-      type="button"
-      className="nm ic-ku-nm"
-      aria-haspopup="dialog"
-      aria-label={`${l.name}: player details`}
-      onPointerEnter={(e) => e.pointerType === 'mouse' && card.prefetch(who)}
-      onPointerDown={() => card.prefetch(who)}
-      onClick={() => card.open(who)}
-    >
-      {l.name}
-    </button>
-  )
-}
-
-function KuponPick({
-  leg: l,
-  id,
-  pop,
-  onPop,
-  onMatch,
-}: {
-  leg: Leg
-  id: string
-  pop: string | null
-  onPop: (id: string | null) => void
-  onMatch?: OpenMatch
-}) {
-  const g = l.line.game
-  const p = pctOf(l.chance)
-  const face = l.kind === 'game' ? betFace(l.line) : null
-  const side = face?.dot ?? (l.kind === 'player' ? l.line.team : l.line.team)
-  const sideOf: 'away' | 'home' = side === g.home ? 'home' : 'away'
-  const matchup = (
-    <>
-      {g.away === side ? <b>{g.away}</b> : <span>{g.away}</span>} @{' '}
-      {g.home === side ? <b>{g.home}</b> : <span>{g.home}</span>}
-    </>
-  )
-  const isOpen = pop === id
-  const res = l.result
-  const got = gotOf(l)
-  const why = legWhy(l)
-  const sr = [
-    wordsOf(l),
-    `${g.away} at ${g.home}`,
-    res ? null : clock(g.tip),
-    `odds ${l.odd.toFixed(2)}`,
-    `our chance ${p}%`,
-    res === 'won' ? `won, ${got.toLowerCase()}` : res === 'lost' ? `lost, ${got.toLowerCase()}` : null,
-    why,
-    res === 'void' ? 'sat out, counted at 1.00' : null,
-  ]
-    .filter(Boolean)
-    .join(', ')
-  // A player pick's matchup opens the match card too (his name opens his player card).
-  const matchLink =
-    l.kind === 'player' && onMatch ? (
-      <button
-        type="button"
-        className="ic-ku-mu"
-        aria-haspopup="dialog"
-        aria-label={`${g.away} @ ${g.home}: open the match form`}
-        onClick={() => onMatch(g.game_id, sideOf)}
-      >
-        {matchup}
-      </button>
-    ) : (
-      matchup
-    )
-  const status =
-    res === 'won' ? (
-      <span className="res ok" aria-hidden="true">
-        <Tick />
-        <span className="nw">{got}</span>
-      </span>
-    ) : res === 'lost' ? (
-      <span className="res no" aria-hidden="true">
-        <Cross />
-        <b>Lost</b>
-        <span>·</span>
-        <span className="nw">{got}</span>
-      </span>
-    ) : res === 'void' ? (
-      <span className="res vd" aria-hidden="true">
-        <span className="dash">–</span>
-        <span>Sat out</span>
-      </span>
-    ) : l.kind === 'player' ? (
-      <span className="sub" aria-hidden={onMatch ? undefined : true}>
-        {matchLink}
-        <span aria-hidden="true">
-          {' '}
-          · <span className="num">{clock(g.tip)}</span>
-        </span>
-      </span>
-    ) : (
-      <span className="sub" aria-hidden="true">
-        {MARKET[l.stat]} · <span className="num">{clock(g.tip)}</span>
-      </span>
-    )
-  return (
-    <li className={`ic-ku-pick${res === 'lost' ? ' broke' : res === 'void' ? ' void' : ''}`}>
-      <span className="sr-only">{sr}</span>
-      <Face leg={l} />
-      {l.kind === 'game' && onMatch ? (
-        <button
-          type="button"
-          className="who ic-ku-match"
-          aria-haspopup="dialog"
-          aria-label={`${g.away} @ ${g.home}, ${MARKET[l.stat]}: open the match form`}
-          onClick={() => onMatch(g.game_id, sideOf)}
-        >
-          <span className="nm mu" aria-hidden="true">
-            {matchup}
-            <CaretRight className="ic-ku-caret" size={13} weight="bold" aria-hidden="true" />
+    <li className="ic-ku-slip quiet" id={`ic-ku-${spec.kind}`}>
+      <div className="ic-ku-sh">
+        <h3>
+          <span>
+            <Ico k={spec.kind} />
+            {spec.title}
           </span>
-          {status}
-        </button>
-      ) : (
-        <span className="who">
-          {l.kind === 'player' ? (
-            <PickName line={l.line} />
-          ) : (
-            <span className="nm mu" aria-hidden="true">
-              {matchup}
-            </span>
-          )}
-          {status}
-        </span>
-      )}
-      <span className="bet" aria-hidden="true">
-        <span className="lab">
-          {l.kind === 'player' ? (
-            STAT_NAME[l.stat]
-          ) : l.stat === 'MAR' && face?.dot ? (
+        </h3>
+        <span className="ic-ku-n">
+          {wait ? (
             <>
-              <i className="dot" style={{ '--tl': teamLight(face.dot) } as CSSProperties} />
-              {face.q}
+              At <span className="num">19:00</span>
             </>
           ) : (
-            face?.q
+            'Not tonight'
           )}
         </span>
-        <b className={l.stat === 'WIN' ? 'hero txt' : 'hero num'}>{l.kind === 'player' ? l.bet : face?.hero}</b>
-      </span>
-      <span className="odds" aria-hidden="true">
-        <span className="lab">Odds</span>
-        <b className="num odd">{res === 'void' ? '1.00' : l.odd.toFixed(2)}</b>
-      </span>
-      <button
-        type="button"
-        id={`${id}-ring`}
-        className="ic-ku-conf"
-        data-band={band(p)}
-        aria-expanded={isOpen}
-        aria-controls={`${id}-pop`}
-        aria-label={`Our chance ${p}%. What this means`}
-        onClick={() => onPop(isOpen ? null : id)}
-      >
-        <Ring pct={p} size={32} stroke={3.5} />
-        <span className="pct num">
-          {p}
-          <small>%</small>
-        </span>
-      </button>
-      {isOpen && <ChancePop leg={l} id={id} onPop={onPop} />}
-      {why && (
-        <p className="ic-ku-why" aria-hidden="true">
-          {why}
-        </p>
-      )}
+      </div>
+      <p className="ic-ku-qp">
+        {wait ? (
+          <>
+            Player bets usually come in after <span className="num">19:00</span>
+          </>
+        ) : few ? (
+          <>
+            Needs <span className="num">{spec.min}</span> games, one pick each.{' '}
+            <span className="nw">
+              <span className="num">{left}</span> {left === 1 ? 'is' : 'are'} left tonight.
+            </span>
+          </>
+        ) : (
+          <>
+            The picks can't reach total odds of about <span className="num">{fmtOdds(spec.target)}</span>.
+          </>
+        )}
+      </p>
     </li>
   )
 }
 
-function Ring({ pct, size, stroke }: { pct: number; size: number; stroke: number }) {
-  const r = (size - stroke) / 2
-  const c = 2 * Math.PI * r
-  return (
-    <svg className="ic-ku-ring" viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
-      <circle className="trk" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} />
-      <circle
-        className="arc"
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        strokeWidth={stroke}
-        strokeDasharray={`${((c * pct) / 100).toFixed(2)} ${c.toFixed(2)}`}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-    </svg>
-  )
-}
-
-const BAND_WORDS: Record<ReturnType<typeof band>, string> = {
-  sure: 'green: a strong call (80% and up)',
-  likely: 'soft green: likely (65 to 79%)',
-  lean: 'amber: a lean (55 to 64%)',
-  flip: 'grey: close to a coin flip (under 55%)',
-}
-
-/** What the ring means, in words: a popover on desktop, a bottom sheet on a phone (as Score Slip). */
-function ChancePop({ leg: l, id, onPop }: { leg: Leg; id: string; onPop: (id: string | null) => void }) {
-  const p = pctOf(l.chance)
-  const book = Math.round(100 / l.odd)
-  const bd = band(p)
+/** The mark: a 36px face with a 16px club badge, or the two clubs as 24px discs. */
+function Mark({ leg: l }: { leg: Leg }) {
   const g = l.line.game
-  const box = useRef<HTMLDivElement>(null)
-  const close = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    if (window.matchMedia?.('(max-width: 719px)').matches) close.current?.focus()
-    const down = (e: PointerEvent) => {
-      const t = e.target as Element | null
-      if (!box.current?.contains(t) && !t?.closest?.(`#${id}-ring`)) onPop(null)
-    }
-    document.addEventListener('pointerdown', down)
-    const pop = box.current
-    return () => {
-      document.removeEventListener('pointerdown', down)
-      const at = document.activeElement
-      if (!at || at === document.body || pop?.contains(at)) document.getElementById(`${id}-ring`)?.focus()
-    }
-  }, [id, onPop])
-  const got = gotOf(l)
+  if (l.kind === 'player')
+    return (
+      <span className="ic-ku-mk face" aria-hidden="true">
+        <PlayerHead player={{ id: l.line.playerId ?? 0, name: l.line.name }} team={l.line.team} size={36} />
+        {l.line.team && <Disc team={l.line.team} size={16} />}
+      </span>
+    )
   return (
-    <>
-      <div className="ic-ku-scrim" onClick={() => onPop(null)} aria-hidden="true" />
-      <div ref={box} className="ic-ku-pop" id={`${id}-pop`} role="dialog" aria-label={`Our chance: ${wordsOf(l)}`}>
-        <div className="ic-ku-pop-h">
-          <span className="mk">
-            {l.kind === 'player' ? STAT_NAME[l.stat] : `${MARKET[l.stat]} · ${g.away} @ ${g.home}`}
-          </span>
-          <b>{wordsOf(l)}</b>
-          <button ref={close} type="button" className="ic-ku-x" aria-label="Close" onClick={() => onPop(null)}>
-            <Cross />
-          </button>
-        </div>
-        <div className="ic-ku-pop-lead" data-band={bd}>
-          <Ring pct={p} size={40} stroke={5} />
-          <p>
-            We give it a <b className="num">{p}%</b> chance.
-          </p>
-        </div>
-        <div className="ic-ku-bars" data-band={bd}>
-          <span className="who">Ours</span>
-          <span className="bar">
-            <i style={{ width: `${p}%` }} />
-          </span>
-          <span className="num v">{p}%</span>
-          <span className="who">iddaa</span>
-          <span className="bar book">
-            <i style={{ width: `${Math.min(100, book)}%` }} />
-          </span>
-          <span className="num v">{book}%</span>
-        </div>
-        <p className="fine">
-          iddaa's odds <b className="num">{l.odd.toFixed(2)}</b> imply <b className="num">{book}%</b>.
-          {l.kind === 'player' ? ` Our chance is for this rung, ${l.bet}.` : ''}
-        </p>
-        {l.result === 'won' && (
-          <p className="res ok">
-            <Tick size={13} />
-            <span>
-              <b>Won.</b> {got}.
-            </span>
-          </p>
-        )}
-        {l.result === 'lost' && (
-          <p className="res no">
-            <Cross size={11} />
-            <span>
-              <b>Lost.</b> {got}
-              {l.kind === 'player' ? `, needed ${l.at}` : ''}. This pick broke the <K />.
-            </span>
-          </p>
-        )}
-        {legWhy(l) && <p className="fine">Why: {legWhy(l)}.</p>}
-        {l.result === 'void' && (
-          <p className="res">
-            {l.line.name} sat out. iddaa counts the pick at <b className="num">1.00</b>, so the <K /> still pays on the
-            others.
-          </p>
-        )}
-        <p className="key">
-          <span className="sw" data-band={bd} />
-          {p}% is {BAND_WORDS[bd]}.
-        </p>
-      </div>
-    </>
+    <span className="ic-ku-mk pair" aria-hidden="true">
+      <Disc team={g.away} size={24} />
+      <Disc team={g.home} size={24} />
+    </span>
   )
 }
 
-/** How we build them: one line, and More for the rules. */
-/** Why not (Can 2026-11-22): single long shots where our chance beats what the odds need, each in
- *  its own slip like a one-pick Kupon, with the two chances side by side. */
-function WhyNot({
-  legs,
-  pop,
-  onPop,
-  onMatch,
-}: {
-  legs: Leg[]
-  pop: string | null
-  onPop: (id: string | null) => void
-  onMatch?: OpenMatch
-}) {
+/** A club logo on a disc, lit by the club's colour (the one place club colour shows). */
+function Disc({ team, size }: { team: string; size: number }) {
+  return (
+    <span className="ic-ku-disc" style={{ '--tc': teamLight(team) ?? 'transparent', '--s': `${size}px` } as CSSProperties}>
+      <TeamLogo abbrev={team} size={size} fallback />
+    </span>
+  )
+}
+
+/** One leg: a single 64px button. A player's leg opens his player card, a game's leg the match card. */
+function KuponLeg({ leg: l, onMatch }: { leg: Leg; onMatch?: OpenMatch }) {
+  const card = usePlayerCard()
+  const g = l.line.game
+  const player = l.kind === 'player'
+  const p = pctOf(l.chance)
+  const res = l.result
+  const got = gotOf(l)
+  const why = legWhy(l)
+  const side = player ? l.line.team : (betFace(l.line)?.dot ?? l.line.team)
+  const sideOf: 'away' | 'home' = side === g.home ? 'home' : 'away'
+  const who = { id: l.line.playerId ?? 0, name: l.line.name }
+  const open = player
+    ? card && who.id > 0
+      ? () => card.open(who)
+      : null
+    : onMatch
+      ? () => onMatch(g.game_id, sideOf)
+      : null
+  const when = res === 'void' ? 'Sat out' : res ? got : clock(g.tip)
+  const sub = player ? [STAT_NAME[l.stat], `${g.away} @ ${g.home}`, when] : [MARKET[l.stat], when]
+  const words = [
+    player ? `${l.line.name}, ${l.bet} ${STAT_UNIT[l.stat]}` : `${g.away} @ ${g.home}, ${MARKET[l.stat]} ${l.bet}`,
+    res ? null : clock(g.tip),
+    `odds ${oddOf(l).toFixed(2)}`,
+    `our chance ${p}%`,
+    res === 'won' ? `won, ${got.toLowerCase()}` : res === 'lost' ? `lost, ${got.toLowerCase()}` : null,
+    res === 'void' ? 'sat out, counted at 1.00' : null,
+    why,
+  ]
+    .filter(Boolean)
+    .join(', ')
+  const cls = `ic-ku-leg${res ? ` ${res}` : ''}`
+  const body = (
+    <span className="ic-ku-in" aria-hidden={open ? undefined : true}>
+      <Mark leg={l} />
+      <span className="who">
+        <b>
+          {res === 'won' && <Check className="rs" size={12} weight="bold" aria-hidden="true" />}
+          {res === 'lost' && <X className="rs" size={12} weight="bold" aria-hidden="true" />}
+          {player ? l.line.name : `${g.away} @ ${g.home}`}
+        </b>
+        <span>{sub.filter(Boolean).join(' · ')}</span>
+      </span>
+      <b className="bet num">
+        {l.bet}
+        {player && <small> {STAT_UNIT[l.stat]}</small>}
+      </b>
+      <b className="odd num">{oddOf(l).toFixed(2)}</b>
+      <Chance value={l.chance} className="ch" />
+      {why && <span className="why">{why}</span>}
+    </span>
+  )
+  if (!open)
+    return (
+      <div className={cls}>
+        <span className="sr-only">{words}</span>
+        {body}
+      </div>
+    )
+  return (
+    <button
+      type="button"
+      className={cls}
+      aria-haspopup="dialog"
+      aria-label={`${words}. Opens the ${player ? 'player' : 'match'} card`}
+      onPointerEnter={(e) => player && card && e.pointerType === 'mouse' && card.prefetch(who)}
+      onPointerDown={() => player && card?.prefetch(who)}
+      onClick={open}
+    >
+      {body}
+    </button>
+  )
+}
+
+/** Why not (Can 2026-11-22): single long shots where our chance beats what the odds need, each on its
+ *  own slip like a one-pick Kupon. */
+function WhyNot({ legs, onMatch }: { legs: Leg[]; onMatch?: OpenMatch }) {
   return (
     <section className="ic-ku-wn" aria-labelledby="ic-ku-wn-h">
-      <div className="ic-ku-wn-head">
-        <h3 id="ic-ku-wn-h">
-          <svg className="ic-ku-ico" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-            <circle cx="10" cy="10" r="7" />
-            <circle cx="10" cy="10" r="3.2" />
-            <path d="M10 1.8v3M10 15.2v3M1.8 10h3M15.2 10h3" />
-          </svg>
-          Why not
-        </h3>
-        <p>
-          Single bets at <span className="num">{fmtOdds(WHY_NOT.minOdd)}</span>+ where our chance is clearly above
-          what the odds need.
-        </p>
+      <div className="ic-ku-head">
+        <h3 id="ic-ku-wn-h">Why not</h3>
+        <span className="ic-ku-hint">
+          Single bets at <span className="num">{fmtOdds(WHY_NOT.minOdd)}</span>+ where our chance is clearly above what
+          the odds need
+        </span>
       </div>
-      <ol className="ic-ku-rack">
-        {legs.map((l, i) => {
-          const id = `ic-ku-wn-${i}`
-          const ours = pctOf(l.chance)
-          const need = pctOf(1 / l.odd)
+      <ol className="ic-ku-rail">
+        {legs.map((l) => {
           const done = l.result != null && l.result !== 'void'
           return (
-            <li
-              key={l.id}
-              className={`ic-ku-slip wn${l.result === 'won' ? ' won' : ''}${l.result === 'lost' ? ' lost' : ''}`}
-            >
-              <ol className="ic-ku-picks" aria-label="Why not pick">
-                <KuponPick leg={l} id={id} pop={pop} onPop={onPop} onMatch={onMatch} />
+            <li key={l.id} className="ic-ku-slip wn">
+              <ol className="ic-ku-legs" aria-label="Why not pick">
+                <li>
+                  <KuponLeg leg={l} onMatch={onMatch} />
+                </li>
               </ol>
-              <div
-                className="ic-ku-wn-bars"
-                role="img"
-                aria-label={`The odds need ${need}%, our chance is ${ours}%`}
-                style={{ '--need': `${need}%`, '--ours': `${ours}%` } as CSSProperties}
-              >
-                <span className="who">Odds need</span>
-                <span className="bar need">
-                  <i />
-                </span>
-                <b className="num v">{need}%</b>
-                <span className="who">{done ? 'Ours was' : 'Ours'}</span>
-                <span className="bar ours">
-                  <i />
-                </span>
-                <b className="num v">{ours}%</b>
-              </div>
+              <p className="ic-ku-need">
+                The odds need <b className="num">{pctOf(1 / l.odd)}%</b> · {done ? 'ours was' : 'ours'}{' '}
+                <b className="num">{pctOf(l.chance)}%</b>
+              </p>
             </li>
           )
         })}
@@ -908,48 +408,3 @@ function WhyNot({
     </section>
   )
 }
-
-function Rules() {
-  const [more, setMore] = useState(false)
-  return (
-    <div className="ic-ku-rules">
-      <p>
-        <b>How we build them:</b> only iddaa's own odds, at most two picks per game that don't move together.
-        <button type="button" className="ic-ku-more" aria-expanded={more} onClick={() => setMore((m) => !m)}>
-          {more ? 'Less' : 'More'}
-        </button>
-      </p>
-      {more && (
-        <ul>
-          <li>
-            Only lines iddaa prices itself, and never odds of <span className="num">1.33</span> or under.
-          </li>
-          <li>
-            At most two picks from one game, and only ones that barely move together: two different players, or
-            the total beside the winner or handicap. Never a game line with a player from that game. Surprise
-            keeps one pick per game.
-          </li>
-          <li>
-            Surprise aims at total odds of <span className="num">15</span>+ with at least{' '}
-            <span className="num">10%</span> probability, and takes a <span className="num">12</span>-
-            <span className="num">15</span> when it is clearly likelier.
-          </li>
-          <li>
-            Total odds are the picks' odds multiplied. Probability is the chances on the picks multiplied: how often we
-            think every pick wins.
-          </li>
-          <li>A player pick can be any rung iddaa prices (18+ instead of our usual 22+), with our chance for that rung.</li>
-          <li>
-            If a player sits out, iddaa counts that pick at <span className="num">1.00</span>.
-          </li>
-          <li>
-            Why not: single player bets at odds of <span className="num">2.50</span>+ where our chance is at least{' '}
-            <span className="num">20%</span> and <span className="num">5</span> points over what the odds need (
-            <span className="num">1</span> ÷ odds). One per player, at most <span className="num">4</span>.
-          </li>
-        </ul>
-      )}
-    </div>
-  )
-}
-
