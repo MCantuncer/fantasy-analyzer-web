@@ -49,7 +49,7 @@
 
   --font-ui: 'Host Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   /* Numbers: Mona Sans at normal width, 10% smaller (see styles/num-font.css). The 82% narrow cut read as tall and stretched. */
-  --font-num: 'Mona Sans Numbers', 'Host Grotesk Variable', system-ui, sans-serif;
+  --font-num: 'Court Numbers', 'Host Grotesk Variable', system-ui, sans-serif;
   --num-stretch: 100%;
   /* Codes only: team and category abbreviations, positions, timestamps. */
   /* Fireside: a warm light in the corner of hero cards, and the die-cut edge and shadow of team crests. */
@@ -2782,22 +2782,6 @@ button.menu-item.danger {
   color: var(--bad);
 }
 
-.verify-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--accent);
-  background: var(--accent-soft);
-  font-weight: 500;
-}
-
-.verify-banner button {
-  flex: none;
-}
-
 .overview {
   gap: 16px;
 }
@@ -2915,11 +2899,6 @@ button.menu-item.danger {
 }
 
 @media (max-width: 720px) {
-  .verify-banner {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .verify-team {
     flex-direction: column;
     align-items: flex-start;

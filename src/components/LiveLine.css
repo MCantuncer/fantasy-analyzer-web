@@ -114,6 +114,10 @@
   color: var(--text);
   font-weight: 600;
 }
+.lvl-qnote {
+  margin-top: -6px;
+  margin-bottom: 18px;
+}
 .lvl-note {
   margin: 10px 0 12px;
   max-width: 72ch;

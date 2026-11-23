@@ -87,6 +87,11 @@ export function faabLine(item: FeedItem, teams: FeedTeam[], budget: number | nul
   return lead ? `${team.name} has spent $${team.faab_spent} of $${budget}, the most in the league.` : null
 }
 
+/** The newest move (items come newest first) that earns the FAAB-leader line, so the line shows once, not on every claim. */
+export function faabLineId(items: FeedItem[], teams: FeedTeam[], budget: number | null | undefined): string | null {
+  return items.find((i) => faabLine(i, teams, budget) != null)?.id ?? null
+}
+
 /** A trade as "who gets what", one side per receiving team. */
 export function tradeSides(item: FeedItem): { teamId: number; gets: FeedItem['moves'] }[] {
   const sides: { teamId: number; gets: FeedItem['moves'] }[] = []

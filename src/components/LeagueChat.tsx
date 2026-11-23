@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FeedSkeleton } from './Skeleton'
+import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
@@ -13,6 +14,7 @@ import {
   biggestBidId,
   daySummary,
   faabLine,
+  faabLineId,
   groupByDay,
   matches,
   postId,
@@ -59,6 +61,8 @@ interface Ctx {
   colours: Map<number, string>
   /** The week's single biggest waiver bid, which gets a highlighted card. */
   bigId: string | null
+  /** The one move that carries the FAAB-leader line: the newest by the team that spent the most. */
+  faabId: string | null
   link: Poster | null
   creds: Credentials | null
   onReact: (item: FeedItem, reaction: string, on: boolean) => void
@@ -144,6 +148,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
       link?.teamId ?? null,
     ),
     bigId: first.faab_budget ? biggestBidId(first.items) : null,
+    faabId: faabLineId(items, teams, first.faab_budget ?? null),
     link,
     creds,
     onReact: (item, r, on) => reaction.mutate({ item, reaction: r, on }),
@@ -158,12 +163,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
         ) : (
           onVerify && (
-            <div className="verify-banner">
-              <span>Manage a team here? Verify it to post, reply and react.</span>
-              <button type="button" onClick={onVerify}>
-                Verify
-              </button>
-            </div>
+            <VerifyBanner detail="Verify it to post, reply and react." action="Verify" onClick={onVerify} />
           )
         )}
 
@@ -321,8 +321,8 @@ function Move({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const bids = bidLine(item, ctx.teams, ctx.budget)
   const note = big
     ? `Biggest bid this week.${bids ? ` ${bids}` : ''}`
-    : (bids ?? (item.kind === 'waiver' ? 'No other claims.' : 'Straight off free agency.'))
-  const faab = faabLine(item, ctx.teams, ctx.budget)
+    : bids
+  const faab = ctx.faabId === item.id ? faabLine(item, ctx.teams, ctx.budget) : null
   const mine = ctx.link?.teamId === item.team_id
   return (
     <article className={['card', 'feed-tile', mine && 'mine', big && 'big'].filter(Boolean).join(' ')}>

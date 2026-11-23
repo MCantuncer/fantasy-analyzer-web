@@ -1,0 +1,134 @@
+/* Quarter by quarter during a game (Can, 2026-11-23): a linescore where quarters played are solid, the one in
+   progress is lit gold, and the rest are outlined numbers like the pre-game Stave. Prefix lqt-. */
+.lqt {
+  margin: 2px 0 16px;
+  max-width: 900px;
+}
+.lqt-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px 0;
+  margin: 0 -6px;
+  table-layout: fixed;
+}
+.lqt-table th,
+.lqt-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+.lqt-table thead th {
+  padding: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  border-bottom: 2px solid transparent;
+}
+.lqt-table thead th:first-child {
+  width: 84px;
+}
+.lqt-table thead th.lqt-on {
+  color: var(--gold-text);
+  border-bottom-color: var(--gold);
+}
+.lqt-table tbody th {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.lqt-table tbody th > * {
+  vertical-align: middle;
+}
+.lqt-table tbody th span {
+  margin-left: 6px;
+}
+.lqt-table td {
+  height: 56px;
+  padding: 4px 0;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.lqt-table tbody tr:first-child td {
+  border-radius: var(--radius-tile, 10px) var(--radius-tile, 10px) 0 0;
+}
+.lqt-table tbody tr:last-child td {
+  border-radius: 0 0 var(--radius-tile, 10px) var(--radius-tile, 10px);
+}
+.lqt-table td small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.lqt-n {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lqt-played .lqt-n {
+  color: var(--text);
+}
+/* Our number: outlined in the club's colour, as in the pre-game Stave. */
+.lqt-now .lqt-n,
+.lqt-next .lqt-n {
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-size: 26px;
+  color: color-mix(in srgb, var(--text) 7%, transparent);
+  -webkit-text-stroke: 1.3px color-mix(in srgb, var(--c) 80%, var(--text));
+}
+:root[data-theme='light'] .lqt-now .lqt-n,
+:root[data-theme='light'] .lqt-next .lqt-n {
+  -webkit-text-stroke-color: color-mix(in srgb, var(--c) 56%, var(--text));
+}
+.lqt-table td.lqt-now {
+  background: var(--gold-soft);
+  box-shadow: inset 2px 0 0 var(--gold), inset -2px 0 0 var(--gold);
+}
+.lqt-table tbody tr:last-child td.lqt-now {
+  box-shadow: inset 2px 0 0 var(--gold), inset -2px 0 0 var(--gold), inset 0 -2px 0 var(--gold);
+}
+.lqt-table td.lqt-g {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+.lqt-table thead th.lqt-g {
+  background: transparent;
+  box-shadow: none;
+}
+.lqt-g .lqt-n {
+  font-size: 20px;
+}
+
+@media (max-width: 640px) {
+  .lqt-table {
+    border-spacing: 4px 0;
+    margin: 0 -4px;
+  }
+  .lqt-table thead th:first-child {
+    width: 46px;
+  }
+  /* The abbreviation always reads, so it stays and the logo goes. */
+  .lqt-table tbody th > :not(span) {
+    display: none;
+  }
+  .lqt-table tbody th span {
+    margin-left: 0;
+    font-size: 13px;
+  }
+  .lqt-n {
+    font-size: 18px;
+  }
+  .lqt-now .lqt-n,
+  .lqt-next .lqt-n {
+    font-size: 21px;
+  }
+  .lqt-g .lqt-n {
+    font-size: 17px;
+  }
+  .lqt-table td small {
+    font-size: 10px;
+  }
+}
