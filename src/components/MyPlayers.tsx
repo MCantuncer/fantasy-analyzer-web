@@ -222,28 +222,31 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         <h3 className="mp-group">
           Starting <span className="muted">· counts</span>
         </h3>
-        <ul className="mp-rows">
-          {starters.map((r) => (
-            <Fragment key={r.spot.player_id}>
-              <Row row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} tray={call?.doubt === r ? tray : undefined} />
-              {call?.doubt === r && <CallCard call={call} now={now} tray={tray} />}
-            </Fragment>
-          ))}
-          {open.map((slot, k) => (
-            <li key={`open-${slot}-${k}`} className="mp-row mp-idle mp-empty">
-              <span className="mp-spine">
-                <Mark state="idle" />
-                <span className="mp-slot">{slot}</span>
-              </span>
-              <span className="mp-who muted">Empty</span>
-              <span className="mp-game muted">Nobody in this slot</span>
-              <span className="mp-note">
-                <b>Slot empty</b> · counts for nothing {when}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />}
+        {/* The starters and their total sit on one soft field; the bench and IR sit on the bare page. */}
+        <div className="mp-field">
+          <ul className="mp-rows">
+            {starters.map((r) => (
+              <Fragment key={r.spot.player_id}>
+                <Row row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} tray={call?.doubt === r ? tray : undefined} />
+                {call?.doubt === r && <CallCard call={call} now={now} tray={tray} />}
+              </Fragment>
+            ))}
+            {open.map((slot, k) => (
+              <li key={`open-${slot}-${k}`} className="mp-row mp-idle mp-empty">
+                <span className="mp-spine">
+                  <Mark state="idle" />
+                  <span className="mp-slot">{slot}</span>
+                </span>
+                <span className="mp-who muted">Empty</span>
+                <span className="mp-game muted">Nobody in this slot</span>
+                <span className="mp-note">
+                  <b>Slot empty</b> · counts for nothing {when}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />}
+        </div>
 
         <h3 className="mp-group">
           Bench <span className="muted">· {past ? "didn't count" : "doesn't count"}</span>

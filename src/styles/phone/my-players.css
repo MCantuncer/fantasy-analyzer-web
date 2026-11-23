@@ -1,10 +1,10 @@
-/* My Players on phones and small tablets, up to 900px (My Team tab): "Two-Tone Grade". A playing
-   row is a card in one lifted tone (a filled card means "he played"), with a 40px spine tile on the
-   left that carries the slot and, at the final whistle, the night's letter. Beside it: face, name
-   and a small scorebug, then the stat line, each number with its small label above it, MIN first
-   (MIN FG FT 3PM REB AST STL BLK TO PTS). The FG/FT % and the minutes-vs-average hang under their
-   numbers in the card's bottom padding. Before tip-off line 2 is one quiet season line. No-game,
-   bench and IR rows are one 44px outlined line with the slot alone in the spine. */
+/* My Players on phones and small tablets, up to 900px (My Team tab), "Quiet Field": the starters
+   sit on one soft field, the bench and IR on the bare page, and no row has a box or an outline. A
+   40px spine on the left carries the slot and, at the final whistle, the night's letter. Beside it:
+   face, name and a small scorebug, then the stat line, each number with its small label above it,
+   MIN first (MIN FG FT 3PM REB AST STL BLK TO PTS). The FG/FT % and the minutes-vs-average hang
+   under their numbers in the row's bottom padding. Before tip-off line 2 is one quiet season line.
+   No-game, bench and IR rows are one 44px line with the slot alone in the spine. */
 @media (max-width: 900px) {
   .mp-title {
     font-size: 20px;
@@ -102,9 +102,9 @@
     border-radius: var(--radius-row);
   }
 
-  /* The spine: one 40px column down the whole list. On a played row it is a tile the height of the
-     card, the slot on top and the letter (final) or the live dot under it; on a quiet row it is
-     just the slot. */
+  /* The spine: one 40px column down the whole list. On a played row it runs the height of the row,
+     the slot on top and the letter (final) or the live dot under it; on a quiet row it is just the
+     slot. No tile. */
   .mp .mp-row > .mp-spine,
   .mp .mp-totals > .mp-spine {
     display: flex;
@@ -122,18 +122,8 @@
     justify-content: flex-end;
     gap: 0;
     padding: 6px 0 5px;
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--text) 6%, transparent);
   }
-  .mp .mp-row.mp-g-top > .mp-spine {
-    background: color-mix(in srgb, var(--good) 15%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 30%, transparent);
-  }
-  .mp .mp-row.mp-g-low > .mp-spine {
-    background: color-mix(in srgb, var(--bad) 14%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 30%, transparent);
-  }
-  /* the letter fills the tile under the slot; the tile carries the tint */
+  /* the letter sits under the slot and carries its own tint */
   .mp .mp-spine .mp-grade {
     flex: 1;
     width: auto;
@@ -177,27 +167,18 @@
     grid-row: 1;
   }
 
-  /* slot: small caps label; a chip on quiet rows, the head of the tile on played ones */
+  /* slot: plain small caps in the spine, as on Today. No pill. */
   .mp .mp-row .mp-slot {
-    min-width: 0;
     width: var(--lg-spine);
     height: 22px;
-    padding: 0;
-    border-radius: 7px;
     font-size: 10.5px;
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: 0.05em;
-    background: transparent;
-    border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
-    color: var(--text-2);
+    color: var(--muted);
   }
   .mp .mp-row.mp-card .mp-slot {
     height: 14px;
-    border: 0;
     line-height: 14px;
-  }
-  .mp .mp-row .mp-slot.sub {
-    color: var(--muted);
   }
 
   /* who: round face + name */
@@ -395,13 +376,7 @@
     font-weight: 760;
   }
 
-  /* --- surfaces --- */
-  /* live on the floor: the card keeps its tone and lifts; gold is the dot and the clock only */
-  .mp .mp-row.mp-live.mp-sitting {
-    box-shadow: none;
-  }
-
-  /* quiet rows: single line, 44px, outline only */
+  /* quiet rows: single line, 44px, no outline */
   .mp .mp-row:not(.mp-card) {
     padding-block: 5px;
   }
@@ -664,11 +639,11 @@
   /* drawers: inset 10px under the row */
   .mp .mp-whybox,
   .mp .mp-call {
-    margin: -8px 10px 0;
+    margin: 0 10px;
   }
 
   .mp .mp-whybox {
-    padding: 14px 12px 10px;
+    padding: 10px 12px;
     font-size: 12.5px;
   }
 
