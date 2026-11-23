@@ -5,6 +5,8 @@ import {
   gameStory,
   implied,
   linesOf,
+  blendChance,
+  fairChance,
   lostWhy,
   marketPair,
   marketPrice,
@@ -154,10 +156,14 @@ describe('our game picks', () => {
       { market: 'total', team: '', book_team: '', won: '', ours: 230, book: 226.5, actual: null, gap: 3.5, ours_hit: null, book_hit: null, closer: null, odds: [{ side: 'under', odd: 1.9 }, { side: 'over', odd: 1.9 }] },
     ]
     const [win, mar, tot] = linesOf(data, new Date('2026-11-20T12:00:00Z'))
-    expect([win.barem?.label, win.barem?.odd, sureOf(win.barem)]).toEqual(['PHI to win', 1.55, '64%'])
+    // the chance leans 9 parts on the book's own price (Can 2026-11-23): PHI ours 64%, the book's 1.55 /
+    // 2.45 read as 61%: 62%
+    expect([win.barem?.label, win.barem?.odd, sureOf(win.barem)]).toEqual(['PHI to win', 1.55, '62%'])
+    expect(win.barem?.alone).toBe(0.64)
     expect([mar.barem?.label, mar.barem?.odd, mar.barem?.side]).toEqual(['MIL +4.5', 1.93, 'under']) // MIL takes the points
-    expect(sureOf(mar.barem)).toBe('57%') // 1 - Normal(-2.5 / 13.6)
-    expect([tot.barem?.label, tot.barem?.odd, sureOf(tot.barem)]).toEqual(['Over 226.5', 1.9, '58%'])
+    expect(Math.round(mar.barem!.alone! * 100)).toBe(57) // 1 - Normal(-2.5 / 13.6), our call alone
+    expect(sureOf(mar.barem)).toBe('50%') // the book's 1.93 against 1.87 reads 49%
+    expect([tot.barem?.label, tot.barem?.odd, sureOf(tot.barem)]).toEqual(['Over 226.5', 1.9, '51%']) // ours alone 58%
     // Book and Ours said the same way, side by side
     expect([marketPair(win), marketPair(mar), marketPair(tot)]).toEqual([
       { book: 'PHI 58%', ours: 'PHI 64%' },
@@ -261,8 +267,8 @@ describe('the book price beside its number', () => {
       ours_hit: null, book_hit: null, closer: null,
       odds: [{ side: 'under' as const, odd: 1.9 }, { side: 'over' as const, odd: 1.9 }],
     }
-    expect(marketPrice(m)).toEqual({ label: 'Over', odd: 1.9, top: false })
-    expect(marketPrice({ ...m, gap: -2 })).toEqual({ label: 'Under', odd: 1.9, top: false })
+    expect(marketPrice(m)).toEqual({ label: 'Over', odd: 1.9, top: false, fair: 0.5 })
+    expect(marketPrice({ ...m, gap: -2 })).toEqual({ label: 'Under', odd: 1.9, top: false, fair: 0.5 })
     expect(marketPrice({ ...m, market: 'winner', team: 'PHI', odds: [{ side: 'pick', odd: 1.33 }] })).toBeNull()
     expect(odds(2)).toBe('2.00')
   })
@@ -283,5 +289,18 @@ describe('why our bet lost', () => {
     const lost = { ...withRungs(player('Joel Embiid', 'pts', 30, 28.5, 19), 25.5), why }
     expect(linesOf(night([lost], 'live'), new Date()).map(lostWhy)).toEqual([null])
     expect(linesOf(night([{ ...lost, why: null }]), new Date()).map(lostWhy)).toEqual([null])
+  })
+})
+
+describe('game chances lean on the book', () => {
+  it("reads the book's two prices with its cut taken out, or its usual cut when one is missing", () => {
+    expect(fairChance(1.63, 1.61)).toBeCloseTo(0.4969, 3) // the Nov 22 Over 223.5: about a coin flip
+    expect(fairChance(1.63, null)).toBeCloseTo(1 / 1.63 / 1.235, 6)
+  })
+
+  it('blends 9 parts book to 1 part ours, and keeps ours when the book has no price', () => {
+    expect(blendChance(0.67, 0.5)).toBeCloseTo(0.5177, 3) // DET @ ATL Over: 67% alone, about 52% blended
+    expect(blendChance(0.5, 0.5)).toBeCloseTo(0.5, 9)
+    expect(blendChance(0.7, null)).toBe(0.7)
   })
 })

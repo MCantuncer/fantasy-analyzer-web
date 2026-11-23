@@ -1,61 +1,410 @@
-/* League feed as cards: moves and trades tile 2–3 per row, chat posts span the full row.
-   Page-owned styles (feed-* prefix); the older shared feed rules in index.css stay untouched. */
-.feed-grid {
+/* League feed as one wire (feed- prefix): a spine with day milestones, one line per move, and soft
+   moments for what people talk about. The older shared feed rules in index.css stay untouched. */
+:root {
+  --feed-spine: rgb(235 229 219 / 0.13);
+  --feed-spine-hot: rgb(255 190 130 / 0.34);
+  --feed-hover: rgb(235 229 219 / 0.035);
+  --feed-chip: rgb(235 229 219 / 0.06);
+  --feed-chip-on: rgb(235 229 219 / 0.13);
+  --feed-light: 24%;
+}
+
+:root[data-theme='light'] {
+  --feed-spine: rgb(26 23 20 / 0.13);
+  --feed-spine-hot: rgb(190 120 40 / 0.42);
+  --feed-hover: rgb(26 23 20 / 0.035);
+  --feed-chip: rgb(26 23 20 / 0.055);
+  --feed-chip-on: rgb(26 23 20 / 0.11);
+  --feed-light: 16%;
+}
+
+/* --tg is the time gutter; the node sits on the spine and the content starts past it. */
+.feed-wire {
+  --tg: 72px;
+  --node-x: calc(var(--tg) + 16px);
+  --content-x: calc(var(--tg) + 44px);
+  position: relative;
+  isolation: isolate;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+}
+
+.feed-wire::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: calc(var(--node-x) - 1px);
+  top: 8px;
+  bottom: 28px;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--feed-spine-hot),
+    var(--feed-spine) 220px,
+    var(--feed-spine) calc(100% - 80px),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.feed-entry {
+  position: relative;
+  padding-left: var(--content-x);
+}
+
+.feed-node {
+  position: absolute;
+  z-index: 2;
+  left: var(--node-x);
+  top: 12px;
+  transform: translateX(-50%);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  place-items: center;
+}
+
+.feed-node-pair {
+  display: flex;
+  transform: translateX(-50%) translateX(7px);
+}
+
+.feed-node-pair .crest + .crest {
+  margin-left: -10px;
+}
+
+.feed-time {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: calc(var(--tg) - 8px);
+  text-align: right;
+  font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.feed-tick {
+  display: none;
+}
+
+/* Day milestone: a ring on the spine, the label, its date and the day's moves and money. */
+.feed-day {
+  display: flex;
+  align-items: baseline;
   gap: 12px;
-  align-items: stretch;
+  min-height: 40px;
+  padding-top: 28px;
+  padding-bottom: 4px;
 }
 
-.feed-wide {
-  grid-column: 1 / -1;
+.feed-day:first-child {
+  padding-top: 8px;
 }
 
+.feed-day .feed-node {
+  top: auto;
+  bottom: 10px;
+}
+
+.feed-day .feed-node::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: var(--bg);
+}
+
+.feed-day-label {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.feed-day-date,
 .feed-day-summary {
-  font-weight: 500;
+  font-size: 13px;
   color: var(--muted);
 }
 
-.feed-tile {
+.feed-day-summary {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.feed-day-summary b {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* One move, one line: team, added, dropped, bid. */
+.feed-line {
+  min-height: 48px;
+}
+
+.feed-line::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 calc(var(--content-x) - 12px);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .feed-line:hover::after {
+    background: var(--feed-hover);
+  }
+}
+
+.feed-row {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px;
+  grid-template-areas:
+    'team add drop slot'
+    '. meta meta meta';
+  grid-template-rows: 48px auto;
+  align-items: center;
+  column-gap: 12px;
+}
+
+.feed-row .feed-team {
+  grid-area: team;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 650;
+}
+
+.feed-team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-you {
+  flex: none;
+  color: var(--gold-text);
+}
+
+.feed-players {
+  display: contents;
+}
+
+.feed-add {
+  grid-area: add;
+}
+
+.feed-drop {
+  grid-area: drop;
+  color: var(--text-2);
+}
+
+.feed-add,
+.feed-drop {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 14px 4px;
+  gap: 4px;
   min-width: 0;
-  transition: background-color 0.15s;
 }
 
-.feed-tile:hover {
-  background: var(--surface-2);
-}
-
-.feed-tile.mine {
-  box-shadow: inset 3px 0 0 var(--gold);
-}
-
-/* Front Office: the biggest bid is named in its note line; no glow or coloured border. */
-
-.feed-tile-head {
+.feed-player {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
-.feed-tile-head time {
+.feed-face {
+  display: inline-flex;
   flex: none;
 }
 
-.feed-tile-head .feed-pill {
+.feed-pn {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-add .feed-pn,
+.feed-side .feed-pn {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feed-drop .feed-pn {
+  font-size: 13px;
+  font-weight: 450;
+}
+
+.feed-player .feed-pos {
   flex: none;
 }
 
-.feed-tile.trade .feed-tile-head .feed-pill {
-  margin-right: auto;
+/* Neutral marks: add and drop are told apart by weight and face size, never by colour. */
+.feed-mark {
+  flex: none;
+  width: 16px;
+  text-align: center;
+  font-family: var(--font-num);
+  font-stretch: var(--num-stretch);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
 }
 
-.feed-tile-team {
-  flex: 1;
+.feed-drop .feed-mark {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Names open the player card; inside the wire they underline on hover only. */
+.feed-wire button.pc-link {
+  text-decoration: none;
+}
+
+.feed-wire button.pc-link:not(.pc-link-face):hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.feed-slot {
+  grid-area: slot;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.feed-bid {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.feed-slot-label {
+  font-size: 13px;
+}
+
+.feed-meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: -2px;
+  padding-bottom: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.feed-beat {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-beat-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+}
+
+.feed-beat-row .num {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* Moments: posts, trades and moves with replies get a soft surface; what's inside is as before. */
+.feed-moment {
+  margin: 8px 0;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.feed-moment::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 -12px 0 calc(var(--node-x) - 22px);
+  border-radius: var(--radius-row);
+  background:
+    radial-gradient(70% 140px at 0% 0%, var(--glow), transparent 70%),
+    var(--surface);
+  pointer-events: none;
+}
+
+.feed-moment .feed-node {
+  top: 14px;
+}
+
+.feed-moment .feed-time {
+  top: 18px;
+}
+
+.feed-moment-move {
+  padding-top: 4px;
+}
+
+.feed-moment-move .feed-node {
+  top: 16px;
+}
+
+.feed-moment-move .feed-time {
+  top: 18px;
+}
+
+.feed-moment .feed-post {
+  padding: 0;
+}
+
+.feed-trade {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.feed-trade-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feed-trade-head .feed-pill.trade {
+  background: var(--feed-chip);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.feed-side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.feed-side-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.feed-side-team {
   min-width: 0;
   font-weight: 600;
   overflow: hidden;
@@ -63,105 +412,30 @@
   white-space: nowrap;
 }
 
-/* Front Office: move pills are neutral; the + and − signs carry the colour. */
-.feed-tile-head .feed-pill.waiver,
-.feed-tile-head .feed-pill.fa,
-.feed-tile.trade .feed-tile-head .feed-pill {
-  background: var(--surface-2);
-  color: var(--text-2);
-  box-shadow: none;
-}
-
-.feed-tile-moves {
+.feed-side-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.feed-tile-add,
-.feed-tile-drop {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.feed-tile-sign {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-num);
-  font-stretch: var(--num-stretch);
-  font-weight: 700;
-  font-size: 13px;
-  background: var(--good-soft);
-  color: var(--good);
-}
-
-.feed-tile-drop .feed-tile-sign {
-  background: var(--bad-soft);
-  color: var(--bad);
-}
-
-.feed-tile-drop {
-  color: var(--muted);
-}
-
-.feed-tile-drop .head {
-  opacity: 0.6;
-  filter: grayscale(1);
-}
-
-.feed-tile-who {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.feed-tile-name {
-  min-width: 0;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-
-.feed-tile-add .feed-tile-name {
-  font-weight: 600;
-}
-
-.feed-tile-note {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.feed-tile-faab {
-  margin: 0;
-}
-
-.feed-tile-side {
-  display: flex;
-  flex-direction: column;
   gap: 6px;
 }
 
-.feed-tile-gets {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.feed-trade .feed-vote,
+.feed-moment .feed-replies {
   min-width: 0;
-  font-size: 13px;
 }
 
-/* Footer sits at the bottom so cards in a row line up. Tap targets are thumb-sized. */
-.feed-tile .feed-social {
-  margin-top: auto;
-  padding-top: 6px;
-  border-top: 1px solid var(--divider);
+/* Today's React / Reply row, under a line in Chat and inside moments. */
+.feed-line > .feed-social {
+  margin: -6px 0 6px;
+}
+
+.feed-moment .feed-social {
+  margin-top: 6px;
+}
+
+.feed-social {
   gap: 6px;
 }
 
@@ -169,17 +443,6 @@
 .feed-social .feed-react,
 .feed-social .feed-reply-toggle {
   min-height: 44px;
-}
-
-.feed-tile .feed-replies,
-.feed-tile .feed-vote {
-  min-width: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .feed-tile {
-    transition: none;
-  }
 }
 
 /* Reactions are emoji chips; the meaning is in each chip's accessible name and title. */
@@ -200,7 +463,188 @@
   background: var(--accent-soft);
 }
 
+/* The end of the wire. */
+.feed-end {
+  padding-top: 24px;
+}
+
+.feed-end .feed-node {
+  top: 38px;
+}
+
+.feed-end .feed-node::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--feed-spine);
+}
+
 /* A refresh that failed while the feed stays on screen. */
 .chat-stale {
   margin: 0;
+}
+
+/* Desktop: the time sits in the gutter, so a moment's own time is for screen readers only. */
+@media (min-width: 1100px) {
+  .feed-wire .feed-inline-time {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/* 760–1099: no gutter; a run's time is a small tick on the spine above it. */
+@media (max-width: 1099px) {
+  .feed-wire {
+    --tg: 0px;
+    --node-x: 12px;
+    --content-x: 40px;
+  }
+
+  .feed-time {
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .feed-tick {
+    display: block;
+    position: relative;
+    padding: 10px 0 0 var(--content-x);
+    font-family: var(--font-num);
+    font-stretch: var(--num-stretch);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .feed-tick::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    left: calc(var(--node-x) - 3px);
+    top: 16px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .feed-row {
+    grid-template-columns: 148px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
+  }
+}
+
+/* Phones: two lines per move (team and bid, then the players), the spine 12px in. */
+@media (max-width: 759px) {
+  .feed-wire {
+    --content-x: 36px;
+  }
+
+  .feed-day {
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 0;
+    padding-top: 24px;
+  }
+
+  .feed-day-summary {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .feed-day .feed-node {
+    top: 30px;
+    bottom: auto;
+  }
+
+  .feed-day:first-child .feed-node {
+    top: 14px;
+  }
+
+  .feed-line {
+    min-height: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .feed-line .feed-node {
+    top: 8px;
+  }
+
+  .feed-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'team slot'
+      'players players'
+      'meta meta';
+    grid-template-rows: auto;
+    column-gap: 8px;
+    row-gap: 4px;
+  }
+
+  .feed-row .feed-team {
+    min-height: 28px;
+  }
+
+  .feed-players {
+    grid-area: players;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    min-width: 0;
+  }
+
+  .feed-add,
+  .feed-drop {
+    max-width: 100%;
+  }
+
+  .feed-player {
+    gap: 6px;
+  }
+
+  .feed-drop .feed-player {
+    gap: 4px;
+  }
+
+  .feed-drop .feed-face {
+    display: none;
+  }
+
+  .feed-add .feed-face .head {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .feed-mark {
+    width: 12px;
+  }
+
+  .feed-meta {
+    margin-top: 0;
+    padding-bottom: 2px;
+  }
+
+  .feed-moment::after {
+    inset: 0 -8px;
+  }
+
+  .feed-moment-move {
+    padding-top: 10px;
+  }
+
+  .feed-moment-move .feed-node {
+    top: 12px;
+  }
+
+  .feed-line > .feed-social {
+    margin: 0;
+  }
 }

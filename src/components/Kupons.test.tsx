@@ -89,7 +89,7 @@ describe('a Kupon game pick', () => {
     expect(pick.querySelector('button')).toBeNull() // no nested buttons
     fireEvent.click(pick)
     expect(onMatch).toHaveBeenCalledWith(2, 'home')
-    fireEvent.click(screen.getAllByRole('button', { name: /^Our chance 71%/ })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^Our chance 63%/ })[0])
     expect(onMatch).toHaveBeenCalledTimes(1)
   })
 })

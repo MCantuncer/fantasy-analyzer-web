@@ -158,7 +158,7 @@ describe('Game picks', () => {
     expect(rows.map((r) => r.querySelector('.ml')!.textContent)).toEqual(['Handicap', 'Total points', 'Match result'])
     expect(rows[0].querySelector('.bt')!.textContent).toBe('IND +4.5')
     expect(rows[0].querySelector('.bo')!.textContent).toBe('Book NY −4.5 · Ours NY −2')
-    expect(rows[1].querySelector('.ic-ch')!.textContent).toBe('58%')
+    expect(rows[1].querySelector('.ic-ch')!.textContent).toBe('51%') // 9 parts the book's even 1.90s, 1 part our 58%
     expect(rows[2].textContent).toContain('Ours NY 64%')
     expect(rows[2].querySelector('.nb')!.textContent).toBe('No betNY odds 1.33 or less')
     // the score is solid, our chance is a number: no hollow digits, no ring buttons or popovers
