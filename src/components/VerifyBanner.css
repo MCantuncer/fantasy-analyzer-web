@@ -1,0 +1,56 @@
+/* The verify invite: no outline, a faint wash of the text colour, so it reads as a note rather than an alert. */
+.vb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  border-radius: var(--radius-row);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.vb-icon {
+  flex: none;
+  color: var(--muted);
+}
+
+.vb-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.vb-lead {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.vb-detail {
+  color: var(--muted);
+}
+
+.vb .vb-action {
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .vb {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 14px 16px;
+    row-gap: 12px;
+  }
+
+  .vb-icon {
+    margin-top: 1px;
+  }
+
+  .vb-text {
+    flex-basis: calc(100% - 34px);
+  }
+
+  .vb .vb-action {
+    flex-basis: 100%;
+    min-height: 44px;
+  }
+}
