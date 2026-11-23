@@ -5,7 +5,8 @@ import type { InfiniteData } from '@tanstack/react-query'
 import { useState } from 'react'
 import { createPost, deletePost, fetchFeed, fetchReplies, react, retryDropped, retryDroppedDelay } from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef, Reactions } from '../api/client'
-import { Gavel, User, UserPlus } from '@phosphor-icons/react'
+import { ArrowsLeftRight, CaretDown, ChatCircle, Gavel, ListBullets, User, UserPlus } from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import type { Credentials } from '../lib/credentials'
 import {
   FILTERS,
@@ -14,8 +15,7 @@ import {
   biggestBidId,
   dayDate,
   daySummary,
-  faabLine,
-  faabLineId,
+  faabLeaderId,
   groupByDay,
   isMoment,
   matches,
@@ -53,6 +53,16 @@ interface Poster {
   teamName: string
 }
 
+// One icon per filter; the label stays Title Case next to it.
+const FILTER_ICONS: Record<Filter, Icon> = {
+  all: ListBullets,
+  trade: ArrowsLeftRight,
+  waiver: Gavel,
+  free_agent: UserPlus,
+  post: ChatCircle,
+  mine: User,
+}
+
 // Fresh enough for a group chat without a socket; a free server can't hold connections open.
 const REFRESH_MS = 30_000
 
@@ -64,8 +74,6 @@ interface Ctx {
   colours: Map<number, string>
   /** The week's single biggest waiver bid, which gets a highlighted card. */
   bigId: string | null
-  /** The one move that carries the FAAB-leader line: the newest by the team that spent the most. */
-  faabId: string | null
   link: Poster | null
   creds: Credentials | null
   onReact: (item: FeedItem, reaction: string, on: boolean) => void
@@ -151,7 +159,6 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
       link?.teamId ?? null,
     ),
     bigId: first.faab_budget ? biggestBidId(first.items) : null,
-    faabId: faabLineId(items, teams, first.faab_budget ?? null),
     link,
     creds,
     onReact: (item, r, on) => reaction.mutate({ item, reaction: r, on }),
@@ -160,16 +167,17 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
   }
   const starts = timeRunStarts(items)
 
+  const budget = first.faab_budget ?? null
+  const myTeamId = link?.teamId ?? null
+
   return (
-    <div className="chat-layout">
-      <div className="chat-main stack">
-        {link ? (
-          <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
-        ) : (
-          onVerify && (
-            <VerifyBanner detail="Verify it to post, reply and react." action="Verify" onClick={onVerify} />
-          )
+    <div className={budget ? 'feed-page has-rail' : 'feed-page'}>
+      <div className="feed-main">
+        {!link && onVerify && (
+          <VerifyBanner detail="Verify it to post, reply and react." action="Verify" onClick={onVerify} />
         )}
+
+        {budget ? <FaabSummary teams={teams} budget={budget} myTeamId={myTeamId} colours={ctx.colours} /> : null}
 
         {feed.isError && (
           <p className="chat-stale small muted" role="status">
@@ -177,28 +185,40 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           </p>
         )}
 
-        <div className="chat-filters" role="group" aria-label="Show">
-          {FILTERS.filter((f) => link || (f.id !== 'post' && f.id !== 'mine')).map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className="chip"
-              aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="feed-filters" role="group" aria-label="Show">
+          {FILTERS.filter((f) => link || (f.id !== 'post' && f.id !== 'mine')).map((f) => {
+            const FilterIcon = FILTER_ICONS[f.id]
+            return (
+              <button
+                key={f.id}
+                type="button"
+                className="feed-filter"
+                aria-pressed={filter === f.id}
+                onClick={() => setFilter(f.id)}
+              >
+                <FilterIcon size={16} aria-hidden="true" />
+                {f.label}
+              </button>
+            )
+          })}
         </div>
 
-        {items.length === 0 && (
-          <div className="card empty">
-            {filter === 'all' ? 'Nothing has happened in this league yet this week.' : 'Nothing like that this week.'}
-          </div>
-        )}
-
-        {(items.length > 0 || feed.hasNextPage) && (
+        {(link || items.length > 0 || feed.hasNextPage) && (
           <ol className="feed-wire" aria-label="League moves, newest first">
+            {link && (
+              <li className="feed-entry chat-compose">
+                <span className="feed-node" aria-hidden="true">
+                  <TeamCrest name={link.teamName} colour={ctx.colours.get(link.teamId)} size={28} />
+                </span>
+                <span className="feed-time" aria-hidden="true">
+                  Now
+                </span>
+                <Composer ctx={ctx} target={null} placeholder="Talk to the league…" />
+                <p className="chat-as">
+                  Posting as <b>{link.teamName}</b>
+                </p>
+              </li>
+            )}
             {groupByDay(items).map((g) => (
               <Day key={g.label} label={g.label} items={g.items} ctx={ctx} starts={starts} />
             ))}
@@ -212,47 +232,99 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
             )}
           </ol>
         )}
+
+        {items.length === 0 && (
+          <div className="card empty">
+            {filter === 'all' ? 'Nothing has happened in this league yet this week.' : 'Nothing like that this week.'}
+          </div>
+        )}
       </div>
 
-      <aside className="chat-rail stack">
-        {link && (
-          <section className="card stack chat-me">
-            <span className="kpi-label">Posting as</span>
-            <strong>{link.teamName}</strong>
-          </section>
-        )}
-        {first.faab_budget ? (
-          <FaabSpent teams={teams} budget={first.faab_budget} myTeamId={link?.teamId ?? null} />
-        ) : null}
-      </aside>
+      {budget ? (
+        <aside className="feed-faab" aria-labelledby="feed-faab-title">
+          <div className="feed-faab-head">
+            <h2 id="feed-faab-title">FAAB spent</h2>
+            <span>Of ${budget} each</span>
+          </div>
+          <FaabList teams={teams} budget={budget} myTeamId={myTeamId} colours={ctx.colours} />
+        </aside>
+      ) : null}
     </div>
   )
 }
 
-function FaabSpent({ teams, budget, myTeamId }: { teams: FeedTeam[]; budget: number; myTeamId: number | null }) {
-  const rows = [...teams].sort((a, b) => (b.faab_spent ?? 0) - (a.faab_spent ?? 0))
-  const idle = rows.filter((t) => !t.faab_spent).length
+interface FaabProps {
+  teams: FeedTeam[]
+  budget: number
+  myTeamId: number | null
+  colours: Map<number, string>
+}
+
+/** Teams that have spent, most first. */
+function spenders(teams: FeedTeam[]): FeedTeam[] {
+  return teams.filter((t) => (t.faab_spent ?? 0) > 0).sort((a, b) => (b.faab_spent ?? 0) - (a.faab_spent ?? 0))
+}
+
+/** The FAAB table without a box: crest, name, a thin bar of the budget spent, and the amount. */
+function FaabList({ teams, budget, myTeamId, colours }: FaabProps) {
+  const rows = spenders(teams)
+  const idle = teams.length - rows.length
+  const leader = faabLeaderId(teams)
   return (
-    <section className="card stack" aria-labelledby="faab-title">
-      <h2 id="faab-title" className="kpi-label">
-        FAAB spent
-      </h2>
-      <table className="faab-table">
-        <tbody>
-          {rows
-            .filter((t) => t.faab_spent)
-            .map((t) => (
-              <tr key={t.id} className={t.id === myTeamId ? 'me' : undefined}>
-                <th scope="row">{t.name}</th>
-                <td className="num">${t.faab_spent}</td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
-      <span className="small muted">
-        Of ${budget} each.{idle > 0 && ` ${idle} ${idle === 1 ? 'team has' : 'teams have'} not spent any yet.`}
-      </span>
-    </section>
+    <>
+      <ul className="feed-faab-list">
+        {rows.map((t) => {
+          const spent = t.faab_spent ?? 0
+          return (
+            <li key={t.id} className={t.id === myTeamId ? 'feed-faab-row is-me' : 'feed-faab-row'}>
+              <TeamCrest name={t.name} colour={colours.get(t.id)} size={20} />
+              <span className="feed-faab-name">
+                <span className="feed-faab-team">{t.name}</span>
+                {t.id === myTeamId && <You />}
+                {t.id === leader && <span className="feed-faab-most">Most</span>}
+              </span>
+              <span className="feed-faab-amt num">${spent}</span>
+              <span className="feed-faab-bar" aria-hidden="true">
+                <i style={{ width: `${Math.min(100, (spent / budget) * 100)}%` }} />
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      {idle > 0 && (
+        <p className="feed-faab-note">
+          {idle} {idle === 1 ? 'team has' : 'teams have'} not spent any yet.
+        </p>
+      )}
+    </>
+  )
+}
+
+/** Below 1100px the rail folds into one row: the top three spenders, and the full list on open. */
+function FaabSummary({ teams, budget, myTeamId, colours }: FaabProps) {
+  const top = spenders(teams).slice(0, 3)
+  return (
+    <details className="feed-faab-sum">
+      <summary>
+        <b>FAAB spent</b>
+        <span className="feed-faab-top">
+          {top.map((t) => (
+            <span key={t.id} className="num">
+              <TeamCrest name={t.name} colour={colours.get(t.id)} size={18} />
+              <span className="sr-only">{t.name}</span>${t.faab_spent}
+            </span>
+          ))}
+        </span>
+        <span className="feed-faab-all">
+          All {teams.length}
+          <CaretDown size={14} aria-hidden="true" />
+        </span>
+      </summary>
+      <div className="feed-faab-body">
+        <p className="feed-faab-each">Of ${budget} each</p>
+        <FaabList teams={teams} budget={budget} myTeamId={myTeamId} colours={colours} />
+      </div>
+    </details>
   )
 }
 
@@ -376,7 +448,6 @@ function FeedLine({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const drops = moves.filter((m) => m.kind === 'drop')
   const big = ctx.bigId === item.id
   const beat = beatenBids(item, ctx.budget)
-  const faab = ctx.faabId === item.id ? faabLine(item, ctx.teams, ctx.budget) : null
   return (
     <div className="feed-row">
       <span className="feed-team">
@@ -418,7 +489,7 @@ function FeedLine({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
           </>
         )}
       </span>
-      {(big || beat || faab) && (
+      {(big || beat) && (
         <span className="feed-meta">
           {big && <span className="feed-meta-big">Biggest bid this week</span>}
           {beat && (
@@ -433,7 +504,6 @@ function FeedLine({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
               ))}
             </span>
           )}
-          {faab && <span>{faab}</span>}
         </span>
       )}
     </div>
@@ -632,17 +702,12 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
   const id = `compose-${target ?? 'chat'}`
   return (
     <form
-      className={target ? 'composer reply' : 'card composer'}
+      className={target ? 'composer reply' : 'chat-compose-row'}
       onSubmit={(e) => {
         e.preventDefault()
         if (text.trim()) send.mutate(text.trim())
       }}
     >
-      {!target && (
-        <span className="feed-avatar" aria-hidden="true">
-          {teamAbbrev(ctx.teams, ctx.link!.teamId)}
-        </span>
-      )}
       <label className="sr-only" htmlFor={id}>
         {target ? 'Reply' : 'Message the league'}
       </label>
@@ -654,7 +719,11 @@ function Composer({ ctx, target, placeholder }: { ctx: Ctx; target: string | nul
         autoComplete="off"
         onChange={(e) => setText(e.target.value)}
       />
-      <button type="submit" disabled={!text.trim() || send.isPending}>
+      <button
+        type="submit"
+        className={target ? undefined : 'chat-post'}
+        disabled={!text.trim() || send.isPending}
+      >
         {target ? 'Reply' : 'Post'}
       </button>
       {send.error && (

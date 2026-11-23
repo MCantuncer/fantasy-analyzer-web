@@ -61,22 +61,6 @@ export function teamAbbrev(teams: FeedTeam[], id: number): string {
   return teams.find((t) => t.id === id)?.abbrev || teamName(teams, id).slice(0, 3).toUpperCase()
 }
 
-/** Calls out the claiming team only when it has spent more FAAB than anyone else. */
-export function faabLine(item: FeedItem, teams: FeedTeam[], budget: number | null | undefined): string | null {
-  if (item.kind !== 'waiver' || !budget) return null
-  const team = teams.find((t) => t.id === item.team_id)
-  if (team?.faab_spent == null) return null
-  const most = Math.max(...teams.map((t) => t.faab_spent ?? 0))
-  const lead =
-    team.faab_spent > 0 && team.faab_spent === most && teams.filter((t) => t.faab_spent === most).length === 1
-  return lead ? `${team.name} has spent $${team.faab_spent} of $${budget}, the most in the league.` : null
-}
-
-/** The newest move (items come newest first) that earns the FAAB-leader line, so the line shows once, not on every claim. */
-export function faabLineId(items: FeedItem[], teams: FeedTeam[], budget: number | null | undefined): string | null {
-  return items.find((i) => faabLine(i, teams, budget) != null)?.id ?? null
-}
-
 /** A trade as "who gets what", one side per receiving team. */
 export function tradeSides(item: FeedItem): { teamId: number; gets: FeedItem['moves'] }[] {
   const sides: { teamId: number; gets: FeedItem['moves'] }[] = []

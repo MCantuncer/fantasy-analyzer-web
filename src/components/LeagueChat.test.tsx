@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, fetchFeed } from '../api/client'
 import type { FeedItem, FeedPage } from '../api/client'
 import { LeagueChat } from './LeagueChat'
@@ -130,5 +130,69 @@ describe('LeagueChat refresh', () => {
     await screen.findByText(/Couldn't refresh the feed just now/)
     expect(screen.queryByText("Couldn't load the league feed")).toBeNull()
     expect(container.querySelectorAll('.feed-wire .feed-line')).toHaveLength(2)
+  })
+})
+
+describe('LeagueChat FAAB and composer', () => {
+  afterEach(cleanup)
+  beforeEach(() => {
+    vi.mocked(fetchFeed).mockResolvedValue(page)
+  })
+
+  it('shows FAAB as an unboxed rail with bars and "Most", folded into a summary row for smaller screens', async () => {
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+    await within(container).findByText('Tristan da Silva')
+    const rail = container.querySelector('aside.feed-faab')!
+    expect(rail.querySelector('h2')?.textContent).toBe('FAAB spent')
+    expect(rail.textContent).toContain('Of $100 each')
+    const rows = rail.querySelectorAll('.feed-faab-row')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].textContent).toBe('KAKucukesat AspavasMost$12')
+    expect((rows[0].querySelector('.feed-faab-bar i') as HTMLElement).style.width).toBe('12%')
+    expect(rail.querySelector('.feed-faab-note')?.textContent).toBe('1 team has not spent any yet.')
+    expect(container.querySelector('.card, table.faab-table')).toBeNull()
+
+    const sum = container.querySelector('details.feed-faab-sum')!
+    expect(sum.querySelector('summary')?.textContent).toBe('FAAB spentKAKucukesat Aspavas$12All 2')
+    expect(sum.querySelectorAll('.feed-faab-row')).toHaveLength(1)
+
+    // The FAAB leader is named once, on the rail, not in a sentence under one of their moves.
+    expect(container.querySelector('.feed-wire')?.textContent).not.toContain('the most in the league')
+  })
+
+  it('styles the filters as icon and Title Case label, pressed by aria-pressed', async () => {
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+    await within(container).findByText('Tristan da Silva')
+    const filters = [...container.querySelectorAll('.feed-filters .feed-filter')]
+    expect(filters.map((f) => f.textContent)).toEqual(['Everything', 'Trades', 'Waivers', 'Free Agents'])
+    expect(filters.every((f) => f.querySelector('svg'))).toBe(true)
+    expect(filters[0].getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('.chip[aria-pressed]:not(.feed-reaction)')).toBeNull()
+  })
+
+  it('puts the composer at the top of the wire with your crest and "Posting as" under it', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue({ ...page, me: { team_id: 3, team_name: 'Kucukesat Aspavas' } } as FeedPage)
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+    await within(container).findByText('Tristan da Silva')
+    const top = container.querySelector('ol.feed-wire > li:first-child')!
+    expect(top.classList.contains('chat-compose')).toBe(true)
+    expect(top.querySelector('.feed-node .crest')?.textContent).toBe('KA')
+    expect(top.querySelector('input')?.getAttribute('placeholder')).toBe('Talk to the league…')
+    expect(top.querySelector('.chat-as')?.textContent).toBe('Posting as Kucukesat Aspavas')
+    expect(container.querySelector('.chat-me, .feed-avatar, .card.composer')).toBeNull()
+    expect(container.querySelector('.feed-faab-row.is-me')?.textContent).toContain('(you)')
+    expect(container.querySelectorAll('.feed-filters .feed-filter')).toHaveLength(6)
   })
 })

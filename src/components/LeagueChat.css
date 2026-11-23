@@ -18,11 +18,74 @@
   --feed-light: 16%;
 }
 
-/* --tg is the time gutter; the node sits on the spine and the content starts past it. */
+/* The page: the main column and, from 1100px, the FAAB rail 56px to its right with no box. */
+.feed-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 56px;
+  align-items: start;
+}
+
+/* --tg is the time gutter; the node sits on the spine and the content starts past it.
+   Set on the main column too, so the filters line up with the wire's text. */
+.feed-main,
 .feed-wire {
   --tg: 72px;
   --node-x: calc(var(--tg) + 16px);
   --content-x: calc(var(--tg) + 44px);
+}
+
+.feed-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Filters: icon and Title Case label, no outline; the active one gets an ink-tinted fill. */
+.feed-filters {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  padding-left: var(--content-x);
+}
+
+.feed-filter {
+  min-height: 0;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.feed-filter svg {
+  flex: none;
+  color: var(--muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .feed-filter:hover {
+    background: var(--feed-hover);
+    color: var(--text);
+  }
+}
+
+.feed-filter[aria-pressed='true'] {
+  background: var(--feed-chip-on);
+  color: var(--text);
+  font-weight: 650;
+}
+
+.feed-filter[aria-pressed='true'] svg {
+  color: var(--text);
+}
+
+.feed-wire {
   position: relative;
   isolation: isolate;
   list-style: none;
@@ -480,6 +543,268 @@
   background: var(--feed-spine);
 }
 
+/* The composer at the live top of the wire: your crest is the node, "Now" sits in the gutter. */
+.chat-compose {
+  padding-top: 2px;
+  padding-bottom: 8px;
+}
+
+.chat-compose .feed-node {
+  top: 10px;
+}
+
+.chat-compose .feed-time {
+  top: 16px;
+}
+
+.chat-compose-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-compose-row input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.chat-compose-row .chat-post {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+
+.chat-compose-row .chat-post:disabled {
+  opacity: 1;
+  background: var(--raised);
+  color: var(--muted);
+}
+
+.chat-compose-row .composer-error {
+  flex-basis: 100%;
+}
+
+.chat-as {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chat-as b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* FAAB rail (1100px and up): crest, name, a thin bar of the budget spent, and the amount. "Most" marks
+   a sole leader. Sticky under the app's top bar. */
+.feed-faab {
+  position: sticky;
+  top: 136px;
+  padding-top: 6px;
+}
+
+.feed-faab-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.feed-faab-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.feed-faab-head span,
+.feed-faab-each,
+.feed-faab-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.feed-faab-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-faab-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  column-gap: 10px;
+  min-height: 42px;
+}
+
+.feed-faab-row .crest {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.feed-faab-name {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.feed-faab-team {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-faab-row.is-me .feed-faab-name {
+  font-weight: 650;
+}
+
+.feed-faab-most {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.feed-faab-bar {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  height: 3px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.feed-faab-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+
+.feed-faab-amt {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.feed-faab-note {
+  margin: 12px 0 0;
+}
+
+/* Below 1100px the rail folds into one summary row above the filters. */
+.feed-faab-sum {
+  display: none;
+  border-radius: var(--radius-row);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.feed-faab-sum summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-row);
+  cursor: pointer;
+}
+
+.feed-faab-sum summary::-webkit-details-marker {
+  display: none;
+}
+
+.feed-faab-sum summary b {
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.feed-faab-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.feed-faab-top > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+}
+
+.feed-faab-all {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.feed-faab-all svg {
+  transition: transform 120ms ease;
+}
+
+.feed-faab-sum[open] .feed-faab-all svg {
+  transform: rotate(180deg);
+}
+
+.feed-faab-body {
+  padding: 0 16px 14px;
+}
+
+.feed-faab-each {
+  margin: 0 0 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-faab-all svg {
+    transition: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .feed-page.has-rail {
+    grid-template-columns: minmax(0, 1fr) 248px;
+  }
+}
+
+@media (max-width: 1099px) {
+  .feed-faab {
+    display: none;
+  }
+
+  .feed-faab-sum {
+    display: block;
+  }
+}
+
 /* A refresh that failed while the feed stays on screen. */
 .chat-stale {
   margin: 0;
@@ -499,6 +824,7 @@
 
 /* 760–1099: no gutter; a run's time is a small tick on the spine above it. */
 @media (max-width: 1099px) {
+  .feed-main,
   .feed-wire {
     --tg: 0px;
     --node-x: 12px;
@@ -542,8 +868,44 @@
 
 /* Phones: two lines per move (team and bid, then the players), the spine 12px in. */
 @media (max-width: 759px) {
+  .feed-main,
   .feed-wire {
     --content-x: 36px;
+  }
+
+  .feed-main {
+    gap: 12px;
+  }
+
+  /* The filters scroll sideways inside their own strip, with a fade at the edge. */
+  .feed-filters {
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
+
+  .feed-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feed-filter {
+    height: 44px;
+  }
+
+  .feed-faab-sum summary {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .feed-faab-top {
+    gap: 10px;
+  }
+
+  .feed-faab-body {
+    padding: 0 12px 12px;
   }
 
   .feed-day {
@@ -646,5 +1008,12 @@
 
   .feed-line > .feed-social {
     margin: 0;
+  }
+}
+
+/* Narrow phones: two teams in the FAAB summary row. */
+@media (max-width: 374px) {
+  .feed-faab-top > span:nth-child(3) {
+    display: none;
   }
 }
