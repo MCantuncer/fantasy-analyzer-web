@@ -6,6 +6,7 @@ import {
   dayLabel,
   daySummary,
   faabLine,
+  faabLineId,
   groupByDay,
   matches,
   tradeSides,
@@ -82,6 +83,14 @@ describe('feed lines', () => {
     expect(faabLine(claim, teams, 100)).toBe('Eryaman Lakers has spent $9 of $100, the most in the league.')
     expect(faabLine({ ...claim, team_id: 3 }, teams, 100)).toBeNull()
     expect(faabLine(claim, teams, null)).toBeNull()
+  })
+
+  it('puts the FAAB-leader line on the newest of their claims only', () => {
+    const older = { ...claim, id: 'older' }
+    const other = { ...claim, id: 'other', team_id: 3 }
+    expect(faabLineId([other, claim, older], teams, 100)).toBe(claim.id)
+    expect(faabLineId([other], teams, 100)).toBeNull()
+    expect(faabLineId([claim], teams, null)).toBeNull()
   })
 })
 
