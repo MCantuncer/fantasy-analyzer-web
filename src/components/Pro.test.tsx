@@ -85,6 +85,22 @@ describe('Pro spots', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  it('locks the sample league for visitors once plans are on', () => {
+    mockBilling(true)
+    const client = new QueryClient()
+    const visitor = (locked: boolean) => (
+      <QueryClientProvider client={client}>
+        <ProProvider me={undefined} signedIn={false} visitorLocked={locked} theme="dark" onNeedAccount={vi.fn()}>
+          <Spot />
+        </ProProvider>
+      </QueryClientProvider>
+    )
+    const { rerender } = render(visitor(false))
+    expect(screen.getByText('27 PTS')).toBeTruthy()
+    rerender(visitor(true))
+    expect(screen.getByRole('button', { name: /See Pro plans/ })).toBeTruthy()
+  })
+
   it('lets an admin preview the site as Free', async () => {
     mockBilling(false)
     wrap({ ...FREE, admin: true, plan: 'pro', features: ['next_game'] }, [<ProPlan key="p" onPick={vi.fn()} />, <Spot key="s" />])
