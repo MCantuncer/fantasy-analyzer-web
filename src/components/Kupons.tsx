@@ -1,24 +1,30 @@
 import { Check, Clock, Lightning, LinkSimple, ShieldCheck, Ticket, User, X } from '@phosphor-icons/react'
 import { useMemo } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { WHY_NOT, couponsOf, fmtOdds, legWhy, whyNot } from '../lib/coupons'
 import type { Coupon, CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
 import { STAT_NAME, STAT_UNIT, betFace, clock, nightLabel } from '../lib/iddaaCompare'
 import type { BookCompare, Line } from '../lib/iddaaCompare'
 import { teamLight } from '../lib/nbaTeams'
 import { usePlayerCard } from '../lib/playerCard'
+import { useMediaQuery } from '../lib/useMediaQuery'
 import { Chance } from './EstimateBits'
+import { KuponStack } from './KuponStack'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './Kupons.css'
 
 /** Tonight's Kupons (The Slip Rail, Can 2026-11-23): iddaa's bet slips at the top of Our Estimates,
  *  built from iddaa's own odds and our chance for each pick (lib/coupons). From 900px they sit side by
- *  side in a fixed order. "Kupon" is iddaa's own word, kept in Turkish and always set in italics.
+ *  side in a fixed order; under it they stack (KuponStack). "Kupon" is iddaa's own word, kept in Turkish and always set in italics.
  *  Comparison only: nothing here feeds the model. */
 /** Opens a game's match card on its Form view, on the side the pick backs. */
 export type OpenMatch = (gameId: number, side: 'away' | 'home') => void
 
+/** Under this the rail turns into the stack: three slips in a row are too narrow below 900px. */
+const STACK = '(max-width: 899px)'
+
 export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Line[]; onMatch?: OpenMatch }) {
+  const phone = useMediaQuery(STACK)
   const slots = useMemo(() => couponsOf(lines), [lines])
   const shots = useMemo(() => whyNot(lines), [lines])
   // While Matches Only has the same picks as Highest Confidence, one slip holds both (Can 2026-11-22),
@@ -31,6 +37,21 @@ export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Lin
   const final = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   const waiting = slots.some((s) => s.why === 'waiting')
   const left = data.games.filter((g) => g.status !== 'final').length
+  const slip = (s: CouponSlot, hidden: boolean): ReactNode =>
+    s.coupon ? (
+      <KuponSlip
+        key={s.spec.kind}
+        slot={s}
+        coupon={s.coupon}
+        waiting={waiting}
+        also={s.spec.kind === 'safe' && twin ? twin.spec : null}
+        sameAs={s.same ? slots.find((o) => o.spec.kind === s.same)!.spec.title : null}
+        onMatch={onMatch}
+        hidden={hidden}
+      />
+    ) : (
+      <QuietSlip key={s.spec.kind} slot={s} left={latest && !final ? left : null} hidden={hidden} />
+    )
   return (
     <section className="ic-ku" aria-labelledby="ic-ku-h">
       <div className="ic-ku-head">
@@ -44,23 +65,11 @@ export function Kupons({ data, lines, onMatch }: { data: BookCompare; lines: Lin
         </h2>
         <span className="ic-ku-hint">iddaa's bet slips</span>
       </div>
-      <ol className={`ic-ku-rail${twin ? ' three' : ''}`}>
-        {shown.map((s) =>
-          s.coupon ? (
-            <KuponSlip
-              key={s.spec.kind}
-              slot={s}
-              coupon={s.coupon}
-              waiting={waiting}
-              also={s.spec.kind === 'safe' && twin ? twin.spec : null}
-              sameAs={s.same ? slots.find((o) => o.spec.kind === s.same)!.spec.title : null}
-              onMatch={onMatch}
-            />
-          ) : (
-            <QuietSlip key={s.spec.kind} slot={s} left={latest && !final ? left : null} />
-          ),
-        )}
-      </ol>
+      {phone ? (
+        <KuponStack slots={shown} twin={twin} slip={slip} icon={(k) => <Ico k={k} />} />
+      ) : (
+        <ol className={`ic-ku-rail${twin ? ' three' : ''}`}>{shown.map((s) => slip(s, false))}</ol>
+      )}
       {shots.length > 0 && <WhyNot legs={shots} onMatch={onMatch} />}
     </section>
   )
@@ -105,6 +114,7 @@ function KuponSlip({
   also = null,
   sameAs,
   onMatch,
+  hidden = false,
 }: {
   slot: CouponSlot
   coupon: Coupon
@@ -113,6 +123,8 @@ function KuponSlip({
   also?: CouponSpec | null
   sameAs: string | null
   onMatch?: OpenMatch
+  /** Tucked behind the front slip in the phone stack. */
+  hidden?: boolean
 }) {
   const { spec } = slot
   const n = c.legs.length
@@ -122,7 +134,11 @@ function KuponSlip({
   // "Until player bets come in" only while they are still to come; once they are in, it's tonight.
   const same = waiting ? 'Same picks until player bets come in' : 'Same picks tonight'
   return (
-    <li className={`ic-ku-slip${won ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}`} id={`ic-ku-${spec.kind}`}>
+    <li
+      className={`ic-ku-slip${won ? ' won' : ''}${c.result === 'lost' ? ' lost' : ''}`}
+      id={`ic-ku-${spec.kind}`}
+      hidden={hidden}
+    >
       <div className="ic-ku-sh">
         {also ? (
           <h3 className="ic-ku-names">
@@ -227,13 +243,13 @@ function KuponSlip({
 }
 
 /** A Kupon the night can't fill: a quiet slip with the reason. */
-function QuietSlip({ slot, left }: { slot: CouponSlot; left: number | null }) {
+function QuietSlip({ slot, left, hidden = false }: { slot: CouponSlot; left: number | null; hidden?: boolean }) {
   const { spec } = slot
   const wait = slot.why === 'waiting'
   // "Needs 3 games, one pick each" only when that is the reason: too few games still to come.
   const few = !wait && spec.perGame == null && left != null && left < spec.min
   return (
-    <li className="ic-ku-slip quiet" id={`ic-ku-${spec.kind}`}>
+    <li className="ic-ku-slip quiet" id={`ic-ku-${spec.kind}`} hidden={hidden}>
       <div className="ic-ku-sh">
         <h3>
           <span>
