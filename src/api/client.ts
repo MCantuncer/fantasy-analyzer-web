@@ -864,6 +864,23 @@ export interface LivePlayerLine {
   minutes_left: number
 }
 
+/** One side's quarters in a game in progress. */
+export interface LiveQuarterSide {
+  pro_team_id: number
+  /** Our Q1-Q4 before tip-off. */
+  pregame: number[]
+  /** Real points of each regulation quarter started; the one in progress last. */
+  real: number[]
+  /** Q1-Q4 now: real when played, real so far plus the rest in progress, our number moved by the score after. */
+  live: number[]
+}
+
+export interface LiveQuarters {
+  period: number
+  away: LiveQuarterSide
+  home: LiveQuarterSide
+}
+
 /** A game in progress: each player's live line, and how far finals land from it at this point. */
 export interface LiveLines {
   league_id: number
@@ -876,6 +893,7 @@ export interface LiveLines {
   half_within: number
   most_within: number
   lines: LivePlayerLine[]
+  quarters?: LiveQuarters | null
 }
 
 /** A game in progress: where each player's night ends (Pro). Empty lines before tip-off or without a clock. */
