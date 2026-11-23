@@ -73,10 +73,32 @@ export interface Coupon {
 
 const GAME_PICKS: Stat[] = ['WIN', 'MAR', 'TOT']
 
+/** How far over the book's own line ours may sit before we take it that the book knows something we
+ *  don't (Can's rule, 2026-11-23: when we disagree strongly with the book, the book is usually right).
+ *  Case: Brandon Ingram's first game back from his Achilles, 2026-11-23. Our line held last season's
+ *  34.5 minutes (21 pts, 4.5 ast); the book's lines were 13.7 and 2.5, a minutes limit. Every rung of
+ *  his read as a gift, so he filled Why not and two Kupons. On the saved iddaa nights no other player
+ *  came near this: the widest was 20% over (Proctor, 11.9 vs 9.9 pts). */
+export const BOOK_FAR = { ratio: 1.35, min: 2 }
+
+const who = (l: Line) => (l.playerId ? `id:${l.playerId}` : `n:${l.name}`)
+
+/** Players with any line far over the book's own (BOOK_FAR): none of their rungs are used. */
+export function bookFar(lines: Line[]): Set<string> {
+  const out = new Set<string>()
+  for (const l of lines) {
+    if (l.kind !== 'player' || l.ours == null || l.book == null || l.book <= 0) continue
+    if (l.ours >= l.book * BOOK_FAR.ratio && l.ours - l.book >= BOOK_FAR.min) out.add(who(l))
+  }
+  return out
+}
+
 /** Every pick the engine may use: our one bet on each game line, and for players every rung iddaa
- *  prices (not just our usual bet), each with our chance for it. */
+ *  prices (not just our usual bet), each with our chance for it. Players the book plainly reads
+ *  differently (bookFar) are left out. */
 export function candidates(lines: Line[]): Leg[] {
   const out: Leg[] = []
+  const far = bookFar(lines)
   for (const l of lines) {
     if (l.kind === 'game') {
       const b = l.barem
@@ -95,6 +117,7 @@ export function candidates(lines: Line[]): Leg[] {
       })
       continue
     }
+    if (far.has(who(l))) continue
     for (const r of l.rungs) {
       if (r.ours == null || r.odd <= MIN_ODD || r.ours <= 0 || r.ours >= 1) continue
       const settled = l.game.status === 'final'
@@ -302,7 +325,8 @@ export function legWhy(l: Leg): string | null {
  *  chance the odds need (1 / odds). Kept to ones we can stand behind: player rungs only (our rung
  *  chances matched what happened on the settled nights), at least a 1-in-5 chance, odds of 2.50 or
  *  more, and at least 5 points over what the odds need. One per player (his best value), the best
- *  WHY_NOT_MAX by value, so one player's night is never four picks. */
+ *  WHY_NOT_MAX by value, so one player's night is never four picks. Players far over the book's own
+ *  line (bookFar) never show: a gap that wide is news we don't have, not value. */
 export const WHY_NOT = { minOdd: 2.5, minChance: 0.2, minEdge: 0.05 }
 export const WHY_NOT_MAX = 4
 
@@ -312,9 +336,9 @@ export function whyNot(lines: Line[]): Leg[] {
   for (const c of candidates(lines)) {
     if (c.kind !== 'player' || c.odd < WHY_NOT.minOdd - 1e-9 || c.chance < WHY_NOT.minChance) continue
     if (c.chance - 1 / c.odd < WHY_NOT.minEdge - 1e-9) continue
-    const who = c.line.playerId ? `id:${c.line.playerId}` : `n:${c.line.name}`
-    const had = best.get(who)
-    if (!had || value(c) > value(had) + 1e-9 || (Math.abs(value(c) - value(had)) <= 1e-9 && c.chance > had.chance)) best.set(who, c)
+    const key = who(c.line)
+    const had = best.get(key)
+    if (!had || value(c) > value(had) + 1e-9 || (Math.abs(value(c) - value(had)) <= 1e-9 && c.chance > had.chance)) best.set(key, c)
   }
   return [...best.values()].sort((a, b) => value(b) - value(a)).slice(0, WHY_NOT_MAX)
 }
