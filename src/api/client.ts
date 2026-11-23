@@ -795,6 +795,23 @@ export interface PregameSide {
   players: PregamePlayer[]
   out: { player_id: number; name: string; injury_status: string; owner_team_id: number | null }[]
   team_line: { shown: number; rest: number; total: number; call: number; gap: number }
+  /** Points by quarter (api app/quarters.py); missing from an API before it. */
+  quarters?: PregameQuarters | null
+}
+
+/** One side's points by quarter before tip-off: Our call cut into four, and what moved each quarter. */
+export interface PregameQuarters {
+  /** Whole points Q1-Q4; they add up to the rounded sum of raw (about a point under the call: overtime). */
+  points: number[]
+  raw: number[]
+  /** The call x the league's share of a game's points in each quarter. */
+  league: number[]
+  /** The favourite's fast start and 4th-quarter fade (the underdog the other way). */
+  favourite: number[]
+  /** The team's own quarter habit and what the opponent allows. */
+  shape: number[]
+  /** This season's games in the habit (0: last season's alone). */
+  games: number
 }
 
 export type PregameTermKind = 'matchup' | 'home_court' | 'three_point_luck' | 'back_to_back'
