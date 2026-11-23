@@ -353,7 +353,7 @@ export function TradeFor({ report, keep, creds }: Props) {
   )
   const target = useQuery({
     queryKey: ['target', league.id, league.season, report.team_id, playerId, [...keep].sort(), creds?.swid ?? null],
-    queryFn: () => fetchTarget(league.id, report.team_id, league.season, playerId!, keep, creds),
+    queryFn: ({ signal }) => fetchTarget(league.id, report.team_id, league.season, playerId!, keep, creds, signal),
     enabled: playerId !== null,
     retry: false,
     staleTime: 5 * 60_000,

@@ -6,6 +6,8 @@ import {
   fetchMe,
   fetchSample,
   fetchSampleTeam,
+  fetchShop,
+  fetchTarget,
   fetchScores,
   SCORES_TIMEOUT_MS,
   signIn,
@@ -142,6 +144,60 @@ describe('api client', () => {
     await vi.runAllTimersAsync()
     await expect(sample).resolves.toMatchObject({ default_team_id: 3 })
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
+  })
+
+  it('sends shop ids sorted, so the same picks in another order hit the same cached report', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('{}'))
+    const offer = [30, 4, 12]
+    await fetchShop(1, 3, 2027, offer, [9, 2], null)
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body))
+    expect(body.offer_player_ids).toEqual([4, 12, 30])
+    expect(body.keep_player_ids).toEqual([2, 9])
+    expect(offer).toEqual([30, 4, 12])
+  })
+
+  it('cancels a stale shop search through the caller signal, without asking again', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+        }),
+    )
+    const controller = new AbortController()
+    const pending = fetchShop(1, 3, 2027, [4], [], null, controller.signal)
+    controller.abort()
+    await expect(pending).rejects.toMatchObject({ code: 'aborted' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('aborts a Trade For search in flight when the caller gives up', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+        }),
+    )
+    const controller = new AbortController()
+    const pending = fetchTarget(1, 3, 2027, 77, [], null, controller.signal)
+    const signal = fetchMock.mock.calls[0][1]?.signal
+    expect(signal?.aborted).toBe(false)
+    controller.abort()
+    await expect(pending).rejects.toMatchObject({ code: 'aborted' })
+    expect(signal?.aborted).toBe(true)
+  })
+
+  it('stops waiting to ask again once the caller gives up', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
+    const controller = new AbortController()
+    const pending = fetchShop(1, 3, 2027, [4], [], null, controller.signal)
+    const outcome = expect(pending).rejects.toMatchObject({ code: 'aborted' })
+    await vi.advanceTimersByTimeAsync(100)
+    controller.abort()
+    await outcome
+    await vi.runAllTimersAsync()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
     vi.useRealTimers()
   })
 })
