@@ -344,6 +344,11 @@
   color: var(--text-2);
   border-bottom: 1px solid var(--divider);
 }
+/* A linked name and what belongs to it ("(yours)", "+3", its comma) stay on one line. */
+.pg-keep {
+  white-space: nowrap;
+}
+
 .pg-outline b {
   color: var(--text);
 }

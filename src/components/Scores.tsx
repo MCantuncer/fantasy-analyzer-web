@@ -960,8 +960,12 @@ function GameCard({
             {plain
               ? mine.map((p, i) => (
                   <Fragment key={p.player_id}>
-                    {i > 0 && ', '}
-                    <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
+                    {i > 0 && ' '}
+                    {/* The comma stays with the name: a line can break right after the link. */}
+                    <span className="sc-keep">
+                      <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
+                      {i < mine.length - 1 && ','}
+                    </span>
                   </Fragment>
                 ))
               : mine.map((p) => shortName(p.name)).join(', ')}

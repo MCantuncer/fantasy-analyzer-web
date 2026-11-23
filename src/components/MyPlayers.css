@@ -1384,3 +1384,8 @@
 .mp-lane.tiny .mp-lane-who {
   left: 9px;
 }
+
+/* A linked name and the punctuation that belongs to it ("Mara's", "Bey,") stay on one line. */
+.mp-keep {
+  white-space: nowrap;
+}

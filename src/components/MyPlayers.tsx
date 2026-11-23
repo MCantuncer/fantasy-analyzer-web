@@ -267,7 +267,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </ul>
         {leftOut && leftOut.line && (
           <p className="mp-left-out small">
-            <Last spot={leftOut.spot} />'s <b className="num">{leftOut.line.pts}</b> pts sat on your bench while{' '}
+            <Last spot={leftOut.spot} tail="'s" /> <b className="num">{leftOut.line.pts}</b> pts sat on your bench while{' '}
             {c.idle === 1 ? 'a starting slot was' : `${c.idle} starting slots were`} idle.
           </p>
         )}
@@ -790,8 +790,8 @@ function NightLine({ rows, counts: c, past, now }: { rows: PlayerRow[]; counts: 
             · {past ? 'sat' : 'idle'}:{' '}
             {idle.map((spot, i) => (
               <Fragment key={spot.player_id}>
-                {i > 0 && ', '}
-                <Last spot={spot} />
+                {i > 0 && ' '}
+                <Last spot={spot} tail={i < idle.length - 1 ? ',' : undefined} />
               </Fragment>
             ))}
           </span>
@@ -1040,18 +1040,30 @@ function named(text: string, people: Person[]): ReactNode {
     if (at >= 0 && (!first || at < first.at)) first = { at, who, word }
   }
   if (!first) return text
+  const rest = text.slice(first.at + first.word.length)
+  const tail = /^\S*/.exec(rest)![0]
   return (
     <>
       {text.slice(0, first.at)}
-      <Last spot={first.who} />
-      {named(text.slice(first.at + first.word.length), people)}
+      <Last spot={first.who} tail={tail || undefined} />
+      {named(rest.slice(tail.length), people)}
     </>
   )
 }
 
-/** His last name, opening his player card ("Gafford"). */
-function Last({ spot }: { spot: Person }) {
-  return <PlayerLink player={{ id: spot.player_id, name: spot.name }}>{lastName(spot.name)}</PlayerLink>
+/**
+ * His last name, opening his player card ("Gafford"). ``tail`` is punctuation that belongs to the
+ * name ("'s", ","): kept on its line, since a line can break right after the link.
+ */
+function Last({ spot, tail }: { spot: Person; tail?: string }) {
+  const link = <PlayerLink player={{ id: spot.player_id, name: spot.name }}>{lastName(spot.name)}</PlayerLink>
+  if (!tail) return link
+  return (
+    <span className="mp-keep">
+      {link}
+      {tail}
+    </span>
+  )
 }
 
 const at = (iso: string) => new Date(iso).getTime()
@@ -1094,7 +1106,7 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
     call.verdict === 'wait' ? (
       late ? (
         <>
-          Still no word on {nameL}. <span className="mp-call-soft">Decide by {time(subTip!)}.</span>
+          Still no word on <Last spot={doubt.spot} tail="." /> <span className="mp-call-soft">Decide by {time(subTip!)}.</span>
         </>
       ) : (
         <>
@@ -1195,11 +1207,11 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
                 </>
               ) : call.free ? (
                 <>
-                  {subL} tips {gapWords} after {nameL}: <b>waiting is free until {time(subTip)}.</b>
+                  {subL} tips {gapWords} after <Last spot={doubt.spot} tail=":" /> <b>waiting is free until {time(subTip)}.</b>
                 </>
               ) : (
                 <>
-                  {subL} tips at <span className="num">{time(subTip)}</span>, before {nameL}'s word lands.
+                  {subL} tips at <span className="num">{time(subTip)}</span>, before <Last spot={doubt.spot} tail="'s" /> word lands.
                 </>
               )}
             </p>
@@ -1239,7 +1251,7 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
                   <span>
                     {call.planB ? (
                       <>
-                        <b>{subL}</b> takes <Last spot={call.planB.row.spot} />'s spot
+                        <b>{subL}</b> takes <Last spot={call.planB.row.spot} tail="'s" /> spot
                         <span className="mp-wide">
                           {' '}
                           (<span className="num">{pct(call.planB.row.spot.play!.chance)}</span> to play) by{' '}
