@@ -343,3 +343,41 @@ describe('Where we and the book disagree', () => {
     expect(lost.querySelector('.ic-gl-rs')!.textContent).toBe('Lost')
   })
 })
+
+describe('Our record on the page', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+  })
+
+  it('sits after the disagree list as three counts, with no record ribbon, scorecard or stat-by-stat list', async () => {
+    const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    g.players = [
+      {
+        name: 'Josh Hart',
+        player_id: 1,
+        team: 'NY',
+        stat: 'reb',
+        played: null,
+        ladder: [],
+        rungs: [7, 8, 9].map((n) => ({ n, odd: 1.5 + (n - 7) * 0.4, book: 0.5, ours: 0.55, value: null, hit: null })),
+        ours: 8.3,
+        book: 7.4,
+        actual: null,
+        gap: 0.9,
+        ours_hit: null,
+        book_hit: null,
+        closer: null,
+      },
+    ]
+    mount(night([g]))
+    const rec = (await screen.findByRole('heading', { level: 2, name: 'Our record' })).closest('section')!
+    const list = screen.getByRole('heading', { level: 2, name: /Where we and the book disagree/ }).closest('section')!
+    expect(list.compareDocumentPosition(rec) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect([...rec.querySelectorAll('.ic-rec-l')].map((l) => l.textContent)).toEqual(['bet open', 'Kupons tonight', 'rungs waiting'])
+    expect(document.querySelector('.vr-ribbon, .vr-sc-card, .vr-rec-tile')).toBeNull()
+    expect(screen.queryByText(/Who won, stat by stat/)).toBeNull()
+    expect(screen.queryByText(/Scorecard/)).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Running Record' })).toBeNull()
+  })
+})

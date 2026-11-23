@@ -24,7 +24,7 @@ const PHONE = '(max-width: 719px)'
 const LEDGER_ROWS = 6
 const NONE: Known = []
 
-/** One query for the ribbon and the section: the record over the server's default nights. */
+/** The record over the server's default nights, one query for the page. */
 function useRecord() {
   return useQuery({ queryKey: ['book-record'], queryFn: () => fetchBookRecord(), retry: false, staleTime: 5 * 60_000 })
 }
@@ -73,75 +73,22 @@ function read(rec: BookRecord, known: Known): Read {
   }
 }
 
-/** The record, one tap from the top of the page: the balance and the hit count, a link down to it. */
-export function RecordRibbon({ nights = NONE }: { nights?: Known }) {
+/** The running record over the server's default nights, read against the nights the page knows:
+ *  the query (for its pending and error states) and the record shaped for the page, null until it
+ *  loads. An older server has no record endpoint: `gone` says so, and the page shows nothing. */
+// eslint-disable-next-line react-refresh/only-export-components -- Our record reads the record through this hook
+export function useRunningRecord(nights: Known = NONE) {
   const q = useRecord()
   const r = useMemo(() => (q.data ? read(q.data, nights) : null), [q.data, nights])
-  if (!r || r.tot.picks === 0) return null
-  const { tot } = r
-  return (
-    <a href="#vr-record" className="vr-ribbon">
-      <span className="vr-ribbon-lab">
-        Running record
-        <small>{r.since ? `since ${r.since}` : `last ${r.counted} nights`}</small>
-      </span>
-      <span className="vr-ribbon-figs">
-        <span>
-          <b className={`num ${tot.net >= 0 ? 'good' : 'bad'}`}>
-            {unitsText(tot.net)}
-            <span className="vr-ph-in">u</span>
-          </b>
-          <span className="vr-hide-s"> units</span>
-        </span>
-        <span>
-          <b className="num">{tot.hits}</b> of <b className="num">{tot.picks}</b> landed
-        </span>
-      </span>
-      <svg className="ic-i vr-ribbon-go" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="m9 6 6 6-6 6" />
-      </svg>
-    </a>
-  )
+  return { q, r, gone: q.isError && missing(q.error) }
 }
 
-/** The Running Record: every night's value rungs as one balance, the nights it came from, the odds
- *  bands, and whether each side's chances came true as often as they said. Outside the night: it is
- *  the same whichever night is open. */
-export function RungRecord({ nights = NONE, day = null }: { nights?: Known; day?: number | null }) {
-  const q = useRecord()
-  const r = useMemo(() => (q.data ? read(q.data, nights) : null), [q.data, nights])
-  if (q.isError && missing(q.error)) return null
-  return (
-    <section className="vr-rec" id="vr-record" aria-labelledby="vr-rec-h">
-      <h2 id="vr-rec-h" className="vr-rec-title">
-        <TrendIcon />
-        Running Record
-      </h2>
-      {q.isPending ? (
-        <p className="vr-rec-wait" role="status">
-          Reading the record…
-        </p>
-      ) : q.isError ? (
-        <div className="vr-rec-empty" role="alert">
-          <b>Couldn't load the running record.</b>
-          <p>The night above is unaffected.</p>
-          <button type="button" className="secondary" onClick={() => void q.refetch()}>
-            Try again
-          </button>
-        </div>
-      ) : !r || r.tot.picks === 0 ? (
-        <div className="vr-rec-empty" role="status">
-          <b>No settled value rungs yet.</b>
-          <p>The record starts with the first night that has both ladders and results.</p>
-        </div>
-      ) : (
-        <Body r={r} day={day} />
-      )}
-    </section>
-  )
-}
+export type RunningRead = Read
 
-function Body({ r, day }: { r: Read; day: number | null }) {
+/** The Running record: every night's value rungs as one balance, the nights it came from, the odds
+ *  bands, and whether each side's chances came true as often as they said. It sits behind the
+ *  "Running record" row of Our record, and is the same whichever night is open. */
+export function RunningRecord({ r, day = null }: { r: Read; day?: number | null }) {
   const phone = usePhone()
   const { rec, tot, bands, ledger } = r
   const series = ledger.length > 0
@@ -150,7 +97,7 @@ function Body({ r, day }: { r: Read; day: number | null }) {
   const shelf = bands.length > 1 && bands[bands.length - 1].from >= 12 ? bands[bands.length - 1] : null
   const early = r.counted < EARLY_NIGHTS
   return (
-    <>
+    <div className="vr-rec">
       <p className="vr-rec-gloss">
         {r.since ? `All nights since ${r.since}` : `The last ${r.counted} saved nights`}: one unit on every rung that
         beat its price at odds over 1.33, at the odds of our last look.
@@ -228,7 +175,7 @@ function Body({ r, day }: { r: Read; day: number | null }) {
         <Bands bands={bands} />
         <Calibration rec={rec} wide={series} counted={r.counted} early={early} />
       </div>
-    </>
+    </div>
   )
 }
 
@@ -394,14 +341,9 @@ function Calibration({ rec, wide, counted, early }: { rec: BookRecord; wide: boo
       )}
       {note && <p className="vr-rec-say">{note}</p>}
       {early && (
-        <div className="vr-early">
-          <span aria-hidden="true">
-            {Array.from({ length: EARLY_NIGHTS }, (_, i) => (
-              <i key={i} className={i < counted ? '' : 'off'} />
-            ))}
-          </span>
-          Early read · {counted} of {EARLY_NIGHTS} nights
-        </div>
+        <p className="vr-early">
+          Early read · <span className="num">{counted}</span> of <span className="num">{EARLY_NIGHTS}</span> nights
+        </p>
       )}
     </div>
   )
@@ -618,15 +560,6 @@ function ShapeSolid() {
   return (
     <svg className="vr-cal-s b" width="12" height="11" viewBox="0 0 10 9" aria-hidden="true">
       <path d="M5 0l5 9H0z" />
-    </svg>
-  )
-}
-
-function TrendIcon() {
-  return (
-    <svg className="ic-i vr-hi" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3.5 17.5 9 12l4 4 7.5-8" />
-      <path d="M15 8h5.5v5.5" />
     </svg>
   )
 }

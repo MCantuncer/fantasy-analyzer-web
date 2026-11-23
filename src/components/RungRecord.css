@@ -1,124 +1,31 @@
-/* The Running Record on Our Estimates, and its ribbon near the top. vr-rec- prefix. Green and red
-   only for net units; Ours open, Book solid; the shading marks the longest losing run. */
+/* The Running record on Our Estimates: it opens under Our record's "Running record" row, on the bare
+   page (no cards, no tiles, no row rules). vr-rec- prefix. Green and coral only for net units; Ours
+   open, Book solid; the shading marks the longest losing run. */
 
-/* Ribbon */
-.vr-ribbon {
+.vr-rec {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  min-height: 52px;
-  padding: 8px 16px;
-  border-radius: var(--radius-row);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: inherit;
-  text-decoration: none;
-  font-weight: 500;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
 }
-.vr-ribbon:hover {
-  background: var(--surface);
-}
-.vr-ribbon:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-}
-.vr-ribbon-lab {
-  font-weight: 650;
-}
-.vr-ribbon-lab small {
-  display: block;
-  font-weight: 500;
-  color: var(--muted);
-  font-size: 12px;
-}
-.vr-ribbon-figs {
-  margin-left: auto;
-  display: flex;
-  gap: 18px;
-  align-items: baseline;
-  color: var(--text-2);
-}
-.vr-ribbon-figs b {
-  color: var(--text);
-  font-weight: 650;
-}
-.vr-ribbon-figs b.good,
 .vr-rec .good {
   color: var(--good);
 }
-.vr-ribbon-figs b.bad,
 .vr-rec .bad {
   color: var(--bad);
 }
-.vr-ribbon-go {
-  width: 16px !important;
-  height: 16px !important;
-  flex: none;
-}
-
-/* Section */
-.vr-rec {
-  margin-top: 28px;
-  padding: 22px 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  scroll-margin-top: 72px;
-}
-.vr-rec-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 21px;
-}
-.vr-rec-title .ic-i {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 .vr-rec-gloss {
-  margin-top: 8px !important;
+  margin: 0 !important;
   max-width: 760px;
   color: var(--text-2);
-  font-size: 14px;
-  line-height: 1.5;
-}
-.vr-rec-wait {
-  margin-top: 12px !important;
-  color: var(--muted);
-  font-size: 13.5px;
-}
-.vr-rec-empty {
-  margin-top: 16px;
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  font-size: 13.5px;
-  color: var(--text-2);
-}
-.vr-rec-empty b {
-  display: block;
-  color: var(--text);
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-.vr-rec-empty button {
-  margin-top: 10px;
-  min-height: 44px;
+  font-size: 13px;
+  line-height: 20px;
 }
 .vr-rec-top {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px 36px;
+  gap: 16px 40px;
   align-items: flex-end;
-  margin-top: 18px;
 }
 .vr-rec-bal {
   display: flex;
@@ -127,10 +34,9 @@
 }
 .vr-rec-bal b {
   font-family: var(--font-num);
-  font-size: 48px;
-  font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-size: 36px;
+  font-weight: 640;
+  line-height: 44px;
 }
 .vr-rec-bal span,
 .vr-rec-fig span {
@@ -139,43 +45,39 @@
 .vr-rec-fig b {
   display: block;
   font-family: var(--font-num);
-  font-size: 18px;
-  font-weight: 650;
+  font-size: 17px;
+  font-weight: 640;
 }
 .vr-rec-fig span {
-  font-size: 12.5px;
+  font-size: 13px;
 }
+/* Picks, landed and the swing: plain figures in a row, no tiles */
 .vr-rec-tiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 18px;
+  gap: 16px;
 }
 .vr-rec-tile {
-  padding: 14px 16px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
   min-width: 0;
 }
 .vr-rec-tile .big {
   font-family: var(--font-num);
-  font-size: 26px;
-  font-weight: 650;
-  line-height: 1.1;
-  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 640;
+  line-height: 28px;
+  margin-top: 2px;
 }
 .vr-rec-tile .sub {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--muted);
 }
-.vr-rec-tile .big + .sub {
-  margin-top: 6px;
+.vr-rec-tile .sub:first-child {
+  font-size: 12px;
 }
 
 /* Balance chart */
 .vr-rec-chart {
-  margin: 14px 0 0;
+  margin: 0;
 }
 .vr-rec-plot svg {
   display: block;
@@ -283,15 +185,12 @@
 }
 .vr-rec-callout {
   display: flex;
-  gap: 12px;
-  margin-top: 14px !important;
-  padding: 14px 16px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  gap: 10px;
+  margin: 0 !important;
+  max-width: 760px;
   color: var(--text-2);
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 20px;
 }
 .vr-rec-callout .ic-i {
   width: 17px;
@@ -304,19 +203,14 @@
   margin-top: 2px;
 }
 
-/* Cards: ledger, odds bands, said vs happened */
+/* Ledger, odds bands, said vs happened: blocks on the bare page */
 .vr-rec-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  margin-top: 20px;
+  gap: 32px 40px;
   align-items: start;
 }
 .vr-rec-card {
-  padding: 16px 18px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
   min-width: 0;
 }
 .vr-rec-card.wide {
@@ -328,13 +222,14 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 4px 10px;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 15px;
+  font-weight: 600;
 }
 .vr-rec-card h3 small {
-  font-weight: 500;
+  font-weight: 400;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 .vr-rec-table {
   width: 100%;
@@ -345,7 +240,7 @@
 .vr-rec-table th,
 .vr-rec-table td {
   padding: 8px 6px;
-  border-bottom: 1px solid var(--divider);
+  border-bottom: 0;
   text-align: left;
   vertical-align: middle;
 }
@@ -375,7 +270,13 @@
   font-weight: 650;
 }
 .vr-rec-table tr.this {
-  background: color-mix(in srgb, var(--text) 6%, transparent);
+  background: var(--ic-hover);
+}
+.vr-rec-table tr.this > :first-child {
+  border-radius: 10px 0 0 10px;
+}
+.vr-rec-table tr.this > :last-child {
+  border-radius: 0 10px 10px 0;
 }
 .vr-rec-more {
   min-height: 44px;
@@ -453,7 +354,7 @@
   top: 18px;
 }
 .vr-cal-s.o path {
-  fill: var(--surface-2);
+  fill: var(--bg);
   stroke: var(--text);
   stroke-width: 1.4;
   stroke-linejoin: round;
@@ -465,24 +366,9 @@
   vertical-align: -1px;
 }
 .vr-early {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  font-size: 12.5px;
-  color: var(--text-2);
-}
-.vr-early i {
-  display: inline-block;
-  width: 14px;
-  height: 6px;
-  border-radius: 2px;
-  background: var(--text-2);
-  margin-right: 3px;
-}
-.vr-early i.off {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--muted);
+  margin-top: 12px !important;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 @media (max-width: 980px) {

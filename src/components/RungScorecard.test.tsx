@@ -81,29 +81,20 @@ function show(data: BookCompare, now: string) {
   return render(<RungScorecard data={data} lines={linesOf(data, new Date(now))} settled={settled} />)
 }
 
-describe('Scorecard states', () => {
-  it('settled: the lower score is circled and the read is named', () => {
-    show(night(RUNGS, 'final', [BLK]), '2026-11-22T20:00:00Z')
-    expect(screen.getByRole('heading', { name: /Scorecard: Who Read It Better/ })).toBeTruthy()
-    expect(screen.getAllByLabelText('ours 0.334, lower')).toHaveLength(2) // Blocks and All
+describe('rung scores by stat', () => {
+  it('settled: the lower score in bold and the read named in words, no circles or card', () => {
+    const { container } = show(night(RUNGS, 'final', [BLK]), '2026-11-22T20:00:00Z')
+    expect(screen.getByRole('heading', { name: /Sat 21 Nov by stat/ })).toBeTruthy()
+    const lower = screen.getAllByLabelText('ours 0.334, lower')
+    expect(lower).toHaveLength(2) // Blocks and All
+    expect(lower[0].tagName).toBe('B')
     expect(screen.getAllByText('Ours').length).toBeGreaterThan(1)
-    expect(screen.getByText('Why score every rung')).toBeTruthy()
-    expect(screen.queryByText(/middle player/)).toBeNull() // blocks only: no lift chips
+    expect(container.querySelector('.vr-circ, .vr-split, .vr-sc-card')).toBeNull()
+    expect(screen.queryByText('Why score every rung')).toBeNull() // moved to How to read
   })
-  it('the lift chips come from the night: book line minus ours, middle player', () => {
-    const PTS: CompareTally = { ...BLK, stat: 'pts', compared: 30, median_gap: -2.6 }
-    const AST: CompareTally = { ...BLK, stat: 'ast', compared: 3, median_gap: -0.5 } // too few rows
-    const { container } = show(night(RUNGS, 'final', [BLK, PTS, AST]), '2026-11-22T20:00:00Z')
-    expect(screen.getByText(/middle player/)).toBeTruthy()
-    expect(container.querySelector('.vr-lift')?.textContent).toBe('Points +2.6')
-  })
-  it('tonight: no results yet, with the rungs waiting', () => {
-    show(night(RUNGS, 'scheduled'), '2026-11-21T20:00:00Z')
-    expect(screen.getByText('No results yet.')).toBeTruthy()
-    expect(screen.getByRole('status').textContent).toContain('2 rungs are waiting')
-    expect(screen.queryByRole('table')).toBeNull()
-  })
-  it('a failed night and an older server show nothing', () => {
+  it('tonight, a failed night and an older server show nothing', () => {
+    expect(show(night(RUNGS, 'scheduled'), '2026-11-21T20:00:00Z').container.innerHTML).toBe('')
+    cleanup()
     expect(show(night([], 'final', [BLK]), '2026-11-22T20:00:00Z').container.innerHTML).toBe('')
     cleanup()
     expect(show(night(undefined, 'final'), '2026-11-22T20:00:00Z').container.innerHTML).toBe('')

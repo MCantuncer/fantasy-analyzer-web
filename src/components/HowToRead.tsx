@@ -83,6 +83,11 @@ export function HowToRead({ bands, onClose }: { bands: BookCompare['bands'] | nu
           </dd>
           <dt>Value rungs</dt>
           <dd>Our chance × odds − 1. Above 0 pays more than it should.</dd>
+          <dt>Rungs read closer</dt>
+          <dd>
+            On every rung iddaa prices, the side whose chance sat nearer what happened. iddaa sells overs only, so its
+            one line tends to sit high; scoring every rung asks both sides the same fair question.
+          </dd>
           {bands && (
             <>
               <dt>Bands</dt>
