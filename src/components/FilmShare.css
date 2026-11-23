@@ -40,81 +40,89 @@ button.fs-open {
   font-size: 17px;
 }
 
+/* The game-ball card: a raised surface lit from one corner, no outline. Balls stack on phones and sit
+   three across from 760px. */
 .fs-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px 8px;
+  padding: 12px 12px 4px;
   border-radius: var(--radius-tile);
-  border: 1px solid var(--border);
-  background: radial-gradient(80% 140% at 0% 100%, var(--glow), transparent 70%), var(--surface-2);
+  background: radial-gradient(80% 140% at 0% 100%, var(--glow), transparent 70%), var(--raised);
   min-width: 0;
 }
 
-:root[data-theme='light'] .fs-card {
-  background: radial-gradient(80% 140% at 0% 100%, var(--glow), transparent 70%), var(--raised);
+.fs-card:not(.fs-preview) {
+  max-width: 640px;
+}
+
+/* The Film Room preview has no "Open the Film Room" under the balls, so it closes with its own padding. */
+.fs-card.fs-preview {
+  padding-bottom: 12px;
 }
 
 .fs-card-head {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold-text);
+  color: var(--text);
+}
+
+.fs-card-head svg {
+  flex: none;
+  color: var(--muted);
 }
 
 .fs-balls {
   list-style: none;
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .fs-ball {
   display: grid;
-  grid-template-columns: 52px auto minmax(0, 1fr);
+  grid-template-columns: 52px 36px minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 6px 0;
-  border-top: 1px solid var(--divider);
-}
-
-.fs-ball:first-child {
-  border-top: 0;
-}
-
-.fs-ball > .crest {
-  margin: 0 1px;
+  column-gap: 10px;
+  min-width: 0;
 }
 
 .fs-lab {
-  font-size: 10.5px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  font-size: 12px;
   color: var(--muted);
 }
 
+.fs-pic {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+}
+
 .fs-who {
+  grid-column: 3;
+  grid-row: 1 / 3;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .fs-name {
   font-weight: 650;
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .fs-sub {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--muted);
   overflow: hidden;
   display: -webkit-box;
@@ -122,16 +130,62 @@ button.fs-open {
   -webkit-box-orient: vertical;
 }
 
+@media (min-width: 760px) {
+  .fs-card {
+    padding: 12px 16px 6px;
+  }
+
+  .fs-card.fs-preview {
+    padding-bottom: 14px;
+  }
+
+  .fs-balls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .fs-ball {
+    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+    align-content: start;
+  }
+
+  .fs-lab {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 4px;
+  }
+
+  .fs-pic {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .fs-who {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
 button.fs-go {
   align-self: flex-start;
-  min-height: 40px;
+  min-height: 44px;
+  margin-top: 6px;
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent-text);
+  color: var(--text);
   font-weight: 650;
-  font-size: 13.5px;
-  gap: 4px;
+  font-size: 14px;
+  gap: 6px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.fs-go:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 .fs-note {
