@@ -3,18 +3,31 @@ import { useEffect, useRef, useState } from 'react'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import { pointChange, surname } from '../lib/tradeCheck'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
+import { PlayerList } from './PlayerInline'
 import './TradeCheckMoves.css'
 
-const names = (ps: PlayerRef[]) => ps.map((p) => p.name).join(' and ')
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '±0')
 const REST_SHOWN = 4
 
+/** His face, opening the same card as his name beside it. */
 function Face({ p, ghost = false }: { p: PlayerRef; ghost?: boolean }) {
   return (
-    <span className={`tck-mv-face${ghost ? ' ghost' : ''}`}>
-      <PlayerHead player={p} size={28} team={p.pro_team} />
-    </span>
+    <PlayerLink player={p} decorative>
+      <span className={`tck-mv-face${ghost ? ' ghost' : ''}`}>
+        <PlayerHead player={p} size={28} team={p.pro_team} />
+      </span>
+    </PlayerLink>
+  )
+}
+
+/** "A and B", each name opening his card. */
+function Names({ players }: { players: PlayerRef[] }) {
+  return (
+    <b>
+      <PlayerList players={players} sep=" and " face={false} />
+    </b>
   )
 }
 
@@ -76,7 +89,7 @@ function CutSheet({
         <PlayerHead player={p} size={32} team={p.pro_team} />
         <span className="tck-mv-who">
           <span className="tck-mv-name">
-            {p.name}
+            <PlayerLink player={p} />
             {p.id === engine && <span className="tck-mv-pick">Engine's pick</span>}
           </span>
           <span className="tck-mv-meta">
@@ -132,7 +145,9 @@ function CutSheet({
                       <input type="radio" name="tck-cut" disabled />
                       <PlayerHead player={p} size={32} team={p.pro_team} />
                       <span className="tck-mv-who">
-                        <span className="tck-mv-name">{p.name}</span>
+                        <span className="tck-mv-name">
+                          <PlayerLink player={p} />
+                        </span>
                         <span className="tck-mv-meta">
                           <Lock size={12} weight="fill" aria-hidden="true" /> Keep, locked
                         </span>
@@ -197,7 +212,7 @@ export function TradeCheckMoves({ check, give, get, roster, keep, onCut }: Props
             <Face key={p.id} p={p} />
           ))}
           <span>
-            You'd cut <b>{names(check.my_drops)}</b>
+            You'd cut <Names players={check.my_drops} />
           </span>
           {canChange && (
             <button ref={change} type="button" className="secondary tck-mv-change" onClick={() => setOpen(true)}>
@@ -212,7 +227,7 @@ export function TradeCheckMoves({ check, give, get, roster, keep, onCut }: Props
             <Face key={p.id} p={p} />
           ))}
           <span>
-            You'd add <b>{names(check.my_adds)}</b> from free agents
+            You'd add <Names players={check.my_adds} /> from free agents
           </span>
         </li>
       )}
@@ -222,7 +237,7 @@ export function TradeCheckMoves({ check, give, get, roster, keep, onCut }: Props
             <Face key={p.id} p={p} ghost />
           ))}
           <span>
-            They'd likely cut <b>{names(check.their_drops)}</b>
+            They'd likely cut <Names players={check.their_drops} />
           </span>
         </li>
       )}
@@ -232,7 +247,7 @@ export function TradeCheckMoves({ check, give, get, roster, keep, onCut }: Props
             <Face key={p.id} p={p} />
           ))}
           <span>
-            They'd add <b>{names(check.their_adds)}</b>
+            They'd add <Names players={check.their_adds} />
           </span>
         </li>
       )}

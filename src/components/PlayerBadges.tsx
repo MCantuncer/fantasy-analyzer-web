@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import type { PlayerBadge, PlayerRef } from '../api/client'
 import { injuryShort } from '../lib/injury'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { PlayerInline } from './PlayerInline'
 import './PlayerBadges.css'
 
 const LABELS: Record<PlayerBadge['kind'], string> = {
@@ -151,7 +152,7 @@ export function BadgeNotes({ players }: { players: PlayerRef[] }) {
               <BadgeIcon kind={b.kind} />
               {badgeLabel(b)}
             </span>{' '}
-            {p.name}: {b.reason}
+            <PlayerInline player={p} />: {b.reason}
           </li>
         )),
       )}

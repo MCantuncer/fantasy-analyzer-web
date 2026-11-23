@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render as rtlRender, within } from '@testing-library/react'
+import { act, fireEvent, render as rtlRender, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PickupIdea, ScoreDay } from '../api/client'
 import { fetchScores } from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { Pickups } from './Pickups'
 
 vi.mock('../api/client', async (orig) => ({ ...(await orig<object>()), fetchScores: vi.fn() }))
@@ -50,6 +51,22 @@ describe('Pickups shared drop', () => {
     expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
     expect(view.getAllByText('Aaron Wiggins')).toHaveLength(1)
     expect(view.getByText('from 14%')).toBeInTheDocument()
+  })
+
+  it('opens the shared drop and the names in an opened row on the card', () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const other = { ...pickup, add: ref(3, 'Neemias Queta'), playoff_pct_after: 0.18 } as PickupIdea
+    const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
+    const shared = container.querySelector('.pk-shared') as HTMLElement
+    expect(shared.querySelector('.pc-link-face .head')).not.toBeNull()
+    fireEvent.click(within(shared).getByRole('button', { name: 'Aaron Wiggins' }))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 2 }))
+    fireEvent.click(within(container).getAllByRole('button', { expanded: false })[0])
+    const reasons = container.querySelector('.move-detail .reasons') as HTMLElement
+    fireEvent.click(within(reasons).getByRole('button', { name: 'Aaron Wiggins' }))
+    expect(open).toHaveBeenCalledTimes(2)
+    act(() => setPlayerCardHost(null))
   })
 
   it('keeps the drop on each row when the drops differ', () => {

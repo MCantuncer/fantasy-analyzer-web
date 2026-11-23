@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
 import type { PlayerRef } from '../api/client'
-import { keptNames } from '../lib/untouchable'
 import { PlayerHead } from './PlayerHead'
+import { KeptPlayers, PlayerList } from './PlayerInline'
 import { Spinner } from './Spinner'
 import './Untouchable.css'
 
@@ -57,6 +57,11 @@ export function Untouchable({ roster, keep, onToggleKeep, onEveryone, onMyTeam }
           })}
         </div>
       </div>
+      {picked && (
+        <p className="small muted unt-kept">
+          Kept: <PlayerList players={best.filter((p) => keep.includes(p.id))} />
+        </p>
+      )}
       <div className="unt-foot">
         {!picked && (
           <button type="button" className="secondary" onClick={onEveryone}>
@@ -76,12 +81,14 @@ export function Untouchable({ roster, keep, onToggleKeep, onEveryone, onMyTeam }
 }
 
 /** The card's place while moves are worked out again without the keepers. */
-export function UntouchableWorking({ names }: { names: string[] }) {
+export function UntouchableWorking({ players }: { players: PlayerRef[] }) {
   return (
     <section className="card unt-working" role="status">
       <Spinner size={18} className="unt-spin" />
       <div>
-        <p className="unt-line">Working out your moves without {keptNames(names)}</p>
+        <p className="unt-line">
+          Working out your moves without <KeptPlayers players={players} />
+        </p>
         <p className="small muted">Until then, the moves below are the old ones.</p>
       </div>
     </section>

@@ -5,12 +5,14 @@ import {
   deleteTradeRule,
   fetchMyTradeRules,
   type CheckVerdict,
+  type PlayerRef,
   type TradeFeedback,
   type TradeRule,
   type TradeRuleKind,
 } from '../api/client'
 import { suggestRule } from '../lib/tradeRules'
 import { FeedbackContext, type FeedbackScope } from './TradeFeedback'
+import { PlayerList } from './PlayerInline'
 import './TradeRules.css'
 
 function rulesKey(s: FeedbackScope) {
@@ -50,11 +52,11 @@ interface BarProps {
   categories: string[]
   teams: { id: number; name: string }[]
   myTeamId?: number
-  keepNames: string[]
+  kept: PlayerRef[]
 }
 
 /** "Your rules" above the trade list: chips to remove, how many ideas they hid, and an editor. */
-export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, teams, myTeamId, keepNames }: BarProps) {
+export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, teams, myTeamId, kept }: BarProps) {
   const { enabled, rules, remove } = useTradeRules()
   const [editing, setEditing] = useState(false)
   const editorId = useId()
@@ -66,7 +68,7 @@ export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, team
         rules={rules}
         categories={categories}
         teams={teams.filter((t) => t.id !== myTeamId)}
-        keepNames={keepNames}
+        kept={kept}
         onDone={() => setEditing(false)}
       />
     )
@@ -129,14 +131,14 @@ function RulesEditor({
   rules,
   categories,
   teams,
-  keepNames,
+  kept,
   onDone,
 }: {
   id: string
   rules: TradeRule[]
   categories: string[]
   teams: { id: number; name: string }[]
-  keepNames: string[]
+  kept: PlayerRef[]
   onDone: () => void
 }) {
   const { add, remove } = useTradeRules()
@@ -217,9 +219,9 @@ function RulesEditor({
           </fieldset>
         ),
       )}
-      {keepNames.length > 0 && (
+      {kept.length > 0 && (
         <p className="small muted rules-keep">
-          <strong>Always kept:</strong> {keepNames.join(', ')}. Never suggested as trades or drops; change the list
+          <strong>Always kept:</strong> <PlayerList players={kept} />. Never suggested as trades or drops; change the list
           in My Team.
         </p>
       )}
