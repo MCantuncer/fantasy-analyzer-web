@@ -1,3 +1,26 @@
+/* Page tokens (The Slip Rail, 2026-11-23). Front Office tokens from index.css stay as they are; these
+   belong to Our Estimates only, scoped to .ic. Dark is the default; [data-theme='light'] switches. */
+.ic {
+  --ic-slip: #211d19; /* the Kupon slip: the page's only raised surface */
+  --ic-slip-light: rgb(255 190 130 / 0.09); /* warm corner light on slips (radial, top-left) */
+  --ic-edge-1: #1c1916; /* phone stack edges */
+  --ic-edge-2: #191613;
+  --ic-hover: rgb(255 240 220 / 0.04); /* row hover, quiet slip, tool rows, folds */
+  --ic-track: #4a4138; /* chance bar and gap track (1.9:1): the printed % carries the value */
+  --ic-tick: #7d7265; /* the book's tick and the break-even line: a mark with meaning, 3.97:1 */
+  --ic-halo: 42%; /* club colour as light around a logo or face, nowhere else */
+}
+:root[data-theme='light'] .ic {
+  --ic-slip: #fffdf9;
+  --ic-slip-light: rgb(240 173 50 / 0.07);
+  --ic-edge-1: #f9f6f0;
+  --ic-edge-2: #f6f2ea;
+  --ic-hover: rgb(70 45 20 / 0.045);
+  --ic-track: #cfc5b4;
+  --ic-tick: #8c8070; /* 3.4:1 */
+  --ic-halo: 26%;
+}
+
 /* iddaa vs Ours (admins only), "Seambook". Page-own styles, prefixed ic-. iddaa sits left of the
    seam, Ours right on a plate; gold only for Tonight and focus. */
 .ic {
@@ -39,55 +62,147 @@
   flex: none;
 }
 
+/* Head. Row 1: Back, the title, How to read and Site health. Row 2: the night tabs and one meta line. */
 .ic-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
 }
-.ic-note {
-  margin-top: 6px !important;
-  color: var(--text-2);
-  font-size: 13.5px;
-  max-width: 620px;
+.ic-head-r1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ic-head-r1 .page-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .ic-head-btns {
   display: flex;
+  align-items: center;
   gap: 8px;
+  flex: none;
+}
+.ic-head-r2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  min-width: 0;
+}
+.ic-head-r2:empty {
+  display: none;
+}
+/* 44x44 icon buttons (Back, Site health, Close) */
+.ic-ib {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.ic-ib:hover {
+  background: var(--ic-hover);
+  color: var(--text);
+}
+.ic-back {
+  margin-left: -10px;
+  color: var(--text);
+}
+.ic-how-btn {
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ic-how-btn:hover {
+  background: var(--ic-hover);
+}
+.ic-how-btn svg {
+  color: var(--text-2);
+}
+.ic-how-phone {
+  display: none;
+}
+.ic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-meta b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+/* The foot: one line on the last look at iddaa. */
+.ic-foot {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-foot .num {
+  color: var(--text-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ic-ib,
+  .ic-how-btn,
+  .ic-night {
+    transition: background-color 120ms ease;
+  }
 }
 
-/* Night tabs: sheets in a stack */
+/* Night tabs: chronological pills in the head's second row; a long row scrolls inside itself. */
 .ic-nights {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
   position: relative;
-  z-index: 2;
-  margin-bottom: -1px;
+  min-width: 0;
+  max-width: 100%;
 }
 .ic-nights::-webkit-scrollbar {
   display: none;
 }
 .ic-night {
   flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1px;
-  min-height: 52px;
-  min-width: 112px;
-  padding: 7px 14px;
-  border: 1px solid var(--border);
-  border-bottom: 0;
-  border-radius: 14px 14px 0 0;
-  background: var(--surface-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  height: 40px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--muted);
   cursor: pointer;
-  text-align: left;
+  white-space: nowrap;
   font: inherit;
 }
 .ic-night b {
@@ -96,22 +211,20 @@
   color: var(--text-2);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .ic-night span {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 .ic-night[aria-selected='true'] {
-  background: var(--surface);
-  color: var(--text-2);
-  position: relative;
-  z-index: 3;
+  background: var(--accent-soft);
 }
 .ic-night[aria-selected='true'] b {
   color: var(--text);
 }
 .ic-night:not([aria-selected='true']):hover {
-  background: var(--raised);
+  background: var(--ic-hover);
 }
 .ic-live {
   display: inline-block;
@@ -123,18 +236,17 @@
   margin-right: 6px;
 }
 .ic-night .ic-live {
+  order: -1;
+  width: 8px;
+  height: 8px;
   margin-right: 0;
 }
 
-.ic.stack > .ic-nights {
-  margin-top: 0;
-}
 .ic-sheet {
   position: relative;
-  margin-top: 0 !important;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  border-radius: var(--radius);
   box-shadow:
     var(--shadow),
     0 7px 0 -3px var(--surface-2),
@@ -1102,15 +1214,6 @@
   font-weight: 600;
 }
 
-.ic-bands {
-  padding: 14px 24px 20px;
-  font-size: 12px;
-  color: var(--muted);
-  border-top: 1px solid var(--divider);
-}
-.ic-bands .num {
-  color: var(--text-2);
-}
 
 /* Empty and loading */
 .ic-empty {
@@ -1212,23 +1315,41 @@
   .ic {
     --band-max: 50px;
   }
-  .ic-hide-s {
+  /* Phones: row 1 keeps Back, the title and Site health; How to read moves beside the night tabs
+     and the meta wraps under them. */
+  .ic-head {
+    gap: 8px;
+  }
+  .ic-head-r1 .page-title {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  .ic-back {
+    margin-left: -12px;
+  }
+  .ic-how-wide {
     display: none;
   }
-  .ic-note {
-    font-size: 12.5px;
-    margin-top: 4px !important;
+  .ic-how-phone {
+    display: inline-flex;
+    padding: 0 14px;
+  }
+  .ic-head-r2 {
+    gap: 8px 12px;
+    justify-content: space-between;
+  }
+  .ic-nights {
+    flex: 1 1 0;
+  }
+  .ic-meta {
+    flex-basis: 100%;
+    gap: 2px 12px;
   }
   .ic-night {
-    min-width: 0;
-    padding: 6px 12px;
-    min-height: 50px;
-  }
-  .ic-night span {
-    font-size: 11.5px;
+    padding: 0 12px;
   }
   .ic-sheet {
-    border-radius: 0 var(--radius-tile) var(--radius-tile) var(--radius-tile);
+    border-radius: var(--radius-tile);
   }
   .ic-sec {
     padding: 14px 12px 16px;
@@ -1358,9 +1479,6 @@
     padding-left: 2px;
     padding-right: 2px;
   }
-  .ic-bands {
-    padding: 12px;
-  }
   .ic-sk-row {
     grid-template-columns: 36px minmax(0, 1fr);
   }
@@ -1368,9 +1486,14 @@
     grid-column: 1 / -1;
   }
 }
+@media (max-width: 379px) {
+  .ic-meta-tip {
+    display: none;
+  }
+}
 @media (max-width: 374px) {
   .ic-night {
-    padding: 6px 10px;
+    padding: 0 10px;
   }
   .ic-v-i {
     font-size: 15px;

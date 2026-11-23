@@ -261,6 +261,23 @@ export function couponsOf(lines: Line[]): CouponSlot[] {
   return out
 }
 
+/** The key a Kupon leg is known by: a game line's own id, or a player's rung (`${line.id}-${n}`). */
+export const kuponKey = (line: Pick<Line, 'id' | 'kind'>, n?: number | null) =>
+  line.kind === 'player' && n != null ? `${line.id}-${n}` : line.id
+
+/** Every leg on tonight's Kupons, by kuponKey, with the titles of the Kupons that carry it (in the
+ *  page's order). A slip with the same picks as an earlier one adds its title too. */
+export const kuponPicksOf = (slots: CouponSlot[]): Map<string, string[]> => {
+  const out = new Map<string, string[]>()
+  for (const s of slots)
+    for (const leg of s.coupon?.legs ?? []) {
+      const had = out.get(leg.id)
+      if (!had) out.set(leg.id, [s.spec.title])
+      else if (!had.includes(s.spec.title)) had.push(s.spec.title)
+    }
+  return out
+}
+
 /** Total odds as iddaa prints them: two decimals. */
 export const fmtOdds = (x: number) => (Math.round(x * 100) / 100).toFixed(2)
 

@@ -1,0 +1,57 @@
+/* Our Estimates: shared bits (ic-ch- chance, ic-kt- Kupon tag). Page tokens (--ic-*) live at the top
+   of IddaaCompare.css. */
+
+/* "How sure": the number first, then a 32x4 bar of the same value. */
+.ic-ch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+.ic-ch > b {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text);
+}
+.ic-ch > b small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin-left: 1px;
+}
+.ic-ch-bar {
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ic-track);
+  overflow: hidden;
+}
+.ic-ch-bar > i {
+  display: block;
+  width: var(--ic-ch, 0%);
+  height: 100%;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+
+/* On a Kupon: a filled ticket and the word (or the slip's name). Ink, never gold. */
+.ic-kt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.ic-kt > svg {
+  flex: none;
+}
+.ic-kt > i {
+  font-style: italic;
+}

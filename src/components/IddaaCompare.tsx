@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Ticket } from '@phosphor-icons/react'
+import { ArrowLeft, BookOpenText, Pulse, Ticket } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
@@ -48,6 +48,7 @@ import { RecordRibbon, RungRecord } from './RungRecord'
 import { Kupons } from './Kupons'
 import { RungScorecard } from './RungScorecard'
 import { ValueRungs } from './ValueRungs'
+import { HowToRead } from './HowToRead'
 import './IddaaCompare.css'
 
 interface Props {
@@ -97,28 +98,44 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
     if (ended) qc.invalidateQueries({ queryKey: ['me'] })
   }, [ended, qc])
   const data = q.data
+  const [how, setHow] = useState(false)
   if (!allowed || ended) return <ProInside ended={ended} onBack={onBack} />
+  const howButton = (where: 'wide' | 'phone') => (
+    <button
+      type="button"
+      className={`ic-how-btn ic-how-${where}`}
+      aria-haspopup="dialog"
+      aria-expanded={how}
+      onClick={() => setHow(true)}
+    >
+      <BookOpenText size={18} aria-hidden="true" />
+      How to read
+    </button>
+  )
   return (
     <div className="ic stack">
       <div className="ic-head">
-        <div>
-          <h1 className="page-title">Our Estimates</h1>
-          <p className="ic-note">
-            The sportsbook's lines at the last look before each tip-off, set against ours.{' '}
-            <span className="ic-hide-s">For comparison only: the sportsbook never feeds our model.</span>
-          </p>
-        </div>
-        <div className="ic-head-btns">
-          {onHealth && (
-            <button type="button" className="secondary" onClick={onHealth}>
-              Site health
-            </button>
-          )}
-          <button type="button" className="secondary" onClick={onBack}>
-            Back
+        <div className="ic-head-r1">
+          <button type="button" className="ic-ib ic-back" aria-label="Back" title="Back" onClick={onBack}>
+            <ArrowLeft size={22} aria-hidden="true" />
           </button>
+          <h1 className="page-title">Our Estimates</h1>
+          <div className="ic-head-btns">
+            {howButton('wide')}
+            {onHealth && (
+              <button type="button" className="ic-ib" aria-label="Site health" title="Site health" onClick={onHealth}>
+                <Pulse size={20} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="ic-head-r2">
+          {data && <NightTabs data={data} onDay={setDay} />}
+          {howButton('phone')}
+          {data && <NightMeta data={data} />}
         </div>
       </div>
+      {how && <HowToRead bands={data?.bands ?? null} onClose={() => setHow(false)} />}
       <RecordRibbon nights={data?.nights} />
       {q.isPending && <Skeleton />}
       {q.error && (
@@ -126,8 +143,13 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
           <p>{q.error instanceof Error ? q.error.message : "Couldn't load the comparison."}</p>
         </section>
       )}
-      {data && <Night data={data} onDay={setDay} key={data.day ?? 0} />}
-      <RungRecord nights={data?.nights} day={data?.day ?? null} />
+      {data ? (
+        <Night data={data} onDay={setDay} key={data.day ?? 0} />
+      ) : (
+        // Without a night the running record still shows (it reads its own record).
+        <RungRecord />
+      )}
+      {data && <LookLine data={data} />}
     </div>
   )
 }
@@ -226,7 +248,6 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
 
   const lines = useMemo(() => linesOf(data, new Date()), [data])
   const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
-  const latest = data.days[data.days.length - 1]
   const stage = useMemo(() => stageOf(lines, group, stat, game), [lines, group, stat, game])
   const cardGame = card == null ? null : (data.games.find((g) => g.game_id === card.id) ?? null)
 
@@ -256,15 +277,17 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
     }
   }, [flash])
 
+  // The page's order, set once for the redesign (The Slip Rail): Kupons, game picks, where we and the
+  // book disagree, our record, then the tools.
   return (
     <>
       <Kupons data={data} lines={lines} onMatch={openForm} />
-      <NightTabs data={data} onDay={onDay} latest={latest} settled={settled} />
-      <div className={`ic-sheet${motion ? ' motion' : ''}`}>
-        {data.games.length === 0 ? (
+      {data.games.length === 0 ? (
+        <div className="ic-sheet">
           <Empty data={data} onDay={onDay} />
-        ) : (
-          <>
+        </div>
+      ) : (
+        <div className={`ic-sheet${motion ? ' motion' : ''}`}>
             <NightCard
               data={data}
               lines={lines}
@@ -277,8 +300,6 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               }}
             />
             <GamePicks data={data} lines={lines} game={game} onCard={setCard} />
-            <ValueRungs data={data} lines={lines} settled={settled} />
-            <RungScorecard data={data} lines={lines} settled={settled} />
             <GapList
               lines={lines}
               settled={settled}
@@ -303,50 +324,34 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
               onOpen={(id) => setOpen((o) => (o === id ? null : id))}
             />
             <StatCloser lines={lines} game={game} />
-            <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
-            <GameBoxes data={data} lines={lines} settled={settled} />
-            {cardGame && card && (
-              <MatchCard
-                key={`${card.id}-${card.view}-${card.side}`}
-                game={cardGame}
-                initialView={card.view}
-                initialSide={card.side}
-                onClose={() => setCard(null)}
-              />
-            )}
-            <p className="ic-bands">
-              Bands: points ±{data.bands.pts}, rebounds and assists ±{data.bands.reb}, 3PM, steals and blocks ±
-              {data.bands.stl}, team points ±{data.bands.team_pts}, game total ±{data.bands.total}, margin ±
-              {data.bands.margin}. Winner: right when the pick won. Closer is level within 0.1. The book's lines have
-              its margin removed. Last read of the sportsbook{' '}
-              {data.look.checked ? (
-                <>
-                  at <span className="num">{clock(data.look.checked)}</span>{' '}
-                  {data.look.ok === false ? `failed: ${data.look.error ?? ''}` : 'worked'}
-                </>
-              ) : (
-                'not yet since the server started'
-              )}
-              .
-            </p>
-          </>
-        )}
-      </div>
+            <RungScorecard data={data} lines={lines} settled={settled} />
+        </div>
+      )}
+      <RungRecord nights={data.nights} day={data.day} />
+      {data.games.length > 0 && (
+        <div className={`ic-sheet${motion ? ' motion' : ''}`}>
+          <ValueRungs data={data} lines={lines} settled={settled} />
+          <HowDivided lines={lines} group={group} game={game} stage={stage} onSee={see} />
+          <GameBoxes data={data} lines={lines} settled={settled} />
+        </div>
+      )}
+      {cardGame && card && (
+        <MatchCard
+          key={`${card.id}-${card.view}-${card.side}`}
+          game={cardGame}
+          initialView={card.view}
+          initialSide={card.side}
+          onClose={() => setCard(null)}
+        />
+      )}
     </>
   )
 }
 
-function NightTabs({
-  data,
-  onDay,
-  latest,
-  settled,
-}: {
-  data: BookCompare
-  onDay: (d: number) => void
-  latest: number | undefined
-  settled: boolean
-}) {
+/** The nights, in the head's second row. */
+function NightTabs({ data, onDay }: { data: BookCompare; onDay: (d: number) => void }) {
+  const latest = data.days[data.days.length - 1]
+  const settled = data.games.length > 0 && data.games.every((g) => g.status === 'final')
   // Oldest on the left, tonight on the right, like a calendar (Can 2026-11-22: past days read
   // as "after today" when they sat to the right). A long row starts scrolled to the open night.
   const nights = data.nights
@@ -373,14 +378,70 @@ function NightTabs({
               {live ? 'Tonight' : nightTab(n.date) || `Day ${n.day}`}
               {live && <span className="ic-live" aria-label="reading lines" />}
             </b>
-            <span className="num">
-              {live ? `${nightLabel(n.date).split(' ').slice(1).join(' ')} · ` : ''}
-              {n.games} games
-            </span>
+            {live && n.date && <span className="num">{nightLabel(n.date).split(' ').slice(1).join(' ')}</span>}
+            {!live && <span className="sr-only">{`, ${n.games} games`}</span>}
           </button>
         )
       })}
     </div>
+  )
+}
+
+/** One meta line beside the night tabs: "2 of 7 games to come · First tip 01:00 · Last look 00:33". */
+function NightMeta({ data }: { data: BookCompare }) {
+  const n = data.games.length
+  if (n === 0) return null
+  const toCome = data.games.filter((g) => g.status !== 'final').length
+  const next = data.games
+    .filter((g) => g.status === 'scheduled')
+    .map((g) => g.tip)
+    .sort()[0]
+  return (
+    <p className="ic-meta">
+      {toCome > 0 ? (
+        <span>
+          <b className="num">{toCome}</b> of <b className="num">{n}</b> games to come
+        </span>
+      ) : (
+        <span>
+          <b className="num">{n}</b> {n === 1 ? 'game' : 'games'}, all final
+        </span>
+      )}
+      {next && clock(next) && (
+        <span className="ic-meta-tip">
+          First tip <b className="num">{clock(next)}</b>
+        </span>
+      )}
+      {data.look.checked && clock(data.look.checked) && (
+        <span>
+          Last look <b className="num">{clock(data.look.checked)}</b>
+        </span>
+      )}
+    </p>
+  )
+}
+
+/** The foot: one line on the last look at iddaa (the bands moved to How to read). */
+function LookLine({ data }: { data: BookCompare }) {
+  const { look } = data
+  return (
+    <p className="ic-foot">
+      {look.checked ? (
+        <>
+          Last look at iddaa <span className="num">{clock(look.checked)}</span>{' '}
+          {look.ok === false ? (
+            `failed${look.error ? `: ${look.error}` : ''}`
+          ) : (
+            <>
+              worked · <span className="num">{look.matched}</span> of <span className="num">{look.games}</span>{' '}
+              {look.games === 1 ? 'game' : 'games'} matched
+            </>
+          )}
+        </>
+      ) : (
+        'No look at iddaa yet since the server started'
+      )}
+    </p>
   )
 }
 

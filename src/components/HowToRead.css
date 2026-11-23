@@ -1,0 +1,72 @@
+/* Our Estimates: the How to read sheet (ic-how-). A native modal <dialog>: 560px on desktop, the
+   width less 32px on phones. */
+.ic-how {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--lift, var(--shadow));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ic-how::backdrop {
+  background: rgb(10 8 6 / 0.66);
+}
+:root[data-theme='light'] .ic-how::backdrop {
+  background: rgb(26 23 20 / 0.42);
+}
+.ic-how-in {
+  padding: 20px 24px 24px;
+}
+.ic-how-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -4px -12px 8px 0;
+}
+.ic-how-h h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.ic-how-lede {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.ic-how-dl {
+  margin: 0;
+  display: grid;
+  gap: 4px 0;
+}
+.ic-how-dl dt {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.ic-how-dl dt i {
+  font-style: italic;
+}
+.ic-how-dl dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+
+@media (max-width: 719px) {
+  .ic-how-in {
+    padding: 16px 16px 20px;
+  }
+  .ic-how-h {
+    margin-right: -8px;
+  }
+}
