@@ -489,43 +489,6 @@
   min-width: 0;
 }
 
-/* Today's React / Reply row, under a line in Chat and inside moments. */
-.feed-line > .feed-social {
-  margin: -6px 0 6px;
-}
-
-.feed-moment .feed-social {
-  margin-top: 6px;
-}
-
-.feed-social {
-  gap: 6px;
-}
-
-.feed-social .chip.sm,
-.feed-social .feed-react,
-.feed-social .feed-reply-toggle {
-  min-height: 44px;
-}
-
-/* Reactions are emoji chips; the meaning is in each chip's accessible name and title. */
-.feed-social .feed-reaction {
-  min-width: 44px;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 12px;
-}
-
-.feed-reaction-emoji {
-  font-size: 20px;
-  line-height: 1;
-  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-}
-
-.feed-social .feed-reaction[aria-pressed='true'] {
-  background: var(--accent-soft);
-}
-
 /* The end of the wire. */
 .feed-end {
   padding-top: 24px;
@@ -1005,15 +968,477 @@
   .feed-moment-move .feed-node {
     top: 12px;
   }
-
-  .feed-line > .feed-social {
-    margin: 0;
-  }
 }
 
 /* Narrow phones: two teams in the FAAB summary row. */
 @media (max-width: 374px) {
   .feed-faab-top > span:nth-child(3) {
     display: none;
+  }
+}
+
+/* Chat: one trailing 44px React/Reply button per line, the tray it opens in place, the moment actions
+   row, the reply branch and the two-tap delete. Buttons are ink or soft, never gold, never outlined. */
+/* The act column fits the button with up to two reactions and a count, so bids stay in one column. */
+.feed-row.has-act {
+  --act: 64px;
+  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px var(--act);
+  grid-template-areas:
+    'team add drop slot act'
+    '. meta meta meta .';
+}
+
+.chat-emo {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  line-height: 1;
+}
+
+.chat-act {
+  grid-area: act;
+  justify-self: end;
+  gap: 2px;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+  font-weight: 650;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+}
+
+.chat-act[aria-expanded='true'] {
+  background: var(--feed-chip);
+  color: var(--text);
+}
+
+.chat-act.has {
+  width: auto;
+  min-width: 44px;
+  max-width: var(--act);
+  padding: 0 6px;
+  gap: 1px;
+  background: var(--feed-chip);
+  color: var(--text);
+}
+
+.chat-act .chat-emo {
+  font-size: 15px;
+}
+
+.chat-act .num {
+  margin-left: 3px;
+  font-size: 13px;
+}
+
+/* Hidden until hover only where there is a real hover (a mouse or trackpad), not by width, so a touch
+   laptop or iPad still sees it. Opacity keeps it in the tab order; focus always shows it. */
+@media (hover: hover) and (pointer: fine) {
+  .chat-act:not(.has):not([aria-expanded='true']) {
+    opacity: 0;
+  }
+
+  .feed-line:hover .chat-act,
+  .chat-reply:hover .chat-act,
+  .chat-act:focus-visible {
+    opacity: 1;
+  }
+
+  .chat-act:hover {
+    background: var(--feed-chip-on);
+    color: var(--text);
+  }
+}
+
+/* A line with its tray or a new reply open drops the hover wash and gives the extra rows some air. */
+.feed-line.is-open {
+  padding-bottom: 8px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .feed-line.is-open:hover::after {
+    background: none;
+  }
+}
+
+/* The tray: four emoji chips (labelled from 760px up) and a ghost Reply, under the line. */
+.chat-tray {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0 4px;
+  animation: chat-tray-in 120ms ease-out;
+}
+
+@keyframes chat-tray-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Chips: soft fill, no outline. Pressed (yours) is a stronger fill and a thin ink ring. */
+.chat-chip,
+.chat-ink,
+.chat-soft {
+  min-height: 0;
+  height: 36px;
+  min-width: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.chat-chip,
+.chat-soft {
+  background: var(--feed-chip);
+  color: var(--text);
+}
+
+.chat-chip .chat-emo {
+  font-size: 17px;
+}
+
+.chat-chip .num {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chat-chip[aria-pressed='true'] {
+  background: var(--feed-chip-on);
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+}
+
+.chat-chip-label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.chat-ghost {
+  background: none;
+  color: var(--text-2);
+}
+
+.chat-ghost svg {
+  flex: none;
+}
+
+.chat-ghost[aria-expanded='true'] {
+  background: var(--feed-chip);
+  color: var(--text);
+}
+
+.chat-ink {
+  padding: 0 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+
+.chat-soft {
+  height: 44px;
+  padding: 0 16px;
+  font-weight: 650;
+}
+
+.chat-soft:disabled {
+  opacity: 1;
+  background: var(--raised);
+  color: var(--muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-chip:hover,
+  .chat-soft:not(:disabled):hover {
+    background: var(--feed-chip-on);
+  }
+
+  .chat-ghost:hover {
+    background: var(--feed-chip);
+    color: var(--text);
+  }
+}
+
+/* A moment's actions: used reactions, React, and Reply or the reply count. */
+.chat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.feed-moment-move .chat-actions {
+  margin-top: 0;
+}
+
+/* A move promoted in place when its first reply lands: the moment's surface fades up, once. */
+.feed-moment.is-promoted::after {
+  animation: chat-promote 240ms ease-out;
+}
+
+.feed-moment.is-promoted .chat-actions {
+  animation: chat-tray-in 240ms ease-out;
+}
+
+@keyframes chat-promote {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Posts: team, a small kind icon and the trash for your own; the text is 16px. */
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chat-msg-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  min-width: 0;
+}
+
+.chat-msg-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 650;
+}
+
+.chat-kind {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chat-msg > .feed-text {
+  margin-top: 6px;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.chat-msg .fs-card {
+  margin-top: 10px;
+}
+
+/* Replies branch off on a 2px curved line: 20px crest, team, time, text; then "Write a reply…". */
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-top: 8px;
+}
+
+.chat-thread-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chat-replies {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 4px 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-reply {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  column-gap: 10px;
+}
+
+/* A reply's React button sits at its end, pulled up so its 44px target doesn't make the reply taller. */
+.chat-reply > .chat-act {
+  grid-area: auto;
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  margin: -12px -4px -8px 0;
+}
+
+.chat-reply > .chat-tray {
+  grid-column: 2 / -1;
+  padding-bottom: 0;
+}
+
+.chat-reply > .crest {
+  margin-top: 1px;
+}
+
+/* Each reply's elbow comes off the line above; all but the last carry the line on down. */
+.chat-reply::before,
+.chat-reply:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  border-left: 2px solid var(--feed-spine);
+  pointer-events: none;
+}
+
+.chat-reply::before {
+  width: 12px;
+  height: 27px;
+  border-bottom: 2px solid var(--feed-spine);
+  border-bottom-left-radius: 12px;
+}
+
+.chat-reply:not(:last-child)::after {
+  bottom: -12px;
+}
+
+.chat-reply-body {
+  min-width: 0;
+}
+
+.chat-reply-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 20px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.chat-reply-who time {
+  flex: none;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.chat-reply .feed-text {
+  margin: 2px 0 0;
+}
+
+.chat-replies + .chat-reply-row {
+  margin-left: 30px;
+}
+
+.chat-reply-row input {
+  font-size: 14px;
+}
+
+/* Delete: a quiet trash button, then "Delete" (ink) and "Keep" (soft) in its place. */
+.chat-del {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  margin: -8px -8px -8px auto;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted);
+}
+
+.chat-del-ask {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  margin: -4px 0 -4px auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-del:hover {
+    background: var(--feed-chip);
+    color: var(--text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-act {
+    transition: none;
+  }
+
+  .chat-tray,
+  .feed-moment.is-promoted::after,
+  .feed-moment.is-promoted .chat-actions {
+    animation: none;
+  }
+}
+
+@media (max-width: 1099px) {
+  .feed-row.has-act {
+    grid-template-columns: 148px minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
+  }
+}
+
+@media (max-width: 759px) {
+  .feed-row.has-act {
+    grid-template-columns: minmax(0, 1fr) auto var(--act);
+    grid-template-areas:
+      'team slot act'
+      'players players players'
+      'meta meta meta';
+  }
+
+  /* The 44px target doesn't make the 28px first line taller. */
+  .chat-act {
+    margin: -8px -6px -8px 0;
+  }
+
+  .chat-chip,
+  .chat-ink {
+    height: 44px;
+  }
+
+  .chat-tray .chat-chip-label,
+  .chat-kind-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .chat-msg > .feed-text {
+    font-size: 15.5px;
+  }
+
+  .chat-replies {
+    padding-left: 14px;
+  }
+
+  .chat-reply::before,
+  .chat-reply:not(:last-child)::after {
+    left: -14px;
+  }
+
+  .chat-reply::before {
+    width: 10px;
+  }
+
+  .chat-replies + .chat-reply-row {
+    margin-left: 0;
+  }
+
+  .chat-del-ask {
+    margin: -8px -4px -8px auto;
   }
 }

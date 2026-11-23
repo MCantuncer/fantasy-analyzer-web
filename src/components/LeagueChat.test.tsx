@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, fetchFeed } from '../api/client'
+import { ApiError, createPost, deletePost, fetchFeed, fetchReplies, react } from '../api/client'
 import type { FeedItem, FeedPage } from '../api/client'
 import { LeagueChat } from './LeagueChat'
 
@@ -60,6 +60,10 @@ const page: FeedPage = {
 vi.mock('../api/client', async (orig) => ({
   ...(await orig<typeof import('../api/client')>()),
   fetchFeed: vi.fn(async () => page),
+  fetchReplies: vi.fn(),
+  createPost: vi.fn(),
+  deletePost: vi.fn(async () => ({ ok: true })),
+  react: vi.fn(),
 }))
 
 describe('LeagueChat wire', () => {
@@ -194,5 +198,179 @@ describe('LeagueChat FAAB and composer', () => {
     expect(container.querySelector('.chat-me, .feed-avatar, .card.composer')).toBeNull()
     expect(container.querySelector('.feed-faab-row.is-me')?.textContent).toContain('(you)')
     expect(container.querySelectorAll('.feed-filters .feed-filter')).toHaveLength(6)
+  })
+})
+
+describe('LeagueChat react and reply', () => {
+  afterEach(cleanup)
+  const me = { team_id: 3, team_name: 'Kucukesat Aspavas' }
+  const reacted = { counts: { smart: 2, steal: 1 }, mine: ['smart'] }
+  const chatPage = (patch: Record<string, Partial<FeedItem>> = {}) =>
+    ({ ...page, me, items: items.map((i) => ({ ...i, ...patch[i.id] })) }) as FeedPage
+  function renderChat() {
+    return render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <LeagueChat leagueId={1} season={2027} creds={null} />
+      </QueryClientProvider>,
+    )
+  }
+
+  it('gives each line one trailing React or reply button instead of a React / Reply text row', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { reactions: reacted } }))
+    const { container } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    const lines = [...container.querySelectorAll('.feed-line')]
+    expect(lines).toHaveLength(2)
+    expect(lines.map((l) => l.querySelectorAll('button.chat-act').length)).toEqual([1, 1])
+    expect(lines.some((l) => /React|Reply/.test(l.textContent ?? ''))).toBe(false)
+    const [used, empty] = lines.map((l) => l.querySelector('button.chat-act')!)
+    expect(used.classList.contains('has')).toBe(true)
+    expect(used.textContent).toBe('🧠🥷3')
+    expect(used.getAttribute('aria-label')).toBe('Smart move, 2; Steal, 1. React or reply')
+    expect(empty.getAttribute('aria-label')).toBe('React or reply')
+    expect(empty.querySelector('svg')).not.toBeNull()
+  })
+
+  it('opens the tray in place with your reaction pressed; Esc closes it and returns focus', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { reactions: reacted } }))
+    vi.mocked(react).mockResolvedValue({ target: 'tx:big', reactions: reacted })
+    const { container } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    const btn = container.querySelector('.feed-line button.chat-act') as HTMLButtonElement
+    expect(btn.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(btn)
+    const tray = within(container).getByRole('group', { name: "React to Kucukesat Aspavas's move" })
+    expect(btn.getAttribute('aria-expanded')).toBe('true')
+    expect(btn.getAttribute('aria-controls')).toBe(tray.id)
+    expect(tray.closest('li')).toBe(btn.closest('li'))
+    const chips = [...tray.querySelectorAll('button')]
+    expect(chips.map((c) => c.getAttribute('aria-label') ?? c.textContent)).toEqual([
+      'Steal, 1',
+      'Smart move, 2',
+      'Overpay',
+      'LOL',
+      'Reply',
+    ])
+    expect(chips.map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false', 'false', null])
+
+    fireEvent.keyDown(chips[0], { key: 'Escape' })
+    expect(container.querySelector('.chat-tray')).toBeNull()
+    expect(document.activeElement).toBe(btn)
+
+    fireEvent.click(btn)
+    fireEvent.click(within(container).getByRole('button', { name: 'Overpay' }))
+    await waitFor(() => expect(vi.mocked(react).mock.calls[0]?.slice(1, 4)).toEqual(['tx:big', 'overpay', true]))
+    expect(container.querySelector('.chat-tray')).toBeNull()
+  })
+
+  it('opens a reply under the line from the tray, and promotes the line in place when the reply lands', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage())
+    vi.mocked(fetchReplies).mockResolvedValue({
+      target: 'tx:fa',
+      items: [{ ...base, id: 'post:7', kind: 'post', at: new Date().toISOString(), team_id: 3, body: 'Good pickup' }],
+    })
+    vi.mocked(createPost).mockImplementation(async () => {
+      vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:fa': { replies: 1 } }))
+      return { ...base, id: 'post:7', kind: 'post', at: new Date().toISOString(), team_id: 3, body: 'Good pickup' }
+    })
+    const { container } = renderChat()
+    await within(container).findByText('Cam Spencer')
+    const li = within(container).getByText('Cam Spencer').closest('li')!
+    fireEvent.click(li.querySelector('button.chat-act')!)
+    fireEvent.click(within(li).getByRole('button', { name: 'Reply' }))
+    const input = within(li).getByPlaceholderText('Write a reply…')
+    expect(document.activeElement).toBe(input)
+    expect(li.className).toBe('feed-entry feed-line is-open')
+    expect(fetchReplies).not.toHaveBeenCalled()
+
+    fireEvent.change(input, { target: { value: 'Good pickup' } })
+    fireEvent.submit(input.closest('form')!)
+    await waitFor(() => expect(li.className).toBe('feed-entry feed-moment feed-moment-move is-promoted'))
+    expect(li.querySelector('button.chat-act')).toBeNull()
+    expect(within(li).getByRole('button', { name: '1 reply' }).getAttribute('aria-expanded')).toBe('true')
+    const reply = await within(li).findByText('Good pickup')
+    expect(reply.closest('.chat-reply')?.querySelector('.crest')).not.toBeNull()
+    expect(within(li).getByPlaceholderText('Write a reply…')).toBeTruthy()
+  })
+
+  it('shows moves with replies as moments with used chips, React and the reply count, without animating them', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { replies: 2, reactions: reacted } }))
+    const { container } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    const moment = container.querySelector('.feed-moment-move')!
+    expect(moment.classList.contains('is-promoted')).toBe(false)
+    const actions = [...moment.querySelectorAll('.chat-actions button')]
+    expect(actions.map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
+      'Steal, 1',
+      'Smart move, 2',
+      'React',
+      '2 replies',
+    ])
+    // The old shared React / Reply row and its small bordered chips are gone.
+    expect(container.querySelector('.feed-social, .feed-react, .feed-reply-toggle, .chip.sm')).toBeNull()
+
+    fireEvent.click(actions[2])
+    expect([...moment.querySelectorAll('.chat-actions .chat-chip[aria-pressed]')]).toHaveLength(4)
+    fireEvent.keyDown(actions[2], { key: 'Escape' })
+    expect([...moment.querySelectorAll('.chat-actions .chat-chip[aria-pressed]')]).toHaveLength(2)
+  })
+
+  it('lets you react to a reply with the same trailing button and tray, without Reply', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { replies: 1 } }))
+    vi.mocked(fetchReplies).mockResolvedValue({
+      target: 'tx:big',
+      items: [
+        {
+          ...base,
+          id: 'post:8',
+          kind: 'post',
+          at: new Date().toISOString(),
+          team_id: 6,
+          body: 'Robbery',
+          reactions: { counts: { lol: 2 }, mine: ['lol'] },
+        },
+      ],
+    })
+    vi.mocked(react).mockClear()
+    vi.mocked(react).mockResolvedValue({
+      target: 'post:8',
+      reactions: { counts: { lol: 2, steal: 1 }, mine: ['lol', 'steal'] },
+    })
+    const { container } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    fireEvent.click(within(container).getByRole('button', { name: '1 reply' }))
+    const reply = (await within(container).findByText('Robbery')).closest('li.chat-reply') as HTMLElement
+    const btn = reply.querySelector('button.chat-act')!
+    expect(reply.querySelectorAll('button.chat-act')).toHaveLength(1)
+    expect(btn.textContent).toBe('😂2')
+    expect(btn.getAttribute('aria-label')).toBe('LOL, 2. React')
+    fireEvent.click(btn)
+    const tray = within(reply).getByRole('group', { name: "React to Cayyolu Bastards's reply" })
+    const chips = [...tray.querySelectorAll('button')]
+    expect(chips.map((c) => c.getAttribute('aria-label'))).toEqual(['Steal', 'Smart move', 'Overpay', 'LOL, 2'])
+    expect(chips.map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false', 'true'])
+    fireEvent.click(chips[0])
+    await waitFor(() => expect(vi.mocked(react).mock.calls[0]?.slice(1, 4)).toEqual(['post:8', 'steal', true]))
+    await waitFor(() => expect(btn.textContent).toBe('😂🥷3'))
+    expect(document.activeElement).toBe(btn)
+  })
+
+  it('deletes your own post in two taps, with focus on Keep', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'post:1': { team_id: 3 } }))
+    const { container } = renderChat()
+    await within(container).findByText('nice steal')
+    const post = container.querySelector('.feed-moment-post')!
+    const trash = within(post as HTMLElement).getByRole('button', { name: 'Delete your post' })
+    expect(trash.querySelector('svg')).not.toBeNull()
+    fireEvent.click(trash)
+    const keep = within(post as HTMLElement).getByRole('button', { name: 'Keep' })
+    expect(document.activeElement).toBe(keep)
+    fireEvent.click(keep)
+    const again = within(post as HTMLElement).getByRole('button', { name: 'Delete your post' })
+    expect(document.activeElement).toBe(again)
+    expect(deletePost).not.toHaveBeenCalled()
+    fireEvent.click(again)
+    fireEvent.click(within(post as HTMLElement).getByRole('button', { name: 'Delete' }))
+    await waitFor(() => expect(vi.mocked(deletePost).mock.calls[0][1]).toBe(1))
   })
 })
