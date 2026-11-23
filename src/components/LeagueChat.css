@@ -1043,6 +1043,7 @@
   }
 
   .feed-line:hover .chat-act,
+  .chat-reply:hover .chat-act,
   .chat-act:focus-visible {
     opacity: 1;
   }
@@ -1264,8 +1265,22 @@
 .chat-reply {
   position: relative;
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr) auto;
   column-gap: 10px;
+}
+
+/* A reply's React button sits at its end, pulled up so its 44px target doesn't make the reply taller. */
+.chat-reply > .chat-act {
+  grid-area: auto;
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  margin: -12px -4px -8px 0;
+}
+
+.chat-reply > .chat-tray {
+  grid-column: 2 / -1;
+  padding-bottom: 0;
 }
 
 .chat-reply > .crest {

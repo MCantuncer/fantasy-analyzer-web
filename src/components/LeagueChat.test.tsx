@@ -315,6 +315,46 @@ describe('LeagueChat react and reply', () => {
     expect([...moment.querySelectorAll('.chat-actions .chat-chip[aria-pressed]')]).toHaveLength(2)
   })
 
+  it('lets you react to a reply with the same trailing button and tray, without Reply', async () => {
+    vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { replies: 1 } }))
+    vi.mocked(fetchReplies).mockResolvedValue({
+      target: 'tx:big',
+      items: [
+        {
+          ...base,
+          id: 'post:8',
+          kind: 'post',
+          at: new Date().toISOString(),
+          team_id: 6,
+          body: 'Robbery',
+          reactions: { counts: { lol: 2 }, mine: ['lol'] },
+        },
+      ],
+    })
+    vi.mocked(react).mockClear()
+    vi.mocked(react).mockResolvedValue({
+      target: 'post:8',
+      reactions: { counts: { lol: 2, steal: 1 }, mine: ['lol', 'steal'] },
+    })
+    const { container } = renderChat()
+    await within(container).findByText('Tristan da Silva')
+    fireEvent.click(within(container).getByRole('button', { name: '1 reply' }))
+    const reply = (await within(container).findByText('Robbery')).closest('li.chat-reply') as HTMLElement
+    const btn = reply.querySelector('button.chat-act')!
+    expect(reply.querySelectorAll('button.chat-act')).toHaveLength(1)
+    expect(btn.textContent).toBe('😂2')
+    expect(btn.getAttribute('aria-label')).toBe('LOL, 2. React')
+    fireEvent.click(btn)
+    const tray = within(reply).getByRole('group', { name: "React to Cayyolu Bastards's reply" })
+    const chips = [...tray.querySelectorAll('button')]
+    expect(chips.map((c) => c.getAttribute('aria-label'))).toEqual(['Steal', 'Smart move', 'Overpay', 'LOL, 2'])
+    expect(chips.map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false', 'true'])
+    fireEvent.click(chips[0])
+    await waitFor(() => expect(vi.mocked(react).mock.calls[0]?.slice(1, 4)).toEqual(['post:8', 'steal', true]))
+    await waitFor(() => expect(btn.textContent).toBe('😂🥷3'))
+    expect(document.activeElement).toBe(btn)
+  })
+
   it('deletes your own post in two taps, with focus on Keep', async () => {
     vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'post:1': { team_id: 3 } }))
     const { container } = renderChat()

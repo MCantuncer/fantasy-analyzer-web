@@ -491,6 +491,7 @@ function ChatAct({
   item,
   open,
   controls,
+  name = 'React or reply',
   onToggle,
   onClose,
 }: {
@@ -498,12 +499,14 @@ function ChatAct({
   item: FeedItem
   open: boolean
   controls: string
+  /** What the button does: "React or reply" on a move, "React" on a reply. */
+  name?: string
   onToggle: () => void
   onClose: () => void
 }) {
   const used = usedReactions(item)
   const total = used.reduce((s, x) => s + x.n, 0)
-  const label = used.length ? `${used.map((x) => `${x.label}, ${x.n}`).join('; ')}. React or reply` : 'React or reply'
+  const label = used.length ? `${used.map((x) => `${x.label}, ${x.n}`).join('; ')}. ${name}` : name
   return (
     <button
       ref={ref}
@@ -583,7 +586,7 @@ function ReactionChip({
   )
 }
 
-/** The tray a line's button opens in place: the four reactions (yours pressed) and Reply. */
+/** The tray a line's button opens in place: the four reactions (yours pressed) and, on a move, Reply. */
 function ReactTray({
   id,
   item,
@@ -595,14 +598,14 @@ function ReactTray({
   item: FeedItem
   ctx: Ctx
   onClose: () => void
-  onReply: () => void
+  onReply?: () => void
 }) {
   return (
     <div
       id={id}
       className="chat-tray"
       role="group"
-      aria-label={`React to ${teamName(ctx.teams, item.team_id)}'s move`}
+      aria-label={`React to ${teamName(ctx.teams, item.team_id)}'s ${item.kind === 'post' ? 'reply' : 'move'}`}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault()
@@ -613,10 +616,12 @@ function ReactTray({
       {REACTIONS.map((x) => (
         <ReactionChip key={x.key} item={item} reaction={x} ctx={ctx} label onDone={onClose} />
       ))}
-      <button type="button" className="chat-chip chat-ghost" onClick={onReply}>
-        <ArrowBendUpLeft size={17} aria-hidden="true" />
-        Reply
-      </button>
+      {onReply && (
+        <button type="button" className="chat-chip chat-ghost" onClick={onReply}>
+          <ArrowBendUpLeft size={17} aria-hidden="true" />
+          Reply
+        </button>
+      )}
     </div>
   )
 }
@@ -920,11 +925,19 @@ function Replies({ item, ctx, focus = false }: { item: FeedItem; ctx: Ctx; focus
   )
 }
 
+/** One reply: crest, team, time and text, with the same quiet trailing React button as a line. */
 function Reply({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const mine = ctx.link?.teamId === item.team_id
   const name = teamName(ctx.teams, item.team_id)
+  const [tray, setTray] = useState(false)
+  const actRef = useRef<HTMLButtonElement>(null)
+  const trayId = useId()
+  function closeTray() {
+    setTray(false)
+    actRef.current?.focus()
+  }
   return (
-    <li className="chat-reply">
+    <li className={tray ? 'chat-reply is-open' : 'chat-reply'}>
       <TeamCrest name={name} colour={ctx.colours.get(item.team_id)} size={20} />
       <div className="chat-reply-body">
         <div className="chat-reply-who">
@@ -937,6 +950,16 @@ function Reply({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
         </div>
         <p className="feed-text">{item.body}</p>
       </div>
+      <ChatAct
+        ref={actRef}
+        item={item}
+        open={tray}
+        controls={trayId}
+        name="React"
+        onToggle={() => setTray(!tray)}
+        onClose={closeTray}
+      />
+      {tray && <ReactTray id={trayId} item={item} ctx={ctx} onClose={closeTray} />}
     </li>
   )
 }
