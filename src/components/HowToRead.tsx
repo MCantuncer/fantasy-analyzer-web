@@ -52,7 +52,11 @@ export function HowToRead({ bands, onClose }: { bands: BookCompare['bands'] | nu
           <dt>
             <i>Kupon</i>
           </dt>
-          <dd>iddaa's word for a bet slip: a few picks whose odds multiply. Every pick has to win for it to pay.</dd>
+          <dd>
+            iddaa's word for a bet slip: a few picks whose odds multiply. Every pick has to win for it to pay. At most
+            two picks from one game, and only ones that barely move together (Surprise keeps one). If a player sits
+            out, iddaa counts his pick at <span className="num">1.00</span>.
+          </dd>
           <dt>Total odds · Probability</dt>
           <dd>
             The picks' odds multiplied, and our chances multiplied. iddaa's own odds only; {MIN_ODD.toFixed(2)} or less
