@@ -203,7 +203,7 @@
 .sk-wire-line {
   position: relative;
   display: grid;
-  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px;
+  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
   align-items: center;
   column-gap: 12px;
   padding-left: var(--sk-content-x);

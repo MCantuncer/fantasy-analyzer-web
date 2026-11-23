@@ -228,7 +228,9 @@
 
 .feed-row {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px;
+  /* Team and bid get what their content needs (the longest team name with its icon is ~150px, a
+     "Free agent" slot ~84px), so the player names get the rest. */
+  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
   grid-template-areas:
     'team add drop slot'
     '. meta meta meta';
@@ -286,16 +288,29 @@
   min-width: 0;
 }
 
+.feed-drop .feed-player {
+  gap: 6px;
+}
+
 .feed-face {
   display: inline-flex;
   flex: none;
 }
 
 .feed-pn {
+  display: flex;
   min-width: 0;
+  white-space: nowrap;
+}
+
+/* The name's own link carries the ellipsis (a button inside a clipped span would just be cut off),
+   so it only shortens when the column is truly out of room; its accessible name stays the full name. */
+.feed-pn button.pc-link {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .feed-add .feed-pn,
@@ -941,13 +956,15 @@
   }
 }
 
-@media (min-width: 1100px) {
+/* The rail takes 304px; below 1280 the wire needs that room for full player names, so the rail
+   folds into the summary row there. */
+@media (min-width: 1280px) {
   .feed-page.has-rail {
     grid-template-columns: minmax(0, 1fr) 248px;
   }
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   .feed-faab {
     display: none;
   }
@@ -1296,7 +1313,7 @@
 /* The act column fits the button with up to two reactions and a count, so bids stay in one column. */
 .feed-row.has-act {
   --act: 64px;
-  grid-template-columns: 168px minmax(0, 1.2fr) minmax(0, 1fr) 96px var(--act);
+  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
   grid-template-areas:
     'team add drop slot act'
     '. meta meta meta .';
