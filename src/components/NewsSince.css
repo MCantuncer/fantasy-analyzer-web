@@ -160,6 +160,24 @@
   display: grid;
 }
 
+/* Over a row's face slot: his own link to the player card, outside the row's button. */
+.ns-rows li {
+  position: relative;
+}
+
+.ns-face-slot {
+  width: 44px;
+  height: 44px;
+}
+
+.ns-card button.pc-link.ns-face-link {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  border-radius: 34%;
+}
+
 .ns-face-icon {
   display: grid;
   place-items: center;

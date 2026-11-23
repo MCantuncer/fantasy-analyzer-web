@@ -86,10 +86,17 @@
 }
 
 .sw-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
-  overflow: hidden;
   font-size: 13px;
   font-weight: 500;
+}
+
+.sw-name-text {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

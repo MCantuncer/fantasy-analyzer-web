@@ -30,18 +30,3 @@ export function InjuryBadges({ players }: { players: PlayerRef[] }) {
     </>
   )
 }
-
-/** "A + B" with each player's injury or durability mark right after his own name. */
-export function NamesWithSignals({ players }: { players: PlayerRef[] }) {
-  return (
-    <>
-      {players.map((p, i) => (
-        <Fragment key={p.id}>
-          {i > 0 && ' + '}
-          {p.name}
-          <InjuryBadges players={[p]} />
-        </Fragment>
-      ))}
-    </>
-  )
-}

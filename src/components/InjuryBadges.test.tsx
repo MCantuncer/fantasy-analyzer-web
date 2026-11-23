@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlayerRef } from '../api/client'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { InjuryBadges } from './InjuryBadges'
 
 const player = (name: string, injury_status: string, extra: Partial<PlayerRef> = {}) =>
@@ -51,6 +52,24 @@ describe('InjuryBadges', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it("opens the player's card from his name in the explainer, which then closes", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      const lavine = player('Zach LaVine', 'ACTIVE', { injury_prone: true, games_share: 0.62 })
+      const { container } = render(<InjuryBadges players={[lavine]} />)
+      const chip = within(container).getByRole('button', { name: /Durability 62/ })
+      fireEvent.click(chip)
+      const pop = screen.getByRole('dialog', { name: 'Durability score for Zach LaVine' })
+      fireEvent.click(within(pop).getByRole('button', { name: 'Zach LaVine' }))
+      expect(open).toHaveBeenCalledWith({ id: lavine.id, name: 'Zach LaVine' })
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(chip).toHaveFocus()
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
   })
 
   it('opens from the keyboard too', () => {

@@ -365,7 +365,8 @@ function WhoGains({
   if (impact.isLoading) {
     return (
       <p className="small muted" role="status">
-        Comparing {player.pro_team}'s games with and without {player.name}…
+        Comparing {player.pro_team}'s games with and without{' '}
+        <PlayerLink player={{ id: player.player_id, name: player.name }} />…
       </p>
     )
   }

@@ -14,6 +14,7 @@ import {
 import { teamLight } from "../lib/nbaTeams";
 import { useFeature } from "../lib/pro";
 import { PlayerLink } from "./PlayerCard";
+import { PlayerHead } from "./PlayerHead";
 import { ProLock } from "./Pro";
 import { LiveQuarters } from "./LiveQuarters";
 import "./LiveLine.css";
@@ -103,6 +104,16 @@ export function LiveLine({
               return (
                 <li key={r.player_id} className="lvl-row">
                   <span className="lvl-name">
+                    <PlayerLink
+                      player={{ id: r.player_id, name: r.name }}
+                      decorative
+                    >
+                      <PlayerHead
+                        player={{ id: r.player_id, name: r.name }}
+                        size={22}
+                        team={team.abbrev}
+                      />
+                    </PlayerLink>
                     <span className="lvl-who">
                       <PlayerLink player={{ id: r.player_id, name: r.name }} />
                     </span>

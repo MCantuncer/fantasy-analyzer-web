@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ScoreDay } from '../api/client'
 import { game, line } from '../test/fixtures'
+import { setPlayerCardHost } from '../lib/playerCard'
 import { PlayerCardHost } from './PlayerCard'
 import { Scores, type TonightMatchup } from './Scores'
 import pregame from '../test/pregame-orl-bkn.json'
@@ -262,6 +263,8 @@ describe('Scores', () => {
     expect(within(panel).getByText(/as of Half/)).toBeInTheDocument()
     const rows = within(panel).getAllByRole('listitem')
     expect(rows.map((r) => r.querySelector('.lvl-who')?.textContent)).toEqual(['Amen Thompson', 'Tari Eason'])
+    // Each row leads with a small face.
+    expect(rows.every((r) => r.querySelector('.lvl-name .head'))).toBe(true)
     expect(rows[0]).toHaveTextContent('20 now, ends about 31, +15 against his line of 16.')
     expect(rows[1]).toHaveTextContent('−3')
     expect(within(panel).getByText(/half of finals land within 3.1 points/)).toBeInTheDocument()
@@ -327,6 +330,26 @@ describe('Scores', () => {
     expect(screen.getByText(/All games include your players · 3 of your players in action/)).toBeInTheDocument()
   })
 
+  it("opens a player's card from the names on a game card with nothing to open yet", async () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      const tonight = { ...DAY.games[1], id: 9 }
+      vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+        Promise.resolve(new Response(JSON.stringify({ ...DAY, games: [tonight] }))),
+      )
+      const { container } = renderScores()
+      await screen.findByRole('radio', { name: 'Mine 1 game' })
+      const card = container.querySelector<HTMLElement>('.game-card[data-game="9"]')!
+      expect(card.tagName).toBe('DIV')
+      expect(card).toHaveTextContent('3 of yours: G. Antetokounmpo, D. Mitchell, K. Dunn')
+      fireEvent.click(within(card).getByRole('button', { name: 'K. Dunn' }))
+      expect(open).toHaveBeenCalledWith({ id: 13, name: 'Kris Dunn' })
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
+  })
+
   it('offers all games when none of mine play that day', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve(new Response(JSON.stringify({ ...DAY, games: [DAY.games[1]] }))),
@@ -362,6 +385,25 @@ describe('Scores', () => {
     // The full list of NBA games is one tap away.
     fireEvent.click(within(week).getByRole('button', { name: 'All 2 NBA games' }))
     expect(week).toHaveTextContent('NO@DEN')
+  })
+
+  it("gives each week row a small face, and the name opens the player's card", async () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      mockApi({ '/api/scores/sits': () => ({ days: [{ day: 5, date: '2026-10-24', sits: [13] }] }) })
+      renderScores()
+      const week = await screen.findByRole('region', { name: 'Still to play this week' })
+      const row = within(week).getByRole('rowheader', { name: 'G. Antetokounmpo' })
+      // The face is lit by his own club (MIA), not the opponent's.
+      const face = row.querySelector('.head')
+      expect(face).not.toBeNull()
+      expect(face).toHaveClass('head-team')
+      fireEvent.click(within(row).getByRole('button', { name: 'G. Antetokounmpo' }))
+      expect(open).toHaveBeenCalledWith({ id: 11, name: 'Giannis Antetokounmpo' })
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
   })
 
   it('jumps to any day of the season from the picker', async () => {
@@ -550,6 +592,18 @@ describe('Scores', () => {
     // Can owns Banchero (out tonight); the rival owns Wagner and Carter Jr.
     expect(within(box as HTMLElement).getByText('Yours tonight')).toBeInTheDocument()
     expect(within(box as HTMLElement).getAllByText('Out tonight').length).toBeGreaterThan(0)
+    // Out tonight and where his share went: each name opens the player card.
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      const outline = box.querySelector<HTMLElement>('.pg-outline')!
+      fireEvent.click(within(outline).getByRole('button', { name: 'P. Banchero' }))
+      expect(open).toHaveBeenLastCalledWith({ id: expect.any(Number), name: 'Paolo Banchero' })
+      fireEvent.click(within(outline).getByRole('button', { name: 'Wagner' }))
+      expect(open).toHaveBeenLastCalledWith({ id: 4566434, name: 'Franz Wagner' })
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
     // A row opens to his line built step by step.
     fireEvent.click(within(box as HTMLElement).getByRole('button', { name: "Why Franz Wagner's line" }))
     expect(within(box as HTMLElement).getByText('His usual line')).toBeInTheDocument()

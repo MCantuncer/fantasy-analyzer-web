@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as client from '../api/client'
 import type { WeekRecap } from '../api/client'
 import { readRecap } from '../lib/filmRoom'
 import { teamColours } from '../lib/league'
+import { setPlayerCardHost } from '../lib/playerCard'
 import week2 from '../test/recap-week2.json'
 import { FilmPostCard, FilmShare } from './FilmShare'
 
@@ -27,6 +28,26 @@ const colours = teamColours(
 const wrap = (ui: ReactNode) => <QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>
 
 describe('posting game balls to League Chat', () => {
+  it("opens a game ball player's card from his name or his face", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    try {
+      render(wrap(<FilmShare recap={recap} d={readRecap(recap, 3)} name={name} colours={colours} leagueRef={ref} />))
+      fireEvent.click(screen.getByRole('button', { name: 'Post game balls to League Chat' }))
+      const preview = screen.getByLabelText('Preview')
+      const star = recap.players[0]
+      fireEvent.click(within(preview).getByRole('button', { name: star.name }))
+      expect(open).toHaveBeenLastCalledWith({ id: star.player_id, name: star.name })
+      // The face beside it opens the same card, out of the tab order.
+      const face = preview.querySelector<HTMLElement>('.fs-pic .pc-link-face')!
+      expect(face).toHaveAttribute('tabindex', '-1')
+      fireEvent.click(face)
+      expect(open).toHaveBeenCalledTimes(2)
+    } finally {
+      act(() => setPlayerCardHost(null))
+    }
+  })
+
   it('previews the card and posts the readable text with your line', async () => {
     render(wrap(<FilmShare recap={recap} d={readRecap(recap, 3)} name={name} colours={colours} leagueRef={ref} />))
     fireEvent.click(screen.getByRole('button', { name: 'Post game balls to League Chat' }))

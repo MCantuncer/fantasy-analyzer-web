@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { FixtureDay } from '../api/client'
 import { dayLabel, isOut } from '../lib/scores'
 import { PlayerLink } from './PlayerCard'
-import { TeamLogo } from './PlayerHead'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 import './ScoresWeek.css'
 
 type Side = FixtureDay['games'][number]['home']
@@ -15,6 +15,8 @@ interface Cell {
 interface Row {
   id: number
   name: string
+  /** His own NBA team, for the face's team light. */
+  team: string | null
   cells: Cell[]
   starts: number
 }
@@ -27,8 +29,15 @@ function buildRows(week: FixtureDay[]): Row[] {
     for (const g of d.games) {
       for (const p of g.my_players) {
         let row = rows.get(p.player_id)
+        const own = p.pro_team_id === g.home.pro_team_id ? g.home : p.pro_team_id === g.away.pro_team_id ? g.away : null
         if (!row) {
-          row = { id: p.player_id, name: p.name, cells: week.map(() => ({ kind: 'none' })), starts: 0 }
+          row = {
+            id: p.player_id,
+            name: p.name,
+            team: own?.abbrev ?? null,
+            cells: week.map(() => ({ kind: 'none' })),
+            starts: 0,
+          }
           rows.set(p.player_id, row)
         }
         const opp = p.pro_team_id === g.home.pro_team_id ? g.away : g.home
@@ -111,7 +120,12 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
           {rows.map((r) => (
             <div key={r.id} className="sw-row" role="row" style={cols}>
               <span role="rowheader" className="sw-name">
-                <PlayerLink player={{ id: r.id, name: r.name }}>{shortName(r.name)}</PlayerLink>
+                <PlayerLink player={{ id: r.id, name: r.name }} decorative>
+                  <PlayerHead player={{ id: r.id, name: r.name }} size={22} team={r.team} />
+                </PlayerLink>
+                <span className="sw-name-text">
+                  <PlayerLink player={{ id: r.id, name: r.name }}>{shortName(r.name)}</PlayerLink>
+                </span>
               </span>
               {r.cells.map((c, i) => (
                 <span key={i} role="cell" className={`sw-cell sw-${c.kind}`} title={cellTitle(c)}>

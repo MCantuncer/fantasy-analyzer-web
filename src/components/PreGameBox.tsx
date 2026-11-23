@@ -467,7 +467,9 @@ function OutLine({ side, teamId }: { side: PregameSide; teamId: number }) {
       {side.out.map((o, i) => (
         <span key={o.player_id}>
           {i > 0 && ', '}
-          <s>{initial(o.name)}</s>
+          <s>
+            <PlayerLink player={{ id: o.player_id, name: o.name }}>{initial(o.name)}</PlayerLink>
+          </s>
           {o.owner_team_id === teamId && <span className="pg-yours"> (yours)</span>}
         </span>
       ))}
@@ -476,9 +478,10 @@ function OutLine({ side, teamId }: { side: PregameSide; teamId: number }) {
           {' '}
           · <span className="num">{share}</span> a game to share:{' '}
           {gains.map((g, i) => (
-            <span key={g.name}>
+            <span key={g.player_id}>
               {i > 0 && ', '}
-              {g.name} <span className="num">+{g.pts}</span>
+              <PlayerLink player={{ id: g.player_id, name: g.full_name }}>{g.name}</PlayerLink>{' '}
+              <span className="num">+{g.pts}</span>
             </span>
           ))}
         </>

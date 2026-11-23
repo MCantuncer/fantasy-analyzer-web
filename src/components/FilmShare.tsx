@@ -13,14 +13,20 @@ import {
   readRecap,
   type FilmRoomData,
 } from '../lib/filmRoom'
+import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import './FilmShare.css'
 
 type NameFn = (id: number) => string
 
+/** His face: opens his card like the name beside it, out of the tab order. */
 function Face({ p, size }: { p: Pick<RecapPlayer, 'player_id' | 'name' | 'pro_team_id'>; size: number }) {
-  return <PlayerHead player={{ id: p.player_id, name: p.name }} team={nbaAbbrev(p.pro_team_id)} size={size} />
+  return (
+    <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
+      <PlayerHead player={{ id: p.player_id, name: p.name }} team={nbaAbbrev(p.pro_team_id)} size={size} />
+    </PlayerLink>
+  )
 }
 
 /** The three game balls: stacked on phones, three across from 760px. The card posted to League Chat and its preview. */
@@ -47,7 +53,9 @@ function BallRows({
             <Face p={p} size={36} />
           </span>
           <span className="fs-who">
-            <span className="fs-name">{p.name}</span>
+            <span className="fs-name">
+              <PlayerLink player={{ id: p.player_id, name: p.name }} />
+            </span>
             <span className="fs-sub num">
               {bestTotal(p)}
               {p.owner_team_id != null ? ` · ${name(p.owner_team_id)}` : ' · free agent'}
@@ -79,7 +87,9 @@ function BallRows({
             <Face p={tp} size={36} />
           </span>
           <span className="fs-who">
-            <span className="fs-name">{tp.name}</span>
+            <span className="fs-name">
+              <PlayerLink player={{ id: tp.player_id, name: tp.name }} />
+            </span>
             <span className="fs-sub">
               Added {dayName(tp.weekday)}, {games(tp.after.games)} for {name(tp.by)}
             </span>

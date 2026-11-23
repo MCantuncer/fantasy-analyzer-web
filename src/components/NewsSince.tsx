@@ -16,6 +16,7 @@ import {
 import type { AnalysisReport, ReportChange } from '../api/client'
 import { pct } from '../lib/format'
 import { teamColours } from '../lib/league'
+import { usePlayerCard } from '../lib/playerCard'
 import { lastName } from '../lib/moveTiming'
 import {
   buildNews,
@@ -95,11 +96,16 @@ function WasGain({ gain }: { gain: NonNullable<NewsRow['wasGain']> }) {
 
 function Row({ row, colours, onGo }: { row: NewsRow; colours: Map<number, string>; onGo?: (k: NewsRowKind) => void }) {
   const RowIcon = ROW_ICONS[row.kind]
+  const card = usePlayerCard()
+  // The row is a button to Moves, so his face sits over it as its own link to the player card.
+  const faceLink = !!card && !!row.player && row.player.id > 0
   return (
     <li>
       <button type="button" className="ns-row" onClick={() => onGo?.(row.kind)} disabled={!onGo}>
         <span className="ns-face" aria-hidden="true">
-          {row.player ? (
+          {faceLink ? (
+            <span className="ns-face-slot" />
+          ) : row.player ? (
             <PlayerHead player={row.player} size={44} team={row.player.pro_team} />
           ) : (
             <span className="ns-face-icon">
@@ -153,6 +159,12 @@ function Row({ row, colours, onGo }: { row: NewsRow; colours: Map<number, string
           )}
         </span>
       </button>
+      {faceLink && row.player && (
+        <PlayerLink player={row.player} className="ns-face-link">
+          <PlayerHead player={row.player} size={44} team={row.player.pro_team} />
+          <span className="sr-only">{row.player.name}</span>
+        </PlayerLink>
+      )}
     </li>
   )
 }

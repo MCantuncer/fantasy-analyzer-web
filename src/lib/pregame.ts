@@ -257,15 +257,18 @@ export function people(b: PregameBox, teamId: number | null, rivalId: number | n
 }
 
 /** Who is out and where their share went: each teammate's points from "Teammates out", biggest first. */
-export function outShare(side: PregameSide): { share: number | null; gains: { name: string; pts: number }[] } {
+export function outShare(side: PregameSide): {
+  share: number | null
+  gains: { player_id: number; name: string; full_name: string; pts: number }[]
+} {
   let share: number | null = null
-  const gains: { name: string; pts: number }[] = []
+  const gains: { player_id: number; name: string; full_name: string; pts: number }[] = []
   for (const p of side.players) {
     const r = (p.line.reasons ?? []).find((x) => x.kind === 'teammates_out')
     if (!r) continue
     const m = /(\d+) points a game/.exec(r.text)
     if (m && share == null) share = Number(m[1])
-    if (r.pts >= 0.5) gains.push({ name: lastName(p.name), pts: Math.round(r.pts) })
+    if (r.pts >= 0.5) gains.push({ player_id: p.player_id, name: lastName(p.name), full_name: p.name, pts: Math.round(r.pts) })
   }
   gains.sort((a, c) => c.pts - a.pts)
   return { share, gains: gains.slice(0, 4) }
