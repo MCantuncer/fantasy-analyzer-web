@@ -67,7 +67,7 @@ describe('Pro spots', () => {
     const sheet = await screen.findByRole('dialog', { name: 'Free runs your league. Pro adds the games.' })
     expect(sheet.textContent).toContain('Then $39 a year. Cancel any time.')
     expect(screen.getByRole('radio', { name: /Yearly/ }).getAttribute('aria-checked')).toBe('true')
-    fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }))
+    fireEvent.click(screen.getByRole('radio', { name: /Monthly/ }))
     expect(sheet.textContent).toContain('Then $4.99 a month. Cancel any time.')
     await waitFor(() =>
       expect((screen.getByRole('button', { name: 'Start 7-day free trial' }) as HTMLButtonElement).disabled).toBe(false),
@@ -106,11 +106,11 @@ describe('Account plan section', () => {
   it('stays hidden for Free until checkout is open', async () => {
     mockBilling(false)
     wrap(FREE, <ProPlan onPick={vi.fn()} />)
-    await waitFor(() => expect(screen.queryByText('Your plan')).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Your plan' })).toBeNull())
     cleanup()
     mockBilling(true)
     wrap(FREE, <ProPlan onPick={vi.fn()} />)
-    expect(await screen.findByText('Your plan')).toBeTruthy()
+    expect(await screen.findByRole('region', { name: 'Your plan' })).toBeTruthy()
   })
 
   it('says each Pro state in a sentence', () => {

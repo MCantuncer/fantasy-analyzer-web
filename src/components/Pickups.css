@@ -516,3 +516,8 @@ button.fa-more {
   --hr-well: var(--fa-slip);
   margin: 0 0 14px;
 }
+
+/* Free: one Pro lock for the next-game lines, under the head, lined up with the shared-drop note. */
+.pk-pro {
+  margin: 12px 20px 4px;
+}
