@@ -20,10 +20,23 @@ function useSlow(afterMs: number) {
   return seconds * 1000 >= afterMs ? seconds : null
 }
 
-/** One quiet line once a load runs long: the free server is probably waking up. */
+/** Past this the server is not waking up, it is down: say so instead of counting on. */
+export const GIVE_UP_SECONDS = 90
+
+/** One quiet line once a load runs long: the server is probably waking up. */
 function SlowNote() {
   const seconds = useSlow(6_000)
   if (seconds === null) return null
+  if (seconds >= GIVE_UP_SECONDS) {
+    return (
+      <div className="sk-slow sk-slow-down" role="alert">
+        <span>The server isn't answering right now</span>
+        <button type="button" className="sk-slow-retry" onClick={() => window.location.reload()}>
+          Try again
+        </button>
+      </div>
+    )
+  }
   return (
     <div className="sk-slow" role="status">
       <svg className="spinner" width="14" height="14" viewBox="0 0 20 20" aria-hidden="true">
