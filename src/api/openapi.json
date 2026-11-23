@@ -15565,6 +15565,12 @@
             "title": "Fresh",
             "description": "Analysed today or yesterday; false means today's run is late"
           },
+          "pro_locked": {
+            "type": "boolean",
+            "title": "Pro Locked",
+            "description": "Plans are on: the sample's Pro numbers are blanked, so its Pro spots show locks",
+            "default": false
+          },
           "phase": {
             "type": "string",
             "enum": [

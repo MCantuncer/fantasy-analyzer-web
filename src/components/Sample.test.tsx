@@ -9,6 +9,7 @@ import { SampleSwitcher } from './SampleSwitcher'
 const index: SampleIndex = {
   analysed_on: '2026-11-11',
   fresh: true,
+  pro_locked: false,
   phase: 'season',
   season: 2027,
   league: { name: 'Sample league', size: 5, scoring: 'H2H_EACH_CATEGORY', categories: [], playoff_teams: 2 },

@@ -6042,6 +6042,12 @@ export interface components {
              */
             fresh: boolean;
             /**
+             * Pro Locked
+             * @description Plans are on: the sample's Pro numbers are blanked, so its Pro spots show locks
+             * @default false
+             */
+            pro_locked: boolean;
+            /**
              * Phase
              * @description offseason: last season's final sample, until the new season's first run
              * @enum {string}
