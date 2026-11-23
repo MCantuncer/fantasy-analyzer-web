@@ -3,7 +3,7 @@ import { FeedSkeleton } from './Skeleton'
 import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState } from 'react'
-import type { ReactNode, Ref } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 import { createPost, deletePost, fetchFeed, fetchReplies, react, retryDropped, retryDroppedDelay } from '../api/client'
 import type { FeedItem, FeedPage, FeedTeam, LeagueRef } from '../api/client'
 import {
@@ -734,54 +734,106 @@ function FeedLine({ item, ctx, act }: { item: FeedItem; ctx: Ctx; act?: ReactNod
   )
 }
 
+/**
+ * A trade moment: "Trade", then each side's team and the players it gets, side by side (stacked on
+ * phones). In Chat it adds "Who won it?".
+ */
 function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   const sides = tradeSides(item)
-  const votes = wonVotes(item)
   return (
-    <div className="feed-trade">
+    <article className="feed-trade">
       <header className="feed-trade-head">
-        <span className="feed-pill trade">Trade</span>
+        <span className="feed-trade-kind">
+          <ArrowsLeftRight size={16} aria-hidden="true" />
+          Trade
+        </span>
         <time className="small muted feed-inline-time" dateTime={item.at}>
           {timeLabel(item.at)}
         </time>
       </header>
-      {sides.map((s) => (
-        <div key={s.teamId} className="feed-side">
-          <span className="feed-side-head">
-            <TeamCrest name={teamName(ctx.teams, s.teamId)} colour={ctx.colours.get(s.teamId)} size={22} />
-            <span className="feed-side-team">{teamName(ctx.teams, s.teamId)} get</span>
-          </span>
-          <ul className="feed-side-list">
-            {(s.gets ?? []).map((m) => (
-              <li key={m.player.id}>
-                <FeedPlayerCell move={m} face={32} sign="+" label="Gets" />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-      {ctx.link && (
-        <div className="feed-vote stack">
-          <span className="kpi-label">Who won it?</span>
-          <div className="row" role="group" aria-label="Who won the trade?">
-            {sides.map((s) => (
-              <button
-                key={s.teamId}
-                type="button"
-                className="chip"
-                aria-pressed={votes.mine === s.teamId}
-                onClick={() => ctx.onReact(item, `won:${s.teamId}`, votes.mine !== s.teamId)}
-              >
-                {teamName(ctx.teams, s.teamId)}
-                {votes.mine !== null && votes.total > 0 && (
-                  <span className="num">{pct((votes.counts[s.teamId] ?? 0) / votes.total)}</span>
-                )}
-              </button>
-            ))}
+      <div className="feed-trade-sides">
+        {sides.map((s) => (
+          <div key={s.teamId} className="feed-side">
+            <span className="feed-side-head">
+              <TeamCrest name={teamName(ctx.teams, s.teamId)} colour={ctx.colours.get(s.teamId)} size={20} />
+              <span className="feed-side-team">
+                <b>{teamName(ctx.teams, s.teamId)}</b>
+                {ctx.link?.teamId === s.teamId && <You />} get
+              </span>
+            </span>
+            <ul className="feed-side-list">
+              {(s.gets ?? []).map((m) => (
+                <li key={m.player.id}>
+                  <FeedPlayerCell move={m} face={32} sign="+" label="Gets" />
+                </li>
+              ))}
+            </ul>
           </div>
+        ))}
+      </div>
+      {ctx.link && <TradeVote item={item} sides={sides} ctx={ctx} />}
+      <Talk item={item} ctx={ctx} />
+    </article>
+  )
+}
+
+/**
+ * "Who won it?": one 44px button per side with its crest and name. The split (each side's %, the bar
+ * in crest colours and the vote count) shows only once you've voted, so nobody votes with the herd.
+ * Tapping your pick again takes the vote back.
+ */
+function TradeVote({ item, sides, ctx }: { item: FeedItem; sides: ReturnType<typeof tradeSides>; ctx: Ctx }) {
+  const votes = wonVotes(item)
+  const voted = votes.mine !== null && votes.total > 0
+  return (
+    <div className="chat-vote">
+      <div className="chat-vote-q">
+        <b>Who won it?</b>
+        <span className="chat-vote-n">
+          {voted ? (
+            <>
+              <span className="num">{votes.total}</span> {votes.total === 1 ? 'vote' : 'votes'}
+            </>
+          ) : (
+            'Vote to see the split'
+          )}
+        </span>
+      </div>
+      <div className="chat-vote-btns" role="group" aria-label="Who won the trade?">
+        {sides.map((s) => {
+          const name = teamName(ctx.teams, s.teamId)
+          return (
+            <button
+              key={s.teamId}
+              type="button"
+              className="chat-vote-btn"
+              aria-pressed={votes.mine === s.teamId}
+              onClick={() => ctx.onReact(item, `won:${s.teamId}`, votes.mine !== s.teamId)}
+            >
+              <TeamCrest name={name} colour={ctx.colours.get(s.teamId)} size={20} />
+              <span className="chat-vote-name">{name}</span>
+              {voted && <span className="num">{pct((votes.counts[s.teamId] ?? 0) / votes.total)}</span>}
+            </button>
+          )
+        })}
+      </div>
+      {voted && (
+        <div className="chat-vote-split" aria-hidden="true">
+          {sides.map((s) =>
+            votes.counts[s.teamId] ? (
+              <span
+                key={s.teamId}
+                style={
+                  {
+                    flexGrow: votes.counts[s.teamId],
+                    '--team': ctx.colours.get(s.teamId) ?? 'var(--muted)',
+                  } as CSSProperties
+                }
+              />
+            ) : null,
+          )}
         </div>
       )}
-      <Talk item={item} ctx={ctx} />
     </div>
   )
 }
