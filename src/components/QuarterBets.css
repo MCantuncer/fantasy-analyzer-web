@@ -1,0 +1,377 @@
+/* Quarter and first-half bets on Game picks (Can 2026-11-24). Prefix ic-gq-. Edge slips reuse the
+   game rows (.ic-gp-row); the fold opens a grid of every quarter bet. Ink for edges, never gold. */
+
+.ic-gq {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.ic-gq-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-top: 8px;
+}
+.ic-gq-top h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-gq-top h3 .num {
+  color: var(--muted);
+  font-weight: 500;
+}
+.ic-gq-watch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+/* slips: the row's label in two lines ("1st quarter / winner"), a value tag in ink */
+.ic-gq-slip .ml {
+  display: flex;
+  flex-direction: column;
+}
+.ic-gq-what {
+  color: var(--text-2);
+}
+.ic-gq-val {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 45%, transparent);
+}
+.ic-gq-val b {
+  color: var(--text);
+  font-weight: 640;
+}
+
+/* our chance with the price's break-even tick */
+.ic-gq-ch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}
+.ic-gq-ch-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ic-gq-ch-top > b {
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-gq-ch-top > b small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin-left: 1px;
+}
+.ic-gq-bar {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ic-track);
+}
+.ic-gq-bar > i {
+  display: block;
+  width: var(--ic-gq-ch, 0%);
+  height: 100%;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+.ic-gq-bar > em {
+  position: absolute;
+  top: -3px;
+  left: var(--ic-gq-need, 50%);
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+}
+.ic-gq-need {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+/* the fold */
+.ic-gq-fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0 -12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-gq-fold:hover {
+  background: var(--ic-hover);
+}
+.ic-gq-fold:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.ic-gq-fold b {
+  font-size: 15px;
+  font-weight: 600;
+}
+.ic-gq-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-gq-fold svg {
+  flex: none;
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+.ic-gq-fold svg.up {
+  transform: rotate(180deg);
+}
+
+/* the grid: a row head, then four columns (1st-4th; the first half's four bets on its own row) */
+.ic-gq-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+.ic-gq-cols,
+.ic-gq-line {
+  display: grid;
+  grid-template-columns: 76px repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.ic-gq-cols span {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  text-align: center;
+}
+.ic-gq-rh {
+  align-self: center;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+.ic-gq-rh small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-gq-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+.ic-gq-cell.edge {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 70%, transparent);
+}
+.ic-gq-cell.won {
+  background-image: linear-gradient(180deg, var(--good-soft), transparent 70%);
+}
+.ic-gq-cell.lost {
+  background-image: linear-gradient(180deg, var(--bad-soft), transparent 70%);
+}
+.ic-gq-cell.none {
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ic-seam);
+}
+.ic-gq-head {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-gq-hole {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-gq-bet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.ic-gq-bet b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-gq-bet .ok {
+  flex: none;
+  color: var(--good);
+}
+.ic-gq-bet .no {
+  flex: none;
+  color: var(--bad);
+}
+.ic-gq-ours {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--tc, var(--text-2));
+}
+.ic-gq-ours small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-gq-ours b {
+  font-family: 'Mona Sans Outline', var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 700;
+  color: transparent;
+  -webkit-text-stroke: 1.2px color-mix(in srgb, var(--tc, var(--text)) 75%, var(--text));
+}
+.ic-gq-got {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-2);
+}
+.ic-gq-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 6px;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.ic-gq-nobet {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-gq-v {
+  color: var(--faint);
+}
+.ic-gq-v.on {
+  padding: 0 5px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 640;
+}
+.ic-gq-key {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-gq-key .ic-gq-v {
+  margin-right: 4px;
+}
+
+/* the running record under the Game picks head: one thin strip */
+.ic-gq-rec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-gq-rec b {
+  color: var(--text);
+  font-weight: 600;
+}
+.ic-gq-rt {
+  font-size: 14px;
+}
+.ic-gq-rk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* phones: the row head goes above the four columns; the cells keep 4 across */
+@media (max-width: 560px) {
+  .ic-gq-cols,
+  .ic-gq-line {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .ic-gq-cols > span:first-child {
+    display: none;
+  }
+  .ic-gq-rh {
+    grid-column: 1 / -1;
+  }
+  .ic-gq-rh small {
+    display: inline;
+    margin-left: 6px;
+  }
+  .ic-gq-cell {
+    padding: 6px;
+  }
+  .ic-gq-ours b {
+    font-size: 20px;
+    line-height: 24px;
+    -webkit-text-stroke-width: 1px;
+  }
+  .ic-gq-bet {
+    align-items: flex-start;
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .ic-gq-bet b {
+    white-space: normal;
+  }
+  .ic-gq-foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ic-gq-rk {
+    margin-left: 0;
+  }
+}

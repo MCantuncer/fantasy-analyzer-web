@@ -4225,6 +4225,125 @@
         }
       }
     },
+    "/api/scores/live-lines": {
+      "post": {
+        "summary": "Score Live Lines",
+        "description": "A game in progress: where each player's points land at the end of regulation (app/liveline.py),\nfrom his line at tip-off (the line log) and his points, minutes and team margin so far. Players\nwithout a saved tip-off line are left out. Follows the live scores' minute-long cache.",
+        "operationId": "score_live_lines_api_scores_live_lines_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-espn-s2",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-S2"
+            }
+          },
+          {
+            "name": "x-espn-swid",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-Swid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PregameRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveLines"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Payment Required"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/scores/sits": {
       "post": {
         "summary": "Score Sits",
@@ -6297,6 +6416,72 @@
         ],
         "title": "BillingSyncRequest"
       },
+      "BookCheck": {
+        "properties": {
+          "bets": {
+            "type": "integer",
+            "title": "Bets",
+            "description": "Settled game bets read"
+          },
+          "ours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ours",
+            "description": "Log loss on our chance alone (lower is better)"
+          },
+          "book": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book",
+            "description": "Log loss on the book's own chance"
+          },
+          "blend": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blend",
+            "description": "Log loss on the blend the page uses (BOOK_WEIGHT)"
+          },
+          "best_weight": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Weight",
+            "description": "The book weight that would have read these bets best"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bets",
+          "ours",
+          "book",
+          "blend",
+          "best_weight"
+        ],
+        "title": "BookCheck"
+      },
       "BookCompare": {
         "properties": {
           "season": {
@@ -6800,6 +6985,17 @@
           "cut": {
             "$ref": "#/components/schemas/BookCut",
             "description": "Where the book takes its cut (comparison only)"
+          },
+          "quarters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuarterRecord"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The quarter and first-half picks' record over the same nights (app/quarterbook.py)"
           }
         },
         "type": "object",
@@ -7371,6 +7567,14 @@
             "type": "array",
             "title": "Estimates",
             "description": "Our line for every player expected to play 10+ minutes, most points first"
+          },
+          "quarters": {
+            "items": {
+              "$ref": "#/components/schemas/QuarterBet"
+            },
+            "type": "array",
+            "title": "Quarters",
+            "description": "iddaa's quarter and first-half bets beside our quarter numbers (app/quarterbook.py); shown and kept on record only, not in Kupons"
           }
         },
         "type": "object",
@@ -10352,6 +10556,263 @@
         ],
         "title": "LinkedTeam"
       },
+      "LiveLines": {
+        "properties": {
+          "league_id": {
+            "type": "integer",
+            "title": "League Id"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "day": {
+            "type": "integer",
+            "title": "Day"
+          },
+          "game_id": {
+            "type": "integer",
+            "title": "Game Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "live",
+              "final"
+            ],
+            "title": "Status"
+          },
+          "clock": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clock",
+            "description": "Q4 2:31, Half; none unless the game is in progress"
+          },
+          "elapsed": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed",
+            "description": "Regulation minutes played (48 in overtime); none when ESPN's clock can't be read"
+          },
+          "half_within": {
+            "type": "number",
+            "title": "Half Within",
+            "description": "Half of final points land within this of the live line, at this point"
+          },
+          "most_within": {
+            "type": "number",
+            "title": "Most Within",
+            "description": "8 in 10 land within this"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/LivePlayerLine"
+            },
+            "type": "array",
+            "title": "Lines",
+            "description": "Each player who has played and had a line at tip-off; empty unless the game is in progress"
+          },
+          "quarters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveQuarters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Each side's quarters, real and to come; none without Our call or ESPN's linescores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "league_id",
+          "season",
+          "day",
+          "game_id",
+          "status",
+          "half_within",
+          "most_within",
+          "lines"
+        ],
+        "title": "LiveLines"
+      },
+      "LivePlayerLine": {
+        "properties": {
+          "player_id": {
+            "type": "integer",
+            "title": "Player Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "pro_team_id": {
+            "type": "integer",
+            "title": "Pro Team Id"
+          },
+          "pts": {
+            "type": "integer",
+            "title": "Pts",
+            "description": "Points so far"
+          },
+          "minutes": {
+            "type": "integer",
+            "title": "Minutes",
+            "description": "Minutes so far"
+          },
+          "line_pts": {
+            "type": "number",
+            "title": "Line Pts",
+            "description": "His points line at tip-off"
+          },
+          "line_minutes": {
+            "type": "number",
+            "title": "Line Minutes",
+            "description": "His minutes line at tip-off"
+          },
+          "final": {
+            "type": "number",
+            "title": "Final",
+            "description": "Where his points land at the end of regulation, from here"
+          },
+          "rest": {
+            "type": "number",
+            "title": "Rest",
+            "description": "Points still to come"
+          },
+          "minutes_left": {
+            "type": "number",
+            "title": "Minutes Left",
+            "description": "His minutes still to come"
+          },
+          "fouls": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fouls",
+            "description": "Personal fouls so far; none when ESPN's box can't be read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "player_id",
+          "name",
+          "pro_team_id",
+          "pts",
+          "minutes",
+          "line_pts",
+          "line_minutes",
+          "final",
+          "rest",
+          "minutes_left"
+        ],
+        "title": "LivePlayerLine"
+      },
+      "LiveQuarterSide": {
+        "properties": {
+          "pro_team_id": {
+            "type": "integer",
+            "title": "Pro Team Id"
+          },
+          "pregame": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Pregame",
+            "description": "Our points for Q1-Q4 before tip-off (the pre-game box's quarters)"
+          },
+          "real": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Real",
+            "description": "Real points of each regulation quarter started; the one in progress last"
+          },
+          "live": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Live",
+            "description": "Q1-Q4 now: real for quarters played, real so far plus the rest for the one in progress, our number moved by the margin so far for the rest"
+          },
+          "fouls": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fouls",
+            "description": "Team fouls in the quarter in progress; none when ESPN's play-by-play can't be read"
+          },
+          "bonus": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bonus",
+            "description": "The other side is in the penalty (each foul gives this side free throws); none when not known"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pro_team_id",
+          "pregame",
+          "real",
+          "live"
+        ],
+        "title": "LiveQuarterSide"
+      },
+      "LiveQuarters": {
+        "properties": {
+          "period": {
+            "type": "integer",
+            "title": "Period",
+            "description": "1-4, 5+ in overtime"
+          },
+          "away": {
+            "$ref": "#/components/schemas/LiveQuarterSide"
+          },
+          "home": {
+            "$ref": "#/components/schemas/LiveQuarterSide"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "away",
+          "home"
+        ],
+        "title": "LiveQuarters"
+      },
       "LossReason": {
         "properties": {
           "cause": {
@@ -10502,6 +10963,42 @@
           "text": {
             "type": "string",
             "title": "Text"
+          },
+          "alone": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alone",
+            "description": "Game bets: our call's chance on its own, before the book blend"
+          },
+          "fair": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fair",
+            "description": "Game bets: the book's own chance, its cut taken out"
+          },
+          "book_closer": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Closer",
+            "description": "Game bets: the book's number sat nearer the result than ours (winner: it favoured the other team)"
           }
         },
         "type": "object",
@@ -10553,6 +11050,24 @@
             "type": "array",
             "title": "Repeats",
             "description": "Causes that are not luck, most frequent first"
+          },
+          "gems": {
+            "items": {
+              "$ref": "#/components/schemas/CauseRepeat"
+            },
+            "type": "array",
+            "title": "Gems",
+            "description": "Lost game bets where the book was nearer the result than we were, by what we missed"
+          },
+          "book": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -10628,6 +11143,17 @@
             },
             "type": "array",
             "title": "Lost"
+          },
+          "game_bets": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Game Bets",
+            "description": "Each settled game bet: [our chance alone, the book's, won 1/0]"
           }
         },
         "type": "object",
@@ -14202,6 +14728,66 @@
         ],
         "title": "PregamePlayer"
       },
+      "PregameQuarters": {
+        "properties": {
+          "points": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Points",
+            "description": "Whole points in Q1-Q4; they add up to the rounded sum of raw"
+          },
+          "raw": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Raw",
+            "description": "Q1-Q4 before rounding; their sum runs about a point under the call (overtime)"
+          },
+          "league": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "League",
+            "description": "The call x the league's share of a game's points in each quarter"
+          },
+          "favourite": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Favourite",
+            "description": "The favourite's fast start and fourth-quarter fade: + for the favourite early, - late"
+          },
+          "shape": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Shape",
+            "description": "The team's own quarter shape and the opponent's allowed shape, this season and last"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games",
+            "description": "This season's games read for the team's shape (0: last season's alone)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points",
+          "raw",
+          "league",
+          "favourite",
+          "shape",
+          "games"
+        ],
+        "title": "PregameQuarters",
+        "description": "One side's points by quarter before tip-off (app/quarters.py): Our call cut into four quarters."
+      },
       "PregameRequest": {
         "properties": {
           "league_id": {
@@ -14292,6 +14878,17 @@
           },
           "team_line": {
             "$ref": "#/components/schemas/PregameTeamLine"
+          },
+          "quarters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PregameQuarters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Points by quarter; None without a call"
           }
         },
         "type": "object",
@@ -14416,6 +15013,261 @@
           "close"
         ],
         "title": "ProjectedCategory"
+      },
+      "QuarterBet": {
+        "properties": {
+          "market": {
+            "type": "string",
+            "enum": [
+              "q_total",
+              "q_winner",
+              "h1_total",
+              "h1_margin",
+              "h1_home",
+              "h1_away"
+            ],
+            "title": "Market",
+            "description": "Quarter total or winner (three-way), first-half total, home handicap or home/away points"
+          },
+          "period": {
+            "type": "integer",
+            "title": "Period",
+            "description": "The quarter, 1-4; 0 for the first half"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line",
+            "description": "iddaa's main line (the home handicap for h1_margin); none for a winner"
+          },
+          "ours": {
+            "type": "number",
+            "title": "Ours",
+            "description": "Our number: points, or the home margin for winners and handicaps"
+          },
+          "sides": {
+            "items": {
+              "$ref": "#/components/schemas/QuarterSide"
+            },
+            "type": "array",
+            "title": "Sides"
+          },
+          "pick": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pick",
+            "description": "The side our number leans to; none when the book doesn't price it over 1.33"
+          },
+          "edge": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edge",
+            "description": "The pick's value: our chance x its price, less 1"
+          },
+          "actual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual",
+            "description": "What happened: points, or the home margin; none before the final"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result",
+            "description": "The side that won (push on a whole line hit exactly)"
+          },
+          "hit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hit",
+            "description": "Whether our pick won; none before the final or on a push"
+          }
+        },
+        "type": "object",
+        "required": [
+          "market",
+          "period",
+          "line",
+          "ours",
+          "sides",
+          "pick",
+          "edge",
+          "actual",
+          "result",
+          "hit"
+        ],
+        "title": "QuarterBet"
+      },
+      "QuarterRecord": {
+        "properties": {
+          "all": {
+            "$ref": "#/components/schemas/QuarterRecordSums",
+            "description": "Every settled quarter and first-half pick"
+          },
+          "edge": {
+            "$ref": "#/components/schemas/QuarterRecordSums",
+            "description": "Only the picks where our chance x the price was over 1"
+          },
+          "by_market": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/QuarterRecordPart"
+            },
+            "type": "object",
+            "title": "By Market"
+          }
+        },
+        "type": "object",
+        "required": [
+          "all",
+          "edge"
+        ],
+        "title": "QuarterRecord"
+      },
+      "QuarterRecordPart": {
+        "properties": {
+          "all": {
+            "$ref": "#/components/schemas/QuarterRecordSums"
+          },
+          "edge": {
+            "$ref": "#/components/schemas/QuarterRecordSums"
+          }
+        },
+        "type": "object",
+        "required": [
+          "all",
+          "edge"
+        ],
+        "title": "QuarterRecordPart"
+      },
+      "QuarterRecordSums": {
+        "properties": {
+          "bets": {
+            "type": "integer",
+            "title": "Bets"
+          },
+          "won": {
+            "type": "integer",
+            "title": "Won"
+          },
+          "ours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ours",
+            "description": "Our average chance for these picks"
+          },
+          "book": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book",
+            "description": "The book's average chance for them, cut taken out"
+          },
+          "returned": {
+            "type": "number",
+            "title": "Returned",
+            "description": "Units back less units staked, one unit a pick at the book's price"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bets",
+          "won",
+          "ours",
+          "book",
+          "returned"
+        ],
+        "title": "QuarterRecordSums"
+      },
+      "QuarterSide": {
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "under",
+              "over",
+              "home",
+              "away",
+              "tie"
+            ],
+            "title": "Side"
+          },
+          "odd": {
+            "type": "number",
+            "title": "Odd",
+            "description": "iddaa's price"
+          },
+          "ours": {
+            "type": "number",
+            "title": "Ours",
+            "description": "Our chance this side wins (from our quarter numbers and their measured miss)"
+          },
+          "book": {
+            "type": "number",
+            "title": "Book",
+            "description": "The book's chance, its cut taken out"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "Our chance x the price, less 1: over 0 is an edge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "side",
+          "odd",
+          "ours",
+          "book",
+          "value"
+        ],
+        "title": "QuarterSide"
       },
       "ReactRequest": {
         "properties": {

@@ -76,6 +76,54 @@ export interface CompareGame {
   markets: CompareMarket[]
   players: ComparePlayer[]
   estimates?: CompareEstimate[] // our line for every player expected to play 10+ minutes (the match card)
+  /** iddaa's quarter and first-half bets beside our quarter numbers (lib/quarterBets.ts). Older servers send none. */
+  quarters?: QuarterBet[]
+}
+
+/** One side of a quarter or first-half bet: its price, our chance, the book's (cut taken out), and value. */
+export interface QuarterSide {
+  side: 'under' | 'over' | 'home' | 'away' | 'tie'
+  odd: number
+  ours: number
+  book: number
+  /** our chance x the price, less 1: over 0 is an edge */
+  value: number
+}
+
+export type QuarterMarket = 'q_total' | 'q_winner' | 'h1_total' | 'h1_margin' | 'h1_home' | 'h1_away'
+
+/** A quarter or first-half bet (POST /api/book-compare, each game's `quarters`). */
+export interface QuarterBet {
+  market: QuarterMarket
+  /** the quarter, 1-4; 0 for the first half */
+  period: number
+  /** iddaa's main line (the home handicap for h1_margin); none for a winner */
+  line: number | null
+  /** our number: points, or the home margin for winners and handicaps */
+  ours: number
+  sides: QuarterSide[]
+  /** the side we lean to; none when the book prices it at 1.33 or under */
+  pick: string | null
+  edge: number | null
+  actual: number | null
+  result: string | null
+  hit: boolean | null
+}
+
+export interface QuarterRecordSums {
+  bets: number
+  won: number
+  ours: number | null
+  book: number | null
+  /** units back less units staked, one unit a pick */
+  returned: number
+}
+
+/** The settled quarter picks across the record's nights: all of them, and the ones with value. */
+export interface QuarterRecord {
+  all: QuarterRecordSums
+  edge: QuarterRecordSums
+  by_market: Record<string, { all: QuarterRecordSums; edge: QuarterRecordSums }>
 }
 
 /** Our line for a player before the book posts a bet on him (its player bets mostly come after 19:00
@@ -137,6 +185,8 @@ export interface BookRecord {
   calibration: RecordBucket[]
   /** One line per night, oldest first. Optional: older servers send none. */
   series?: RecordNight[]
+  /** The quarter and first-half picks, settled. Optional: older servers send none. */
+  quarters?: QuarterRecord | null
 }
 
 /** Value picks (settled rungs with value over 0 by our chance) for one stat and odds band. */
