@@ -16,7 +16,7 @@ import {
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
-import { fetchBookCompare } from '../api/client'
+import { fetchBookCompare, fetchBookRecord } from '../api/client'
 import {
   FULL_AT,
   GAME_STATS,
@@ -62,6 +62,7 @@ import { HowToRead } from './HowToRead'
 import { Chance, KuponTag, useKuponPicks } from './EstimateBits'
 import { kuponKey } from '../lib/coupons'
 import { unitsSigned } from '../lib/ourRecord'
+import { QuarterBets, QuarterRecordStrip } from './QuarterBets'
 import './IddaaCompare.css'
 
 interface Props {
@@ -1818,6 +1819,13 @@ function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; 
   const kupons = useKuponPicks(lines)
   const of = (g: CompareGame, s: Stat) => lines.find((l) => l.kind === 'game' && l.game.game_id === g.game_id && l.stat === s)
   const shown = data.games.filter((g) => PICK_KINDS.some(([s]) => of(g, s)))
+  // the same query as the running record (one fetch for the page); nothing when the server has none
+  const { data: record } = useQuery({
+    queryKey: ['book-record'],
+    queryFn: () => fetchBookRecord(),
+    retry: false,
+    staleTime: 5 * 60_000,
+  })
   if (!shown.length) return null
   const n = picksNight(shown, lines)
   return (
@@ -1846,6 +1854,7 @@ function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; 
           )}
         </span>
       </div>
+      <QuarterRecordStrip rec={record?.quarters} />
       <ol className="ic-gp-games">
         {shown.map((g) => (
           <PickGame key={g.game_id} g={g} lines={lines} of={of} kupons={kupons} onCard={onCard} />
@@ -1970,6 +1979,7 @@ function PickGame({
           return l ? <PickRow key={kind} line={l} kind={kind} kupons={kupons.get(kuponKey(l)) ?? []} /> : null
         })}
       </ul>
+      <QuarterBets g={g} />
       {(g.estimates?.length ?? 0) > 0 && (
         <button
           type="button"

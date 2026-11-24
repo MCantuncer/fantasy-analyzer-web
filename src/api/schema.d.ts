@@ -1045,6 +1045,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores/live-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Score Live Lines
+         * @description A game in progress: where each player's points land at the end of regulation (app/liveline.py),
+         *     from his line at tip-off (the line log) and his points, minutes and team margin so far. Players
+         *     without a saved tip-off line are left out. Follows the live scores' minute-long cache.
+         */
+        post: operations["score_live_lines_api_scores_live_lines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scores/sits": {
         parameters: {
             query?: never;
@@ -1677,6 +1699,34 @@ export interface components {
             /** Transaction Id */
             transaction_id: string;
         };
+        /** BookCheck */
+        BookCheck: {
+            /**
+             * Bets
+             * @description Settled game bets read
+             */
+            bets: number;
+            /**
+             * Ours
+             * @description Log loss on our chance alone (lower is better)
+             */
+            ours: number | null;
+            /**
+             * Book
+             * @description Log loss on the book's own chance
+             */
+            book: number | null;
+            /**
+             * Blend
+             * @description Log loss on the blend the page uses (BOOK_WEIGHT)
+             */
+            blend: number | null;
+            /**
+             * Best Weight
+             * @description The book weight that would have read these bets best
+             */
+            best_weight: number | null;
+        };
         /** BookCompare */
         BookCompare: {
             /** Season */
@@ -1871,6 +1921,8 @@ export interface components {
             series?: components["schemas"]["RecordNight"][];
             /** @description Where the book takes its cut (comparison only) */
             cut?: components["schemas"]["BookCut"];
+            /** @description The quarter and first-half picks' record over the same nights (app/quarterbook.py) */
+            quarters?: components["schemas"]["QuarterRecord"] | null;
         };
         /** BookRecordRequest */
         BookRecordRequest: {
@@ -2174,6 +2226,11 @@ export interface components {
              * @description Our line for every player expected to play 10+ minutes, most points first
              */
             estimates?: components["schemas"]["CompareEstimate"][];
+            /**
+             * Quarters
+             * @description iddaa's quarter and first-half bets beside our quarter numbers (app/quarterbook.py); shown and kept on record only, not in Kupons
+             */
+            quarters?: components["schemas"]["QuarterBet"][];
         };
         /** CompareMarket */
         CompareMarket: {
@@ -3471,6 +3528,138 @@ export interface components {
             /** Team Name */
             team_name: string;
         };
+        /** LiveLines */
+        LiveLines: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /** Day */
+            day: number;
+            /** Game Id */
+            game_id: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "scheduled" | "live" | "final";
+            /**
+             * Clock
+             * @description Q4 2:31, Half; none unless the game is in progress
+             */
+            clock?: string | null;
+            /**
+             * Elapsed
+             * @description Regulation minutes played (48 in overtime); none when ESPN's clock can't be read
+             */
+            elapsed?: number | null;
+            /**
+             * Half Within
+             * @description Half of final points land within this of the live line, at this point
+             */
+            half_within: number;
+            /**
+             * Most Within
+             * @description 8 in 10 land within this
+             */
+            most_within: number;
+            /**
+             * Lines
+             * @description Each player who has played and had a line at tip-off; empty unless the game is in progress
+             */
+            lines: components["schemas"]["LivePlayerLine"][];
+            /** @description Each side's quarters, real and to come; none without Our call or ESPN's linescores */
+            quarters?: components["schemas"]["LiveQuarters"] | null;
+        };
+        /** LivePlayerLine */
+        LivePlayerLine: {
+            /** Player Id */
+            player_id: number;
+            /** Name */
+            name: string;
+            /** Pro Team Id */
+            pro_team_id: number;
+            /**
+             * Pts
+             * @description Points so far
+             */
+            pts: number;
+            /**
+             * Minutes
+             * @description Minutes so far
+             */
+            minutes: number;
+            /**
+             * Line Pts
+             * @description His points line at tip-off
+             */
+            line_pts: number;
+            /**
+             * Line Minutes
+             * @description His minutes line at tip-off
+             */
+            line_minutes: number;
+            /**
+             * Final
+             * @description Where his points land at the end of regulation, from here
+             */
+            final: number;
+            /**
+             * Rest
+             * @description Points still to come
+             */
+            rest: number;
+            /**
+             * Minutes Left
+             * @description His minutes still to come
+             */
+            minutes_left: number;
+            /**
+             * Fouls
+             * @description Personal fouls so far; none when ESPN's box can't be read
+             */
+            fouls?: number | null;
+        };
+        /** LiveQuarterSide */
+        LiveQuarterSide: {
+            /** Pro Team Id */
+            pro_team_id: number;
+            /**
+             * Pregame
+             * @description Our points for Q1-Q4 before tip-off (the pre-game box's quarters)
+             */
+            pregame: number[];
+            /**
+             * Real
+             * @description Real points of each regulation quarter started; the one in progress last
+             */
+            real: number[];
+            /**
+             * Live
+             * @description Q1-Q4 now: real for quarters played, real so far plus the rest for the one in progress, our number moved by the margin so far for the rest
+             */
+            live: number[];
+            /**
+             * Fouls
+             * @description Team fouls in the quarter in progress; none when ESPN's play-by-play can't be read
+             */
+            fouls?: number | null;
+            /**
+             * Bonus
+             * @description The other side is in the penalty (each foul gives this side free throws); none when not known
+             */
+            bonus?: boolean | null;
+        };
+        /** LiveQuarters */
+        LiveQuarters: {
+            /**
+             * Period
+             * @description 1-4, 5+ in overtime
+             */
+            period: number;
+            away: components["schemas"]["LiveQuarterSide"];
+            home: components["schemas"]["LiveQuarterSide"];
+        };
         /**
          * LossReason
          * @description Why a settled number landed where it did against ours (app/lostlog.py): the biggest piece of
@@ -3540,6 +3729,21 @@ export interface components {
             points: number | null;
             /** Text */
             text: string;
+            /**
+             * Alone
+             * @description Game bets: our call's chance on its own, before the book blend
+             */
+            alone?: number | null;
+            /**
+             * Fair
+             * @description Game bets: the book's own chance, its cut taken out
+             */
+            fair?: number | null;
+            /**
+             * Book Closer
+             * @description Game bets: the book's number sat nearer the result than ours (winner: it favoured the other team)
+             */
+            book_closer?: boolean | null;
         };
         /** LostLog */
         LostLog: {
@@ -3559,6 +3763,12 @@ export interface components {
              * @description Causes that are not luck, most frequent first
              */
             repeats: components["schemas"]["CauseRepeat"][];
+            /**
+             * Gems
+             * @description Lost game bets where the book was nearer the result than we were, by what we missed
+             */
+            gems?: components["schemas"]["CauseRepeat"][];
+            book?: components["schemas"]["BookCheck"] | null;
         };
         /** LostLogRequest */
         LostLogRequest: {
@@ -3594,6 +3804,11 @@ export interface components {
             expected: number;
             /** Lost */
             lost: components["schemas"]["LostBet"][];
+            /**
+             * Game Bets
+             * @description Each settled game bet: [our chance alone, the book's, won 1/0]
+             */
+            game_bets?: number[][];
         };
         /**
          * MatchForm
@@ -5370,6 +5585,42 @@ export interface components {
             in_pool: boolean;
             line: components["schemas"]["NextGameLine"];
         };
+        /**
+         * PregameQuarters
+         * @description One side's points by quarter before tip-off (app/quarters.py): Our call cut into four quarters.
+         */
+        PregameQuarters: {
+            /**
+             * Points
+             * @description Whole points in Q1-Q4; they add up to the rounded sum of raw
+             */
+            points: number[];
+            /**
+             * Raw
+             * @description Q1-Q4 before rounding; their sum runs about a point under the call (overtime)
+             */
+            raw: number[];
+            /**
+             * League
+             * @description The call x the league's share of a game's points in each quarter
+             */
+            league: number[];
+            /**
+             * Favourite
+             * @description The favourite's fast start and fourth-quarter fade: + for the favourite early, - late
+             */
+            favourite: number[];
+            /**
+             * Shape
+             * @description The team's own quarter shape and the opponent's allowed shape, this season and last
+             */
+            shape: number[];
+            /**
+             * Games
+             * @description This season's games read for the team's shape (0: last season's alone)
+             */
+            games: number;
+        };
         /** PregameRequest */
         PregameRequest: {
             /** League Id */
@@ -5414,6 +5665,8 @@ export interface components {
              */
             out: components["schemas"]["PregameOut"][];
             team_line: components["schemas"]["PregameTeamLine"];
+            /** @description Points by quarter; None without a call */
+            quarters?: components["schemas"]["PregameQuarters"] | null;
         };
         /**
          * PregameTeamLine
@@ -5481,6 +5734,123 @@ export interface components {
              * @description Close to a coin flip: could go either way
              */
             close: boolean;
+        };
+        /** QuarterBet */
+        QuarterBet: {
+            /**
+             * Market
+             * @description Quarter total or winner (three-way), first-half total, home handicap or home/away points
+             * @enum {string}
+             */
+            market: "q_total" | "q_winner" | "h1_total" | "h1_margin" | "h1_home" | "h1_away";
+            /**
+             * Period
+             * @description The quarter, 1-4; 0 for the first half
+             */
+            period: number;
+            /**
+             * Line
+             * @description iddaa's main line (the home handicap for h1_margin); none for a winner
+             */
+            line: number | null;
+            /**
+             * Ours
+             * @description Our number: points, or the home margin for winners and handicaps
+             */
+            ours: number;
+            /** Sides */
+            sides: components["schemas"]["QuarterSide"][];
+            /**
+             * Pick
+             * @description The side our number leans to; none when the book doesn't price it over 1.33
+             */
+            pick: string | null;
+            /**
+             * Edge
+             * @description The pick's value: our chance x its price, less 1
+             */
+            edge: number | null;
+            /**
+             * Actual
+             * @description What happened: points, or the home margin; none before the final
+             */
+            actual: number | null;
+            /**
+             * Result
+             * @description The side that won (push on a whole line hit exactly)
+             */
+            result: string | null;
+            /**
+             * Hit
+             * @description Whether our pick won; none before the final or on a push
+             */
+            hit: boolean | null;
+        };
+        /** QuarterRecord */
+        QuarterRecord: {
+            /** @description Every settled quarter and first-half pick */
+            all: components["schemas"]["QuarterRecordSums"];
+            /** @description Only the picks where our chance x the price was over 1 */
+            edge: components["schemas"]["QuarterRecordSums"];
+            /** By Market */
+            by_market?: {
+                [key: string]: components["schemas"]["QuarterRecordPart"];
+            };
+        };
+        /** QuarterRecordPart */
+        QuarterRecordPart: {
+            all: components["schemas"]["QuarterRecordSums"];
+            edge: components["schemas"]["QuarterRecordSums"];
+        };
+        /** QuarterRecordSums */
+        QuarterRecordSums: {
+            /** Bets */
+            bets: number;
+            /** Won */
+            won: number;
+            /**
+             * Ours
+             * @description Our average chance for these picks
+             */
+            ours: number | null;
+            /**
+             * Book
+             * @description The book's average chance for them, cut taken out
+             */
+            book: number | null;
+            /**
+             * Returned
+             * @description Units back less units staked, one unit a pick at the book's price
+             */
+            returned: number;
+        };
+        /** QuarterSide */
+        QuarterSide: {
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "under" | "over" | "home" | "away" | "tie";
+            /**
+             * Odd
+             * @description iddaa's price
+             */
+            odd: number;
+            /**
+             * Ours
+             * @description Our chance this side wins (from our quarter numbers and their measured miss)
+             */
+            ours: number;
+            /**
+             * Book
+             * @description The book's chance, its cut taken out
+             */
+            book: number;
+            /**
+             * Value
+             * @description Our chance x the price, less 1: over 0 is an edge
+             */
+            value: number;
         };
         /** ReactRequest */
         ReactRequest: {
@@ -10247,6 +10617,70 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    score_live_lines_api_scores_live_lines_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PregameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveLines"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
