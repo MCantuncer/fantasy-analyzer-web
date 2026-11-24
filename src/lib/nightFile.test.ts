@@ -2,7 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { couponsOf, whyNot } from './coupons'
 import { linesOf, ranked } from './iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from './iddaaCompare'
-import { clubLight, nightPool, placesOf, playerFile, rowSummary, searchNight, teamFile } from './nightFile'
+import {
+  clubLight,
+  findFollow,
+  followKey,
+  nightPool,
+  placesOf,
+  playerFile,
+  rowSummary,
+  searchNight,
+  spotKey,
+  teamFile,
+} from './nightFile'
 
 const NOW = new Date('2026-11-22T12:00:00Z')
 
@@ -237,5 +248,28 @@ describe('clubLight', () => {
     expect(clubLight('DEN', '#E8B33A')).not.toBe('#E8B33A')
     expect(clubLight('IND', '#F2B233')).not.toBe('#F2B233')
     expect(clubLight('LAL', '#9B6FE0')).toBe('#9B6FE0')
+  })
+})
+
+describe('follow link', () => {
+  const data = night()
+  const lines = linesOf(data, NOW)
+  const pool = nightPool(data, lines)
+
+  it('reads back the player or team it wrote, and nothing else', () => {
+    const maxey = pool.players.find((p) => p.name === 'Tyrese Maxey')!
+    expect(followKey({ kind: 'player', player: maxey })).toBe('p11')
+    expect(findFollow('p11', pool)).toEqual({ kind: 'player', player: maxey })
+    expect(findFollow('tden', pool)).toEqual({ kind: 'team', team: pool.teams.find((t) => t.abbrev === 'DEN') })
+    expect(findFollow('p999999', pool)).toBeNull()
+    expect(findFollow('tSA', pool)).toBeNull()
+    expect(findFollow('11', pool)).toBeNull()
+  })
+
+  it('gives every spot of a file its own key', () => {
+    for (const p of pool.players) {
+      const keys = playerFile(p, lines, couponsOf(lines), whyNot(lines)).spots.map(spotKey)
+      expect(new Set(keys).size).toBe(keys.length)
+    }
   })
 })

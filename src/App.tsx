@@ -63,6 +63,7 @@ import { pageName, usePageView } from './lib/pageView'
 import { CHECK_PARAM } from './lib/tradeCheck'
 import { SCOUT_PARAM, scoutOf, scoutWanted } from './lib/sample'
 import { GAME_PARAM } from './lib/gameStage'
+import { FOLLOW_PARAM } from './lib/nightFile'
 
 interface Selection {
   leagueId: number
@@ -132,6 +133,9 @@ function writeUrl(
   // Our Estimates keeps its chosen match in the URL (see GameStage); carry it while that page is open.
   const game = new URLSearchParams(window.location.search).get(GAME_PARAM)
   if (!selection && admin === 'estimates' && game) q.set(GAME_PARAM, game)
+  // and the player or team its search has open (see NightFile)
+  const follow = new URLSearchParams(window.location.search).get(FOLLOW_PARAM)
+  if (!selection && admin === 'estimates' && follow) q.set(FOLLOW_PARAM, follow)
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')

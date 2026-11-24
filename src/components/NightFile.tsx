@@ -1,4 +1,15 @@
-import { ArrowSquareOut, CaretRight, Check, MagnifyingGlass, Prohibit, Target, Ticket, X } from '@phosphor-icons/react'
+import {
+  ArrowSquareOut,
+  CaretDown,
+  CaretRight,
+  CaretUp,
+  Check,
+  MagnifyingGlass,
+  Prohibit,
+  Target,
+  Ticket,
+  X,
+} from '@phosphor-icons/react'
 import { useQuery } from '@tanstack/react-query'
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
@@ -28,6 +39,11 @@ import {
   type Result,
   type Spot,
   type TeamFile,
+  type Who,
+  FOLLOW_PARAM,
+  findFollow,
+  followKey,
+  spotKey,
 } from '../lib/nightFile'
 import { usePlayerCard } from '../lib/playerCard'
 import { useVisualViewport } from '../lib/visualViewport'
@@ -44,7 +60,7 @@ export interface SearchLeague {
   creds: Credentials | null
 }
 
-type Picked = { kind: 'player'; player: NightPlayer } | { kind: 'team'; team: NightTeam }
+type Picked = Who
 
 const PHONE = '(max-width: 719px)'
 
@@ -129,6 +145,8 @@ export function NightSearch({
   slot,
   league,
   onJump,
+  onlyGame = null,
+  onOnlyGame,
 }: {
   data: BookCompare
   lines: Line[]
@@ -136,6 +154,9 @@ export function NightSearch({
   slot: HTMLElement | null
   league: SearchLeague | null
   onJump: (s: Spot) => void
+  /** The game Where we disagree is narrowed to, and the way to set it (a team's "Only this game"). */
+  onlyGame?: number | null
+  onOnlyGame?: (game: number | null) => void
 }) {
   const phone = usePhone()
   const ids = useId()
@@ -144,6 +165,8 @@ export function NightSearch({
   const [sheet, setSheet] = useState(false)
   const [active, setActive] = useState(0)
   const [picked, setPicked] = useState<Picked | null>(null)
+  // Walking someone's spots: the file folds into the token at the bottom, which steps through them.
+  const [follow, setFollow] = useState<{ who: Picked; at: number } | null>(null)
   const field = useRef<HTMLInputElement>(null)
   const sheetInput = useRef<HTMLInputElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
@@ -152,6 +175,37 @@ export function NightSearch({
   const pool = useMemo(() => nightPool(data, lines), [data, lines])
   const slots = useMemo(() => couponsOf(lines), [lines])
   const shots = useMemo(() => whyNot(lines), [lines])
+  const fileOf = (who: Picked) =>
+    who.kind === 'player'
+      ? playerFile(who.player, lines, slots, shots)
+      : teamFile(who.team, pool.players, lines, slots, shots)
+  const followSpots = useMemo(
+    () => (follow ? fileOf(follow.who).spots : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [follow?.who, lines, slots, shots, pool],
+  )
+
+  // ?follow= keeps the open file (or the walk) in the link: p<ESPN id> for a player, t<club> for a team.
+  const shown = picked ?? follow?.who ?? null
+  useEffect(() => {
+    const asked = readFollowParam()
+    if (!asked) return
+    const who = findFollow(asked, pool)
+    if (who) setPicked(who)
+    // only on the first look at the night
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    writeFollowParam(shown ? followKey(shown) : null)
+  }, [shown])
+  // Another night: whoever was open belongs to the last one.
+  const day = useRef(data.day)
+  useEffect(() => {
+    if (day.current === data.day) return
+    day.current = data.day
+    setPicked(null)
+    setFollow(null)
+  }, [data.day])
   const index = useQuery({
     queryKey: ['player-index', league?.leagueRef.leagueId, league?.leagueRef.season],
     queryFn: () => fetchPlayerIndex(league!.leagueRef, league!.creds),
@@ -256,11 +310,31 @@ export function NightSearch({
   }
   const closeFile = () => {
     setPicked(null)
+    setFollow(null)
     if (!phone) field.current?.focus({ preventScroll: true })
   }
+  /** Leaves the file for a spot on the page: the file folds into the token, at that spot. */
   const jump = (s: Spot) => {
+    if (!picked) return
+    const spots = fileOf(picked).spots
+    const at = Math.max(
+      0,
+      spots.findIndex((x) => spotKey(x) === spotKey(s)),
+    )
+    setFollow(spots.length ? { who: picked, at } : null)
     setPicked(null)
     requestAnimationFrame(() => onJump(s))
+  }
+  const step = (d: number) => {
+    if (!follow) return
+    const at = follow.at + d
+    if (at < 0 || at >= followSpots.length) return
+    setFollow({ ...follow, at })
+    onJump(followSpots[at])
+  }
+  const stopFollow = () => {
+    setFollow(null)
+    document.querySelectorAll('.ic-flash').forEach((el) => el.classList.remove('ic-flash'))
   }
 
   const listId = `${ids}-list`
@@ -361,18 +435,15 @@ export function NightSearch({
     picked &&
     createPortal(
       picked.kind === 'player' ? (
-        <PlayerFileView
-          file={playerFile(picked.player, lines, slots, shots)}
-          lines={lines}
-          onClose={closeFile}
-          onJump={jump}
-        />
+        <PlayerFileView file={fileOf(picked) as PlayerFile} lines={lines} onClose={closeFile} onJump={jump} />
       ) : (
         <TeamFileView
-          file={teamFile(picked.team, pool.players, lines, slots, shots)}
+          file={fileOf(picked) as TeamFile}
           onClose={closeFile}
           onJump={jump}
           onPlayer={(p) => setPicked({ kind: 'player', player: p })}
+          only={onlyGame === picked.team.game.game_id}
+          onOnly={onOnlyGame ? (on) => onOnlyGame(on ? picked.team.game.game_id : null) : undefined}
         />
       ),
       document.body,
@@ -410,7 +481,128 @@ export function NightSearch({
           document.body,
         )}
       {file}
+      {follow &&
+        !picked &&
+        followSpots.length > 0 &&
+        createPortal(
+          <FollowToken
+            who={follow.who}
+            spots={followSpots}
+            at={Math.min(follow.at, followSpots.length - 1)}
+            onStep={step}
+            onOpen={() => setPicked(follow.who)}
+            onClose={stopFollow}
+          />,
+          document.body,
+        )}
     </>
+  )
+}
+
+function readFollowParam(): string | null {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get(FOLLOW_PARAM)
+}
+function writeFollowParam(v: string | null) {
+  if (typeof window === 'undefined') return
+  const q = new URLSearchParams(window.location.search)
+  if ((q.get(FOLLOW_PARAM) ?? null) === v) return
+  if (v == null) q.delete(FOLLOW_PARAM)
+  else q.set(FOLLOW_PARAM, v)
+  const s = q.toString()
+  window.history.replaceState(window.history.state, '', s ? `?${s}` : window.location.pathname)
+}
+
+/** The file folded into a bar at the bottom while you walk someone's spots: who, where you are
+ *  ("2 of 5 · Disagree #6 · 3PM"), ↑ ↓ to step, His night to open the file again, ✕ to stop. The page
+ *  isn't dimmed; the spot you are on carries the page's own ring. */
+function FollowToken({
+  who,
+  spots,
+  at,
+  onStep,
+  onOpen,
+  onClose,
+}: {
+  who: Picked
+  spots: Spot[]
+  at: number
+  onStep: (d: number) => void
+  onOpen: () => void
+  onClose: () => void
+}) {
+  const name = who.kind === 'player' ? who.player.name : fullTeamName(who.team.team)
+  const team = who.kind === 'player' ? who.player.team : who.team.abbrev
+  const tl = clubLight(team, teamLight(team))
+  const here = spots[at]
+  const where = spotWords(here)
+  const [said, setSaid] = useState('')
+  useEffect(() => setSaid(`Spot ${at + 1} of ${spots.length}, ${where}`), [at, spots.length, where])
+  const bar = useRef<HTMLDivElement>(null)
+  useEscapeLayer(true, onClose)
+  // A step rings the spot on the page; focus stays in the bar so ↑ ↓ keep working.
+  const go = (d: number) => {
+    const from = document.activeElement
+    const kept = bar.current?.contains(from) ? (from as HTMLElement) : null
+    onStep(d)
+    if (!kept) return
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const el =
+          kept.isConnected && !(kept as HTMLButtonElement).disabled ? kept : bar.current?.querySelector('.back')
+        ;(el as HTMLElement | null | undefined)?.focus({ preventScroll: true })
+      }),
+    )
+  }
+  const onKey = (e: ReactKeyboardEvent) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      go(e.key === 'ArrowUp' ? -1 : 1)
+    }
+  }
+  return (
+    <div
+      ref={bar}
+      className="ic-sr-token"
+      role="region"
+      aria-label={`Following ${name}`}
+      style={{ '--tl': tl ?? 'transparent' } as CSSProperties}
+      onKeyDown={onKey}
+    >
+      <button type="button" className="back" aria-haspopup="dialog" onClick={onOpen}>
+        {who.kind === 'player' ? (
+          <Face id={who.player.id} name={who.player.name} team={team} size={40} />
+        ) : (
+          <Crest team={team} size={40} />
+        )}
+        <span className="tx">
+          <b>{name}</b>
+          <span>
+            <b className="num">{at + 1}</b> of <b className="num">{spots.length}</b> · {where}
+          </span>
+        </span>
+        <span className="sr-only">. Open the night again</span>
+      </button>
+      <span className="sep" aria-hidden="true" />
+      <button type="button" className="ic-sr-ib" aria-label="Previous spot" disabled={at === 0} onClick={() => go(-1)}>
+        <CaretUp size={18} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        className="ic-sr-ib"
+        aria-label="Next spot"
+        disabled={at === spots.length - 1}
+        onClick={() => go(1)}
+      >
+        <CaretDown size={18} aria-hidden="true" />
+      </button>
+      <button type="button" className="ic-sr-ib" aria-label="Stop following" onClick={onClose}>
+        <X size={18} aria-hidden="true" />
+      </button>
+      <span className="sr-only" aria-live="polite">
+        {said}
+      </span>
+    </div>
   )
 }
 
@@ -950,7 +1142,17 @@ function Lane({ line: l }: { line: Line }) {
 
 /** The page drawn as one ribbon: Kupons, Why not, Game picks and Disagree, his spots lit and
  *  numbered in page order. A light takes you there. */
-function Ribbon({ spots, who, onJump }: { spots: Spot[]; who: string; onJump: (s: Spot) => void }) {
+function Ribbon({
+  spots,
+  who,
+  their = 'his',
+  onJump,
+}: {
+  spots: Spot[]
+  who: string
+  their?: string
+  onJump: (s: Spot) => void
+}) {
   const segs: Spot['where'][] = ['kupon', 'whynot', 'game', 'disagree']
   return (
     <section className="ic-sr-sec" aria-label="On this page">
@@ -995,6 +1197,13 @@ function Ribbon({ spots, who, onJump }: { spots: Spot[]; who: string; onJump: (s
         })}
       </div>
       <span className="sr-only">{`${who} appears in ${spots.length} places on this page.`}</span>
+      <button type="button" className="ic-sr-walk" onClick={() => onJump(spots[0])}>
+        <CaretDown size={18} aria-hidden="true" />
+        <span>
+          Walk {their} {spots.length} {spots.length === 1 ? 'spot' : 'spots'}
+          <small>The file folds into a bar; ↑ ↓ step through the page</small>
+        </span>
+      </button>
     </section>
   )
 }
@@ -1060,11 +1269,16 @@ function TeamFileView({
   onClose,
   onJump,
   onPlayer,
+  only,
+  onOnly,
 }: {
   file: TeamFile
   onClose: () => void
   onJump: (s: Spot) => void
   onPlayer: (p: NightPlayer) => void
+  /** Where we disagree shows only this team's game. */
+  only: boolean
+  onOnly?: (on: boolean) => void
 }) {
   const t = f.team
   const g = t.game
@@ -1102,6 +1316,19 @@ function TeamFileView({
         </div>
       </div>
       {gameBtn && <div className="ic-sr-acts">{gameBtn}</div>}
+      {onOnly && (
+        <button type="button" role="switch" aria-checked={only} className="ic-sr-only" onClick={() => onOnly(!only)}>
+          <span className="tg" aria-hidden="true" />
+          <span>
+            Only this game
+            <small>
+              {only
+                ? `Where we disagree shows ${g.away} @ ${g.home} only`
+                : `Narrow Where we disagree to ${g.away} @ ${g.home}`}
+            </small>
+          </span>
+        </button>
+      )}
       <p className="ic-sr-count">
         <span>
           <b className="num">{f.counts.gameBets}</b>
@@ -1193,7 +1420,7 @@ function TeamFileView({
         )}
       </section>
 
-      {f.spots.length > 0 && <Ribbon spots={f.spots} who={fullTeamName(t.team)} onJump={onJump} />}
+      {f.spots.length > 0 && <Ribbon spots={f.spots} who={fullTeamName(t.team)} their="their" onJump={onJump} />}
 
       <LegsSection kupons={f.kupons} whyNot={f.whyNot} none="Nothing from this game in tonight's Kupons or Why not." />
     </FileShell>
