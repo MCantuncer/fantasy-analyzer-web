@@ -14,6 +14,7 @@ import {
   phaseOf,
   pos,
   readGameParam,
+  useShownGame,
   scaleAround,
   slateGroups,
   writeGameParam,
@@ -685,6 +686,13 @@ export function GameSlate({
     const next = order[at + d]
     if (next) pick(next.game_id)
   }
+  // the Night File's "Show in Game picks": take the match it asks for (the page scrolls there itself)
+  const shownGame = useShownGame()
+  useEffect(() => {
+    if (!shownGame) return
+    setAsked(shownGame.id)
+    writeGameParam(shownGame.id)
+  }, [shownGame])
   const stepRef = useRef(step)
   useEffect(() => {
     stepRef.current = step

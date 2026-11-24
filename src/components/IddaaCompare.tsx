@@ -59,11 +59,16 @@ import { kuponKey } from '../lib/coupons'
 import { unitsSigned } from '../lib/ourRecord'
 import { QuarterRecordStrip } from './QuarterBets'
 import { GameSlate } from './GameStage'
-import { PICK_KINDS } from '../lib/gameStage'
+import { PICK_KINDS, showGame } from '../lib/gameStage'
+import type { Spot } from '../lib/nightFile'
+import { NightSearch, type SearchLeague } from './NightFile'
+import { bringKupon } from '../lib/kuponFront'
 import './IddaaCompare.css'
 
 interface Props {
   onBack: () => void
+  /** The league player cards open in here: its player index fills search's "Not on tonight". */
+  searchLeague?: SearchLeague | null
   /** Admins: a way over to Site health. */
   onHealth?: () => void
 }
@@ -92,7 +97,7 @@ function usePhone() {
 /** "Seambook": the sportsbook's lines (iddaa, read through nesine) beside ours, night by night, the biggest gaps above the book
  *  first, and once the games are final each side judged against what happened. Comparison only:
  *  the book never feeds our model. */
-export function IddaaCompare({ onBack, onHealth }: Props) {
+export function IddaaCompare({ onBack, onHealth, searchLeague = null }: Props) {
   const allowed = useFeature('estimates')
   const qc = useQueryClient()
   const [day, setDay] = useState<number | null>(null)
@@ -110,6 +115,8 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
   }, [ended, qc])
   const data = q.data
   const [how, setHow] = useState(false)
+  // the page head's spot for search: the night below fills it (it holds the night's lines)
+  const [searchSlot, setSearchSlot] = useState<HTMLDivElement | null>(null)
   if (!allowed || ended) return <ProInside ended={ended} onBack={onBack} />
   const howButton = (where: 'wide' | 'phone') => (
     <button
@@ -144,6 +151,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
           {data && <NightTabs data={data} onDay={setDay} />}
           {howButton('phone')}
           {data && <NightMeta data={data} />}
+          {data && data.games.length > 0 && <div className="ic-sr-slot" ref={setSearchSlot} />}
         </div>
       </div>
       {how && <HowToRead bands={data?.bands ?? null} onClose={() => setHow(false)} />}
@@ -154,7 +162,7 @@ export function IddaaCompare({ onBack, onHealth }: Props) {
         </section>
       )}
       {data ? (
-        <Night data={data} onDay={setDay} key={data.day ?? 0} />
+        <Night data={data} onDay={setDay} key={data.day ?? 0} searchSlot={searchSlot} searchLeague={searchLeague} />
       ) : (
         // Without a night the running record still shows (it reads its own record).
         <OurRecord data={null} />
@@ -240,7 +248,17 @@ function isTonight(data: BookCompare | undefined): boolean {
   return !!data && data.games.some((g) => g.status !== 'final')
 }
 
-function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void }) {
+function Night({
+  data,
+  onDay,
+  searchSlot,
+  searchLeague,
+}: {
+  data: BookCompare
+  onDay: (d: number) => void
+  searchSlot: HTMLElement | null
+  searchLeague: SearchLeague | null
+}) {
   const [stat, setStat] = useState<Stat | 'ALL'>('ALL')
   const [game, setGame] = useState<number | null>(null)
   const [pages, setPages] = useState(1)
@@ -270,6 +288,33 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
     else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE))) // enough pages at either size
     setFlash(l.id)
   }
+  /** A spot the Night File points at: bring it into view and ring it. A disagree row is found the way
+   *  "See in game" finds it, but with every game and stat shown, so its rank matches the file's. */
+  const jump = (s: Spot) => {
+    if (s.where === 'disagree') {
+      const l = s.line
+      const pool = lines.filter((x) => x.kind === 'player' && x.gap != null)
+      const at = ranked(pool, true).above.findIndex((x) => x.id === l.id)
+      setStat('ALL')
+      setGame(null)
+      setOpen(null)
+      if (at < 0) setFold(true)
+      else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE)))
+      setFlash(l.id)
+      return
+    }
+    if (s.where === 'game') {
+      showGame(s.gameId)
+      requestAnimationFrame(() => ringSpot(document.querySelector<HTMLElement>('.ic-gs')))
+      return
+    }
+    if (s.where === 'kupon') {
+      bringKupon(s.kind)
+      ringSpot(document.querySelector<HTMLElement>(`#ic-ku-${s.kind} [data-leg="${CSS.escape(s.lineId)}"]`))
+      return
+    }
+    ringSpot(document.querySelector<HTMLElement>(`.ic-ku-wn [data-leg="${CSS.escape(s.lineId)}"]`))
+  }
   useEffect(() => {
     if (!flash) return
     const raf = requestAnimationFrame(() => {
@@ -288,6 +333,7 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
   // book disagree, our record, then the tools.
   return (
     <>
+      <NightSearch data={data} lines={lines} slot={searchSlot} league={searchLeague} onJump={jump} />
       <Kupons data={data} lines={lines} onMatch={openForm} />
       <GamePicks data={data} lines={lines} onCard={setCard} />
       {data.games.length === 0 ? (
@@ -341,6 +387,23 @@ function Night({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
       )}
     </>
   )
+}
+
+/** Scrolls a spot into view, moves focus to it (its own button when it has one) and rings it with the
+ *  page's flash, the ring "See in game" uses. */
+function ringSpot(el: HTMLElement | null) {
+  if (!el) return
+  const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  // a tall spot (the Game picks stage) shows from its top, under the sticky bar; a row sits in the middle
+  const tall = el.getBoundingClientRect().height > window.innerHeight * 0.6
+  el.style.scrollMarginTop = tall ? '88px' : ''
+  el.scrollIntoView({ block: tall ? 'start' : 'center', behavior: still ? 'auto' : 'smooth' })
+  const target = el.matches('button, a') ? el : el.querySelector<HTMLElement>('button, a')
+  target?.focus({ preventScroll: true })
+  el.classList.remove('ic-flash')
+  void el.offsetWidth // restart the ring when it is already on
+  el.classList.add('ic-flash')
+  window.setTimeout(() => el.classList.remove('ic-flash'), 1900)
 }
 
 /** The nights, in the head's second row. */
