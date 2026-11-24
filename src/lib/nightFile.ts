@@ -299,3 +299,28 @@ const GOLD_CLUBS: Record<string, string> = { DEN: '#4F7CC0', IND: '#3F6FB8', NO:
 export function clubLight(team: string, light: string | undefined): string | undefined {
   return GOLD_CLUBS[team.toUpperCase()] ?? light
 }
+
+export type Who = { kind: 'player'; player: NightPlayer } | { kind: 'team'; team: NightTeam }
+
+/** The link keeps the open file (or the walk): ?follow=p<ESPN id> for a player, t<club> for a team. */
+export const FOLLOW_PARAM = 'follow'
+export const followKey = (who: Who) => (who.kind === 'player' ? `p${who.player.id}` : `t${who.team.abbrev}`)
+export function findFollow(v: string, pool: { players: NightPlayer[]; teams: NightTeam[] }): Who | null {
+  if (v.startsWith('t')) {
+    const team = pool.teams.find((t) => t.abbrev === v.slice(1).toUpperCase())
+    return team ? { kind: 'team', team } : null
+  }
+  if (!v.startsWith('p')) return null
+  const id = Number(v.slice(1))
+  const player = id > 0 ? pool.players.find((p) => p.id === id) : undefined
+  return player ? { kind: 'player', player } : null
+}
+/** One spot's identity, to find where a jump landed among someone's spots. */
+export const spotKey = (s: Spot) =>
+  s.where === 'kupon'
+    ? `k:${s.kind}:${s.lineId}`
+    : s.where === 'whynot'
+      ? `w:${s.lineId}`
+      : s.where === 'game'
+        ? `g:${s.gameId}`
+        : `d:${s.line.id}`

@@ -296,7 +296,8 @@ function Night({
       const pool = lines.filter((x) => x.kind === 'player' && x.gap != null)
       const at = ranked(pool, true).above.findIndex((x) => x.id === l.id)
       setStat('ALL')
-      setGame(null)
+      // a team's "Only this game" stays on while you walk its own game's rows
+      if (game !== l.game.game_id) setGame(null)
       setOpen(null)
       if (at < 0) setFold(true)
       else setPages((p) => Math.max(p, Math.ceil((at + 1) / PAGE_PHONE)))
@@ -333,7 +334,19 @@ function Night({
   // book disagree, our record, then the tools.
   return (
     <>
-      <NightSearch data={data} lines={lines} slot={searchSlot} league={searchLeague} onJump={jump} />
+      <NightSearch
+        data={data}
+        lines={lines}
+        slot={searchSlot}
+        league={searchLeague}
+        onJump={jump}
+        onlyGame={game}
+        onOnlyGame={(g) => {
+          setGame(g)
+          setPages(1)
+          setOpen(null)
+        }}
+      />
       <Kupons data={data} lines={lines} onMatch={openForm} />
       <GamePicks data={data} lines={lines} onCard={setCard} />
       {data.games.length === 0 ? (

@@ -930,6 +930,175 @@ html.ic-sr-lock body {
   min-height: 60px;
 }
 
+/* Walk his spots: the button under the ribbon, and the bar the file folds into. */
+button.ic-sr-walk {
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-sr-walk > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ic-sr-walk small,
+.ic-sr-only small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Only this game: a switch in the team file that narrows Where we disagree. */
+button.ic-sr-only {
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-sr-only > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ic-sr-only .tg {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  transition: background 160ms ease;
+}
+.ic-sr-only .tg::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+.ic-sr-only[aria-checked='true'] .tg {
+  background: var(--accent);
+  box-shadow: none;
+}
+.ic-sr-only[aria-checked='true'] .tg::after {
+  transform: translateX(16px);
+  background: var(--on-accent);
+}
+
+.ic-sr-token {
+  position: fixed;
+  z-index: 880;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: min(520px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    radial-gradient(260px 120px at 0% 50%, color-mix(in srgb, var(--tl) 16%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: var(--lift);
+  color: var(--text);
+  animation: ic-sr-token-in 180ms ease-out;
+}
+@keyframes ic-sr-token-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+.ic-sr-token .back {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 2px 8px 2px 2px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-sr-token .back:hover {
+  background: var(--raised);
+}
+.ic-sr-token .tx {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ic-sr-token .tx > b {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-sr-token .tx > span {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-sr-token .tx > span b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-sr-token .sep {
+  flex: none;
+  width: 1px;
+  height: 28px;
+  background: var(--divider);
+}
+.ic-sr-token .ic-sr-ib:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 @media (max-width: 719px) {
   .ic-sr-slot {
     flex: 1 1 100%;
@@ -1006,6 +1175,7 @@ html.ic-sr-lock body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .ic-sr-token,
   .ic-sr-file,
   .ic-sr-scrim {
     animation: none;

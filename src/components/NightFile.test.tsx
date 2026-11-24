@@ -5,7 +5,10 @@ import { linesOf } from '../lib/iddaaCompare'
 import type { BookCompare, CompareGame, CompareMarket, ComparePlayer } from '../lib/iddaaCompare'
 import { NightSearch } from './NightFile'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  window.history.replaceState(null, '', '/')
+})
 
 const NOW = new Date('2026-11-22T12:00:00Z')
 
@@ -114,14 +117,22 @@ function night(): BookCompare {
   }
 }
 
-function mount(onJump = vi.fn()) {
+function mount(onJump = vi.fn(), only?: { game: number | null; set: (g: number | null) => void }) {
   const data = night()
   const slot = document.createElement('div')
   document.body.appendChild(slot)
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const r = render(
     <QueryClientProvider client={qc}>
-      <NightSearch data={data} lines={linesOf(data, NOW)} slot={slot} league={null} onJump={onJump} />
+      <NightSearch
+        data={data}
+        lines={linesOf(data, NOW)}
+        slot={slot}
+        league={null}
+        onJump={onJump}
+        onlyGame={only?.game ?? null}
+        onOnlyGame={only?.set}
+      />
     </QueryClientProvider>,
   )
   return { ...r, slot, onJump }
@@ -174,5 +185,60 @@ describe('Night File search', () => {
     mount()
     fireEvent.keyDown(document.body, { key: '/' })
     expect(document.activeElement).toBe(screen.getByRole('combobox'))
+  })
+
+  it('walks his spots from a bar, keeps him in the link, and stops on ✕', () => {
+    vi.useFakeTimers()
+    const { onJump } = mount()
+    const box = screen.getByRole('combobox')
+    fireEvent.focus(box)
+    fireEvent.change(box, { target: { value: 'maxey' } })
+    fireEvent.keyDown(box, { key: 'Enter' })
+    expect(window.location.search).toContain('follow=p11')
+    const walk = screen.getByRole('button', { name: /Walk his \d+ spots?/ })
+    fireEvent.click(walk)
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    const bar = screen.getByRole('region', { name: 'Following Tyrese Maxey' })
+    expect(within(bar).getByText(/^1$/)).toBeTruthy()
+    expect(onJump).toHaveBeenCalledTimes(1)
+    const prev = within(bar).getByRole('button', { name: 'Previous spot' }) as HTMLButtonElement
+    const next = within(bar).getByRole('button', { name: 'Next spot' }) as HTMLButtonElement
+    expect(prev.disabled).toBe(true)
+    fireEvent.click(next)
+    expect(onJump).toHaveBeenCalledTimes(2)
+    expect(within(bar).getByText(/^2$/)).toBeTruthy()
+    // His night opens the file again
+    fireEvent.click(within(bar).getByRole('button', { name: /Open the night again/ }))
+    expect(screen.getByRole('dialog', { name: 'Tyrese Maxey, tonight' })).toBeTruthy()
+    fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: /Disagree #/ })[0])
+    act(() => {
+      vi.runAllTimers()
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Stop following' }))
+    expect(screen.queryByRole('region', { name: /Following/ })).toBeNull()
+    expect(window.location.search).not.toContain('follow=')
+    vi.useRealTimers()
+  })
+
+  it('opens the file named in the link', () => {
+    window.history.replaceState(null, '', '/?view=estimates&follow=tDEN')
+    mount()
+    expect(screen.getByRole('dialog', { name: 'Denver Nuggets, tonight' })).toBeTruthy()
+  })
+
+  it("narrows Where we disagree to the team's game with Only this game", () => {
+    const set = vi.fn()
+    mount(undefined, { game: null, set })
+    const box = screen.getByRole('combobox')
+    fireEvent.focus(box)
+    fireEvent.change(box, { target: { value: 'denver' } })
+    fireEvent.keyDown(box, { key: 'Enter' })
+    const sw = screen.getByRole('switch', { name: /Only this game/ })
+    expect(sw.getAttribute('aria-checked')).toBe('false')
+    fireEvent.click(sw)
+    expect(set).toHaveBeenCalledWith(2)
   })
 })
