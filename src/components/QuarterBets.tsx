@@ -17,35 +17,52 @@ import {
 } from '../lib/quarterBets'
 import { unitsSigned } from '../lib/ourRecord'
 import { teamLight } from '../lib/nbaTeams'
+import { scaleAround } from '../lib/gameStage'
+import { NumLine, Ring } from './GameLines'
 import './QuarterBets.css'
 
 type Teams = Pick<CompareGame, 'away' | 'home'>
 
-/** Our chance with the price's break-even marked on the bar: an edge is our chance past the tick. */
-function ChanceNeeds({ ours, odd }: { ours: number; odd: number }) {
-  const pct = Math.round(Math.min(1, Math.max(0, ours)) * 100)
-  const need = Math.round(needs(odd) * 100)
-  return (
-    <span className="ic-gq-ch">
-      <span className="ic-gq-ch-top">
-        <b className="num">
-          {pct}
-          <small>%</small>
-        </b>
-        <i className="ic-gq-bar" aria-hidden="true">
-          <i style={{ '--ic-gq-ch': `${pct}%` } as CSSProperties} />
-          <em style={{ '--ic-gq-need': `${Math.min(100, need)}%` } as CSSProperties} />
-        </i>
-      </span>
-      <span className="ic-gq-need">
-        needs <span className="num">{need}%</span>
-      </span>
-    </span>
-  )
+const QS = ['1st', '2nd', '3rd', '4th']
+
+const one = (v: number) => (Math.round(v * 10) / 10).toFixed(1)
+const word = (prefix: string, text: string) => (
+  <>
+    {prefix} <b className="num">{text}</b>
+  </>
+)
+
+/** A quarter bet on its number line: totals on points (the book's line a tick), winners and the
+ *  first half's handicap on the home side's margin (home to the right, like the duel). The side we
+ *  lean to is shaded; once played the result is a diamond. */
+function lineOf(b: QuarterBet, g: Teams) {
+  const margin = b.market === 'q_winner' || b.market === 'h1_margin'
+  const mid = b.market === 'q_winner' ? 0 : b.market === 'h1_margin' ? -(b.line ?? 0) : (b.line ?? b.ours)
+  const { lo, hi } = scaleAround(mid, [b.ours, b.actual], margin ? 4 : 5)
+  const up = b.pick === 'over' || b.pick === 'home'
+  const got = gotText(b, g)
+  return {
+    lo,
+    hi,
+    book: {
+      at: mid,
+      label:
+        b.market === 'q_winner'
+          ? 'Even'
+          : word('Book', b.market === 'h1_margin' ? sideLabel(b, 'home', g) : String(b.line ?? '')),
+    },
+    ours: { at: b.ours, label: word('Ours', margin ? oursText(b, g) : one(b.ours)) },
+    got:
+      b.actual != null && b.hit != null && got
+        ? { at: b.actual, ok: b.hit, label: word('Got', got.replace(/^Got /, '')) }
+        : null,
+    win: b.pick ? (up ? { from: mid, to: hi } : { from: mid, to: lo }) : null,
+    tc: margin && b.pick ? (teamLight(b.pick === 'home' ? g.home : g.away) ?? null) : null,
+  }
 }
 
-/** One edge slip, in the game rows' own shape: when, the bet with its value, Book and Ours, odds,
- *  our chance against what the price needs; after the game Won / Lost and what happened. */
+/** One edge slip as a lane: when and the bet with its value, its number line, the odds, our chance
+ *  as a ring with a notch at what the price needs; after the game Won / Lost. */
 function EdgeSlip({ b, g }: { b: QuarterBet; g: Teams }) {
   const s = pickSide(b)
   if (!s) return null
@@ -58,54 +75,56 @@ function EdgeSlip({ b, g }: { b: QuarterBet; g: Teams }) {
         ? sideLabel(b, 'home', g)
         : String(b.line)
       : `${Math.round(s.book * 100)}%`
+  const need = needs(s.odd)
   return (
-    <li className={`ic-gp-row ic-gq-slip${done ? (b.hit ? ' won' : ' lost') : ''}`}>
-      <span className="ml">
-        {when} <span className="ic-gq-what">{what}</span>
-      </span>
-      <span className="mb">
-        <b className="bt num">{sideLabel(b, s.side, g)}</b>
-        <span className="ic-gq-val">
-          Value <b className="num">{valueText(s.value)}</b>
+    <li className={`ic-gs-lane ic-gq-slip${done ? (b.hit ? ' won' : ' lost') : ''}`}>
+      <span className="ic-gs-bet">
+        <span className="ml">
+          {when} {what}
         </span>
-        <span className="bo">
-          {done && got ? (
-            <>{got} · </>
-          ) : (
-            <>
-              Book <b className="num">{book}</b> ·{' '}
-            </>
-          )}
-          Ours <b className="num">{oursText(b, g)}</b>
+        <span className="bt">
+          <b className="num">{sideLabel(b, s.side, g)}</b>
+          <span className="ic-gq-val">
+            Value <b className="num">{valueText(s.value)}</b>
+          </span>
         </span>
       </span>
-      <span className="od">
+      <NumLine {...lineOf(b, g)} />
+      <span className="sr-only">{`${done && got ? got : `Book ${book}`} · Ours ${oursText(b, g)}`}</span>
+      <span className="ic-gs-od">
         <b className="num">{odds(s.odd)}</b>
         <span>odds</span>
       </span>
       {done ? (
-        <span className={`rs ${b.hit ? 'ok' : 'no'}`}>
+        <span className={`ic-gs-rs ${b.hit ? 'ok' : 'no'}`}>
           {b.hit ? (
-            <Check size={12} weight="bold" aria-hidden="true" />
+            <Check size={13} weight="bold" aria-hidden="true" />
           ) : (
-            <X size={12} weight="bold" aria-hidden="true" />
+            <X size={13} weight="bold" aria-hidden="true" />
           )}
           {b.hit ? 'Won' : 'Lost'}
         </span>
       ) : (
-        <ChanceNeeds ours={s.ours} odd={s.odd} />
+        <span className="ic-gq-rn">
+          <Ring value={s.ours} need={need} />
+          <span className="ic-gq-need">
+            needs <span className="num">{Math.round(need * 100)}%</span>
+          </span>
+        </span>
       )}
     </li>
   )
 }
 
-/** A cell of the grid: the bet we lean to, our number in outline, our chance, its odds and value;
- *  after the game what happened and ✓ / ✗. A hole where the book has no line; "No bet" at 1.33 or under. */
-function Cell({ b, g, head }: { b: QuarterBet | null; g: Teams; head?: string }) {
+/** A cell of the grid: the bet we lean to, our number in outline, its mini number line, our chance
+ *  against what the price needs, its odds and value; after the game what happened and ✓ / ✗. A hole
+ *  where the book has no line; "No bet" at 1.33 or under. `ph` names the quarter on phones (2 across). */
+function Cell({ b, g, head, ph }: { b: QuarterBet | null; g: Teams; head?: string; ph?: string }) {
   if (!b) {
     return (
       <div className="ic-gq-cell none">
         {head && <span className="ic-gq-head">{head}</span>}
+        {ph && <span className="ic-gq-head ic-gq-ph">{ph}</span>}
         <span className="ic-gq-hole">No line</span>
       </div>
     )
@@ -123,12 +142,14 @@ function Cell({ b, g, head }: { b: QuarterBet | null; g: Teams; head?: string })
         ? g.home
         : g.away
       : sideLabel(b, b.ours >= (b.line ?? 0) ? 'over' : 'under', g)
+  const need = s ? Math.round(needs(s.odd) * 100) : null
   return (
     <div
       className={`ic-gq-cell${edge ? ' edge' : ''}${b.hit === true ? ' won' : b.hit === false ? ' lost' : ''}`}
       style={tc ? ({ '--tc': tc } as CSSProperties) : undefined}
     >
       {head && <span className="ic-gq-head">{head}</span>}
+      {ph && <span className="ic-gq-head ic-gq-ph">{ph}</span>}
       <span className="ic-gq-bet">
         <b className="num">{label}</b>
         {b.hit === true && <Check className="ok" size={12} weight="bold" aria-label="Won" />}
@@ -138,18 +159,28 @@ function Cell({ b, g, head }: { b: QuarterBet | null; g: Teams; head?: string })
         {margin && <small>by </small>}
         <b>{margin ? Math.abs(b.ours).toFixed(1) : b.ours.toFixed(1)}</b>
       </span>
+      <NumLine {...lineOf(b, g)} small />
       {got && <span className="ic-gq-got">{got}</span>}
-      <span className="ic-gq-foot">
-        {s ? (
-          <>
+      {s && need != null ? (
+        <>
+          <span className="ic-gq-chb">
+            <i className="bar" aria-hidden="true">
+              <i style={{ width: `${Math.round(Math.min(1, Math.max(0, s.ours)) * 100)}%` }} />
+              <em style={{ left: `${Math.min(100, need)}%` }} />
+            </i>
             <span className="num">{Math.round(s.ours * 100)}%</span>
+            <span className="sr-only">{`, needs ${need}%`}</span>
+          </span>
+          <span className="ic-gq-foot">
             <span className="num">{odds(s.odd)}</span>
             <span className={`ic-gq-v num${edge ? ' on' : ''}`}>{valueText(s.value)}</span>
-          </>
-        ) : (
+          </span>
+        </>
+      ) : (
+        <span className="ic-gq-foot">
           <span className="ic-gq-nobet">No bet · odds 1.33 or less</span>
-        )}
-      </span>
+        </span>
+      )}
     </div>
   )
 }
@@ -190,7 +221,7 @@ export function QuarterBets({ g }: { g: CompareGame }) {
         </span>
       </div>
       {edges.length > 0 && (
-        <ul className="ic-gp-rows ic-gq-slips" aria-label={`${g.away} @ ${g.home} quarter bets with value`}>
+        <ul className="ic-gs-lanes ic-gq-slips" aria-label={`${g.away} @ ${g.home} quarter bets with value`}>
           {edges.map((b) => (
             <EdgeSlip key={`${b.market}-${b.period}`} b={b} g={g} />
           ))}
@@ -234,7 +265,7 @@ export function QuarterBets({ g }: { g: CompareGame }) {
               Winner <small>our side</small>
             </span>
             {grid.winner.map((b, i) => (
-              <Cell key={`w${i}`} b={b} g={g} />
+              <Cell key={`w${i}`} b={b} g={g} ph={QS[i]} />
             ))}
           </div>
           <div className="ic-gq-line">
@@ -242,7 +273,7 @@ export function QuarterBets({ g }: { g: CompareGame }) {
               Total <small>both teams</small>
             </span>
             {grid.total.map((b, i) => (
-              <Cell key={`t${i}`} b={b} g={g} />
+              <Cell key={`t${i}`} b={b} g={g} ph={QS[i]} />
             ))}
           </div>
           {grid.half.some(Boolean) && (
@@ -254,8 +285,22 @@ export function QuarterBets({ g }: { g: CompareGame }) {
             </div>
           )}
           <p className="ic-gq-key">
-            <span className="ic-gq-v on num">+0.06</span> Value: our chance × odds − 1. Above 0 is an edge. The book
-            keeps 15–25% on these, so most show a minus.
+            <span className="ic-gq-lg">
+              <i className="lg-bk" aria-hidden="true" /> Book
+            </span>
+            <span className="ic-gq-lg">
+              <i className="lg-ou" aria-hidden="true" /> Ours
+            </span>
+            <span className="ic-gq-lg">
+              <i className="lg-got" aria-hidden="true" /> Result
+            </span>
+            <span className="ic-gq-lg">
+              <i className="lg-need" aria-hidden="true" /> What the price needs
+            </span>
+            <span className="ic-gq-lg">
+              <span className="ic-gq-v on num">+0.06</span> Value: our chance × odds − 1. Above 0 is an edge. The book
+              keeps 15–25% on these, so most show a minus.
+            </span>
           </p>
         </div>
       )}

@@ -3,9 +3,7 @@ import {
   ArrowLeft,
   BookOpenText,
   CaretDown,
-  CaretRight,
   Check,
-  Clock,
   Prohibit,
   Pulse,
   Scales,
@@ -34,13 +32,10 @@ import {
   plain,
   ranked,
   signed,
-  gameCall,
-  gotLine,
   picksNight,
   sureOf,
   tallyOf,
   lostWhy,
-  marketPair,
   MIN_ODD,
 } from '../lib/iddaaCompare'
 import type { BookCompare, CompareGame, Line, Stat } from '../lib/iddaaCompare'
@@ -62,7 +57,9 @@ import { HowToRead } from './HowToRead'
 import { Chance, KuponTag, useKuponPicks } from './EstimateBits'
 import { kuponKey } from '../lib/coupons'
 import { unitsSigned } from '../lib/ourRecord'
-import { QuarterBets, QuarterRecordStrip } from './QuarterBets'
+import { QuarterRecordStrip } from './QuarterBets'
+import { GameSlate } from './GameStage'
+import { PICK_KINDS } from '../lib/gameStage'
 import './IddaaCompare.css'
 
 interface Props {
@@ -1803,18 +1800,8 @@ function swarm(lines: Line[], width: number) {
   }
 }
 
-/** Market rows in the spec's order: Handicap, Total points, then Match result. Team totals are not a
- *  bet the engine makes, so they stay in Every line. */
-const PICK_KINDS: [Stat, string][] = [
-  ['MAR', 'Handicap'],
-  ['TOT', 'Total points'],
-  ['WIN', 'Match result'],
-]
-
-/** Game picks (The Slip Rail, Can 2026-11-23): one calm block per game on the bare page. Our score
- *  leads in solid numerals; then one row per iddaa game line with the bet, its odds and our chance,
- *  the same grammar as a Kupon leg. After the game: the final score over our call, each row Won or
- *  Lost. Club colour only as light around the logos. */
+/** Game picks: the night's head and quarter record, then one match at a time (Can 2026-11-24,
+ *  "Slate and Stage", GameStage.tsx): a slate of the matches and the chosen one drawn on a stage. */
 function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; onCard: (game: number) => void }) {
   const kupons = useKuponPicks(lines)
   const of = (g: CompareGame, s: Stat) => lines.find((l) => l.kind === 'game' && l.game.game_id === g.game_id && l.stat === s)
@@ -1855,234 +1842,8 @@ function GamePicks({ data, lines, onCard }: { data: BookCompare; lines: Line[]; 
         </span>
       </div>
       <QuarterRecordStrip rec={record?.quarters} />
-      <ol className="ic-gp-games">
-        {shown.map((g) => (
-          <PickGame key={g.game_id} g={g} lines={lines} of={of} kupons={kupons} onCard={onCard} />
-        ))}
-      </ol>
+      <GameSlate games={shown} lines={lines} of={of} kupons={kupons} onCard={onCard} />
     </section>
-  )
-}
-
-/** A club logo on a disc, lit by the club's colour. */
-function GpDisc({ team }: { team: string }) {
-  return (
-    <span className="ic-gp-disc" style={{ '--tc': teamLight(team) ?? 'transparent' } as CSSProperties}>
-      <TeamLogo abbrev={team} size={40} fallback />
-    </span>
-  )
-}
-
-/** The game's seam colours under its head: each club's light, set only for a club we know, so the
- *  CSS falls back to the plain ink fade on that side. */
-function seamColours(away: string, home: string): CSSProperties {
-  const style: Record<string, string> = {}
-  const a = teamLight(away)
-  const h = teamLight(home)
-  if (a) style['--ta'] = a
-  if (h) style['--tb'] = h
-  return style as CSSProperties
-}
-
-function PickGame({
-  g,
-  lines,
-  of,
-  kupons,
-  onCard,
-}: {
-  g: CompareGame
-  lines: Line[]
-  of: (g: CompareGame, s: Stat) => Line | undefined
-  kupons: Map<string, string[]>
-  onCard: (game: number) => void
-}) {
-  const call = gameCall(g, lines)
-  const final = g.status === 'final' && g.away_score != null && g.home_score != null
-  const live = !final && (g.status === 'live' || new Date(g.tip) <= new Date())
-  const r = (v: number) => Math.round(v)
-  // whole numbers; one decimal when rounding would tie or flip our pick
-  const shows = (v: number, other: number) => (r(v) === r(other) ? v.toFixed(1) : String(r(v)))
-  const called =
-    final && call ? Math.sign(call.home - call.away) === Math.sign((g.home_score ?? 0) - (g.away_score ?? 0)) : null
-  const pct = call?.chance != null ? Math.round(call.chance * 100) : null
-  const say = call
-    ? final
-      ? `Final: ${g.away} ${g.away_score}, ${g.home} ${g.home_score}. Our call was ${shows(call.away, call.home)} to ${shows(call.home, call.away)}.`
-      : `Our score: ${g.away} ${shows(call.away, call.home)}, ${g.home} ${shows(call.home, call.away)}.${pct != null ? ` We give ${call.pick} a ${pct}% chance to win.` : ''}`
-    : final
-      ? `Final: ${g.away} ${g.away_score}, ${g.home} ${g.home_score}.`
-      : ''
-  const score = (away: string, home: string) => (
-    <b className="num">
-      <small>{g.away}</small> {away}
-      <i>–</i>
-      {home} <small>{g.home}</small>
-    </b>
-  )
-  return (
-    <li className={`ic-gp-game${final ? ' post' : ''}`} style={seamColours(g.away, g.home)}>
-      <div className="ic-gp-gh">
-        <span className="ic-gp-pair" aria-hidden="true">
-          <GpDisc team={g.away} />
-          <GpDisc team={g.home} />
-        </span>
-        <span className="ic-gp-gn">
-          <b>{`${g.away} @ ${g.home}`}</b>
-          <span>
-            {final ? (
-              'Final'
-            ) : live ? (
-              <>
-                <span className="ic-live" aria-hidden="true" />
-                Live
-              </>
-            ) : (
-              <>
-                <Clock size={14} aria-hidden="true" />
-                Tip <span className="num">{clock(g.tip)}</span>
-              </>
-            )}
-          </span>
-        </span>
-        {say && <span className="sr-only">{say}</span>}
-        {(final || call) && (
-          <span className="ic-gp-sc" aria-hidden="true">
-            <span className="lab">{final ? 'Final' : 'Our score'}</span>
-            {final ? score(String(g.away_score), String(g.home_score)) : score(shows(call!.away, call!.home), shows(call!.home, call!.away))}
-            {final ? (
-              call && (
-                <span className="sub">
-                  {called ? (
-                    <Check className="ok" size={12} weight="bold" aria-hidden="true" />
-                  ) : (
-                    <X className="no" size={12} weight="bold" aria-hidden="true" />
-                  )}
-                  Our call{' '}
-                  <span className="num">
-                    {shows(call.away, call.home)}–{shows(call.home, call.away)}
-                  </span>
-                </span>
-              )
-            ) : (
-              <span className="sub">
-                {call!.pick} by <span className="num">{num(r(call!.margin))}</span> · Total{' '}
-                <span className="num">{num(r(call!.total))}</span>
-              </span>
-            )}
-          </span>
-        )}
-      </div>
-      <ul className="ic-gp-rows" aria-label={`${g.away} @ ${g.home} bets`}>
-        {PICK_KINDS.map(([s, kind]) => {
-          const l = of(g, s)
-          return l ? <PickRow key={kind} line={l} kind={kind} kupons={kupons.get(kuponKey(l)) ?? []} /> : null
-        })}
-      </ul>
-      <QuarterBets g={g} />
-      {(g.estimates?.length ?? 0) > 0 && (
-        <button
-          type="button"
-          className="ic-gp-more"
-          aria-haspopup="dialog"
-          aria-label={`${g.away} at ${g.home}: player estimates`}
-          onClick={() => onCard(g.game_id)}
-        >
-          Player estimates
-          <CaretRight size={14} weight="bold" aria-hidden="true" />
-        </button>
-      )}
-    </li>
-  )
-}
-
-/** One market: the label, the bet (with the Kupon tag when a slip carries it), Book and Ours under it,
- *  then the odds and our chance. A line with no bet keeps our number and says why. */
-function PickRow({ line: l, kind, kupons }: { line: Line; kind: string; kupons: string[] }) {
-  const b = l.barem
-  const { book, ours } = marketPair(l)
-  if (!b) {
-    const why =
-      l.ours == null
-        ? 'No line yet'
-        : l.stat === 'WIN' && l.team
-          ? `${l.team} odds ${MIN_ODD.toFixed(2)} or less`
-          : `Odds ${MIN_ODD.toFixed(2)} or less`
-    return (
-      <li className="ic-gp-row none">
-        <span className="ml">{kind}</span>
-        <span className="mb">
-          {l.stat === 'WIN' && l.team && <b className="bt">{`${l.team} to win`}</b>}
-          {(ours || book) && (
-            <span className="bo">
-              {l.stat !== 'WIN' && book && (
-                <>
-                  Book <b className="num">{book}</b> ·{' '}
-                </>
-              )}
-              {ours && (
-                <>
-                  Ours <b className="num">{ours}</b>
-                </>
-              )}
-            </span>
-          )}
-        </span>
-        <span className="nb">
-          <Prohibit size={14} aria-hidden="true" />
-          <span>
-            <b>No bet</b>
-            <i className="dot" aria-hidden="true">
-              ·
-            </i>
-            <span>{why}</span>
-          </span>
-        </span>
-      </li>
-    )
-  }
-  const done = l.game.status === 'final' && l.oursHit != null
-  const got = gotLine(l)
-  const why = lostWhy(l)
-  return (
-    <li className={`ic-gp-row${done ? (l.oursHit ? ' won' : ' lost') : ''}`}>
-      <span className="ml">{kind}</span>
-      <span className="mb">
-        <b className={`bt${l.stat === 'WIN' ? '' : ' num'}`}>{b.label}</b>
-        <KuponTag kupons={kupons} />
-        <span className="bo">
-          {done && got ? (
-            <>{got} · </>
-          ) : (
-            book && (
-              <>
-                Book <b className="num">{book}</b> ·{' '}
-              </>
-            )
-          )}
-          {ours && (
-            <>
-              Ours <b className="num">{ours}</b>
-            </>
-          )}
-        </span>
-      </span>
-      <span className="od">
-        <b className="num">{b.odd != null ? odds(b.odd) : '–'}</b>
-        <span>odds</span>
-      </span>
-      {done ? (
-        <span className={`rs ${l.oursHit ? 'ok' : 'no'}`}>
-          {l.oursHit ? <Check size={12} weight="bold" aria-hidden="true" /> : <X size={12} weight="bold" aria-hidden="true" />}
-          {l.oursHit ? 'Won' : 'Lost'}
-        </span>
-      ) : b.sure != null ? (
-        <Chance value={b.sure} />
-      ) : (
-        <span />
-      )}
-      {why && <span className="why">{why}</span>}
-    </li>
   )
 }
 
