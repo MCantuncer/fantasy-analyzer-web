@@ -1,6 +1,7 @@
 // Game picks one match at a time (Can 2026-11-24: "User selects a match and its details came. Not
 // like listing all"). The slate lists the night's matches grouped Final / Live / To come; the stage
 // shows the chosen one. These helpers pick the order, the opening match and the number lines' scales.
+import { useSyncExternalStore } from 'react'
 import type { CompareGame, QuarterBet, Stat } from './iddaaCompare'
 import { isEdge } from './quarterBets'
 
@@ -80,6 +81,29 @@ export function writeGameParam(id: number | null) {
   else q.set(GAME_PARAM, String(id))
   const s = q.toString()
   window.history.replaceState(window.history.state, '', s ? `?${s}` : window.location.pathname)
+}
+
+// "Show in Game picks" from elsewhere on the page (the Night File): a small store the stage follows.
+// Each ask is new (n counts up), so asking for the match already on stage still brings it into view.
+let shown: { id: number; n: number } | null = null
+const watchers = new Set<() => void>()
+
+/** Puts a match on the Game picks stage (the stage writes ?game= as it does for its own picks). */
+export function showGame(id: number) {
+  shown = { id, n: (shown?.n ?? 0) + 1 }
+  watchers.forEach((w) => w())
+}
+
+/** The latest match asked for from outside the stage, or null. */
+export function useShownGame(): { id: number; n: number } | null {
+  return useSyncExternalStore(
+    (w) => {
+      watchers.add(w)
+      return () => watchers.delete(w)
+    },
+    () => shown,
+    () => null,
+  )
 }
 
 /** A number line's scale: centred on `mid`, wide enough for every value with some air, never

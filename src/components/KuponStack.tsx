@@ -1,9 +1,10 @@
 import { CaretRight } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { fmtOdds } from '../lib/coupons'
 import type { CouponKind, CouponSlot } from '../lib/coupons'
+import { FRONT_EVENT } from '../lib/kuponFront'
 import './KuponStack.css'
 
 /** Tonight's Kupons on phones and small tablets (The Slip Rail, under 900px): the same slips as the
@@ -61,6 +62,15 @@ export function KuponStack({
   const [moved, setMoved] = useState(false)
   // A remembered Matches Only that is riding on Highest Confidence tonight opens that slip.
   const want = twin && picked === twin.spec.kind ? 'safe' : picked
+  useEffect(() => {
+    const on = (e: Event) => {
+      const kind = (e as CustomEvent<CouponKind>).detail
+      setPicked(kind)
+      setMoved(true)
+    }
+    window.addEventListener(FRONT_EVENT, on)
+    return () => window.removeEventListener(FRONT_EVENT, on)
+  }, [])
   const front = slots.find((s) => s.spec.kind === want) ?? slots[0]
   if (!front) return null
   const edges = slots.filter((s) => s !== front)

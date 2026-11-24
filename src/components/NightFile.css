@@ -1,0 +1,1013 @@
+/* Night File (Can 2026-11-24): search on Our Estimates and the file it opens. Prefix ic-sr-. */
+
+/* ---- the field: one quiet line at the end of the head's second row ---- */
+.ic-sr-slot {
+  margin-left: auto;
+  flex: 0 1 360px;
+  min-width: 260px;
+}
+.ic-sr {
+  position: relative;
+}
+.ic-sr-field,
+label.ic-sr-field {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding: 0 6px 0 14px;
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--recess), var(--shadow);
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: text;
+}
+.ic-sr-field > svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-sr-field:focus-within,
+.ic-sr-field.on {
+  box-shadow:
+    0 0 0 2px var(--focus),
+    var(--shadow);
+}
+.ic-sr-field .ph {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ic-sr-field input.ic-sr-input {
+  flex: 1;
+  width: auto;
+  min-height: 0;
+  border-radius: 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+.ic-sr-field .ic-sr-input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+.ic-sr-kbd {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+}
+.ic-sr-x,
+.ic-sr-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.ic-sr-x:hover,
+.ic-sr-close:hover {
+  background: var(--raised);
+}
+
+/* ---- the results (desktop): a drawer under the field, the header search's row look ---- */
+.ic-sr-drop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(460px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 220px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+}
+.ic-sr-grp {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px 10px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-sr-grp b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-sr-res {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-radius: var(--radius-row);
+  cursor: pointer;
+}
+.ic-sr-res.hi {
+  background: var(--raised);
+  box-shadow: var(--recess);
+}
+.ic-sr-res.off {
+  cursor: default;
+  opacity: 0.8;
+}
+.ic-sr-res .who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ic-sr-res .nm {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-res u,
+.ic-sr-res .nm u {
+  text-decoration-color: var(--focus);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.ic-sr-res .sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-res .peek {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.ic-sr-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--gold-text);
+  font-weight: 600;
+}
+.ic-sr-live::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.ic-sr-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 6px 0 0;
+  padding: 10px 10px 4px;
+  border-top: 1px solid var(--divider);
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-sr-foot .ic-sr-kbd {
+  min-width: 20px;
+  height: 20px;
+  margin-right: 3px;
+  font-size: 11px;
+}
+.ic-sr-none {
+  padding: 12px 10px 4px;
+}
+.ic-sr-none p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--muted);
+}
+.ic-sr-none .h {
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-wait {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px;
+  padding: 6px 4px 4px;
+}
+.ic-sr-tm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ic-sr-tm:hover {
+  background: var(--raised);
+}
+
+/* ---- faces and crests: club light, gold-guarded (lib/nightFile clubLight) ---- */
+.ic-sr-face {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: var(--s, 40px);
+  height: var(--s, 40px);
+}
+.ic-sr-face .ic-sr-disc {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: max(18px, 40%);
+  height: max(18px, 40%);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--tl) 80%, transparent);
+}
+.ic-sr-crest {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--s, 40px);
+  height: var(--s, 40px);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--tl) 22%, transparent), transparent 72%), var(--raised);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tl) 75%, transparent);
+}
+.pair {
+  display: inline-flex;
+}
+.pair .ic-sr-crest + .ic-sr-crest {
+  margin-left: -8px;
+}
+
+/* ---- the Night File: one dialog for a night ---- */
+html.ic-sr-lock,
+html.ic-sr-lock body {
+  overflow: hidden;
+}
+.ic-sr-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--scrim);
+  animation: ic-sr-fade 0.2s ease-out;
+}
+@keyframes ic-sr-fade {
+  from {
+    opacity: 0;
+  }
+}
+.ic-sr-file {
+  position: fixed;
+  z-index: 901;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(560px, calc(100vw - 24px));
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--lift);
+  color: var(--text);
+  animation: ic-sr-slide 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes ic-sr-slide {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+/* his club's light, from the file's top-left corner and nowhere else */
+.ic-sr-file::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 340px;
+  pointer-events: none;
+  background: radial-gradient(480px 280px at 0% 0%, color-mix(in srgb, var(--tl) 18%, transparent), transparent 70%);
+}
+:root[data-theme='light'] .ic-sr-file::before {
+  background: radial-gradient(480px 280px at 0% 0%, color-mix(in srgb, var(--tl) 12%, transparent), transparent 70%);
+}
+.ic-sr-in {
+  position: relative;
+  padding: 10px 24px 28px;
+}
+.ic-sr-grab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+.ic-sr-grab .t {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-ib {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.ic-sr-ib:hover {
+  color: var(--text);
+}
+.ic-sr-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.ic-sr-top .id {
+  flex: 1;
+  min-width: 0;
+  padding-top: 8px;
+}
+.ic-sr-kick {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ic-sr-name {
+  margin: 0;
+  font-size: 27px;
+  line-height: 33px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.ic-sr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-meta b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-sr-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.ic-sr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--raised);
+  box-shadow: var(--recess);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ic-sr-btn.pri {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: none;
+}
+.ic-sr-count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 18px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-count b {
+  margin-right: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ic-sr-sec {
+  margin-top: 26px;
+}
+.ic-sr-sec > h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ic-sr-sec > h3 small {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* line tiles: ours vs book on a lane, then the bet the page takes */
+.ic-sr-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-sr-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 14px 10px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+.ic-sr-tile.bet {
+  background: var(--raised);
+}
+.ic-sr-tile p {
+  margin: 0;
+}
+.ic-sr-tile .hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.ic-sr-tile .st {
+  font-size: 14px;
+  font-weight: 600;
+}
+.ic-sr-tile .gp {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ic-sr-tile .ob {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-tile .ob b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-sr-tile .bt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  min-height: 28px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-tile .bt .b,
+.ic-sr-tile .bt .o {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-tile .bt .c,
+.ic-sr-tile .bt .ic-sr-ok,
+.ic-sr-tile .bt .ic-sr-no {
+  margin-left: auto;
+}
+.ic-sr-tile .nb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ic-sr-tile .kp {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+.ic-sr-tile .kp svg {
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+.ic-sr-tile .jump {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  margin: 2px -8px -6px;
+  padding: 0 8px;
+  border: 0;
+  border-top: 1px solid var(--divider);
+  border-radius: 0 0 10px 10px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-sr-tile .jump:hover {
+  color: var(--text);
+}
+.ic-sr-lane {
+  position: relative;
+  display: block;
+  height: 22px;
+}
+.ic-sr-lane i {
+  position: absolute;
+  top: 50%;
+}
+.ic-sr-lane .ln {
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--track);
+}
+.ic-sr-lane .sg {
+  height: 2px;
+  margin-top: -1px;
+  background: var(--text-2);
+}
+.ic-sr-lane .tk {
+  width: 2px;
+  height: 14px;
+  margin: -7px 0 0 -1px;
+  border-radius: 1px;
+  background: var(--muted);
+}
+.ic-sr-lane .dt {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 0 0 2px var(--surface-2);
+}
+.ic-sr-lane .rs {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 2px solid var(--text-2);
+}
+.ic-sr-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--good);
+  font-weight: 600;
+}
+.ic-sr-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--bad);
+  font-weight: 600;
+}
+.ic-sr-plain {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-row);
+  box-shadow: inset 0 0 0 1px var(--divider);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.ic-sr-plain b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* on this page: the page drawn as one ribbon, his spots lit and numbered in page order */
+.ic-sr-ribbon {
+  display: flex;
+  gap: 4px;
+}
+.ic-sr-ribbon .seg {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ic-sr-ribbon .lts {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 48px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+.ic-sr-ribbon .zero .lts {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+.ic-sr-ribbon .dash {
+  color: var(--faint);
+  font-size: 13px;
+}
+.ic-sr-ribbon .lt {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tl) 26%, var(--raised));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tl) 80%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ic-sr-ribbon .lt:hover {
+  background: color-mix(in srgb, var(--tl) 40%, var(--raised));
+}
+.ic-sr-ribbon .lab {
+  padding-left: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ic-sr-legs,
+.ic-sr-gls,
+.ic-sr-pls {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-sr-kup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border-radius: var(--radius-row);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+.ic-sr-kup + .ic-sr-kup {
+  margin-top: 6px;
+}
+.ic-sr-kup > svg {
+  flex: none;
+  color: var(--text-2);
+}
+.ic-sr-kup .k {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-sr-kup .k b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-kup .o {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-sr-kup .o b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ic-sr-match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-row);
+  background: var(--raised);
+  box-shadow: var(--recess);
+}
+.ic-sr-match .mt {
+  flex: 1;
+  min-width: 150px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.ic-sr-match .mt > b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-match .call {
+  display: block;
+}
+.ic-sr-match .call b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+/* team file rows */
+.ic-sr-gl {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 4px 14px;
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: var(--radius-row);
+  background: var(--surface-2);
+  box-shadow: var(--recess);
+}
+.ic-sr-gl + .ic-sr-gl {
+  margin-top: 6px;
+}
+.ic-sr-gl .l {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.ic-sr-gl .l b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-gl .bt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ic-sr-gl .bt b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ic-sr-gl .bt.nob {
+  grid-column: 2 / 4;
+}
+.ic-sr-gl .r {
+  min-width: 64px;
+  text-align: right;
+  font-size: 13px;
+}
+.ic-sr-pl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 4px 8px 6px;
+}
+.ic-sr-pl + .ic-sr-pl {
+  border-top: 1px solid var(--divider);
+}
+.ic-sr-pl .who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ic-sr-pl .who small {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.ic-sr-pl .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.ic-sr-pl .chips > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ic-sr-pl .chips b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.ic-sr-pl .open {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ic-sr-dock {
+  display: none;
+}
+
+/* ---- phones: the field is its own row; typing happens in a sheet on the keyboard ---- */
+.ic-sr-sheet {
+  position: fixed;
+  z-index: 950;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--ps-vvh, 100dvh);
+  transform: translateY(var(--ps-vvy, 0px));
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  box-shadow: 0 0 0 100vh var(--bg);
+}
+.ic-sr-sheet-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px 12px 4px;
+}
+.ic-sr-sheet-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--divider);
+  background: var(--surface);
+}
+.ic-sr-sheet-bar .ic-sr-field {
+  flex: 1;
+  height: 48px;
+}
+.ic-sr-sheet-bar .ic-sr-field input.ic-sr-input {
+  font-size: 16px; /* no zoom on focus in iOS */
+}
+.ic-sr-sheet .ic-sr-res {
+  min-height: 60px;
+}
+
+@media (max-width: 719px) {
+  .ic-sr-slot {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+  .ic-sr-slot .ic-sr-field {
+    height: 48px;
+  }
+  .ic-sr-file {
+    inset: 0;
+    width: auto;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation-name: ic-sr-up;
+  }
+  @keyframes ic-sr-up {
+    from {
+      transform: translateY(28px);
+      opacity: 0;
+    }
+  }
+  .ic-sr-in {
+    padding: 4px 16px calc(104px + env(safe-area-inset-bottom));
+  }
+  .ic-sr-top {
+    gap: 14px;
+  }
+  .ic-sr-name {
+    font-size: 23px;
+    line-height: 29px;
+  }
+  .ic-sr-acts {
+    display: none;
+  }
+  .ic-sr-tiles {
+    grid-template-columns: 1fr;
+  }
+  .ic-sr-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    gap: 8px;
+    margin-top: -88px;
+    padding: 24px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, var(--surface) 30%);
+  }
+  .ic-sr-dock .ic-sr-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 10px;
+    white-space: normal;
+    text-align: center;
+    line-height: 18px;
+  }
+  .ic-sr-gl {
+    grid-template-columns: 1fr auto;
+  }
+  .ic-sr-gl .bt {
+    grid-column: 1;
+    flex-direction: row;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .ic-sr-gl .bt.nob {
+    grid-column: 1;
+  }
+  .ic-sr-gl .r {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ic-sr-file,
+  .ic-sr-scrim {
+    animation: none;
+  }
+}

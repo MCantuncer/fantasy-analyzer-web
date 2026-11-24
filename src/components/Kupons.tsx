@@ -253,7 +253,7 @@ function KuponSlip({
           </div>
           <ol className="ic-ku-legs" aria-label={`${spec.title} picks`}>
             {c.legs.map((l, i) => (
-              <li key={l.id} style={{ '--i': i } as CSSProperties}>
+              <li key={l.id} style={{ '--i': i } as CSSProperties} data-leg={l.line.id}>
                 <KuponLeg leg={l} onMatch={onMatch} />
               </li>
             ))}
@@ -431,7 +431,7 @@ function WhyNot({ legs, onMatch }: { legs: Leg[]; onMatch?: OpenMatch }) {
           return (
             <li key={l.id} className="ic-ku-slip wn">
               <ol className="ic-ku-legs" aria-label="Why not pick">
-                <li>
+                <li data-leg={l.line.id}>
                   <KuponLeg leg={l} onMatch={onMatch} />
                 </li>
               </ol>

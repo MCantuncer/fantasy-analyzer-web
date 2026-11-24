@@ -735,7 +735,11 @@ export default function App() {
         {signedIn && me.data && !selection && admin === 'health' && me.data.admin && <SiteHealth onBack={goHome} />}
 
         {signedIn && me.data && !selection && admin === 'estimates' && (
-          <IddaaCompare onBack={goHome} onHealth={me.data.admin ? () => setAdmin('health') : undefined} />
+          <IddaaCompare
+            onBack={goHome}
+            onHealth={me.data.admin ? () => setAdmin('health') : undefined}
+            searchLeague={cardRef ? { leagueRef: cardRef, creds } : null}
+          />
         )}
 
         {signedIn && me.data && !selection && !(admin === 'estimates' || (admin === 'health' && me.data.admin)) && (
