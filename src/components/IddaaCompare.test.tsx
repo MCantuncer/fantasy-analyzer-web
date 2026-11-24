@@ -142,7 +142,7 @@ describe('Game picks', () => {
     odds: { side: 'pick' | 'other' | 'over' | 'under'; odd: number }[],
   ) => ({ market, team, book_team: team, won: '', ours, book, actual: null, gap: ours - book, ours_hit: null, book_hit: null, closer: null, odds })
 
-  it('reads as calm rows: Handicap, Total points, Match result, with our chance as a number and no rings', async () => {
+  it('draws one match: the bets as lanes on number lines, our chance as a ring, No bet as one quiet line', async () => {
     const g = game(1, 'scheduled', '2099-11-22T22:00:00Z')
     g.markets = [
       mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4)),
@@ -155,39 +155,83 @@ describe('Game picks', () => {
     mount(night([g]))
     const section = (await screen.findByRole('heading', { level: 2, name: 'Game picks' })).closest('section')!
     expect(section.querySelector('.ic-gp-sm')!.textContent).toBe('2 bets · 1 no bet')
-    const rows = [...section.querySelectorAll('.ic-gp-row')]
-    expect(rows.map((r) => r.querySelector('.ml')!.textContent)).toEqual(['Handicap', 'Total points', 'Match result'])
-    expect(rows[0].querySelector('.bt')!.textContent).toBe('IND +4.5')
-    expect(rows[0].querySelector('.bo')!.textContent).toBe('Book NY −4.5 · Ours NY −2')
-    expect(rows[1].querySelector('.ic-ch')!.textContent).toBe('51%') // 9 parts the book's even 1.90s, 1 part our 58%
-    expect(rows[2].textContent).toContain('Ours NY 64%')
-    // No bet is one quiet line: the word, a dot only for the eye, then why, on a shorter row
-    expect(rows[2]).toHaveClass('none')
-    expect(rows[2].querySelector('.nb')!.textContent).toBe('No bet·NY odds 1.33 or less')
-    const nb = rows[2].querySelector('.nb > span')!
-    expect([...nb.children].map((c) => c.tagName)).toEqual(['B', 'I', 'SPAN'])
-    expect(nb.querySelector('.dot')).toHaveAttribute('aria-hidden', 'true')
-    // the score is solid, our chance is a number: no hollow digits, no ring buttons or popovers
-    expect(section.querySelector('.ic-gp-sc')!.textContent).toContain('Our score')
-    expect(section.querySelector('.hollow, .ic-gp-conf, .ic-gp-ring')).toBeNull()
-    expect(within(section).queryByRole('button', { name: /What this means/ })).toBeNull()
+    const card = within(section).getByRole('article', { name: 'IND at NY' })
+    const lanes = [...card.querySelectorAll('.ic-gs-lanes > .ic-gs-lane')]
+    expect(lanes.map((r) => r.querySelector('.ml')!.textContent)).toEqual(['Handicap', 'Total points', 'Match result'])
+    expect(lanes[0].querySelector('.bt')!.textContent).toBe('IND +4.5')
+    expect(lanes[0]).toHaveTextContent('Book NY −4.5 · Ours NY −2')
+    // the handicap on one line: the book's tick, our dot, the side the bet wins on shaded
+    expect(lanes[0].querySelector('.ic-gs-line .bk')).not.toBeNull()
+    expect(lanes[0].querySelector('.ic-gs-line .ou')).not.toBeNull()
+    expect(lanes[0].querySelector('.ic-gs-line .side')).not.toBeNull()
+    expect(lanes[1].querySelector('.ic-gs-ring')!.textContent).toBe('Our chance 51%') // 9 parts the book's even 1.90s, 1 part our 58%
+    expect(lanes[2]).toHaveClass('none')
+    expect(lanes[2].querySelector('.nb')!.textContent).toBe('No bet·NY odds 1.33 or less')
+    expect(lanes[2].querySelector('.nb .dot')).toHaveAttribute('aria-hidden', 'true')
+    // the score call is a duel bar, said in words for screen readers
+    expect(card.querySelector('.ic-gs-duel .ic-gs-track .fill')).not.toBeNull()
+    expect(card.querySelector('.ic-gs-duel')!.textContent).toContain('Our score: IND')
   })
 
-  it("carries each club's light into the head seam, and leaves an unknown club to the ink fade", async () => {
-    const known = game(1, 'scheduled', '2099-11-22T22:00:00Z')
-    known.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
-    const odd = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'XYZ' }
-    odd.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
-    mount(night([known, odd]))
+  it('lists the matches on a slate and shows one at a time, with Game N of M, ‹ › and the arrow keys', async () => {
+    const first = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    first.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
+    const second = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'XYZ' }
+    second.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
+    window.history.replaceState(null, '', '/?view=estimates')
+    mount(night([first, second]))
     const section = (await screen.findByRole('heading', { level: 2, name: 'Game picks' })).closest('section')!
-    const [a, b] = [...section.querySelectorAll<HTMLElement>('.ic-gp-game')]
-    // teamLight(): IND gold, NY orange
-    expect(a.style.getPropertyValue('--ta')).toBe('#F2B233')
-    expect(a.style.getPropertyValue('--tb')).toBe('#F07F2E')
-    // no colour for a club we don't know: the CSS falls back to the plain ink for that side
-    expect(b.style.getPropertyValue('--ta')).toBe('')
-    expect(b.style.getPropertyValue('--tb')).toBe('#F07F2E')
-    expect(b.querySelector('.nb')!.textContent).toBe('No bet·NY odds 1.33 or less')
+    const slate = within(section).getByRole('navigation', { name: "Tonight's matches" })
+    const rows = within(slate).getAllByRole('button')
+    expect(rows.map((r) => r.querySelector('b')!.textContent)).toEqual(['IND @ NY', 'XYZ @ NY'])
+    // one card only: the next to tip
+    expect(within(section).getAllByRole('article')).toHaveLength(1)
+    expect(within(section).getByRole('article', { name: 'IND at NY' })).toHaveTextContent('Game 1 of 2')
+    expect(rows[0]).toHaveAttribute('aria-current', 'true')
+    // the card carries each club's light; a club we don't know falls back to the ink
+    const card = within(section).getByRole('article')
+    expect(card.style.getPropertyValue('--ta')).toBe('#F2B233')
+    expect(card.style.getPropertyValue('--tb')).toBe('#F07F2E')
+    fireEvent.click(rows[1])
+    const next = within(section).getByRole('article', { name: 'XYZ at NY' })
+    expect(next).toHaveTextContent('Game 2 of 2')
+    expect(next.style.getPropertyValue('--ta')).toBe('')
+    expect(window.location.search).toContain('game=2')
+    fireEvent.keyDown(window, { key: 'ArrowLeft' })
+    expect(within(section).getByRole('article', { name: 'IND at NY' })).toBeInTheDocument()
+    fireEvent.click(within(section).getAllByRole('button', { name: 'Next match' })[0])
+    expect(within(section).getByRole('article', { name: 'XYZ at NY' })).toBeInTheDocument()
+    window.history.replaceState(null, '', '/')
+  })
+  it('on phones folds the slate into a switcher that opens a sheet; picking a match closes it', async () => {
+    const first = game(1, 'scheduled', '2099-11-22T22:00:00Z')
+    first.markets = [mk('winner', 'NY', 0.64, 0.58, odds2(1.3, 3.4))]
+    const done = { ...game(2, 'final', '2020-11-22T23:00:00Z'), away_score: 101, home_score: 110 }
+    done.markets = [{ ...mk('total', '', 230, 226.5, [{ side: 'over', odd: 1.9 }, { side: 'under', odd: 1.9 }]), actual: 211, ours_hit: false, book_hit: true }]
+    window.history.replaceState(null, '', '/?view=estimates')
+    mount(night([first, done]))
+    const section = (await screen.findByRole('heading', { level: 2, name: 'Game picks' })).closest('section')!
+    // the final match leads the slate: its pip and tally
+    const slate = within(section).getByRole('navigation', { name: "Tonight's matches" })
+    const finalRow = within(slate).getAllByRole('button')[0]
+    expect(finalRow).toHaveTextContent('Final 101–110')
+    expect(finalRow.querySelectorAll('.pips i.l')).toHaveLength(1)
+    expect(finalRow).toHaveTextContent('0–1 bets won')
+    const switcher = within(section).getByRole('button', { name: /IND @ NY/, expanded: false })
+    expect(switcher).toHaveTextContent('2 of 2')
+    fireEvent.click(switcher)
+    const sheet = await screen.findByRole('dialog', { name: /Tonight's matches/ })
+    const [close, finalInSheet] = within(sheet).getAllByRole('button')
+    expect(close).toHaveAccessibleName('Close')
+    fireEvent.click(finalInSheet) // the final match, first on the slate
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(within(section).getByRole('article', { name: 'IND at NY' })).toHaveTextContent('Final')
+    expect(within(section).getByRole('article')).toHaveTextContent('Lost')
+    fireEvent.click(within(section).getByRole('button', { name: /IND @ NY/, expanded: false }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    window.history.replaceState(null, '', '/')
   })
 })
 

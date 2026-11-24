@@ -62,6 +62,7 @@ import { useTabInView } from './lib/useTabInView'
 import { pageName, usePageView } from './lib/pageView'
 import { CHECK_PARAM } from './lib/tradeCheck'
 import { SCOUT_PARAM, scoutOf, scoutWanted } from './lib/sample'
+import { GAME_PARAM } from './lib/gameStage'
 
 interface Selection {
   leagueId: number
@@ -128,6 +129,9 @@ function writeUrl(
   const q = new URLSearchParams()
   if (!selection && admin) q.set('view', admin)
   if (!selection && scout != null) q.set(SCOUT_PARAM, String(scout))
+  // Our Estimates keeps its chosen match in the URL (see GameStage); carry it while that page is open.
+  const game = new URLSearchParams(window.location.search).get(GAME_PARAM)
+  if (!selection && admin === 'estimates' && game) q.set(GAME_PARAM, game)
   if (selection) q.set('league', String(selection.leagueId))
   if (selection?.season) q.set('season', String(selection.season))
   if (selection && verifying) q.set('view', 'verify')
