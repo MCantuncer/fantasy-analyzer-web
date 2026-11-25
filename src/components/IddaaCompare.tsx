@@ -59,9 +59,10 @@ import { kuponKey } from '../lib/coupons'
 import { unitsSigned } from '../lib/ourRecord'
 import { QuarterRecordStrip } from './QuarterBets'
 import { GameSlate } from './GameStage'
-import { PICK_KINDS, showGame } from '../lib/gameStage'
+import { PICK_KINDS, phaseOf, showGame } from '../lib/gameStage'
 import type { Spot } from '../lib/nightFile'
 import { NightSearch, type SearchLeague } from './NightFile'
+import { SelectMenu } from './SelectMenu'
 import { bringKupon } from '../lib/kuponFront'
 import './IddaaCompare.css'
 
@@ -536,6 +537,39 @@ interface ListProps {
   onOpen: (id: string) => void
 }
 
+/** A row of the game filter: both logos and the teams. */
+function GameOption({ g }: { g: CompareGame }) {
+  return (
+    <span className="ic-gl-go">
+      <TeamLogo abbrev={g.away} size={20} fallback />
+      <span>{g.away}</span> <span className="ic-gl-at">@</span> <TeamLogo abbrev={g.home} size={20} fallback />
+      <span>{g.home}</span>
+    </span>
+  )
+}
+
+/** The end of a game filter row: the final score, Live, or the tip-off time. */
+function GameWhen({ g }: { g: CompareGame }) {
+  const phase = phaseOf(g)
+  if (phase === 'final')
+    return (
+      <>
+        Final{' '}
+        <span className="num">
+          {g.away_score}–{g.home_score}
+        </span>
+      </>
+    )
+  if (phase === 'live')
+    return (
+      <span className="ic-gl-lv">
+        <span className="ic-live" aria-hidden="true" />
+        Live
+      </span>
+    )
+  return <span className="num">{clock(g.tip)}</span>
+}
+
 /** Why a player line has no bet: iddaa's lowest priced rung sits above ours, or every rung it prices
  *  is 1.33 or less. */
 function noBetWhy(l: Line): { short: string; rung: number | null } {
@@ -615,16 +649,22 @@ function GapList(p: ListProps) {
             )
           })}
         </div>
-        <label className="ic-gl-sel">
-          <span className="sr-only">Game</span>
-          <select value={game ?? ''} onChange={(e) => p.onGame(e.target.value === '' ? null : Number(e.target.value))}>
-            <option value="">All Games</option>
-            {games.map((g) => (
-              <option key={g.game_id} value={g.game_id}>{`${g.away} @ ${g.home}`}</option>
-            ))}
-          </select>
-          <CaretDown size={16} aria-hidden="true" />
-        </label>
+        <SelectMenu<number | null>
+          label="Game"
+          className="ic-gl-sel"
+          align="end"
+          value={game}
+          onChange={p.onGame}
+          options={[
+            { value: null, label: 'All Games', rule: games.length > 0 },
+            ...games.map((g) => ({
+              value: g.game_id,
+              label: `${g.away} @ ${g.home}`,
+              row: <GameOption g={g} />,
+              meta: <GameWhen g={g} />,
+            })),
+          ]}
+        />
       </div>
       {waiting && (
         <p className="ic-gl-none">

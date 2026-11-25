@@ -20,6 +20,12 @@ const PRO: Me = {
   payment_due: false,
 }
 
+/** Opens the game filter and picks a game, the way a person would. */
+const pickGame = (sec: HTMLElement, name: RegExp) => {
+  fireEvent.click(within(sec).getByRole('combobox', { name: 'Game' }))
+  fireEvent.click(within(sec).getByRole('option', { name }))
+}
+
 const game = (id: number, status: CompareGame['status'], tip: string): CompareGame => ({
   game_id: id,
   away: 'IND',
@@ -283,7 +289,7 @@ describe('Where we and the book disagree', () => {
     // gone: the duel stage, the Players/Games switch, the old day bar's match chips, the row sentence
     expect(document.querySelector('.ic-duel, .ic-stage, .ic-seg, .ic-chip, .ic-games, .ic-nc')).toBeNull()
     expect(sec.textContent).not.toMatch(/we expect .* than the book/)
-    // stat tabs in the site's order with counts; the native game select
+    // stat tabs in the site's order with counts; the game filter in the site's own menu
     expect(within(within(sec).getByRole('tablist', { name: 'Stat' })).getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'All 5',
       '3PM 0',
@@ -293,8 +299,13 @@ describe('Where we and the book disagree', () => {
       'Blocks 0',
       'Points 0',
     ])
-    const select = within(sec).getByRole('combobox', { name: 'Game' }) as HTMLSelectElement
-    expect([...select.options].map((o) => o.textContent)).toEqual(['All Games', 'IND @ NY'])
+    const select = within(sec).getByRole('combobox', { name: 'Game' })
+    expect(select.textContent).toBe('All Games')
+    expect(select.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(select)
+    const list = within(sec).getByRole('listbox', { name: 'Game' })
+    expect([...list.querySelectorAll('.selm-row')].map((o) => o.textContent)).toEqual(['All Games', 'IND @ NY'])
+    expect(within(list).getByRole('option', { name: 'All Games' }).getAttribute('aria-selected')).toBe('true')
   })
 
   it('gives each row two targets: the player card and the rungs', async () => {
@@ -334,7 +345,7 @@ describe('Where we and the book disagree', () => {
     expect(sec.querySelectorAll('#ic-gl-rest > .ic-gl-row')).toHaveLength(3)
   })
 
-  it('filters by game with the select', async () => {
+  it('filters by game with the game menu', async () => {
     const a = game(1, 'scheduled', '2099-11-22T22:00:00Z')
     const b = { ...game(2, 'scheduled', '2099-11-22T23:00:00Z'), away: 'BOS', home: 'GS' }
     a.players = [pl('Aa', 8.3, 7.4)]
@@ -342,7 +353,8 @@ describe('Where we and the book disagree', () => {
     mount(night([a, b]))
     const sec = await section()
     expect(sec.querySelectorAll('.ic-gl-rows > .ic-gl-row')).toHaveLength(3)
-    fireEvent.change(within(sec).getByRole('combobox', { name: 'Game' }), { target: { value: '2' } })
+    pickGame(sec, /^BOS @ GS/)
+    expect(within(sec).getByRole('combobox', { name: 'Game' }).textContent).toBe('BOS @ GS')
     expect([...sec.querySelectorAll('.ic-gl-who b')].map((b) => b.textContent)).toEqual(['Bb', 'Cc'])
   })
 
@@ -370,7 +382,7 @@ describe('Where we and the book disagree', () => {
     fireEvent.click(within(sec).getByRole('tab', { name: 'All 30' }))
     fireEvent.click(within(sec).getByRole('button', { name: 'Show 12 more' }))
     expect(count()).toBe(24)
-    fireEvent.change(within(sec).getByRole('combobox', { name: 'Game' }), { target: { value: '1' } })
+    pickGame(sec, /^IND @ NY/)
     expect(count()).toBe(12)
   })
 
