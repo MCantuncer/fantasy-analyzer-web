@@ -23,6 +23,7 @@ import type { Phase } from '../lib/gameStage'
 import { isEdge, pickSide } from '../lib/quarterBets'
 import { kuponKey } from '../lib/coupons'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { teamLight } from '../lib/nbaTeams'
 import { TeamLogo } from './PlayerHead'
 import { KuponTag } from './EstimateBits'
@@ -593,7 +594,10 @@ function Stage({
 /** Phones: the slate as a bottom sheet, opened from the switcher. Esc, the scrim or ✕ closes it. */
 function Sheet({ onClose, children, title }: { onClose: () => void; children: ReactNode; title: string }) {
   const close = useRef<HTMLButtonElement>(null)
+  const sheet = useRef<HTMLDivElement>(null)
+  const scrim = useRef<HTMLDivElement>(null)
   useEscapeLayer(true, onClose)
+  useSwipeToClose(sheet, onClose, { media: '(max-width: 719px)', backdrop: scrim })
   useEffect(() => {
     close.current?.focus()
     const body = document.body.style.overflow
@@ -616,8 +620,8 @@ function Sheet({ onClose, children, title }: { onClose: () => void; children: Re
   }, [])
   return createPortal(
     <>
-      <div className="ic-gs-scrim" onClick={onClose} aria-hidden="true" />
-      <div className="ic-gs-sheet" role="dialog" aria-modal="true" aria-labelledby="ic-gs-sheet-h">
+      <div ref={scrim} className="ic-gs-scrim" onClick={onClose} aria-hidden="true" />
+      <div ref={sheet} className="ic-gs-sheet" role="dialog" aria-modal="true" aria-labelledby="ic-gs-sheet-h">
         <i className="grab" aria-hidden="true" />
         <div className="hd">
           <h4 id="ic-gs-sheet-h">

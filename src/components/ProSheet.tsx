@@ -11,6 +11,7 @@ import {
   type Me,
 } from '../api/client'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { loadPaddle, onPaddleEvent } from '../lib/paddle'
 import { PRICES } from '../lib/plans'
 import type { Theme } from '../lib/theme'
@@ -61,6 +62,8 @@ export function ProSheet({ theme, onClose, onPro }: { theme: Theme; onClose: () 
     }
   }, [])
   useEscapeLayer(true, onClose)
+  // A bottom sheet below 900px (ProSheet.css); the backdrop holds the sheet, so it isn't faded.
+  useSwipeToClose(sheet, onClose, { media: '(max-width: 899px)' })
 
   // Paddle tells us the payment went through; the API reads it, then Pro opens.
   useEffect(

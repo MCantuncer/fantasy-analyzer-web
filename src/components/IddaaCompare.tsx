@@ -40,6 +40,7 @@ import {
 } from '../lib/iddaaCompare'
 import type { BookCompare, CompareGame, Line, Stat } from '../lib/iddaaCompare'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { teamLight } from '../lib/nbaTeams'
 import { usePlayerCard } from '../lib/playerCard'
 import { MatchCard } from './MatchCard'
@@ -1697,7 +1698,9 @@ function MarkCard({
   onSee: () => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const scrim = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number; below: boolean; tip: number } | null>(null)
+  useSwipeToClose(ref, onClose, { media: 'all', backdrop: scrim, enabled: sheet })
   useLayoutEffect(() => {
     if (sheet) return
     const place = () => {
@@ -1817,7 +1820,7 @@ function MarkCard({
   return createPortal(
     sheet ? (
       <>
-        <div className="ic-mc-scrim" aria-hidden="true" onClick={onClose} />
+        <div ref={scrim} className="ic-mc-scrim" aria-hidden="true" onClick={onClose} />
         {card}
       </>
     ) : (

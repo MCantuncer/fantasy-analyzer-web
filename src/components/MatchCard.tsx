@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { useEscapeLayer } from "../lib/escapeStack";
+import { useSwipeToClose } from "../lib/swipeToClose";
 import { matchFormQuery } from "../api/client";
 import { clock, num } from "../lib/iddaaCompare";
 import { typeTag } from "../lib/matchForm";
@@ -68,6 +69,7 @@ export function MatchCard({
   const form = useQuery({ ...matchFormQuery(game.away, game.home), enabled: formSeen });
   const dialog = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+  const backdrop = useRef<HTMLDivElement>(null);
   const under = usePlayerCardShown();
   const [side, setSide] = useState<"away" | "home">(initialSide);
   const [now, setNow] = useState(() => Date.now());
@@ -87,6 +89,8 @@ export function MatchCard({
     };
   }, []);
   useEscapeLayer(true, onClose);
+  // A player card on top takes the swipe; this card waits underneath.
+  useSwipeToClose(dialog, onClose, { backdrop, enabled: !under });
 
   const final = game.status === "final";
   const score =
@@ -129,7 +133,7 @@ export function MatchCard({
 
   return createPortal(
     <div className="mc-layer" inert={under}>
-      <div className="mc-backdrop" onClick={onClose} aria-hidden="true" />
+      <div ref={backdrop} className="mc-backdrop" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialog}
         className={`mc-sheet${under ? " mc-under" : ""}`}

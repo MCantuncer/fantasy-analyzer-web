@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { fetchPlayerIndex, type IndexedPlayer, type LeagueRef, type TeamResult } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { teamColours, teamLogoUrl } from '../lib/league'
 import { teamColour } from '../lib/nbaTeams'
 import { usePlayerCard, usePlayerCardShown } from '../lib/playerCard'
@@ -70,6 +71,7 @@ function TeamSheet({
   const dialog = useRef<HTMLDivElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const hero = useRef<HTMLElement>(null)
+  const backdrop = useRef<HTMLDivElement>(null)
   const card = usePlayerCard()
   const under = usePlayerCardShown()
   const [folded, setFolded] = useState(false)
@@ -93,6 +95,8 @@ function TeamSheet({
     }
   }, [])
   useEscapeLayer(true, closeTeamCard)
+  // A player card on top takes the swipe; the team card waits underneath.
+  useSwipeToClose(dialog, closeTeamCard, { backdrop, enabled: !under })
 
   const owners: Owners = useMemo(
     () => ({
@@ -194,7 +198,7 @@ function TeamSheet({
 
   return createPortal(
     <div className="tc-layer" inert={under}>
-      <div className="tc-backdrop" onClick={closeTeamCard} aria-hidden="true" />
+      <div ref={backdrop} className="tc-backdrop" onClick={closeTeamCard} aria-hidden="true" />
       <div
         ref={dialog}
         className={['tc-sheet', under && 'tc-under', folded && 'tc-folded'].filter(Boolean).join(' ')}
