@@ -1,0 +1,162 @@
+/* SelectMenu: the site's own select. A plain button, then a list in a menu card like the league
+   switcher's (surface, hairline, soft shadow, 44px rows, a check on the chosen one). */
+.selm {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.selm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.selm-btn:hover,
+.selm[data-open] .selm-btn {
+  background: var(--raised);
+}
+
+.selm-val {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selm-chev {
+  flex: none;
+  color: var(--text-2);
+  transition: transform 160ms ease;
+}
+
+.selm[data-open] .selm-chev {
+  transform: rotate(180deg);
+}
+
+.selm-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: max(100%, 248px);
+  max-width: calc(100vw - 32px);
+  max-height: min(60vh, 420px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow);
+  transform-origin: top center;
+  animation: selm-in 140ms ease-out;
+}
+
+.selm-pop[hidden] {
+  display: none;
+}
+
+.selm-pop.end {
+  left: auto;
+  right: 0;
+}
+
+.selm-pop.up {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform-origin: bottom center;
+}
+
+@keyframes selm-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selm-pop {
+    animation: none;
+  }
+  .selm-chev {
+    transition: none;
+  }
+}
+
+.selm-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 10px 0 12px;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.selm-opt[data-active] {
+  background: var(--raised);
+}
+
+.selm-opt[aria-selected='true'] {
+  font-weight: 600;
+}
+
+/* A thin line under "All ..." to set it apart from the single choices. */
+.selm-opt.rule {
+  position: relative;
+  margin-bottom: 7px;
+}
+
+.selm-opt.rule::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: -4px;
+  border-top: 1px solid var(--border);
+}
+
+.selm-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.selm-meta {
+  flex: none;
+  margin-left: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.selm-check {
+  flex: none;
+  color: var(--accent);
+}

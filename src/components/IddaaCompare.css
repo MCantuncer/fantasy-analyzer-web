@@ -2764,32 +2764,28 @@
   opacity: 0.45;
   cursor: default;
 }
+/* the game filter (SelectMenu): a quiet button on the bar, the list lines up with its right edge */
 .ic-gl-sel {
-  position: relative;
   flex: none;
-  display: flex;
+}
+.ic-gl-go {
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
-.ic-gl-sel select {
-  appearance: none;
-  height: 44px;
-  padding: 0 36px 0 14px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+.ic-gl-go .team-logo,
+.ic-gl-go .team-logo-ab {
+  flex: none;
 }
-.ic-gl-sel svg {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  color: var(--text-2);
-  pointer-events: none;
+.ic-gl-at {
+  color: var(--muted);
+  font-weight: 500;
+}
+.ic-gl-lv {
+  display: inline-flex;
+  align-items: center;
+  color: var(--gold-text);
 }
 
 /* the list: rank, player, then gap · bet · odds · our chance */
@@ -3273,8 +3269,13 @@ button.ic-gl-pw:hover .ic-gl-who b {
     margin: 0 -16px;
     padding: 0 16px;
   }
-  .ic-gl-sel select {
+  .ic-gl-sel,
+  .ic-gl-sel .selm-btn {
     width: 100%;
+  }
+  .ic-gl-sel .selm-pop.end {
+    left: 0;
+    right: 0;
   }
   .ic-gl-colh,
   .ic-gl-rk {
