@@ -25,6 +25,7 @@ import { fetchPlayerCard, fetchPlayerCardExtras } from '../api/client'
 import type { GameStats, LeagueRef, PlayerCard as Card, PlayerCardExtras, PlayerGame, PlayerNews } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { KIND_LABEL, ago, statusText } from '../lib/news'
 import { STAT_COLUMNS, type StatColumn } from '../lib/statOrder'
 import {
@@ -303,6 +304,7 @@ function PlayerSheet({ onTeam, player, leagueRef, creds, teams, myTeamId, onClos
   const titleId = useId()
   const dialog = useRef<HTMLDivElement>(null)
   const closeBtn = useRef<HTMLButtonElement>(null)
+  const backdrop = useRef<HTMLDivElement>(null)
   // The core (header, form, games, moves) shows as soon as it lands; news fills in after.
   const q = useQuery(coreQuery(leagueRef, player.id, creds))
   const extras = useQuery(extrasQuery(leagueRef, player.id, creds))
@@ -317,6 +319,7 @@ function PlayerSheet({ onTeam, player, leagueRef, creds, teams, myTeamId, onClos
     }
   }, [])
   useEscapeLayer(true, onClose)
+  useSwipeToClose(dialog, onClose, { backdrop })
 
   // Keep Tab inside the card while it is open.
   const trap = (e: ReactKeyboardEvent) => {
@@ -342,7 +345,7 @@ function PlayerSheet({ onTeam, player, leagueRef, creds, teams, myTeamId, onClos
   const heroStyle = colour ? ({ '--pc-team': colour } as CSSProperties) : undefined
   return createPortal(
     <div className={onTeam ? 'pc-layer pc-stacked' : 'pc-layer'}>
-      <div className="pc-backdrop" onClick={onClose} aria-hidden="true" />
+      <div ref={backdrop} className="pc-backdrop" onClick={onClose} aria-hidden="true" />
       <div ref={dialog} className="pc-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={trap}>
         <header className={colour ? 'pc-hero pc-hero-team' : 'pc-hero'} style={heroStyle}>
           <div className="pc-grab" aria-hidden="true" />

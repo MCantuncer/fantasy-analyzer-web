@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import { pointChange, surname } from '../lib/tradeCheck'
 import { useEscapeLayer } from '../lib/escapeStack'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { PlayerList } from './PlayerInline'
@@ -81,6 +82,8 @@ function CutSheet({
     return () => document.removeEventListener('keydown', onKey)
   }, [])
   useEscapeLayer(true, onClose)
+  // A bottom sheet up to 640px (TradeCheckMoves.css); the scrim holds the sheet, so it isn't faded.
+  useSwipeToClose(box, onClose)
 
   const row = (p: PlayerRef, odds: number | null | undefined) => (
     <li key={p.id}>
