@@ -111,10 +111,8 @@
 /* Hero: who it is (left), tonight's craziest call (right). */
 .cz-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 40px;
-  padding: 24px 0 32px;
-  align-items: start;
+  gap: 20px;
+  padding: 24px 0 24px;
 }
 .cz-who {
   display: grid;
@@ -193,117 +191,6 @@
 .cz-honest b {
   color: var(--text);
   font-weight: 600;
-}
-
-/* Tonight's craziest call */
-.cz-loud {
-  padding: 22px 22px 18px;
-  border: 1px solid var(--cz-edge);
-  border-radius: var(--radius);
-  background: var(--cz-wall);
-  box-shadow: var(--lift);
-  min-width: 0;
-}
-.cz-loud-k {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.cz-loud-tag {
-  color: var(--cz-ink-strong);
-  font-weight: 600;
-}
-.cz-shout {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 10px 0 0;
-  color: var(--cz-ink);
-}
-.cz-shout .t {
-  font-size: 56px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-.cz-shout .w {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--text-2);
-}
-.cz-shout .n {
-  font-size: 56px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.cz-loud-sub {
-  margin: 6px 0 0;
-  font-size: 14px;
-  color: var(--text-2);
-}
-.cz-loud-sub b {
-  color: var(--text);
-  font-weight: 700;
-}
-.cz-under {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--cz-edge);
-}
-.cz-under .lbl {
-  font-size: 13px;
-  color: var(--muted);
-}
-.cz-under .v {
-  font-size: 20px;
-  font-weight: 650;
-  color: var(--text);
-}
-.cz-apart {
-  margin-left: auto;
-  font-size: 13px;
-  color: var(--muted);
-}
-.cz-apart .num {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
-.cz-steps {
-  list-style: none;
-  display: grid;
-  margin: 14px 0 0;
-  padding: 0;
-  font-size: 14px;
-}
-.cz-steps li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--cz-edge);
-  color: var(--text-2);
-}
-.cz-steps li:last-child {
-  border-bottom: 0;
-  color: var(--text);
-  font-weight: 600;
-}
-.cz-steps .num {
-  font-weight: 650;
-  color: var(--text);
-}
-.cz-steps li:last-child .num {
-  color: var(--cz-ink-strong);
 }
 
 /* Night picker */
@@ -684,7 +571,7 @@
   border-color: color-mix(in srgb, var(--cz-ink) 45%, var(--cz-edge));
   background: linear-gradient(160deg, var(--cz-ink-soft), transparent 60%), var(--cz-wall);
 }
-.cz-belief h3 {
+.cz-belief h4 {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -744,35 +631,6 @@
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--faint);
 }
-.cz-myths {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-.cz-myths-h {
-  margin-right: 4px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.cz-myth {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 6px;
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 1px solid var(--cz-edge);
-  border-radius: var(--radius-tag);
-}
-.cz-myth s {
-  color: var(--text-2);
-  text-decoration-thickness: 1.5px;
-}
-
 /* Record: luck or a lead? */
 .cz-rec {
   display: grid;
@@ -931,14 +789,915 @@
   }
 }
 
+/* Hero row: the night picker and tonight's counts. */
+.cz-hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.cz-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+.cz-counts div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.cz-counts dt {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cz-counts dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+.cz-counts .is-cz dd,
+.cz-counts .is-cz dt {
+  color: var(--cz-ink-strong);
+}
+
+/* A small segmented switch (filters, stat tabs). */
+.cz-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-sm);
+  background: var(--cz-room);
+}
+.cz-seg button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 3px);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cz-seg button[aria-pressed='true'] {
+  background: var(--cz-wall-2);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--cz-edge);
+}
+.cz-seg button:focus-visible,
+.cz-star:focus-visible,
+.cz-con:focus-visible,
+.cz-row-btn:focus-visible,
+.cz-turn:focus-visible,
+.cz-touch:focus-visible,
+.cz-mark:focus-visible,
+.cz-game-rec summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.cz-eyebrow {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: var(--cz-ink);
+}
+
+/* The stage: the sky with the picked call's card beside it (under it on smaller screens). */
+.cz-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+  padding-bottom: 32px;
+}
+.cz-sky-wrap {
+  padding: 16px 16px 14px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: radial-gradient(120% 80% at 50% 110%, var(--cz-ink-soft), transparent 60%), var(--cz-wall);
+  min-width: 0;
+}
+.cz-sky-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.cz-sky-head .cz-key {
+  margin: 0;
+}
+.cz-mk-star {
+  border-radius: 50%;
+  background: var(--cz-ink);
+  box-shadow: 0 0 0 4px var(--cz-ink-soft);
+}
+.cz-key .cz-mk-ours {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--text-2);
+}
+.cz-sky {
+  position: relative;
+  height: 330px;
+  margin-top: 8px;
+}
+.cz-sky-axis {
+  position: absolute;
+  inset: 24px 0 72px 0;
+  pointer-events: none;
+}
+.cz-sky-axis > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--cz-edge) 80%, transparent);
+}
+.cz-sky-axis .num {
+  position: absolute;
+  left: 0;
+  top: -9px;
+  padding-right: 6px;
+  background: var(--cz-wall);
+  font-size: 11px;
+  color: var(--muted);
+}
+.cz-field {
+  position: absolute;
+  inset: 24px 8px 72px 40px;
+}
+.cz-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.cz-lines polyline {
+  fill: none;
+  stroke: var(--cz-ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.7;
+}
+.cz-star-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+}
+.cz-stem {
+  position: absolute;
+  left: -0.75px;
+  width: 1.5px;
+  background: linear-gradient(to top, var(--text-2), var(--cz-ink));
+  opacity: 0.6;
+}
+.cz-ours-dot {
+  position: absolute;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  margin-bottom: -5px;
+  border-radius: 50%;
+  background: var(--cz-wall);
+  box-shadow: inset 0 0 0 2px var(--text-2);
+}
+.cz-star {
+  position: absolute;
+  left: -22px;
+  width: 44px;
+  height: 44px;
+  margin-bottom: -22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  z-index: 1;
+}
+.cz-star-dot {
+  width: var(--r);
+  height: var(--r);
+  border-radius: 50%;
+  background: var(--cz-ink);
+  box-shadow:
+    0 0 0 4px var(--cz-ink-soft),
+    0 0 18px var(--cz-ink-glow);
+}
+.cz-star.is-boom .cz-star-dot {
+  background: var(--good);
+}
+.cz-star.is-dud .cz-star-dot {
+  background: var(--cz-wall);
+  box-shadow: inset 0 0 0 2px var(--cz-ink);
+}
+.cz-star.is-picked .cz-star-dot {
+  box-shadow:
+    0 0 0 4px var(--cz-ink-soft),
+    0 0 0 7px var(--cz-ink),
+    0 0 22px var(--cz-ink-glow);
+}
+.cz-star-lb {
+  position: absolute;
+  bottom: calc(100% - 6px);
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+  pointer-events: none;
+}
+.cz-star:not(.is-first):not(.is-picked) .cz-star-lb {
+  display: none;
+}
+.cz-star-col.is-lit .cz-star-lb {
+  display: grid;
+}
+.cz-star-lb .num {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
+.cz-star-col.is-dim {
+  opacity: 0.28;
+}
+.cz-star-col.is-lit {
+  z-index: 2;
+}
+.cz-star-col.is-lit .cz-star-dot {
+  transform: scale(1.25);
+}
+.cz-horizon {
+  list-style: none;
+  position: absolute;
+  left: 40px;
+  right: 8px;
+  bottom: 0;
+  height: 64px;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--cz-edge);
+}
+.cz-hz {
+  position: absolute;
+  top: -5px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  transform: translateX(-50%);
+  font-size: 11.5px;
+  line-height: 1.2;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.cz-hz-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-2);
+}
+.cz-hz.is-break .cz-hz-dot {
+  background: var(--cz-wall);
+  box-shadow:
+    inset 0 0 0 2px var(--cz-ink),
+    0 0 0 4px var(--cz-ink-soft);
+}
+.cz-hz.is-lit {
+  color: var(--cz-ink-strong);
+}
+.cz-hz-tip {
+  font-size: 11px;
+  color: var(--muted);
+}
+.cz-constellations {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.cz-con-h {
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-con {
+  min-height: 36px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cz-con.is-on,
+.cz-con[aria-pressed='true'] {
+  border-color: var(--cz-ink);
+  background: color-mix(in srgb, var(--cz-ink) 22%, transparent);
+}
+
+/* The boom card: his ceiling, two fills, why. */
+.cz-boom-card {
+  display: grid;
+  gap: 14px;
+  background: linear-gradient(170deg, var(--cz-ink-soft), transparent 45%), var(--cz-wall);
+}
+.cz-bc-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cz-bc-who h3 {
+  font-size: 18px;
+}
+.cz-bc-who p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-bc-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.cz-bc-line b {
+  color: var(--text);
+  font-size: 18px;
+}
+.cz-fills {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.cz-fills .bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--cz-room);
+  overflow: hidden;
+}
+.cz-fills .fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+.cz-fills .fill.ours {
+  background: var(--text-2);
+}
+.cz-fills .fill.cz {
+  background: var(--cz-ink);
+}
+.cz-fills .v {
+  text-align: right;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-fills .is-cz {
+  color: var(--cz-ink-strong);
+}
+.cz-bc-gap {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.cz-bc-gap b {
+  color: var(--cz-ink-strong);
+}
+.cz-bc-why {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-tile);
+  background: var(--cz-wall-2);
+}
+.cz-bc-why ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.cz-bc-why li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.cz-bc-why li svg {
+  margin-top: 2px;
+  color: var(--cz-ink);
+}
+.cz-bc-why b {
+  color: var(--text);
+  font-weight: 600;
+}
+.cz-bc-why p {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.cz-push {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
+.cz-bc-after {
+  padding-top: 10px;
+  border-top: 1px solid var(--cz-edge);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Rows: each call, pulling open to its reasons. */
+.cz-rows {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.cz-row {
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-wall);
+}
+.cz-row.is-lit {
+  border-color: var(--cz-ink);
+}
+.cz-row.is-dim {
+  opacity: 0.55;
+}
+.cz-row-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns:
+    40px minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(0, 1.4fr)
+    minmax(0, 1fr) 18px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cz-row-who,
+.cz-row-line {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cz-row-who b {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.cz-row-who small,
+.cz-row-line small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cz-row-line b {
+  font-size: 15px;
+  color: var(--text);
+}
+.cz-row-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.cz-caret {
+  color: var(--muted);
+}
+.cz-row.is-open .cz-caret,
+.cz-game-rec[open] .cz-caret {
+  transform: rotate(180deg);
+}
+.cz-drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+.cz-drawer > div {
+  overflow: hidden;
+  min-height: 0;
+}
+.cz-row.is-open .cz-drawer {
+  grid-template-rows: 1fr;
+}
+.cz-drawer ul,
+.cz-drawer p {
+  margin: 0;
+  padding: 0 16px 14px 70px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.cz-drawer ul {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.cz-drawer b {
+  color: var(--text);
+  font-weight: 600;
+}
+.cz-drawer .num {
+  color: var(--cz-ink-strong);
+  font-weight: 650;
+}
+
+/* Games that could break */
+.cz-tag {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-ink-soft);
+  color: var(--cz-ink-strong);
+  font-size: 12px;
+  font-weight: 650;
+}
+.cz-game.is-lit {
+  border-color: var(--cz-ink);
+}
+.cz-game.is-dim {
+  opacity: 0.55;
+}
+.cz-calm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-calm .cz-chip {
+  background: transparent;
+  border: 1px solid var(--cz-edge);
+}
+.cz-calm .cz-settled {
+  display: inline-flex;
+}
+
+/* Beliefs: cards with two sides. */
+.cz-bel-group {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.cz-beliefs + .cz-bel-group {
+  margin-top: 20px;
+}
+.cz-belief.is-on {
+  border-color: var(--cz-ink);
+}
+.cz-face-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.cz-belief-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cz-touch {
+  border: 1px solid var(--cz-edge);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cz-turn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-tag);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cz-belief-foot .cz-muted {
+  font-size: 12.5px;
+}
+.cz-back-seasons {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+.cz-back-h {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
+.cz-bars {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+  height: 44px;
+}
+.cz-bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22px;
+  border-top: 1px solid var(--cz-edge);
+}
+.cz-bar-col {
+  position: relative;
+}
+.cz-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+}
+.cz-bar.up {
+  bottom: 50%;
+  background: var(--cz-ink);
+}
+.cz-bar.down {
+  top: 50%;
+  background: var(--faint);
+}
+.cz-bar-col.is-now .cz-bar.up {
+  background: color-mix(in srgb, var(--cz-ink) 50%, transparent);
+}
+.cz-season-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.cz-season-table th,
+.cz-season-table td {
+  padding: 3px 0;
+  text-align: right;
+  font-weight: 500;
+  border-bottom: 1px solid color-mix(in srgb, var(--cz-edge) 60%, transparent);
+}
+.cz-season-table th:first-child {
+  text-align: left;
+  color: var(--muted);
+}
+.cz-season-table thead th {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cz-season-table td.up {
+  color: var(--cz-ink-strong);
+  font-weight: 650;
+}
+.cz-season-table td.down {
+  color: var(--muted);
+}
+.cz-season-table .is-now th,
+.cz-season-table .is-now td {
+  border-bottom: 0;
+  font-style: italic;
+}
+.cz-myths ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.cz-myths li {
+  display: grid;
+  gap: 1px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cz-myths s {
+  font-size: 14px;
+  color: var(--text-2);
+  text-decoration-thickness: 1.5px;
+}
+
+/* Record: a tally of marks, and luck or lead. */
+.cz-tally-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cz-tally-head .cz-tally {
+  margin-top: 0;
+}
+.cz-tally .is-cz {
+  color: var(--cz-ink-strong);
+}
+.cz-marks {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 12px;
+  padding: 0;
+}
+.cz-mark {
+  width: 14px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid var(--text-2);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+}
+.cz-mark.boom {
+  border-color: var(--good);
+  background: var(--good);
+}
+.cz-mark[aria-pressed='true'] {
+  box-shadow: 0 0 0 3px var(--cz-ink-soft);
+  border-color: var(--cz-ink);
+}
+.cz-mark-read {
+  padding: 10px 12px;
+  border-radius: var(--radius-tile);
+  background: var(--cz-wall-2);
+  font-size: 13.5px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.cz-mark-read b {
+  color: var(--text);
+}
+.cz-vs {
+  position: relative;
+  height: 64px;
+  margin: 10px 6px 4px;
+}
+.cz-vs .rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 31px;
+  height: 2px;
+  background: var(--cz-edge);
+}
+.cz-vs .pt {
+  position: absolute;
+  top: 26px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+}
+.cz-vs .pt.ours {
+  background: var(--text-2);
+}
+.cz-vs .pt.cz {
+  background: var(--good);
+}
+.cz-vs .lb {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cz-vs .ours .lb {
+  bottom: 18px;
+}
+.cz-vs .cz .lb {
+  top: 18px;
+}
+.cz-vs .lb b {
+  color: var(--text);
+}
+.cz-game-rec {
+  margin-top: 12px;
+}
+.cz-game-rec summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 36px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-game-rec summary::-webkit-details-marker {
+  display: none;
+}
+.cz-game-rec summary .cz-muted {
+  flex: 1;
+  margin: 0;
+  font-weight: 400;
+}
+.cz-game-rec .cz-verdict {
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cz-star-col,
+  .cz-row,
+  .cz-game,
+  .cz-hz {
+    transition:
+      opacity 250ms ease,
+      border-color 250ms ease,
+      color 250ms ease;
+  }
+  .cz-star-dot {
+    transition:
+      transform 250ms ease,
+      box-shadow 250ms ease;
+  }
+  .cz-drawer {
+    transition: grid-template-rows 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cz-caret {
+    transition: transform 300ms ease;
+  }
+  .cz-lines polyline {
+    animation: cz-draw 500ms ease-out both;
+  }
+  .cz-fills.is-grow .fill {
+    animation: cz-grow 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: left center;
+  }
+  .cz-face-side {
+    animation: cz-turn 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+@keyframes cz-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes cz-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes cz-turn {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateY(-70deg);
+  }
+}
+
 /* Tablets */
 @media (max-width: 1023px) {
-  .cz-hero {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-  }
   .cz-beliefs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cz-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cz-row-btn {
+    grid-template-columns: 40px minmax(0, 1fr) minmax(0, 0.8fr) 18px;
+  }
+  .cz-row-btn .cz-fills {
+    grid-column: 2 / 4;
+  }
+  .cz-row-btn .cz-row-chips {
+    grid-column: 2 / 4;
+  }
+  .cz-row-btn .cz-caret {
+    grid-row: 1;
+    grid-column: 4;
   }
   .cz-game {
     grid-template-columns: 32px minmax(0, 170px) minmax(0, 1fr);
@@ -988,6 +1747,72 @@
   .cz-beliefs,
   .cz-rec {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .cz-sky-wrap {
+    padding: 12px 10px;
+  }
+  .cz-sky {
+    height: 290px;
+  }
+  .cz-field,
+  .cz-horizon {
+    left: 30px;
+    right: 4px;
+  }
+  .cz-star-lb {
+    display: none;
+  }
+  .cz-star.is-picked .cz-star-lb,
+  .cz-star-col.is-lit .cz-star-lb {
+    display: grid;
+  }
+  .cz-hz-t {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cz-hz {
+    font-size: 10.5px;
+  }
+  .cz-constellations {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: -10px;
+    padding: 2px 10px 6px;
+    scrollbar-width: none;
+  }
+  .cz-con,
+  .cz-con-h {
+    flex: none;
+  }
+  .cz-hz-at {
+    display: none;
+  }
+  .cz-hz-tip {
+    display: none;
+  }
+  .cz-counts {
+    gap: 8px 20px;
+  }
+  .cz-counts dd {
+    font-size: 22px;
+  }
+  .cz-row-btn {
+    grid-template-columns: 40px minmax(0, 1fr) 18px;
+    gap: 10px 12px;
+    padding: 12px;
+  }
+  .cz-row-btn .cz-row-line,
+  .cz-row-btn .cz-fills,
+  .cz-row-btn .cz-row-chips {
+    grid-column: 2 / 4;
+  }
+  .cz-row-btn .cz-caret {
+    grid-column: 3;
+  }
+  .cz-drawer ul,
+  .cz-drawer p {
+    padding-left: 64px;
   }
   .cz-game {
     grid-template-columns: 28px minmax(0, 1fr);
