@@ -9,6 +9,9 @@ export type AnalysisReport = components['schemas']['AnalysisReport']
 export type AnalysisJob = components['schemas']['AnalysisJob']
 export type SampleIndex = components['schemas']['SampleIndex']
 export type SampleTeam = components['schemas']['SampleTeam']
+export type CrazyOne = components['schemas']['CrazyOne']
+export type CrazyGame = components['schemas']['CrazyGame']
+export type CrazyRecord = components['schemas']['CrazyRecord']
 export type ReportChange = components['schemas']['ReportChange']
 export type TradeIdea = components['schemas']['TradeIdea']
 export type PickupIdea = components['schemas']['PickupIdea']
@@ -329,6 +332,12 @@ export function resolveErrorReport(id: number) {
 /** Our estimates beside the sportsbook's lines for one night (the latest when no day), each judged against the result once final. */
 export function fetchBookCompare(day: number | null) {
   return post<BookCompare>('/api/book-compare', day == null ? {} : { day })
+}
+
+/** Crazy One's World: its call for each game of a night (the latest when no day) beside Our call, the
+ *  beliefs that moved it and its record against Our call. A persona's numbers, never Our call. */
+export function fetchCrazyOne(day: number | null) {
+  return post<CrazyOne>('/api/crazy-one', day == null ? {} : { day })
 }
 
 /** Both teams' games this season (newest first, no preseason) with each game's MVP and type, and their

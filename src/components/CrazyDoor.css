@@ -1,0 +1,127 @@
+/* Crazy One's ink, shared by the door and its World: an ultraviolet that only ever marks Crazy One. */
+:root {
+  --cz-room: #17131b;
+  --cz-wall: #1f1925;
+  --cz-wall-2: #261f2e;
+  --cz-edge: #352b40;
+  --cz-ink: #c4a8ff;
+  --cz-ink-strong: #dccbff;
+  --cz-ink-soft: rgb(196 168 255 / 0.14);
+  --cz-ink-glow: rgb(160 120 255 / 0.2);
+  --cz-on-ink: #1a1222;
+}
+:root[data-theme='light'] {
+  --cz-room: #f3eef6;
+  --cz-wall: #fbf8fd;
+  --cz-wall-2: #efe8f5;
+  --cz-edge: #ddd1e8;
+  --cz-ink: #6a3fc4;
+  --cz-ink-strong: #4e2a9e;
+  --cz-ink-soft: rgb(106 63 196 / 0.09);
+  --cz-ink-glow: rgb(140 90 230 / 0.14);
+  --cz-on-ink: #fff;
+}
+
+/* The door: a 44px circle after Site health in the Our Estimates head. */
+.cz-door {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+}
+.cz-door svg {
+  width: 26px;
+  height: 26px;
+  overflow: visible;
+}
+.cz-door-ring {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 1.5;
+}
+.cz-door-void {
+  fill: var(--cz-room);
+  opacity: 0;
+}
+.cz-door-moon {
+  fill: var(--cz-ink);
+  transform-origin: 13px 13px;
+}
+.cz-door-tip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: -6px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-sm);
+  background: var(--cz-wall-2);
+  color: var(--text);
+  box-shadow: var(--lift);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+.cz-door-tip span {
+  color: var(--cz-ink);
+  font-weight: 500;
+}
+.cz-door:hover,
+.cz-door:focus-visible {
+  border-color: var(--cz-ink);
+  background: var(--cz-room);
+}
+.cz-door:hover .cz-door-void,
+.cz-door:focus-visible .cz-door-void {
+  opacity: 1;
+}
+.cz-door:hover .cz-door-ring,
+.cz-door:focus-visible .cz-door-ring {
+  stroke: var(--cz-ink);
+}
+.cz-door:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+/* The label only where there is a pointer to hover with; on phones the tap goes straight in. */
+@media (hover: hover) {
+  .cz-door:hover .cz-door-tip,
+  .cz-door:focus-visible .cz-door-tip {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cz-door,
+  .cz-door-ring,
+  .cz-door-void,
+  .cz-door-tip {
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease,
+      stroke 200ms ease,
+      opacity 200ms ease,
+      transform 200ms ease;
+  }
+  .cz-door-moon {
+    animation: cz-orbit 9s linear infinite;
+  }
+}
+@keyframes cz-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
