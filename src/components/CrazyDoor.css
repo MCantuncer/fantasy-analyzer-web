@@ -52,7 +52,6 @@
 }
 .cz-door-moon {
   fill: var(--cz-ink);
-  transform-origin: 13px 13px;
 }
 .cz-door-tip {
   position: absolute;
@@ -115,13 +114,5 @@
       stroke 200ms ease,
       opacity 200ms ease,
       transform 200ms ease;
-  }
-  .cz-door-moon {
-    animation: cz-orbit 9s linear infinite;
-  }
-}
-@keyframes cz-orbit {
-  to {
-    transform: rotate(360deg);
   }
 }

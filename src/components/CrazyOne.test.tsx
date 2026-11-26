@@ -78,6 +78,24 @@ describe('CrazyDoor', () => {
     fireEvent.click(screen.getByRole('button', { name: "Go to Crazy One's World" }))
     expect(open).toHaveBeenCalled()
   })
+
+  it('looks at where the hover started (reduced motion: turns without orbiting)', () => {
+    const mm = window.matchMedia
+    window.matchMedia = ((q: string) => ({ matches: q.includes('reduce'), media: q })) as typeof window.matchMedia
+    try {
+      render(<CrazyDoor onOpen={vi.fn()} />)
+      const door = screen.getByRole('button', { name: "Go to Crazy One's World" })
+      const moon = door.querySelector('g')!
+      expect(moon.getAttribute('transform')).toBe('rotate(-42.00 13 13)')
+      fireEvent.pointerEnter(door, { clientX: -20, clientY: 0, pointerType: 'mouse' })
+      expect(moon.getAttribute('transform')).toBe('rotate(-180.00 13 13)')
+      fireEvent.pointerLeave(door)
+      fireEvent.pointerEnter(door, { clientX: 0, clientY: 20, pointerType: 'touch' })
+      expect(moon.getAttribute('transform')).toBe('rotate(-180.00 13 13)')
+    } finally {
+      window.matchMedia = mm
+    }
+  })
 })
 
 describe('CrazyOne', () => {
