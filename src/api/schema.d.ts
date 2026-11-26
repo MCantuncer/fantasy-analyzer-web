@@ -2640,6 +2640,155 @@ export interface components {
              */
             hit: boolean;
         };
+        /**
+         * CrazyBoom
+         * @description One of Crazy One's boom calls: a player he thinks can go way over his line tonight.
+         */
+        CrazyBoom: {
+            /** Game Id */
+            game_id: number;
+            /** Day */
+            day: number;
+            /** Player */
+            player: number;
+            /** Name */
+            name: string;
+            /** Team */
+            team: string;
+            /** Opponent */
+            opponent: string;
+            /** Home */
+            home: boolean;
+            /** Tip */
+            tip: string;
+            /**
+             * Stat
+             * @enum {string}
+             */
+            stat: "pts" | "reb";
+            /**
+             * Line
+             * @description Our line (Live's, as the line log saved it)
+             */
+            line: number;
+            /**
+             * Bar
+             * @description What counts as a boom: points 1.5x and 8 over, rebounds 1.6x and 5 over
+             */
+            bar: number;
+            /**
+             * Ours
+             * @description Our chance he gets to the bar
+             */
+            ours: number;
+            /**
+             * Crazy
+             * @description Crazy One's chance
+             */
+            crazy: number;
+            /** Beliefs */
+            beliefs: components["schemas"]["CrazyBoomBelief"][];
+            /**
+             * Got
+             * @description What he got; None until settled or if he didn't play
+             */
+            got?: number | null;
+            /** Boom */
+            boom?: boolean | null;
+        };
+        /** CrazyBoomBelief */
+        CrazyBoomBelief: {
+            /**
+             * Belief
+             * @description hot hand, wild swings, minutes rollercoaster, done it lately (app/booms.py)
+             * @enum {string}
+             */
+            belief: "hot" | "swings" | "minutes" | "done_it";
+            /**
+             * Value
+             * @description What he did: hot, points a game over his last 3; swings, his points' spread over his last 10; minutes, his minutes' spread; done_it, his best rebound game of his last 10
+             */
+            value: number;
+            /**
+             * Push
+             * @description Boom chance it adds to Crazy One's
+             */
+            push: number;
+        };
+        /** CrazyBoomNight */
+        CrazyBoomNight: {
+            /** Day */
+            day: number;
+            /** Caught */
+            caught: number;
+            /**
+             * Expected
+             * @description Booms Our chance expected of the same calls
+             */
+            expected: number;
+            /** Picks */
+            picks: components["schemas"]["CrazyBoomPick"][];
+        };
+        /** CrazyBoomPick */
+        CrazyBoomPick: {
+            /** Player */
+            player: number;
+            /** Name */
+            name: string;
+            /** Team */
+            team: string;
+            /**
+             * Stat
+             * @enum {string}
+             */
+            stat: "pts" | "reb";
+            /** Ours */
+            ours: number;
+            /** Boom */
+            boom: boolean;
+        };
+        /** CrazyBoomRecord */
+        CrazyBoomRecord: {
+            /**
+             * Nights
+             * @description Settled nights
+             */
+            nights: number;
+            /** Picks */
+            picks: number;
+            /**
+             * Caught
+             * @description Calls that boomed
+             */
+            caught: number;
+            /**
+             * Expected
+             * @description Booms Our chance expected of the same calls
+             */
+            expected: number;
+            /**
+             * Edge
+             * @description Booms caught over expected, a night
+             */
+            edge?: number | null;
+            /**
+             * Edge Low
+             * @description 95% range, low end
+             */
+            edge_low?: number | null;
+            /** Edge High */
+            edge_high?: number | null;
+            /**
+             * Leading
+             * @description True only when the whole range is above zero
+             */
+            leading: boolean;
+            /**
+             * By Night
+             * @description Settled nights, newest first
+             */
+            by_night: components["schemas"]["CrazyBoomNight"][];
+        };
         /** CrazyCall */
         CrazyCall: {
             /**
@@ -2711,6 +2860,12 @@ export interface components {
              */
             games: components["schemas"]["CrazyGame"][];
             record: components["schemas"]["CrazyRecord"];
+            /**
+             * Booms
+             * @description The day's boom calls: top 5 points and top 5 rebounds by Crazy One's chance
+             */
+            booms?: components["schemas"]["CrazyBoom"][];
+            boom_record?: components["schemas"]["CrazyBoomRecord"] | null;
         };
         /** CrazyOneRequest */
         CrazyOneRequest: {

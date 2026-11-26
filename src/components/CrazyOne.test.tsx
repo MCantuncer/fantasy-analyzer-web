@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fetchCrazyOne } from '../api/client'
-import type { CrazyGame, CrazyOne as CrazyData } from '../api/client'
+import type { CrazyBoom, CrazyBoomRecord, CrazyGame, CrazyOne as CrazyData } from '../api/client'
 import { CrazyDoor } from './CrazyDoor'
 import { CrazyOne } from './CrazyOne'
 
@@ -41,6 +41,69 @@ const quiet: CrazyGame = {
   ours_hit: true,
 }
 
+const ant: CrazyBoom = {
+  game_id: 1,
+  day: 37,
+  player: 4594268,
+  name: 'Anthony Edwards',
+  team: 'MIN',
+  opponent: 'OKC',
+  home: false,
+  tip: '2026-11-26T01:30:00Z',
+  stat: 'pts',
+  line: 26.4,
+  bar: 40,
+  ours: 0.1,
+  crazy: 0.13,
+  beliefs: [
+    { belief: 'hot', value: 33.3, push: 0.018 },
+    { belief: 'swings', value: 9.1, push: 0.011 },
+  ],
+}
+const rudy: CrazyBoom = {
+  ...ant,
+  game_id: 2,
+  player: 3032976,
+  name: 'Rudy Gobert',
+  team: 'NYK',
+  opponent: 'BOS',
+  home: true,
+  stat: 'reb',
+  line: 11,
+  bar: 18,
+  ours: 0.09,
+  crazy: 0.1,
+  beliefs: [{ belief: 'done_it', value: 19, push: 0.01 }],
+}
+const antReb: CrazyBoom = { ...ant, stat: 'reb', line: 6, bar: 11, ours: 0.06, crazy: 0.07, beliefs: [] }
+const booked: CrazyBoomRecord = {
+  nights: 2,
+  picks: 3,
+  caught: 1,
+  expected: 0.3,
+  edge: 0.35,
+  edge_low: -0.6,
+  edge_high: 1.3,
+  leading: false,
+  by_night: [
+    {
+      day: 36,
+      caught: 1,
+      expected: 0.2,
+      picks: [
+        { player: 1, name: 'Coby White', team: 'CHI', stat: 'pts', ours: 0.12, boom: true },
+        { player: 2, name: 'Jalen Duren', team: 'DET', stat: 'reb', ours: 0.08, boom: false },
+      ],
+    },
+    {
+      day: 35,
+      caught: 0,
+      expected: 0.1,
+      picks: [{ player: 3, name: 'Naz Reid', team: 'MIN', stat: 'pts', ours: 0.1, boom: false }],
+    },
+  ],
+}
+
 function data(over: Partial<CrazyData> = {}): CrazyData {
   return {
     season: 2027,
@@ -57,6 +120,8 @@ function data(over: Partial<CrazyData> = {}): CrazyData {
       leading: false,
       bold: [],
     },
+    booms: [rudy, ant, antReb],
+    boom_record: booked,
     ...over,
   }
 }
@@ -99,25 +164,68 @@ describe('CrazyDoor', () => {
 })
 
 describe('CrazyOne', () => {
-  it('leads with its craziest call in its own voice, never as Our call', async () => {
+  it('opens on tonight’s sky with the likeliest boom in the card, in its own voice', async () => {
     fetchMock.mockResolvedValue(data())
     show()
-    expect(await screen.findByText('I think OKC wins tonight. You don’t.')).toBeTruthy()
+    expect(await screen.findByText('Two players I think blow past their line tonight.')).toBeTruthy()
     expect(screen.getByText('Persona · not Our call')).toBeTruthy()
-    const loud = screen.getByRole('article', { name: 'Tonight’s craziest call' })
-    expect(loud.textContent).toContain('Our call, OKC win chance')
-    expect(loud.textContent).toContain('Crazy One’s call, OKC win chance53%')
+    const card = screen.getByRole('complementary', { name: 'Boom call: Anthony Edwards' })
+    expect(card.textContent).toContain('Boom 40+')
+    expect(card.textContent).toContain('Hot hand. 33.3 points a game over his last 3, on a 26.4 line.')
+    expect(card.textContent).toContain('+3.0 points of chance more than Our call')
+    const sky = screen.getByRole('region', { name: 'Tonight’s sky of boom calls' })
+    expect(within(sky).getAllByRole('button', { name: /Our chance/ })).toHaveLength(3)
   })
 
-  it('ranks the games it moved first and agrees on the rest, with hits in words', async () => {
+  it('switches the card from a star and between his stats', async () => {
     fetchMock.mockResolvedValue(data())
     show()
-    await screen.findByText('I agree with you.')
-    const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('cz-game'))
-    expect(rows[0].textContent).toContain('MIN')
+    fireEvent.click(await screen.findByRole('button', { name: /^Rudy Gobert, REB 18\+/ }))
+    const card = screen.getByRole('complementary', { name: 'Boom call: Rudy Gobert' })
+    expect(card.textContent).toContain('He had 19 rebounds in one of his last 10.')
+    expect(within(card).queryByRole('group', { name: 'Stat' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /^Anthony Edwards, REB 11\+/ }))
+    const both = screen.getByRole('complementary', { name: 'Boom call: Anthony Edwards' })
+    fireEvent.click(within(both).getByRole('button', { name: 'PTS' }))
+    expect(screen.getByRole('complementary').textContent).toContain('Boom 40+')
+  })
+
+  it('draws a belief through the calls it touches and dims the rest', async () => {
+    fetchMock.mockResolvedValue(data())
+    show()
+    const chip = await screen.findByRole('button', { name: /^Done it lately 1/ })
+    fireEvent.click(chip)
+    expect(chip.getAttribute('aria-pressed')).toBe('true')
+    const col = (name: RegExp) => screen.getByRole('button', { name }).closest('.cz-star-col')!
+    expect(col(/^Rudy Gobert,/).className).toContain('is-lit')
+    expect(col(/^Anthony Edwards, PTS/).className).toContain('is-dim')
+    fireEvent.click(chip)
+    expect(col(/^Anthony Edwards, PTS/).className).not.toContain('is-dim')
+  })
+
+  it('pulls a call open for its reasons, and lists the filter’s calls only', async () => {
+    fetchMock.mockResolvedValue(data())
+    show()
+    const row = await screen.findByRole('button', { name: /Anthony Edwards.*PTS line/ })
+    expect(row.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(row)
+    expect(row.getAttribute('aria-expanded')).toBe('true')
+    expect(row.closest('li')!.textContent).toContain('Wild swings: His points swing by ±9.1 a night over his last 10.')
+    fireEvent.click(screen.getByRole('button', { name: 'Rebounds' }))
+    expect(screen.queryByRole('button', { name: /Anthony Edwards.*PTS line/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /Rudy Gobert.*REB line/ })).toBeTruthy()
+  })
+
+  it('lists the games that could break and the ones it leaves to Our call, with hits in words', async () => {
+    fetchMock.mockResolvedValue(data())
+    show()
+    const rows = (await screen.findAllByRole('listitem')).filter((li) => li.classList.contains('cz-game'))
+    expect(rows).toHaveLength(1)
+    expect(rows[0].textContent).toContain('Upset alert')
     expect(rows[0].textContent).toContain('Other winner')
-    expect(rows[1].textContent).toContain('Crazy One hit')
-    expect(rows[1].textContent).toContain('Our call hit')
+    const calm = screen.getByText('Same as Our call:').parentElement!
+    expect(calm.textContent).toContain('BOS @ NYK')
+    expect(calm.textContent).toContain('Crazy One hit')
   })
 
   it('shows a total belief as the total, agreeing on the winner', async () => {
@@ -133,23 +241,42 @@ describe('CrazyOne', () => {
     fetchMock.mockResolvedValue(data({ games: [okc, shows] }))
     show()
     expect(await screen.findByText('I agree on the winner.')).toBeTruthy()
+    expect(screen.getByText('Low-scoring watch')).toBeTruthy()
     expect(screen.getByText(/Two one-man shows total/)).toBeTruthy()
-    expect(screen.getByText(/Total/).textContent).toContain('220.0 → 219.0')
+    expect(screen.getByText(/^Total/).textContent).toContain('220.0 → 219.0')
   })
 
-  it('says it is too early instead of a lead', async () => {
-    fetchMock.mockResolvedValue(
-      data({ record: { ...data().record, games: 3, edge: 0.01, edge_low: -0.05, edge_high: 0.07 } }),
-    )
+  it('turns a belief over to its seasons', async () => {
+    fetchMock.mockResolvedValue(data())
     show()
-    expect(await screen.findByText(/Too early: the range still crosses zero/)).toBeTruthy()
+    const card = (await screen.findByText('Hot hand', { selector: 'h4' })).closest('li')!
+    fireEvent.click(within(card).getByRole('button', { name: 'Turn over' }))
+    expect(within(card).getByRole('table').textContent).toContain('21-22+10%')
+    expect(within(card).getByRole('table').textContent).toContain('26-27 so far−5%')
+    expect(within(card).getByRole('button', { name: 'Turn back' })).toBeTruthy()
+    expect(screen.getByText('Soft defense tonight')).toBeTruthy()
+  })
+
+  it('counts booms caught, filters the marks and reads one, and says it is too early', async () => {
+    fetchMock.mockResolvedValue(data())
+    show()
+    const marks = await screen.findAllByRole('button', { name: /: (boomed|no boom)$/ })
+    expect(marks).toHaveLength(3)
+    fireEvent.click(screen.getByRole('button', { name: 'Misses' }))
+    expect(screen.getAllByRole('button', { name: /: (boomed|no boom)$/ })).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'All', pressed: false }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coby White PTS: boomed' }))
+    expect(screen.getByText(/went way over/).textContent).toContain('Our chance said 12%')
+    expect(screen.getByText(/Too early: the range still crosses zero, so what I caught/)).toBeTruthy()
   })
 
   it('shows an empty night and the way back', async () => {
-    fetchMock.mockResolvedValue(data({ games: [], days: [], day: null, record: { ...data().record, games: 0 } }))
+    fetchMock.mockResolvedValue(
+      data({ games: [], days: [], day: null, booms: [], boom_record: null, record: { ...data().record, games: 0 } }),
+    )
     const back = show()
-    expect(await screen.findByText(/No calls for this night yet/)).toBeTruthy()
-    expect(screen.getByText(/No record yet\. Its first calls/)).toBeTruthy()
+    expect(await screen.findByText(/No boom calls for this night yet/)).toBeTruthy()
+    expect(screen.getByText(/No settled calls yet/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Back to Our Estimates' }))
     expect(back).toHaveBeenCalled()
   })
