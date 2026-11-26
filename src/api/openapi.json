@@ -3752,6 +3752,105 @@
         }
       }
     },
+    "/api/manager-styles": {
+      "post": {
+        "summary": "Manager Styles",
+        "description": "How each manager plays, from what they did this season; plus your win path and this week's read.",
+        "operationId": "manager_styles_api_manager_styles_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "x-espn-s2",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-S2"
+            }
+          },
+          {
+            "name": "x-espn-swid",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Espn-Swid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeagueRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerStyles"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/target": {
       "post": {
         "summary": "Target",
@@ -8429,17 +8528,17 @@
           "belief": {
             "type": "string",
             "title": "Belief",
-            "description": "rivalry, bounce, slump or tank"
+            "description": "rivalry, bounce, slump, tank or one_man"
           },
           "team": {
             "type": "string",
             "title": "Team",
-            "description": "The team it leans toward (or away from, for tank)"
+            "description": "The team it leans toward (or away from, for tank); empty for the game's total"
           },
           "points": {
             "type": "number",
             "title": "Points",
-            "description": "Margin points it moves toward that team (- away from it)"
+            "description": "Margin points it moves toward that team (- away from it), or the total's"
           }
         },
         "type": "object",
@@ -11974,6 +12073,242 @@
         ],
         "title": "LostNight"
       },
+      "ManagerStyleRow": {
+        "properties": {
+          "team_id": {
+            "type": "integer",
+            "title": "Team Id"
+          },
+          "abbrev": {
+            "type": "string",
+            "title": "Abbrev"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "record": {
+            "type": "string",
+            "title": "Record"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine",
+            "default": false
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "waiver_hawk",
+              "streamer",
+              "steady_hands",
+              "draft_loyalist",
+              "set_and_forget"
+            ],
+            "title": "Activity"
+          },
+          "lineup": {
+            "type": "string",
+            "enum": [
+              "sharp",
+              "steady",
+              "leaks_starts",
+              "low_volume"
+            ],
+            "title": "Lineup"
+          },
+          "door": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed",
+              "unknown"
+            ],
+            "title": "Door"
+          },
+          "adds": {
+            "type": "integer",
+            "title": "Adds"
+          },
+          "adds_per_week": {
+            "type": "number",
+            "title": "Adds Per Week"
+          },
+          "quick_drops": {
+            "type": "integer",
+            "title": "Quick Drops",
+            "description": "adds dropped again within a week"
+          },
+          "faab_spent": {
+            "type": "integer",
+            "title": "Faab Spent"
+          },
+          "bids_lost": {
+            "type": "integer",
+            "title": "Bids Lost"
+          },
+          "starts_per_week": {
+            "type": "number",
+            "title": "Starts Per Week"
+          },
+          "start_share": {
+            "type": "number",
+            "title": "Start Share",
+            "description": "games started / the most the best lineup could have started"
+          },
+          "missed_starts": {
+            "type": "integer",
+            "title": "Missed Starts"
+          },
+          "lineup_moves_per_week": {
+            "type": "number",
+            "title": "Lineup Moves Per Week"
+          },
+          "ir_moves": {
+            "type": "integer",
+            "title": "Ir Moves"
+          },
+          "trades": {
+            "type": "integer",
+            "title": "Trades"
+          },
+          "declined": {
+            "type": "integer",
+            "title": "Declined"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/StyleCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "wins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Wins",
+            "description": "categories won in 80%+ of finished weeks"
+          },
+          "gives_away": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gives Away",
+            "description": "categories won in 20% or less of finished weeks"
+          },
+          "chases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Chases",
+            "description": "categories their pickups brought, against the players they dropped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "team_id",
+          "abbrev",
+          "name",
+          "record",
+          "activity",
+          "lineup",
+          "door",
+          "adds",
+          "adds_per_week",
+          "quick_drops",
+          "faab_spent",
+          "bids_lost",
+          "starts_per_week",
+          "start_share",
+          "missed_starts",
+          "lineup_moves_per_week",
+          "ir_moves",
+          "trades",
+          "declined",
+          "categories",
+          "wins",
+          "gives_away",
+          "chases"
+        ],
+        "title": "ManagerStyleRow"
+      },
+      "ManagerStyles": {
+        "properties": {
+          "league_id": {
+            "type": "integer",
+            "title": "League Id"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "weeks": {
+            "type": "integer",
+            "title": "Weeks",
+            "description": "finished matchup weeks the categories are read from"
+          },
+          "days": {
+            "type": "integer",
+            "title": "Days",
+            "description": "days of lineups and moves read"
+          },
+          "medians": {
+            "$ref": "#/components/schemas/StyleMedians"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/ManagerStyleRow"
+            },
+            "type": "array",
+            "title": "Teams"
+          },
+          "my_team_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Team Id"
+          },
+          "win_path": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WinPathOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "matchup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchupRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "league_id",
+          "season",
+          "weeks",
+          "days",
+          "medians",
+          "teams"
+        ],
+        "title": "ManagerStyles"
+      },
       "MatchForm": {
         "properties": {
           "away": {
@@ -12087,6 +12422,71 @@
         "title": "MatchNext",
         "description": "Their next meeting with the away team visiting (tonight's game on Our Estimates)."
       },
+      "MatchupCall": {
+        "properties": {
+          "cat": {
+            "type": "string",
+            "title": "Cat"
+          },
+          "mine": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mine"
+          },
+          "theirs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theirs"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ahead",
+              "behind",
+              "tied",
+              "not_started"
+            ],
+            "title": "Status"
+          },
+          "call": {
+            "type": "string",
+            "enum": [
+              "flip",
+              "hold",
+              "fight",
+              "let_go"
+            ],
+            "title": "Call"
+          },
+          "their_share": {
+            "type": "number",
+            "title": "Their Share",
+            "description": "share of finished weeks the opponent won this category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cat",
+          "mine",
+          "theirs",
+          "status",
+          "call",
+          "their_share"
+        ],
+        "title": "MatchupCall"
+      },
       "MatchupProjection": {
         "properties": {
           "opponent_id": {
@@ -12174,6 +12574,32 @@
           "league_id"
         ],
         "title": "MatchupProjectionRequest"
+      },
+      "MatchupRead": {
+        "properties": {
+          "opponent_id": {
+            "type": "integer",
+            "title": "Opponent Id"
+          },
+          "matchup_period": {
+            "type": "integer",
+            "title": "Matchup Period"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/MatchupCall"
+            },
+            "type": "array",
+            "title": "Calls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "opponent_id",
+          "matchup_period",
+          "calls"
+        ],
+        "title": "MatchupRead"
       },
       "MatchupSide": {
         "properties": {
@@ -18278,6 +18704,58 @@
         ],
         "title": "StatMiss"
       },
+      "StyleCategory": {
+        "properties": {
+          "cat": {
+            "type": "string",
+            "title": "Cat"
+          },
+          "won": {
+            "type": "number",
+            "title": "Won",
+            "description": "weeks won, a tie counts half"
+          },
+          "weeks": {
+            "type": "integer",
+            "title": "Weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cat",
+          "won",
+          "weeks"
+        ],
+        "title": "StyleCategory"
+      },
+      "StyleMedians": {
+        "properties": {
+          "adds_per_week": {
+            "type": "number",
+            "title": "Adds Per Week"
+          },
+          "starts_per_week": {
+            "type": "number",
+            "title": "Starts Per Week"
+          },
+          "lineup_moves_per_week": {
+            "type": "number",
+            "title": "Lineup Moves Per Week"
+          },
+          "start_share": {
+            "type": "number",
+            "title": "Start Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "adds_per_week",
+          "starts_per_week",
+          "lineup_moves_per_week",
+          "start_share"
+        ],
+        "title": "StyleMedians"
+      },
       "TargetFit": {
         "properties": {
           "label": {
@@ -21213,6 +21691,54 @@
         ],
         "title": "WeekTotals",
         "description": "A player's totals over the week, in the site's stat order."
+      },
+      "WinPathOut": {
+        "properties": {
+          "lock": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lock"
+          },
+          "swing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Swing"
+          },
+          "let_go": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Let Go"
+          },
+          "adds_bring": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Adds Bring"
+          },
+          "adds_should_bring": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Adds Should Bring"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lock",
+          "swing",
+          "let_go",
+          "adds_bring",
+          "adds_should_bring"
+        ],
+        "title": "WinPathOut"
       }
     }
   }

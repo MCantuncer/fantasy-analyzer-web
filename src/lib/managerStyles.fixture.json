@@ -1,0 +1,939 @@
+{
+ "league_id": 744636428,
+ "season": 2027,
+ "weeks": 5,
+ "days": 36,
+ "medians": {
+  "adds_per_week": 1.2,
+  "starts_per_week": 38.8,
+  "lineup_moves_per_week": 18.1,
+  "start_share": 0.9904999999999999
+ },
+ "teams": [
+  {
+   "team_id": 1,
+   "abbrev": "WP",
+   "name": "Sariyer Wolfpack",
+   "record": "21-23-1",
+   "mine": false,
+   "activity": "steady_hands",
+   "lineup": "steady",
+   "door": "unknown",
+   "adds": 5,
+   "adds_per_week": 1.0,
+   "quick_drops": 2,
+   "faab_spent": 11,
+   "bids_lost": 0,
+   "starts_per_week": 38.1,
+   "start_share": 0.98,
+   "missed_starts": 4,
+   "lineup_moves_per_week": 15.4,
+   "ir_moves": 4,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 0.5,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 2.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "FT%",
+    "3PM",
+    "TO"
+   ],
+   "gives_away": [
+    "REB",
+    "PTS",
+    "STL"
+   ],
+   "chases": [
+    "AST",
+    "3PM"
+   ]
+  },
+  {
+   "team_id": 3,
+   "abbrev": "KEA",
+   "name": "Kucukesat Aspavas",
+   "record": "22-23",
+   "mine": true,
+   "activity": "waiver_hawk",
+   "lineup": "sharp",
+   "door": "unknown",
+   "adds": 18,
+   "adds_per_week": 3.5,
+   "quick_drops": 5,
+   "faab_spent": 33,
+   "bids_lost": 1,
+   "starts_per_week": 41.2,
+   "start_share": 0.991,
+   "missed_starts": 2,
+   "lineup_moves_per_week": 19.8,
+   "ir_moves": 2,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 0.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 5.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 5.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "BLK",
+    "FG%"
+   ],
+   "gives_away": [
+    "REB",
+    "PTS",
+    "3PM",
+    "STL"
+   ],
+   "chases": [
+    "STL",
+    "FG%"
+   ]
+  },
+  {
+   "team_id": 4,
+   "abbrev": "KVK",
+   "name": "Kavaklidere Boytoys",
+   "record": "24-20-1",
+   "mine": false,
+   "activity": "draft_loyalist",
+   "lineup": "steady",
+   "door": "unknown",
+   "adds": 2,
+   "adds_per_week": 0.4,
+   "quick_drops": 1,
+   "faab_spent": 3,
+   "bids_lost": 1,
+   "starts_per_week": 36.2,
+   "start_share": 0.989,
+   "missed_starts": 2,
+   "lineup_moves_per_week": 17.1,
+   "ir_moves": 3,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 1.5,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 2.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "REB",
+    "PTS",
+    "TO"
+   ],
+   "gives_away": [
+    "AST"
+   ],
+   "chases": [
+    "REB",
+    "BLK"
+   ]
+  },
+  {
+   "team_id": 5,
+   "abbrev": "CG3Y",
+   "name": "Antalya Apaches",
+   "record": "20-24-1",
+   "mine": false,
+   "activity": "steady_hands",
+   "lineup": "sharp",
+   "door": "unknown",
+   "adds": 8,
+   "adds_per_week": 1.6,
+   "quick_drops": 2,
+   "faab_spent": 8,
+   "bids_lost": 3,
+   "starts_per_week": 40.4,
+   "start_share": 0.995,
+   "missed_starts": 1,
+   "lineup_moves_per_week": 20.2,
+   "ir_moves": 3,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 2.5,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 3.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "PTS",
+    "AST"
+   ],
+   "gives_away": [
+    "FT%",
+    "3PM",
+    "TO"
+   ],
+   "chases": [
+    "3PM",
+    "FT%"
+   ]
+  },
+  {
+   "team_id": 6,
+   "abbrev": "FUCk",
+   "name": "\u00c7ayyolu Bastards",
+   "record": "23-22",
+   "mine": false,
+   "activity": "waiver_hawk",
+   "lineup": "sharp",
+   "door": "unknown",
+   "adds": 15,
+   "adds_per_week": 2.9,
+   "quick_drops": 7,
+   "faab_spent": 16,
+   "bids_lost": 6,
+   "starts_per_week": 38.7,
+   "start_share": 0.99,
+   "missed_starts": 2,
+   "lineup_moves_per_week": 21.4,
+   "ir_moves": 7,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 1.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "3PM",
+    "STL",
+    "TO"
+   ],
+   "gives_away": [
+    "REB",
+    "FG%"
+   ],
+   "chases": [
+    "3PM",
+    "PTS"
+   ]
+  },
+  {
+   "team_id": 7,
+   "abbrev": "D7RE",
+   "name": "Los Avokados",
+   "record": "30-15",
+   "mine": false,
+   "activity": "steady_hands",
+   "lineup": "steady",
+   "door": "unknown",
+   "adds": 5,
+   "adds_per_week": 1.0,
+   "quick_drops": 2,
+   "faab_spent": 6,
+   "bids_lost": 0,
+   "starts_per_week": 41.4,
+   "start_share": 0.982,
+   "missed_starts": 4,
+   "lineup_moves_per_week": 16.5,
+   "ir_moves": 11,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 5.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 5.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 5.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 2.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "REB",
+    "PTS",
+    "BLK",
+    "STL"
+   ],
+   "gives_away": [
+    "TO"
+   ],
+   "chases": [
+    "3PM",
+    "REB"
+   ]
+  },
+  {
+   "team_id": 8,
+   "abbrev": "ERY",
+   "name": "Eryaman Lakers",
+   "record": "17-28",
+   "mine": false,
+   "activity": "streamer",
+   "lineup": "sharp",
+   "door": "unknown",
+   "adds": 15,
+   "adds_per_week": 2.9,
+   "quick_drops": 9,
+   "faab_spent": 30,
+   "bids_lost": 2,
+   "starts_per_week": 40.8,
+   "start_share": 1.0,
+   "missed_starts": 0,
+   "lineup_moves_per_week": 18.5,
+   "ir_moves": 2,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 0.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 1.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "AST"
+   ],
+   "gives_away": [
+    "PTS",
+    "BLK",
+    "3PM",
+    "FG%"
+   ],
+   "chases": [
+    "REB",
+    "STL"
+   ]
+  },
+  {
+   "team_id": 9,
+   "abbrev": "3G4X",
+   "name": "Aliaga Hermanos",
+   "record": "16-28-1",
+   "mine": false,
+   "activity": "set_and_forget",
+   "lineup": "low_volume",
+   "door": "closed",
+   "adds": 2,
+   "adds_per_week": 0.4,
+   "quick_drops": 0,
+   "faab_spent": 9,
+   "bids_lost": 2,
+   "starts_per_week": 31.9,
+   "start_share": 1.0,
+   "missed_starts": 0,
+   "lineup_moves_per_week": 9.3,
+   "ir_moves": 2,
+   "trades": 0,
+   "declined": 2,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 2.5,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 1.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [],
+   "gives_away": [
+    "3PM",
+    "AST",
+    "FG%"
+   ],
+   "chases": [
+    "FT%",
+    "3PM"
+   ]
+  },
+  {
+   "team_id": 10,
+   "abbrev": "ASM",
+   "name": "Aachen ShowManners",
+   "record": "22-23",
+   "mine": false,
+   "activity": "steady_hands",
+   "lineup": "sharp",
+   "door": "unknown",
+   "adds": 7,
+   "adds_per_week": 1.4,
+   "quick_drops": 2,
+   "faab_spent": 15,
+   "bids_lost": 1,
+   "starts_per_week": 38.9,
+   "start_share": 1.0,
+   "missed_starts": 0,
+   "lineup_moves_per_week": 19.8,
+   "ir_moves": 2,
+   "trades": 0,
+   "declined": 0,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 0.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 2.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 0.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 5.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "FT%",
+    "3PM",
+    "FG%"
+   ],
+   "gives_away": [
+    "REB",
+    "BLK",
+    "TO"
+   ],
+   "chases": [
+    "3PM",
+    "STL"
+   ]
+  },
+  {
+   "team_id": 11,
+   "abbrev": "JST",
+   "name": "Jze's Scary Team",
+   "record": "28-17",
+   "mine": false,
+   "activity": "steady_hands",
+   "lineup": "leaks_starts",
+   "door": "unknown",
+   "adds": 3,
+   "adds_per_week": 0.6,
+   "quick_drops": 1,
+   "faab_spent": 5,
+   "bids_lost": 0,
+   "starts_per_week": 38.3,
+   "start_share": 0.961,
+   "missed_starts": 8,
+   "lineup_moves_per_week": 17.7,
+   "ir_moves": 5,
+   "trades": 0,
+   "declined": 1,
+   "categories": [
+    {
+     "cat": "FT%",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "REB",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "PTS",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "BLK",
+     "won": 3.0,
+     "weeks": 5
+    },
+    {
+     "cat": "3PM",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "STL",
+     "won": 5.0,
+     "weeks": 5
+    },
+    {
+     "cat": "TO",
+     "won": 4.0,
+     "weeks": 5
+    },
+    {
+     "cat": "AST",
+     "won": 1.0,
+     "weeks": 5
+    },
+    {
+     "cat": "FG%",
+     "won": 3.0,
+     "weeks": 5
+    }
+   ],
+   "wins": [
+    "REB",
+    "3PM",
+    "STL",
+    "TO"
+   ],
+   "gives_away": [
+    "FT%",
+    "AST"
+   ],
+   "chases": [
+    "3PM",
+    "STL"
+   ]
+  }
+ ],
+ "my_team_id": 3,
+ "win_path": {
+  "lock": [
+   "BLK",
+   "FG%"
+  ],
+  "swing": [
+   "FT%",
+   "TO",
+   "AST"
+  ],
+  "let_go": [
+   "REB",
+   "3PM",
+   "STL",
+   "PTS"
+  ],
+  "adds_bring": [
+   "STL",
+   "FG%"
+  ],
+  "adds_should_bring": [
+   "FT%",
+   "TO",
+   "AST"
+  ]
+ },
+ "matchup": {
+  "opponent_id": 10,
+  "matchup_period": 6,
+  "calls": [
+   {
+    "cat": "FT%",
+    "mine": 0.76,
+    "theirs": 0.77419355,
+    "status": "behind",
+    "call": "let_go",
+    "their_share": 0.8
+   },
+   {
+    "cat": "REB",
+    "mine": 54.0,
+    "theirs": 67.0,
+    "status": "behind",
+    "call": "flip",
+    "their_share": 0.2
+   },
+   {
+    "cat": "PTS",
+    "mine": 198.0,
+    "theirs": 192.0,
+    "status": "ahead",
+    "call": "hold",
+    "their_share": 0.6
+   },
+   {
+    "cat": "BLK",
+    "mine": 9.0,
+    "theirs": 9.0,
+    "status": "tied",
+    "call": "flip",
+    "their_share": 0.0
+   },
+   {
+    "cat": "3PM",
+    "mine": 24.0,
+    "theirs": 22.0,
+    "status": "ahead",
+    "call": "hold",
+    "their_share": 0.8
+   },
+   {
+    "cat": "STL",
+    "mine": 9.0,
+    "theirs": 11.0,
+    "status": "behind",
+    "call": "let_go",
+    "their_share": 0.4
+   },
+   {
+    "cat": "TO",
+    "mine": 15.0,
+    "theirs": 30.0,
+    "status": "ahead",
+    "call": "hold",
+    "their_share": 0.0
+   },
+   {
+    "cat": "AST",
+    "mine": 36.0,
+    "theirs": 48.0,
+    "status": "behind",
+    "call": "let_go",
+    "their_share": 0.6
+   },
+   {
+    "cat": "FG%",
+    "mine": 0.56198347,
+    "theirs": 0.48344371,
+    "status": "ahead",
+    "call": "hold",
+    "their_share": 1.0
+   }
+  ]
+ }
+}

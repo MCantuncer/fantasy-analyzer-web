@@ -4,6 +4,7 @@ import { BestMove } from './BestMove'
 import { Builds } from './Builds'
 import { CategoryOutlook } from './CategoryOutlook'
 import { CategoryTiles } from './CategoryTiles'
+import { WinPath } from './WinPath'
 import { MyPlayers } from './MyPlayers'
 import { LeagueChat } from './LeagueChat'
 import { LeagueOverview } from './LeagueOverview'
@@ -284,6 +285,7 @@ export function Report({
 
         {tab === 'team' && (
           <>
+            <WinPath leagueRef={{ leagueId: report.league.id, season: report.league.season }} creds={creds} />
             <MyPlayers
               leagueId={report.league.id}
               season={report.league.season}
