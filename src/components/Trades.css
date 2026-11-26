@@ -72,6 +72,16 @@
   overflow-wrap: anywhere;
 }
 
+/* How the partner plays: one quiet line under the name, lined up with it past the crest. */
+.tr-style {
+  flex-basis: 100%;
+  margin-top: -4px;
+  padding-left: 28px;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--muted);
+}
+
 /* Accept chance: a word, not a percentage. Real leagues differ too much for the number to mean much. */
 .tr-accept {
   display: inline-flex;
