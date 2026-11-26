@@ -65,6 +65,7 @@ import type { Spot } from '../lib/nightFile'
 import { NightSearch, type SearchLeague } from './NightFile'
 import { SelectMenu } from './SelectMenu'
 import { bringKupon } from '../lib/kuponFront'
+import { CrazyDoor } from './CrazyDoor'
 import './IddaaCompare.css'
 
 interface Props {
@@ -73,6 +74,8 @@ interface Props {
   searchLeague?: SearchLeague | null
   /** Admins: a way over to Site health. */
   onHealth?: () => void
+  /** The door to Crazy One's World. */
+  onCrazy?: () => void
 }
 
 /** The disagree list comes 12 rows at a time ("Show 12 more"), 8 on phones. */
@@ -99,7 +102,7 @@ function usePhone() {
 /** "Seambook": the sportsbook's lines (iddaa, read through nesine) beside ours, night by night, the biggest gaps above the book
  *  first, and once the games are final each side judged against what happened. Comparison only:
  *  the book never feeds our model. */
-export function IddaaCompare({ onBack, onHealth, searchLeague = null }: Props) {
+export function IddaaCompare({ onBack, onHealth, onCrazy, searchLeague = null }: Props) {
   const allowed = useFeature('estimates')
   const qc = useQueryClient()
   const [day, setDay] = useState<number | null>(null)
@@ -147,6 +150,7 @@ export function IddaaCompare({ onBack, onHealth, searchLeague = null }: Props) {
                 <Pulse size={20} aria-hidden="true" />
               </button>
             )}
+            {onCrazy && <CrazyDoor onOpen={onCrazy} />}
           </div>
         </div>
         <div className="ic-head-r2">

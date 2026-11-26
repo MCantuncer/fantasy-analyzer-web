@@ -161,6 +161,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/lineups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Lineups
+         * @description Admins only: each team's starting five for one NBA day as nba.com listed it before tip-off,
+         *     every change the watch saw (app/startlog.py), and how its last read of nba.com went.
+         */
+        post: operations["admin_lineups_api_admin_lineups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/tunings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Tunings
+         * @description Admins only: the other ways to call each game (app/tunings.py), scored over the latest saved
+         *     nights against what happened, with the latest night's games. Recorded only: no tuning moves
+         *     Our call.
+         */
+        post: operations["admin_tunings_api_admin_tunings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/crazy-one": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crazy One
+         * @description Crazy One's world (the Our Estimates page's door): its call for each game of a day beside Our
+         *     call, the beliefs that moved it, and its record against Our call on final games, misses
+         *     included. A persona's numbers (app/tunings.py STORY): never Our call, never in the Kupons.
+         */
+        post: operations["crazy_one_api_crazy_one_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/book-compare": {
         parameters: {
             query?: never;
@@ -2516,6 +2581,173 @@ export interface components {
              */
             value_return: number;
         };
+        /** CrazyBelief */
+        CrazyBelief: {
+            /**
+             * Belief
+             * @description rivalry, bounce, slump or tank
+             */
+            belief: string;
+            /**
+             * Team
+             * @description The team it leans toward (or away from, for tank)
+             */
+            team: string;
+            /**
+             * Points
+             * @description Margin points it moves toward that team (- away from it)
+             */
+            points: number;
+        };
+        /** CrazyBold */
+        CrazyBold: {
+            /** Game Id */
+            game_id: number;
+            /** Day */
+            day: number;
+            /** Away */
+            away: string;
+            /** Home */
+            home: string;
+            /**
+             * Swing
+             * @description Crazy One's home chance less Our call's
+             */
+            swing: number;
+            /**
+             * Hit
+             * @description Crazy One's winner was right
+             */
+            hit: boolean;
+        };
+        /** CrazyCall */
+        CrazyCall: {
+            /**
+             * Away
+             * @description Points for the away team
+             */
+            away: number;
+            /** Home */
+            home: number;
+            /** Home Chance */
+            home_chance: number;
+        };
+        /** CrazyGame */
+        CrazyGame: {
+            /** Game Id */
+            game_id: number;
+            /** Day */
+            day: number;
+            /** Away */
+            away: string;
+            /** Home */
+            home: string;
+            /** Tip */
+            tip: string;
+            /**
+             * Final
+             * @description Away and home points, once final
+             */
+            final?: number[] | null;
+            /** @description Our call as Scores shows it (ESPN's OUT tags, no book) */
+            ours: components["schemas"]["CrazyCall"];
+            /** @description Crazy One's call */
+            crazy: components["schemas"]["CrazyCall"];
+            /**
+             * Book Home Chance
+             * @description iddaa's home chance, margin out
+             */
+            book_home_chance?: number | null;
+            /**
+             * Swing
+             * @description Crazy One's home chance less Our call's
+             */
+            swing: number;
+            /** Beliefs */
+            beliefs: components["schemas"]["CrazyBelief"][];
+            /** Crazy Hit */
+            crazy_hit?: boolean | null;
+            /** Ours Hit */
+            ours_hit?: boolean | null;
+        };
+        /**
+         * CrazyOne
+         * @description Crazy One: a persona that believes what the data backs on average but not every season.
+         *     Never Our call.
+         */
+        CrazyOne: {
+            /** Season */
+            season: number;
+            /** Day */
+            day: number | null;
+            /**
+             * Days
+             * @description Days with Crazy One's calls
+             */
+            days: number[];
+            /**
+             * Games
+             * @description The day's games, biggest disagreement with Our call first
+             */
+            games: components["schemas"]["CrazyGame"][];
+            record: components["schemas"]["CrazyRecord"];
+        };
+        /** CrazyOneRequest */
+        CrazyOneRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Day
+             * @description NBA day; the latest with Crazy One's calls when unset
+             */
+            day?: number | null;
+            /**
+             * Nights
+             * @description Nights its record counts
+             * @default 60
+             */
+            nights: number;
+        };
+        /** CrazyRecord */
+        CrazyRecord: {
+            /**
+             * Games
+             * @description Final games it called
+             */
+            games: number;
+            /** Crazy Hits */
+            crazy_hits: number;
+            /**
+             * Ours Hits
+             * @description Our call's winners right on the same games
+             */
+            ours_hits: number;
+            /**
+             * Edge
+             * @description Our call's log loss less its own, a game (+: better)
+             */
+            edge?: number | null;
+            /**
+             * Edge Low
+             * @description 95% range, low end
+             */
+            edge_low?: number | null;
+            /** Edge High */
+            edge_high?: number | null;
+            /**
+             * Leading
+             * @description True only when the whole range is above zero
+             */
+            leading: boolean;
+            /**
+             * Bold
+             * @description Its calls 10+ points of win chance from Our call, newest first
+             */
+            bold: components["schemas"]["CrazyBold"][];
+        };
         /** CrowdedDay */
         CrowdedDay: {
             /**
@@ -3456,6 +3688,53 @@ export interface components {
             /** Date */
             date?: string | null;
         };
+        /** LineupLog */
+        LineupLog: {
+            /** Season */
+            season: number;
+            /** Day */
+            day: number | null;
+            /**
+             * Days
+             * @description Days with saved starting fives
+             */
+            days: number[];
+            look: components["schemas"]["LineupWatch"];
+            /** Teams */
+            teams: components["schemas"]["LineupTeam"][];
+        };
+        /** LineupLook */
+        LineupLook: {
+            /**
+             * At
+             * @description When the watch first saw this five (and inactive list)
+             */
+            at: string;
+            /**
+             * Status
+             * @description nba.com's lineupStatus: Expected, Confirmed, or Mixed
+             */
+            status: string | null;
+            /** Starters */
+            starters: components["schemas"]["LineupPlayer"][];
+            /**
+             * Inactive
+             * @description Players nba.com marks inactive (once confirmed)
+             */
+            inactive: components["schemas"]["LineupPlayer"][];
+        };
+        /** LineupPlayer */
+        LineupPlayer: {
+            /**
+             * Nba Id
+             * @description nba.com's person id
+             */
+            nba_id: number | null;
+            /** Name */
+            name: string;
+            /** Position */
+            position?: string | null;
+        };
         /** LineupRequest */
         LineupRequest: {
             /** League Id */
@@ -3516,6 +3795,53 @@ export interface components {
             week_games?: number[];
             /** @description His chance to play that day's game, for an injury tag and a game not yet started */
             play?: components["schemas"]["PlayChance"] | null;
+        };
+        /** LineupTeam */
+        LineupTeam: {
+            /** Team */
+            team: string;
+            /**
+             * Game
+             * @description nba.com's game id
+             */
+            game: string | null;
+            /** Tip */
+            tip: string;
+            /**
+             * Checked
+             * @description The last look before tip-off
+             */
+            checked: string;
+            /**
+             * Confirmed At
+             * @description The first look that saw the five Confirmed
+             */
+            confirmed_at: string | null;
+            /**
+             * Looks
+             * @description Every change seen, oldest first
+             */
+            looks: components["schemas"]["LineupLook"][];
+        };
+        /** LineupWatch */
+        LineupWatch: {
+            /**
+             * Checked
+             * @description The last time the watch read nba.com's lineups
+             */
+            checked: string | null;
+            /**
+             * Ok
+             * @description Whether that read worked; None before the first
+             */
+            ok: boolean | null;
+            /** Error */
+            error: string | null;
+            /**
+             * Teams
+             * @description Teams nba.com listed then
+             */
+            teams: number;
         };
         /** LinkedTeam */
         LinkedTeam: {
@@ -7817,6 +8143,207 @@ export interface components {
             /** Owner Team Id */
             owner_team_id?: number | null;
         };
+        /** TuningCall */
+        TuningCall: {
+            /** Tuning */
+            tuning: string;
+            /**
+             * Away
+             * @description Its points for the away team
+             */
+            away: number;
+            /** Home */
+            home: number;
+            /** Home Chance */
+            home_chance: number;
+            /**
+             * Hit
+             * @description Winner right, once final
+             */
+            hit?: boolean | null;
+        };
+        /** TuningGame */
+        TuningGame: {
+            /** Game Id */
+            game_id: number;
+            /** Day */
+            day: number;
+            /** Away */
+            away: string;
+            /** Home */
+            home: string;
+            /** Tip */
+            tip: string;
+            /**
+             * Checked
+             * @description The last look before tip-off
+             */
+            checked: string;
+            /**
+             * Fives
+             * @description nba.com's lineup status, away then home
+             */
+            fives: (string | null)[];
+            /** Out Espn */
+            out_espn: number[];
+            /** Out Nba */
+            out_nba: number[];
+            /**
+             * Unmatched
+             * @description nba.com's inactive names we couldn't find in the league
+             */
+            unmatched: string[];
+            /**
+             * Stack
+             * @description The team the rivalry stack backs, when it fires
+             */
+            stack?: string | null;
+            /**
+             * Final
+             * @description Away and home points, once final
+             */
+            final?: number[] | null;
+            /** Calls */
+            calls: components["schemas"]["TuningCall"][];
+            /** Players */
+            players: components["schemas"]["TuningMovedPlayer"][];
+        };
+        /** TuningLog */
+        TuningLog: {
+            /** Season */
+            season: number;
+            /**
+             * Days
+             * @description Days with saved tunings
+             */
+            days: number[];
+            /**
+             * Settled
+             * @description Final games scored
+             */
+            settled: number;
+            /** Scores */
+            scores: components["schemas"]["TuningScore"][];
+            /**
+             * Games
+             * @description The latest night's games, newest night first
+             */
+            games: components["schemas"]["TuningGame"][];
+        };
+        /** TuningMovedPlayer */
+        TuningMovedPlayer: {
+            /** Player Id */
+            player_id: number;
+            /** Team */
+            team: string;
+            /**
+             * Starts
+             * @description nba.com lists him in tonight's five
+             */
+            starts: boolean;
+            /**
+             * Start Share
+             * @description How often he started lately
+             */
+            start_share: number | null;
+            /**
+             * Line
+             * @description ours_alone's line: minutes, pts, reb, ast, three_pm
+             */
+            line: {
+                [key: string]: number;
+            };
+        };
+        /** TuningPlayers */
+        TuningPlayers: {
+            /**
+             * Lines
+             * @description Player lines ours_alone moved that have a result
+             */
+            lines: number;
+            /**
+             * Stats
+             * @description The stats below, in order
+             */
+            stats: string[];
+            /**
+             * Tuned Miss
+             * @description Average |result - moved line| per stat
+             */
+            tuned_miss: number[];
+            /**
+             * Live Miss
+             * @description Average |result - Live's line| per stat, same players
+             */
+            live_miss: number[];
+        };
+        /**
+         * TuningScore
+         * @description One tuning over the settled games (app/tunings.py summary).
+         */
+        TuningScore: {
+            /**
+             * Tuning
+             * @description live, ours_alone, book or rivalry
+             */
+            tuning: string;
+            /** Games */
+            games: number;
+            /**
+             * Hits
+             * @description Winners called right
+             */
+            hits?: number | null;
+            /**
+             * Loss
+             * @description Average log loss of its home win chance (lower is better)
+             */
+            loss?: number | null;
+            /** Brier */
+            brier?: number | null;
+            /**
+             * Margin Miss
+             * @description Average |final margin - its margin|
+             */
+            margin_miss?: number | null;
+            /**
+             * Total Miss
+             * @description Average |final total - its total|
+             */
+            total_miss?: number | null;
+            /**
+             * Edge
+             * @description Live's log loss less its own, a game (+: better than Live)
+             */
+            edge?: number | null;
+            /**
+             * Edge Low
+             * @description 95% range of the edge, low end
+             */
+            edge_low?: number | null;
+            /** Edge High */
+            edge_high?: number | null;
+            /**
+             * Leading
+             * @description True only when the whole range is above zero
+             */
+            leading?: boolean | null;
+            players?: components["schemas"]["TuningPlayers"] | null;
+        };
+        /** TuningsRequest */
+        TuningsRequest: {
+            /**
+             * Season
+             * @description ESPN season (the year it ends); the current one when unset
+             */
+            season?: number | null;
+            /**
+             * Nights
+             * @description How many of the latest saved nights to score
+             * @default 30
+             */
+            nights: number;
+        };
         /** UsageDay */
         UsageDay: {
             /** Day */
@@ -8353,6 +8880,147 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_lineups_api_admin_lineups_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineupLog"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_tunings_api_admin_tunings_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuningsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuningLog"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crazy_one_api_crazy_one_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrazyOneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CrazyOne"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Payment Required */
+            402: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9725,7 +10393,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -10162,7 +10830,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -10382,7 +11050,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;

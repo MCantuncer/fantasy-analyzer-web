@@ -35,6 +35,7 @@ import { LeagueOverview } from './components/LeagueOverview'
 import { LeagueSwitcher } from './components/LeagueSwitcher'
 import { MyLeagues } from './components/MyLeagues'
 import { IddaaCompare } from './components/IddaaCompare'
+import { CrazyOne } from './components/CrazyOne'
 import { SiteHealth } from './components/SiteHealth'
 import { News } from './components/News'
 import { PlayerCardHost } from './components/PlayerCard'
@@ -92,9 +93,9 @@ const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_T
 // Read once, before the first render writes the URL (StrictMode runs state initialisers twice).
 const linkedReset = readResetToken()
 
-/** The pages that stand in for My leagues: Our Estimates (anyone signed in) and Site health (admins). */
-type AdminView = '' | 'health' | 'estimates'
-const ADMIN_VIEWS: AdminView[] = ['health', 'estimates']
+/** The pages that stand in for My leagues: Our Estimates and Crazy One's World (anyone signed in) and Site health (admins). */
+type AdminView = '' | 'health' | 'estimates' | 'crazy'
+const ADMIN_VIEWS: AdminView[] = ['health', 'estimates', 'crazy']
 
 function readUrl(): {
   selection: Selection | null
@@ -742,11 +743,24 @@ export default function App() {
           <IddaaCompare
             onBack={goHome}
             onHealth={me.data.admin ? () => setAdmin('health') : undefined}
+            onCrazy={() => {
+              setAdmin('crazy')
+              window.scrollTo({ top: 0 })
+            }}
             searchLeague={cardRef ? { leagueRef: cardRef, creds } : null}
           />
         )}
 
-        {signedIn && me.data && !selection && !(admin === 'estimates' || (admin === 'health' && me.data.admin)) && (
+        {signedIn && me.data && !selection && admin === 'crazy' && (
+          <CrazyOne
+            onBack={() => {
+              setAdmin('estimates')
+              window.scrollTo({ top: 0 })
+            }}
+          />
+        )}
+
+        {signedIn && me.data && !selection && !(admin === 'estimates' || admin === 'crazy' || (admin === 'health' && me.data.admin)) && (
           <MyLeagues
             key={pendingInput}
             me={me.data}

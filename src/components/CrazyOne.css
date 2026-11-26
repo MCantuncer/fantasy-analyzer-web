@@ -1,0 +1,1002 @@
+/* Crazy One's World: another room in the same building. The site's fonts, radii and rows, a plum floor and
+   its own ultraviolet ink (--cz-ink, CrazyDoor.css), which only ever marks Crazy One. */
+.cz {
+  min-width: 0;
+}
+.cz-room {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 32px 32px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-room);
+}
+.cz-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 92% -6%, var(--cz-ink-glow), transparent 62%),
+    radial-gradient(600px 400px at -10% 40%, rgb(255 190 130 / 0.04), transparent 60%);
+}
+.cz-room > * {
+  position: relative;
+}
+.cz .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Entry: the room opens as a circle from the door's corner, then the hero rises in. */
+@media (prefers-reduced-motion: no-preference) {
+  .cz-room {
+    animation: cz-open 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .cz-rise {
+    animation: cz-rise 500ms 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .cz-rise-2 {
+    animation-delay: 380ms;
+  }
+  .cz-face .o2 {
+    animation: cz-spin 40s linear infinite;
+  }
+}
+@keyframes cz-open {
+  from {
+    clip-path: circle(0 at 96% 24px);
+  }
+  to {
+    clip-path: circle(150% at 96% 24px);
+  }
+}
+@keyframes cz-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cz-spin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Top: the way back and the honest chip. */
+.cz-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+.cz-back {
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: -10px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.cz-back:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.cz-persona {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-ink-soft);
+  color: var(--cz-ink-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Hero: who it is (left), tonight's craziest call (right). */
+.cz-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 40px;
+  padding: 24px 0 32px;
+  align-items: start;
+}
+.cz-who {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 20px 24px;
+  align-items: center;
+}
+.cz-face {
+  width: 112px;
+  height: 112px;
+}
+.cz-face .o1 {
+  fill: none;
+  stroke: var(--cz-edge);
+  stroke-width: 1;
+}
+.cz-face .o2 {
+  fill: none;
+  stroke: var(--cz-ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 7;
+  transform-origin: 66px 66px;
+}
+.cz-face .disc {
+  fill: var(--cz-wall-2);
+}
+.cz-face .moon {
+  fill: var(--cz-ink);
+}
+.cz-face .eye {
+  fill: var(--cz-room);
+}
+.cz-name {
+  margin: 0;
+  font-size: 60px;
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  color: var(--text);
+}
+.cz-name em {
+  display: inline-block;
+  font-style: normal;
+  color: var(--cz-ink);
+  transform: rotate(-4deg) translateY(2px);
+  transform-origin: left bottom;
+}
+.cz-voice {
+  margin: 12px 0 0;
+  max-width: 30ch;
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.cz-honest {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-tile);
+  background: var(--cz-wall);
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 20px;
+}
+.cz-honest svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--cz-ink);
+}
+.cz-honest b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Tonight's craziest call */
+.cz-loud {
+  padding: 22px 22px 18px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-wall);
+  box-shadow: var(--lift);
+  min-width: 0;
+}
+.cz-loud-k {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-loud-tag {
+  color: var(--cz-ink-strong);
+  font-weight: 600;
+}
+.cz-shout {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 10px 0 0;
+  color: var(--cz-ink);
+}
+.cz-shout .t {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.cz-shout .w {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.cz-shout .n {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.cz-loud-sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.cz-loud-sub b {
+  color: var(--text);
+  font-weight: 700;
+}
+.cz-under {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cz-edge);
+}
+.cz-under .lbl {
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-under .v {
+  font-size: 20px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-apart {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-apart .num {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cz-steps {
+  list-style: none;
+  display: grid;
+  margin: 14px 0 0;
+  padding: 0;
+  font-size: 14px;
+}
+.cz-steps li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cz-edge);
+  color: var(--text-2);
+}
+.cz-steps li:last-child {
+  border-bottom: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+.cz-steps .num {
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-steps li:last-child .num {
+  color: var(--cz-ink-strong);
+}
+
+/* Night picker */
+.cz-nights {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.cz-night {
+  min-width: 120px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cz-ib {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.cz-ib:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.cz-ib:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Sections */
+.cz-sec {
+  padding: 8px 0 32px;
+}
+.cz-sec-h {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 16px;
+}
+.cz-sec-h h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.cz-sec-h p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cz-card {
+  padding: 18px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-wall);
+  min-width: 0;
+}
+.cz-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-card p {
+  margin: 0;
+}
+.cz-empty p,
+.cz-muted {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.cz-card .cz-muted {
+  margin-top: 10px;
+}
+.cz-error p {
+  color: var(--text);
+}
+
+/* Markers: Our call a cream dot, Crazy One a diamond in its ink, the book a hollow ring. */
+.cz-mk {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.cz-mk-ours {
+  border-radius: 50%;
+  background: var(--text);
+}
+.cz-mk-cz {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--cz-ink);
+  transform: rotate(45deg);
+}
+.cz-mk-book {
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--muted);
+}
+.cz-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: -4px 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tonight's games, biggest disagreement first */
+.cz-games {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+.cz-game {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 190px) minmax(0, 1fr) minmax(0, 280px);
+  gap: 20px;
+  align-items: center;
+  padding: 16px 20px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-wall);
+}
+.cz-game.is-quiet {
+  background: transparent;
+}
+.cz-game.is-quiet .cz-teams,
+.cz-game.is-quiet .cz-calls {
+  opacity: 0.75;
+}
+.cz-sk {
+  height: 96px;
+  opacity: 0.6;
+}
+.cz-rank {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--cz-ink);
+}
+.cz-match {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.cz-teams {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-at {
+  color: var(--muted);
+  font-weight: 400;
+  margin: 0 2px;
+}
+.cz-match small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-line {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.cz-track {
+  display: grid;
+  gap: 4px;
+}
+.cz-track-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.cz-track-rail {
+  position: relative;
+  height: 14px;
+  margin: 0 6px;
+}
+.cz-track-rail::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--track);
+}
+.cz-track-mid {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--faint);
+  opacity: 0.6;
+}
+.cz-track-gap {
+  position: absolute;
+  top: 5px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--cz-ink-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cz-ink) 40%, transparent);
+}
+.cz-track-rail .cz-mk {
+  position: absolute;
+  top: 1px;
+  margin-left: -6px;
+}
+.cz-track-rail .cz-mk-cz {
+  top: 1.5px;
+  margin-left: -5.5px;
+}
+.cz-calls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.cz-calls > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cz-calls .lab {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cz-calls b {
+  font-family: var(--font-num);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.cz-calls .is-cz .lab,
+.cz-calls .is-cz b {
+  color: var(--cz-ink-strong);
+}
+.cz-why {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.cz-swing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.cz-swing .num {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cz-ink-strong);
+}
+.cz-flip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-ink);
+  color: var(--cz-on-ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+.cz-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+.cz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 2px 10px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-ink-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+.cz-chip svg {
+  color: var(--cz-ink);
+}
+.cz-chip .num {
+  font-weight: 650;
+}
+.cz-agree {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cz-settled {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+}
+.cz-loud .cz-settled {
+  margin-top: 8px;
+}
+.cz-res {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 650;
+}
+.cz-res.hit {
+  color: var(--good);
+}
+.cz-res.miss {
+  color: var(--bad);
+}
+
+/* Beliefs: flat cards it holds; lit when in play this night. */
+.cz-beliefs {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+.cz-belief {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius);
+  background: var(--cz-wall);
+  min-width: 0;
+}
+.cz-belief.is-live {
+  border-color: color-mix(in srgb, var(--cz-ink) 45%, var(--cz-edge));
+  background: linear-gradient(160deg, var(--cz-ink-soft), transparent 60%), var(--cz-wall);
+}
+.cz-belief h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-belief .ci {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cz-edge);
+  border-radius: 50%;
+  color: var(--cz-ink);
+}
+.cz-belief p {
+  margin: 0;
+}
+.cz-belief .say {
+  flex: 1;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+.cz-belief .w {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cz-ink-strong);
+}
+.cz-belief .held {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cz-belief .on {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
+.cz-pips {
+  display: inline-flex;
+  gap: 3px;
+}
+.cz-pips i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-2);
+}
+.cz-pips i.x {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--faint);
+}
+.cz-myths {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.cz-myths-h {
+  margin-right: 4px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.cz-myth {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-tag);
+}
+.cz-myth s {
+  color: var(--text-2);
+  text-decoration-thickness: 1.5px;
+}
+
+/* Record: luck or a lead? */
+.cz-rec {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.cz-tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 12px;
+}
+.cz-tally div {
+  display: grid;
+  gap: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cz-tally .num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cz-tally div:first-child .num {
+  color: var(--cz-ink-strong);
+}
+.cz-range {
+  position: relative;
+  height: 56px;
+  margin: 14px 12px 0;
+}
+.cz-range::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 24px;
+  height: 2px;
+  background: var(--track);
+}
+.cz-range .z {
+  position: absolute;
+  top: 14px;
+  height: 22px;
+  width: 1px;
+  background: var(--text-2);
+  opacity: 0.7;
+}
+.cz-range .bar {
+  position: absolute;
+  top: 20px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--cz-ink-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cz-ink) 50%, transparent);
+}
+.cz-range .pt {
+  position: absolute;
+  top: 18px;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--cz-ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+.cz-range .lb {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.cz-range .lb-z {
+  bottom: auto;
+  top: -4px;
+  color: var(--muted);
+}
+.cz-rec-edge {
+  margin-top: 8px !important;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.cz-rec-edge b {
+  color: var(--text);
+}
+.cz-verdict {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px !important;
+  padding: 8px 12px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-wall-2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cz-verdict svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--cz-ink);
+}
+.cz-bold {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.cz-bold li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--cz-wall-2);
+  font-size: 13px;
+  color: var(--text-2);
+}
+.cz-bold b {
+  color: var(--text);
+  font-weight: 600;
+}
+.cz-bold .num {
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
+
+/* Foot */
+.cz-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cz-edge);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.cz-back-foot {
+  margin-left: 0;
+  padding: 0 16px 0 12px;
+  background: var(--cz-ink-soft);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cz-back,
+  .cz-ib {
+    transition: background-color 120ms ease;
+  }
+}
+
+/* Tablets */
+@media (max-width: 1023px) {
+  .cz-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .cz-beliefs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cz-game {
+    grid-template-columns: 32px minmax(0, 170px) minmax(0, 1fr);
+  }
+  .cz-why {
+    grid-column: 2 / -1;
+  }
+}
+
+/* Phones */
+@media (max-width: 719px) {
+  .cz-room {
+    padding: 4px 16px 24px;
+  }
+  .cz-hero {
+    padding: 16px 0 24px;
+  }
+  .cz-who {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .cz-face {
+    width: 72px;
+    height: 72px;
+  }
+  .cz-name {
+    font-size: 40px;
+  }
+  .cz-voice {
+    font-size: 17px;
+    margin-top: 8px;
+  }
+  .cz-loud {
+    padding: 18px 16px 14px;
+  }
+  .cz-shout .t,
+  .cz-shout .n {
+    font-size: 44px;
+  }
+  .cz-apart {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+  .cz-sec-h h2 {
+    font-size: 20px;
+  }
+  .cz-beliefs,
+  .cz-rec {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cz-game {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+  .cz-rank {
+    font-size: 28px;
+    align-self: start;
+  }
+  .cz-line,
+  .cz-why {
+    grid-column: 1 / -1;
+  }
+  .cz-game.is-quiet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cz-game.is-quiet .cz-rank {
+    display: none;
+  }
+}
