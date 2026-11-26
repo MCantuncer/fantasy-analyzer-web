@@ -7,6 +7,7 @@ import {
   CaretRight,
   Check,
   Info,
+  Person,
   Sword,
   TrendUp,
   X,
@@ -25,7 +26,9 @@ import {
   edge100,
   flips,
   leanOf,
+  movesWinner,
   nightOf,
+  onTotal,
   ordered,
   pct,
   rangeMarks,
@@ -33,6 +36,7 @@ import {
   signed,
   steps,
   swingOf,
+  totals,
   trackAt,
   voice,
 } from '../lib/crazyOne'
@@ -50,6 +54,7 @@ const ICON: Record<BeliefKey, Icon> = {
   bounce: ArrowUUpLeft,
   slump: TrendUp,
   tank: Anchor,
+  one_man: Person,
 }
 
 /** Crazy One's World (?view=crazy): a persona that believes what fans believe and the data backs on
@@ -231,8 +236,8 @@ function Nights({ data, onDay }: { data: CrazyData; onDay: (d: number) => void }
 
 function Tonight({ data }: { data: CrazyData }) {
   const games = ordered(data)
-  const moved = games.filter((g) => g.beliefs.length > 0)
-  const quiet = games.filter((g) => g.beliefs.length === 0)
+  const moved = games.filter(movesWinner)
+  const quiet = games.filter((g) => !movesWinner(g))
   const night = nightOf(data.games)
   return (
     <section className="cz-sec" aria-labelledby="cz-tonight">
@@ -280,6 +285,7 @@ function Key() {
 function Game({ g, rank }: { g: CrazyGame; rank?: number }) {
   const quiet = rank == null
   const swing = swingOf(g)
+  const total = totals(g)
   const ours = trackAt(g.ours.home_chance)
   const cz = trackAt(g.crazy.home_chance)
   const label =
@@ -343,26 +349,33 @@ function Game({ g, rank }: { g: CrazyGame; rank?: number }) {
       </div>
       <div className="cz-why">
         {quiet ? (
-          <p className="cz-agree">I agree with you.</p>
+          <p className="cz-agree">{total ? 'I agree on the winner.' : 'I agree with you.'}</p>
         ) : (
           <>
             <p className="cz-swing">
               <span className="num">{signed(swing.per100)}</span> wins per 100 toward {swing.team}
               {flips(g) && <span className="cz-flip">Other winner</span>}
             </p>
-            <ul className="cz-chips">
-              {g.beliefs.map((b, i) => {
-                const Mark = ICON[b.belief as BeliefKey] as Icon | undefined
-                return (
-                  <li key={i} className="cz-chip">
-                    {Mark && <Mark size={14} aria-hidden="true" />}
-                    {beliefOf(b.belief)?.name ?? b.belief} {b.team}{' '}
-                    <span className="num">{signed(b.points)}</span>
-                  </li>
-                )
-              })}
-            </ul>
           </>
+        )}
+        {total && (
+          <p className="cz-total">
+            Total <span className="num">{total.ours.toFixed(1)}</span> → <b className="num">{total.crazy.toFixed(1)}</b>
+          </p>
+        )}
+        {g.beliefs.length > 0 && (
+          <ul className="cz-chips">
+            {g.beliefs.map((b, i) => {
+              const Mark = ICON[b.belief as BeliefKey] as Icon | undefined
+              return (
+                <li key={i} className="cz-chip">
+                  {Mark && <Mark size={14} aria-hidden="true" />}
+                  {beliefOf(b.belief)?.name ?? b.belief} {onTotal(b) ? 'total' : b.team}{' '}
+                  <span className="num">{signed(b.points)}</span>
+                </li>
+              )
+            })}
+          </ul>
         )}
         {g.final && <Settled g={g} />}
       </div>

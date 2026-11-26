@@ -5,12 +5,14 @@ import {
   craziest,
   edge100,
   flips,
+  movesWinner,
   nightOf,
   rangeMarks,
   recordState,
   signed,
   steps,
   swingOf,
+  totals,
   voice,
 } from './crazyOne'
 
@@ -116,6 +118,17 @@ describe('crazy one words', () => {
   })
 
   it('keeps the doubled starters out of its beliefs', () => {
-    expect(BELIEFS.map((b) => b.key)).toEqual(['rivalry', 'bounce', 'slump', 'tank'])
+    expect(BELIEFS.map((b) => b.key)).toEqual(['rivalry', 'bounce', 'slump', 'tank', 'one_man'])
+  })
+
+  it('keeps a total belief out of the winner walk and the craziest pick', () => {
+    const shows = { belief: 'one_man', team: '', points: -1 }
+    const both = game({ beliefs: [...game().beliefs, shows] })
+    expect(steps(both)).toEqual(steps(game()))
+    const onlyTotal = game({ game_id: 9, swing: 0, beliefs: [shows], crazy: { away: 110.5, home: 108.8, home_chance: 0.444 } })
+    expect(movesWinner(onlyTotal)).toBe(false)
+    expect(craziest([onlyTotal])).toBeNull()
+    expect(totals(onlyTotal)).toEqual({ ours: 220.3, crazy: 219.3 })
+    expect(totals(game())).toBeNull()
   })
 })

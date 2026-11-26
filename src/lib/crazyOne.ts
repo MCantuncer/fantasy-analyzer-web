@@ -4,7 +4,7 @@ import type { CrazyGame, CrazyOne, CrazyRecord } from '../api/client'
    season (api app/tunings.py STORY). Its numbers live only in its own world, always named "Crazy One's
    call", never Our call. Everything here turns POST /api/crazy-one into words and marks. */
 
-export type BeliefKey = 'rivalry' | 'bounce' | 'slump' | 'tank'
+export type BeliefKey = 'rivalry' | 'bounce' | 'slump' | 'tank' | 'one_man'
 
 export interface Belief {
   key: BeliefKey
@@ -51,7 +51,31 @@ export const BELIEFS: Belief[] = [
     held: 'Under the book 5 of 5 recent seasons (not older ones)',
     pips: [5, 5],
   },
+  {
+    key: 'one_man',
+    name: 'Two one-man shows',
+    creed: 'When both teams run their shots through one or two players, defenses load up on them and the game comes in low.',
+    weight: '−1 point off the game’s total (the total, not the winner)',
+    held: 'Under Our call’s total in 4 of 5 seasons',
+    pips: [4, 5],
+  },
 ]
+
+/** A belief's team code is empty when it moves the game's total, not the winner (api tunings.TOTAL). */
+export function onTotal(b: { team: string }): boolean {
+  return b.team === ''
+}
+
+/** Whether a game has a belief that moves the winner (a total-only game still agrees on who wins). */
+export function movesWinner(g: Pick<CrazyGame, 'beliefs'>): boolean {
+  return g.beliefs.some((b) => !onTotal(b))
+}
+
+/** Its total against Our call's, when a belief moved the total: { ours, crazy }. */
+export function totals(g: CrazyGame): { ours: number; crazy: number } | null {
+  if (!g.beliefs.some(onTotal)) return null
+  return { ours: g.ours.away + g.ours.home, crazy: g.crazy.away + g.crazy.home }
+}
 
 /** The myths it refuses, with what the data says. */
 export const MYTHS: { name: string; data: string }[] = [
@@ -96,7 +120,7 @@ export function flips(g: CrazyGame): boolean {
 
 /** Tonight's craziest call: the biggest swing among games still to come (else the night's biggest). */
 export function craziest(games: CrazyGame[]): CrazyGame | null {
-  const moved = games.filter((g) => g.beliefs.length > 0)
+  const moved = games.filter(movesWinner)
   const pool = moved.filter((g) => !g.final).length ? moved.filter((g) => !g.final) : moved
   return pool.reduce<CrazyGame | null>((best, g) => (!best || Math.abs(g.swing) > Math.abs(best.swing) ? g : best), null)
 }
@@ -119,7 +143,7 @@ export function steps(g: CrazyGame): { label: string; value: string }[] {
   const side = g.swing >= 0 ? 'home' : 'away'
   const team = side === 'home' ? g.home : g.away
   const out = [{ label: `Our call, ${team} win chance`, value: pct(chanceFor(g.ours, side)) }]
-  for (const b of g.beliefs) {
+  for (const b of g.beliefs.filter((x) => !onTotal(x))) {
     const name = beliefOf(b.belief)?.name ?? b.belief
     const toward = b.team === team ? b.points : -b.points
     out.push({ label: `${name}${b.team === team ? '' : ` (${b.team})`}`, value: `${signed(toward)} pts` })

@@ -102,6 +102,23 @@ describe('CrazyOne', () => {
     expect(rows[1].textContent).toContain('Our call hit')
   })
 
+  it('shows a total belief as the total, agreeing on the winner', async () => {
+    const shows: CrazyGame = {
+      ...quiet,
+      game_id: 3,
+      final: null,
+      crazy_hit: null,
+      ours_hit: null,
+      crazy: { away: 107.5, home: 111.5, home_chance: 0.62 },
+      beliefs: [{ belief: 'one_man', team: '', points: -1 }],
+    }
+    fetchMock.mockResolvedValue(data({ games: [okc, shows] }))
+    show()
+    expect(await screen.findByText('I agree on the winner.')).toBeTruthy()
+    expect(screen.getByText(/Two one-man shows total/)).toBeTruthy()
+    expect(screen.getByText(/Total/).textContent).toContain('220.0 → 219.0')
+  })
+
   it('says it is too early instead of a lead', async () => {
     fetchMock.mockResolvedValue(
       data({ record: { ...data().record, games: 3, edge: 0.01, edge_low: -0.05, edge_high: 0.07 } }),

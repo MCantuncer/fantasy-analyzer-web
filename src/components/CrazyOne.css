@@ -624,6 +624,15 @@
 .cz-chip .num {
   font-weight: 650;
 }
+.cz-total {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.cz-total b {
+  font-weight: 650;
+  color: var(--cz-ink-strong);
+}
 .cz-agree {
   margin: 0;
   font-size: 14px;
@@ -656,7 +665,7 @@
 .cz-beliefs {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
