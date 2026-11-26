@@ -1,7 +1,8 @@
 import { MaybeHandshake } from './MaybeHandshake'
 import { useState, type CSSProperties } from 'react'
-import type { OverviewTeam, SeasonRow } from '../api/client'
+import type { ManagerStyles, OverviewTeam, SeasonRow } from '../api/client'
 import { pct } from '../lib/format'
+import { StyleRows } from './StyleRows'
 import { TeamCrest } from './TeamCrest'
 
 interface Props {
@@ -13,9 +14,13 @@ interface Props {
   projected?: SeasonRow[] | null
   /** Opens Check a Trade with that team across from you; left out, rows have no trade button. */
   onCheckTrade?: (teamId: number) => void
+  /** Every manager's play style; when present, a Styles tab shows each manager's labels. */
+  styles?: ManagerStyles | null
+  /** This week's opponent, tinted on the Styles tab. */
+  opponentId?: number | null
 }
 
-type View = 'current' | 'projected'
+type View = 'current' | 'projected' | 'styles'
 
 function winPct(t: OverviewTeam) {
   const games = t.wins + t.losses + t.ties
@@ -24,13 +29,23 @@ function winPct(t: OverviewTeam) {
 }
 
 /** Current standings in ESPN's order, with the season simulation one tab away. */
-export function Standings({ teams, colours, myTeamId, playoffTeams, projected, onCheckTrade }: Props) {
+export function Standings({
+  teams,
+  colours,
+  myTeamId,
+  playoffTeams,
+  projected,
+  onCheckTrade,
+  styles,
+  opponentId = null,
+}: Props) {
   const [view, setView] = useState<View>('current')
   const cut = playoffTeams ?? 0
   const current = [...teams].sort(
     (a, b) => (a.seed ?? 99) - (b.seed ?? 99) || b.wins - a.wins || a.losses - b.losses || a.id - b.id,
   )
   const nameOf = new Map(teams.map((t) => [t.id, t.name]))
+  const hasStyles = !!styles && styles.weeks > 0 && styles.teams.length > 0
   const rowClass = (id: number, i: number) =>
     [id === myTeamId ? 'mine' : '', cut && i === cut - 1 ? 'cutline playoff' : ''].join(' ').trim() || undefined
 
@@ -42,17 +57,30 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected, o
           <span className="small muted">
             {view === 'current'
               ? `Category record so far.${cut ? ` The top ${cut} make the playoffs.` : ''}`
-              : `Thousands of simulated seasons.${cut ? ` The top ${cut} make the playoffs.` : ''}`}
+              : view === 'projected'
+                ? `Thousands of simulated seasons.${cut ? ` The top ${cut} make the playoffs.` : ''}`
+                : 'How each manager plays. Tap a label for its number.'}
           </span>
         </div>
-        {projected !== null && (
-          <div className="segmented standings-switch" role="group" aria-label="Standings view">
+        {(projected !== null || hasStyles) && (
+          <div
+            className={`segmented standings-switch${projected !== null && hasStyles ? ' three' : ''}`}
+            role="group"
+            aria-label="Standings view"
+          >
             <button type="button" aria-pressed={view === 'current'} onClick={() => setView('current')}>
               Current
             </button>
-            <button type="button" aria-pressed={view === 'projected'} onClick={() => setView('projected')}>
-              Projected
-            </button>
+            {projected !== null && (
+              <button type="button" aria-pressed={view === 'projected'} onClick={() => setView('projected')}>
+                Projected
+              </button>
+            )}
+            {hasStyles && (
+              <button type="button" aria-pressed={view === 'styles'} onClick={() => setView('styles')}>
+                Styles
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -113,6 +141,16 @@ export function Standings({ teams, colours, myTeamId, playoffTeams, projected, o
             </tbody>
           </table>
         </div>
+      )}
+
+      {view === 'styles' && hasStyles && (
+        <StyleRows
+          data={styles}
+          order={current.map((t) => t.id)}
+          colours={colours}
+          myTeamId={myTeamId}
+          opponentId={opponentId}
+        />
       )}
 
       {view === 'projected' &&
