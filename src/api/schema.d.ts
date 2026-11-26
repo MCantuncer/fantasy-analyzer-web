@@ -962,6 +962,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/manager-styles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manager Styles
+         * @description How each manager plays, from what they did this season; plus your win path and this week's read.
+         */
+        post: operations["manager_styles_api_manager_styles_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/target": {
         parameters: {
             query?: never;
@@ -2585,17 +2605,17 @@ export interface components {
         CrazyBelief: {
             /**
              * Belief
-             * @description rivalry, bounce, slump or tank
+             * @description rivalry, bounce, slump, tank or one_man
              */
             belief: string;
             /**
              * Team
-             * @description The team it leans toward (or away from, for tank)
+             * @description The team it leans toward (or away from, for tank); empty for the game's total
              */
             team: string;
             /**
              * Points
-             * @description Margin points it moves toward that team (- away from it)
+             * @description Margin points it moves toward that team (- away from it), or the total's
              */
             points: number;
         };
@@ -4136,6 +4156,108 @@ export interface components {
              */
             game_bets?: number[][];
         };
+        /** ManagerStyleRow */
+        ManagerStyleRow: {
+            /** Team Id */
+            team_id: number;
+            /** Abbrev */
+            abbrev: string;
+            /** Name */
+            name: string;
+            /** Record */
+            record: string;
+            /**
+             * Mine
+             * @default false
+             */
+            mine: boolean;
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "waiver_hawk" | "streamer" | "steady_hands" | "draft_loyalist" | "set_and_forget";
+            /**
+             * Lineup
+             * @enum {string}
+             */
+            lineup: "sharp" | "steady" | "leaks_starts" | "low_volume";
+            /**
+             * Door
+             * @enum {string}
+             */
+            door: "open" | "closed" | "unknown";
+            /** Adds */
+            adds: number;
+            /** Adds Per Week */
+            adds_per_week: number;
+            /**
+             * Quick Drops
+             * @description adds dropped again within a week
+             */
+            quick_drops: number;
+            /** Faab Spent */
+            faab_spent: number;
+            /** Bids Lost */
+            bids_lost: number;
+            /** Starts Per Week */
+            starts_per_week: number;
+            /**
+             * Start Share
+             * @description games started / the most the best lineup could have started
+             */
+            start_share: number;
+            /** Missed Starts */
+            missed_starts: number;
+            /** Lineup Moves Per Week */
+            lineup_moves_per_week: number;
+            /** Ir Moves */
+            ir_moves: number;
+            /** Trades */
+            trades: number;
+            /** Declined */
+            declined: number;
+            /** Categories */
+            categories: components["schemas"]["StyleCategory"][];
+            /**
+             * Wins
+             * @description categories won in 80%+ of finished weeks
+             */
+            wins: string[];
+            /**
+             * Gives Away
+             * @description categories won in 20% or less of finished weeks
+             */
+            gives_away: string[];
+            /**
+             * Chases
+             * @description categories their pickups brought, against the players they dropped
+             */
+            chases: string[];
+        };
+        /** ManagerStyles */
+        ManagerStyles: {
+            /** League Id */
+            league_id: number;
+            /** Season */
+            season: number;
+            /**
+             * Weeks
+             * @description finished matchup weeks the categories are read from
+             */
+            weeks: number;
+            /**
+             * Days
+             * @description days of lineups and moves read
+             */
+            days: number;
+            medians: components["schemas"]["StyleMedians"];
+            /** Teams */
+            teams: components["schemas"]["ManagerStyleRow"][];
+            /** My Team Id */
+            my_team_id?: number | null;
+            win_path?: components["schemas"]["WinPathOut"] | null;
+            matchup?: components["schemas"]["MatchupRead"] | null;
+        };
         /**
          * MatchForm
          * @description Both teams' season so far, for the match card's Form view.
@@ -4183,6 +4305,30 @@ export interface components {
             /** Note */
             note: string | null;
         };
+        /** MatchupCall */
+        MatchupCall: {
+            /** Cat */
+            cat: string;
+            /** Mine */
+            mine: number | null;
+            /** Theirs */
+            theirs: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ahead" | "behind" | "tied" | "not_started";
+            /**
+             * Call
+             * @enum {string}
+             */
+            call: "flip" | "hold" | "fight" | "let_go";
+            /**
+             * Their Share
+             * @description share of finished weeks the opponent won this category
+             */
+            their_share: number;
+        };
         /** MatchupProjection */
         MatchupProjection: {
             /** Opponent Id */
@@ -4218,6 +4364,15 @@ export interface components {
              * @description The team to project. Default: the team this account verified
              */
             team_id?: number | null;
+        };
+        /** MatchupRead */
+        MatchupRead: {
+            /** Opponent Id */
+            opponent_id: number;
+            /** Matchup Period */
+            matchup_period: number;
+            /** Calls */
+            calls: components["schemas"]["MatchupCall"][];
         };
         /** MatchupSide */
         MatchupSide: {
@@ -7240,6 +7395,29 @@ export interface components {
              */
             swing: number;
         };
+        /** StyleCategory */
+        StyleCategory: {
+            /** Cat */
+            cat: string;
+            /**
+             * Won
+             * @description weeks won, a tie counts half
+             */
+            won: number;
+            /** Weeks */
+            weeks: number;
+        };
+        /** StyleMedians */
+        StyleMedians: {
+            /** Adds Per Week */
+            adds_per_week: number;
+            /** Starts Per Week */
+            starts_per_week: number;
+            /** Lineup Moves Per Week */
+            lineup_moves_per_week: number;
+            /** Start Share */
+            start_share: number;
+        };
         /** TargetFit */
         TargetFit: {
             /**
@@ -8569,6 +8747,19 @@ export interface components {
             blk: number;
             /** To */
             to: number;
+        };
+        /** WinPathOut */
+        WinPathOut: {
+            /** Lock */
+            lock: string[];
+            /** Swing */
+            swing: string[];
+            /** Let Go */
+            let_go: string[];
+            /** Adds Bring */
+            adds_bring: string[];
+            /** Adds Should Bring */
+            adds_should_bring: string[];
         };
     };
     responses: never;
@@ -10920,6 +11111,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeagueOverview"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    manager_styles_api_manager_styles_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-espn-s2"?: string | null;
+                "x-espn-swid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerStyles"];
                 };
             };
             /** @description Unauthorized */

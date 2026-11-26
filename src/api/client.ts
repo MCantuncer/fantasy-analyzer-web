@@ -10,6 +10,9 @@ export type AnalysisJob = components['schemas']['AnalysisJob']
 export type SampleIndex = components['schemas']['SampleIndex']
 export type SampleTeam = components['schemas']['SampleTeam']
 export type CrazyOne = components['schemas']['CrazyOne']
+export type ManagerStyles = components['schemas']['ManagerStyles']
+export type ManagerStyleRow = components['schemas']['ManagerStyleRow']
+export type WinPath = components['schemas']['WinPathOut']
 export type CrazyGame = components['schemas']['CrazyGame']
 export type CrazyRecord = components['schemas']['CrazyRecord']
 export type ReportChange = components['schemas']['ReportChange']
@@ -416,6 +419,11 @@ export function fetchOverview(ref: LeagueRef, creds: Credentials | null) {
   return post<LeagueOverview>('/api/league-overview', { league_id: ref.leagueId, season: ref.season }, creds)
 }
 
+/** How each manager plays this season, your win path and this week's category calls (cold: ~10 s). */
+export function fetchManagerStyles(ref: LeagueRef, creds: Credentials | null) {
+  return post<ManagerStyles>('/api/manager-styles', { league_id: ref.leagueId, season: ref.season }, creds, STYLES_TIMEOUT_MS)
+}
+
 /** A finished week in review (Film Room); ``period`` null = the last finished week. 404 before any week is over. */
 export function fetchRecap(ref: LeagueRef, period: number | null, creds: Credentials | null) {
   return post<WeekRecap>('/api/recap', { league_id: ref.leagueId, season: ref.season, period }, creds, RECAP_TIMEOUT_MS)
@@ -741,6 +749,8 @@ export function fetchTarget(
 export const SCORES_TIMEOUT_MS = 60_000
 // A week's first Film Room is built from a week of rosters on the server (a few seconds, more on a cold start).
 export const RECAP_TIMEOUT_MS = 60_000
+/** Manager styles read every day of the season on a cold start. */
+export const STYLES_TIMEOUT_MS = 60_000
 
 export function fetchScores(
   leagueId: number,

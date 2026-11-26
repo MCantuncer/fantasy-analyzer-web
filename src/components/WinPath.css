@@ -1,0 +1,190 @@
+/* My Team: the self-scout. A scouting report on your own team, with the board of the nine categories. */
+.wp {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* The art: your team's abbreviation, huge and faint, top right, never behind a number. */
+.wp-mark {
+  position: absolute;
+  right: -8px;
+  top: -28px;
+  z-index: -1;
+  font-weight: 800;
+  font-size: 160px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.03;
+  pointer-events: none;
+  user-select: none;
+}
+.wp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wp-head .eyebrow,
+.wp-head h2 {
+  margin: 0;
+}
+.wp-head h2 {
+  font-size: 1.5rem;
+}
+.wp-headline {
+  margin: 4px 0 0;
+  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 30ch;
+  text-wrap: balance;
+}
+.wp-gold {
+  color: var(--gold-text);
+}
+.wp-quiet {
+  color: var(--text-2);
+}
+.wp-sub {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-2);
+}
+.wp-foot {
+  margin: -4px 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.wp-foot b {
+  color: var(--text);
+  font-weight: 600;
+}
+.wp-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 8px;
+}
+.wp-h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.wp-adds {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--surface-2);
+}
+.wp-kick {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-text);
+}
+.wp-lead {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.wp-bring {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+.wp-bring dt {
+  color: var(--text-2);
+}
+.wp-bring dd {
+  margin: 0;
+  font-weight: 600;
+}
+.wp-climb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wp-climb li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.wp-climb-cat {
+  font-weight: 600;
+  font-size: 14px;
+}
+.wp-meter {
+  position: relative;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--track);
+}
+.wp-meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--now);
+  border-radius: 99px;
+  background: var(--text-2);
+}
+.wp-meter s {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: var(--goal);
+  width: 3px;
+  border-radius: 2px;
+  background: var(--gold);
+  text-decoration: none;
+}
+.wp-climb-num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.wp-climb-num b {
+  color: var(--gold-text);
+}
+.wp-sum {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--gold-soft);
+}
+.wp-sum-num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--gold-text);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .wp-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wp-mark {
+    font-size: 110px;
+    top: -16px;
+  }
+}
