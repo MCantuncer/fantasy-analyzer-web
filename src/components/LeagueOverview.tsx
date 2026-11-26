@@ -5,6 +5,7 @@ import type { Credentials } from '../lib/credentials'
 import { isFresh, seenWeek } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
+import { MatchupScout } from './MatchupScout'
 import { BoxScore, type BoxTeam } from './BoxScore'
 import { MaybeHandshake } from './MaybeHandshake'
 import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
@@ -491,6 +492,10 @@ export function LeagueOverview({
               )
             })()}
         </section>
+      )}
+
+      {mine && leagueRef && (
+        <MatchupScout leagueRef={leagueRef} creds={creds ?? null} opponentId={sides(mine)[1].team_id} />
       )}
 
       <div className="pulse-tiles">
