@@ -1,4 +1,4 @@
-import type { CrazyGame, CrazyOne, CrazyRecord } from '../api/client'
+import type { CrazyGame, CrazyRecord } from '../api/client'
 
 /* Crazy One: a persona that believes what fans believe and the data backs on average, but not in every
    season (api app/tunings.py STORY). Its numbers live only in its own world, always named "Crazy One's
@@ -84,6 +84,7 @@ export const MYTHS: { name: string; data: string }[] = [
   { name: '“He’s due”', data: 'cold leads to cold' },
   { name: 'Win-streak complacency', data: 'flips every season' },
   { name: 'Size mismatch', data: 'no effect' },
+  { name: 'Soft defense tonight', data: 'no more booms than expected; fewer in 3 of 5 seasons' },
 ]
 
 export function beliefOf(key: string): Belief | undefined {
@@ -118,40 +119,6 @@ export function flips(g: CrazyGame): boolean {
   return g.crazy.home_chance >= 0.5 !== g.ours.home_chance >= 0.5
 }
 
-/** Tonight's craziest call: the biggest swing among games still to come (else the night's biggest). */
-export function craziest(games: CrazyGame[]): CrazyGame | null {
-  const moved = games.filter(movesWinner)
-  const pool = moved.filter((g) => !g.final).length ? moved.filter((g) => !g.final) : moved
-  return pool.reduce<CrazyGame | null>((best, g) => (!best || Math.abs(g.swing) > Math.abs(best.swing) ? g : best), null)
-}
-
-/** The first-person line at the top of its world. */
-export function voice(g: CrazyGame | null): string {
-  if (!g) return 'Nothing tonight moves me off your numbers. I’ll wait for a story.'
-  const team = swingOf(g).team
-  if (flips(g)) return `I think ${team} wins tonight. You don’t.`
-  return `I like ${team} more than you do tonight.`
-}
-
-/** A game's chance for one side. */
-export function chanceFor(call: { home_chance: number }, side: 'away' | 'home'): number {
-  return side === 'home' ? call.home_chance : 1 - call.home_chance
-}
-
-/** The steps from Our call to Crazy One's, for the side it moves toward: [label, value] pairs. */
-export function steps(g: CrazyGame): { label: string; value: string }[] {
-  const side = g.swing >= 0 ? 'home' : 'away'
-  const team = side === 'home' ? g.home : g.away
-  const out = [{ label: `Our call, ${team} win chance`, value: pct(chanceFor(g.ours, side)) }]
-  for (const b of g.beliefs.filter((x) => !onTotal(x))) {
-    const name = beliefOf(b.belief)?.name ?? b.belief
-    const toward = b.team === team ? b.points : -b.points
-    out.push({ label: `${name}${b.team === team ? '' : ` (${b.team})`}`, value: `${signed(toward)} pts` })
-  }
-  out.push({ label: `Crazy One’s call, ${team} win chance`, value: pct(chanceFor(g.crazy, side)) })
-  return out
-}
-
 export type RecordState = 'empty' | 'early' | 'leading' | 'behind'
 
 /** Where its record stands: no finals yet, too early to tell, a lead (the whole range above zero), or
@@ -168,11 +135,6 @@ export const RECORD_WORDS: Record<RecordState, string> = {
   early: 'Too early: the range still crosses zero, so a hit could be luck.',
   leading: 'A lead: its whole range sits above Our call.',
   behind: 'Behind: its whole range sits below Our call.',
-}
-
-/** Games in the order its world shows them: the biggest disagreement first, quiet games last. */
-export function ordered(data: CrazyOne): CrazyGame[] {
-  return [...data.games].sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing) || a.tip.localeCompare(b.tip))
 }
 
 /** Where a home chance sits on a 0-100% track, as a percentage from the away end. */
