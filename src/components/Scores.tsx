@@ -1377,6 +1377,11 @@ function BoxScore({
             <tr>
               <th scope="col" className="left">
                 PLAYER
+                {teamLines.some((l) => l.on_court != null) && (
+                  <span className="sc-oc-key" aria-hidden="true">
+                    On court
+                  </span>
+                )}
               </th>
               <th scope="col" className="left" title="The fantasy team in this league that owns him">
                 OWNER
@@ -1460,14 +1465,23 @@ function BoxRow({
   team: string
 }) {
   const owner = l.owner_team_id == null ? 'FA' : (abbrev.get(l.owner_team_id) ?? '')
+  const checkedIn = useCheckIn(l.on_court)
+  const classes = [
+    mine && 'mine',
+    rival && 'rival',
+    starter && 'sc-starter',
+    l.on_court === true && 'sc-on',
+    l.on_court === true && checkedIn && 'sc-on-in',
+  ]
   return (
-    <tr className={[mine && 'mine', rival && 'rival', starter && 'sc-starter'].filter(Boolean).join(' ') || undefined}>
+    <tr className={classes.filter(Boolean).join(' ') || undefined}>
       <th scope="row">
         <span className="box-player">
           <PlayerLink player={{ id: l.player_id, name: l.name }} decorative>
             <PlayerHead player={{ id: l.player_id, name: l.name }} size={24} team={starter ? team : undefined} />
           </PlayerLink>
           <PlayerLink player={{ id: l.player_id, name: l.name }} />
+          {l.on_court === true && <span className="sr-only">, On the court</span>}
           {starter && <StarterNote />}
         </span>
       </th>
@@ -1506,6 +1520,20 @@ function BoxRow({
       )}
     </tr>
   )
+}
+
+/**
+ * Whether a player on the floor got there by checking in while we watched (bench, then on the court), so his
+ * mark draws in once. A player already on the floor when the box score opens just has it.
+ */
+function useCheckIn(onCourt: boolean | null | undefined): boolean {
+  const [seen, setSeen] = useState(onCourt)
+  const [checkedIn, setCheckedIn] = useState(false)
+  if (seen !== onCourt) {
+    setSeen(onCourt)
+    setCheckedIn(seen === false && onCourt === true)
+  }
+  return checkedIn
 }
 
 function shortName(name: string): string {

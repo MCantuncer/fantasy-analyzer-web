@@ -214,6 +214,45 @@ describe('Scores', () => {
     expect(screen.getByRole('button', { name: 'Houston Rockets' }).style.getPropertyValue('--tl')).not.toBe('')
   })
 
+  it('marks the players on the court in a live box score, and nothing when ESPN has no say', async () => {
+    const on = (id: number) => (id === 1 ? true : id === 2 ? false : null)
+    const live = {
+      ...DAY,
+      live: true,
+      games: [
+        {
+          ...DAY.games[0],
+          status: 'live',
+          clock: 'Q2 3:41',
+          lines: DAY.games[0].lines.map((l) => ({ ...l, on_court: on(l.player_id) })),
+        },
+      ],
+    }
+    mockApi({ '/api/scores': () => live })
+    renderScores()
+    fireEvent.click(await screen.findByRole('button', { name: /HOU/ }))
+    const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
+    const sengun = within(box).getByRole('row', { name: /Alperen Sengun/ })
+    expect(sengun).toHaveClass('sc-on')
+    expect(sengun).not.toHaveClass('sc-on-in') // already on the floor when the box opened: no draw-in
+    expect(sengun).toHaveTextContent('On the court')
+    for (const name of [/Amen Thompson/, /Tari Eason/]) {
+      const row = within(box).getByRole('row', { name })
+      expect(row).not.toHaveClass('sc-on')
+      expect(row).not.toHaveTextContent('On the court')
+    }
+    expect(box.querySelector('.sc-oc-key')).toHaveTextContent('On court')
+  })
+
+  it('shows no on-court key when no player of the team carries the flag', async () => {
+    mockApi()
+    renderScores()
+    fireEvent.click(await screen.findByRole('button', { name: /HOU/ }))
+    const box = screen.getAllByRole('table').find((t) => t.classList.contains('box')) as HTMLElement
+    expect(box.querySelector('.sc-oc-key')).toBeNull()
+    expect(box.querySelector('tr.sc-on')).toBeNull()
+  })
+
   it('shows the quarter and clock of a live game', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve(

@@ -376,3 +376,92 @@ table.box .sc-owner-dot {
 table.box .sc-owner-dot.rival {
   background: var(--rival, var(--text-2));
 }
+
+/* On the court now ("Swell", Can 2026-11-26). Each of the five on the floor stands on a swelled rule: fine at both
+   ends, full in the middle, in the name's own ink, centred under the face. One shape in one spot, so the five line
+   up down the left edge. Bench rows and names stay as they are. Only line.on_court === true marks a row. */
+table.box {
+  --sc-oc-ink: var(--text);
+  --sc-oc-w: 28px; /* the 24px face + 2px each side */
+  --sc-oc-h: 3px;
+  --sc-oc-gap: 4px; /* clear of the sorted starter ring (1.5px outset) */
+  --sc-oc-swell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 3' preserveAspectRatio='none'%3E%3Cpath d='M0 1.5C4 .3 7 0 10 0S16 .3 20 1.5C16 2.7 13 3 10 3S4 2.7 0 1.5Z'/%3E%3C/svg%3E");
+}
+
+table.box tr.sc-on .box-player > .pc-link-face {
+  position: relative;
+}
+
+table.box tr.sc-on .box-player > .pc-link-face::after,
+table.box .sc-oc-key::before {
+  content: '';
+  background: var(--sc-oc-ink);
+  -webkit-mask: var(--sc-oc-swell) center / 100% 100% no-repeat;
+  mask: var(--sc-oc-swell) center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+table.box tr.sc-on .box-player > .pc-link-face::after {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + var(--sc-oc-gap));
+  width: var(--sc-oc-w);
+  height: var(--sc-oc-h);
+  margin-left: calc(var(--sc-oc-w) / -2);
+}
+
+/* Checking in while you watch: the rule opens from its middle, once. */
+table.box tr.sc-on-in .box-player > .pc-link-face::after {
+  animation: sc-oc-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes sc-oc-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  table.box tr.sc-on-in .box-player > .pc-link-face::after {
+    animation: none;
+  }
+}
+
+/* The key after PLAYER: the same swell, then the words in the header's quiet tone. */
+table.box .sc-oc-key {
+  margin-left: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+table.box .sc-oc-key::before {
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  table.box .sc-oc-key {
+    margin-left: 12px;
+    font-size: 11px;
+  }
+
+  table.box .sc-oc-key::before {
+    width: 14px;
+    margin-right: 6px;
+  }
+}
+
+@media (forced-colors: active) {
+  table.box tr.sc-on .box-player > .pc-link-face::after,
+  table.box .sc-oc-key::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
