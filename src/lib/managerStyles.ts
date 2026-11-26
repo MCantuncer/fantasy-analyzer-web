@@ -82,3 +82,15 @@ export function swingGain(board: BoardCell[]) {
 export function pct(share: number) {
   return `${Math.round(share * 100)}%`
 }
+
+/** The quiet line under a trade partner's name: their activity, then the one thing that matters most for a trade. */
+export function partnerLine(t: ManagerStyleRow): string {
+  const activity = ACTIVITY_LABEL[t.activity]
+  if (t.door === 'closed')
+    return `Door closed · declined ${t.declined}, ${t.trades ? `traded ${t.trades}` : 'never traded'}`
+  if (t.door === 'open') return `${activity} · door open, traded ${t.trades}`
+  if (t.lineup === 'leaks_starts') return `${activity} · leaks starts, ${t.missed_starts} missed`
+  if (t.lineup === 'low_volume') return `${activity} · low volume, ${t.starts_per_week.toFixed(1)} starts/wk`
+  if (t.chases.length) return `${activity} · chases ${listCats(inOrder(t.chases))}`
+  return activity
+}

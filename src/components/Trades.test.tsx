@@ -42,6 +42,13 @@ describe('Trades', () => {
     expect(container.querySelectorAll('.move-list > li')).toHaveLength(1)
   })
 
+  it('puts how the partner plays in a quiet line under their name', () => {
+    const { container } = show(
+      <Trades fair={[idea]} edge={[]} partnerStyles={new Map([[7, 'Door closed · declined 2, never traded']])} />,
+    )
+    expect(container.querySelector('.tr-style')?.textContent).toBe('Door closed · declined 2, never traded')
+  })
+
   it('folds to one line when there is no trade of either style', () => {
     const { container } = show(<Trades fair={[]} edge={[]} />)
     const view = within(container)

@@ -129,6 +129,8 @@ interface ItemProps {
   teamCount?: number
   /** The Keep list and its switch: offers "Keep him" beside the players you give once the row is open. */
   keeper?: Keeper | null
+  /** How the partner plays, as one quiet line under their name. */
+  styleLine?: string
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
@@ -145,6 +147,7 @@ export function TradeItem({
   colour,
   teamCount,
   keeper = null,
+  styleLine,
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
@@ -229,6 +232,7 @@ export function TradeItem({
                 {keptOut.length > 1 ? 'are' : 'is'} kept
               </span>
             )}
+            {styleLine && <span className="tr-style">{styleLine}</span>}
           </span>
           <span className="tr-accept" title="How offers like this one went in real leagues">
             <Handshake size={16} aria-hidden="true" />
@@ -378,6 +382,8 @@ interface TradesProps {
   /** The Keep list and its switch, for "Keep him" in an open trade. */
   keep?: number[]
   onToggleKeep?: (id: number) => void
+  /** A quiet line on how each partner plays, by team id ("Door closed · declined 2, never traded"). */
+  partnerStyles?: Map<number, string>
 }
 
 export function Trades({
@@ -390,6 +396,7 @@ export function Trades({
   onEditKeep,
   keep,
   onToggleKeep,
+  partnerStyles,
 }: TradesProps) {
   const { rules } = useTradeRules()
   const fairSplit = useMemo(() => applyRules(rules, allFair), [rules, allFair])
@@ -489,6 +496,7 @@ export function Trades({
                   feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                   colour={colours.get(t.partner_team_id)}
                   teamCount={teams.length || undefined}
+                  styleLine={partnerStyles?.get(t.partner_team_id)}
                 />
               )
             })}
@@ -509,6 +517,7 @@ export function Trades({
                     feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                     colour={colours.get(t.partner_team_id)}
                     teamCount={teams.length || undefined}
+                    styleLine={partnerStyles?.get(t.partner_team_id)}
                   />
                 )
               })}

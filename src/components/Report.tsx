@@ -31,6 +31,8 @@ import type { NewsRowKind } from '../lib/newsSince'
 import type { Credentials } from '../lib/credentials'
 import { Untouchable, UntouchableWorking } from './Untouchable'
 import { useUntouchableAsked } from '../lib/untouchable'
+import { useManagerStyles } from '../lib/useManagerStyles'
+import { partnerLine } from '../lib/managerStyles'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
@@ -112,6 +114,11 @@ export function Report({
   const season = report.league.season
   const teamId = report.team_id
   const verified = !onVerify
+  const styles = useManagerStyles({ leagueId, season }, creds, verified)
+  const partnerStyles = useMemo(
+    () => (styles.data?.weeks ? new Map(styles.data.teams.map((t) => [t.team_id, partnerLine(t)])) : undefined),
+    [styles.data],
+  )
   const feedbackScope = useMemo(
     () => (verified ? { leagueId, season, teamId, creds } : null),
     [verified, leagueId, season, teamId, creds],
@@ -246,6 +253,7 @@ export function Report({
                       kept={keepChanged ? [] : keptNow}
                       onEditKeep={() => onTab('team')}
                       keep={keep}
+                      partnerStyles={partnerStyles}
                       onToggleKeep={onToggleKeep}
                     />
                   )}

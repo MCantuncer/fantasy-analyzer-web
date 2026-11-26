@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ManagerStyleRow, ManagerStyles } from '../api/client'
-import { inOrder, listCats, lookFor, pathBoard, swingGain, weeksWon } from './managerStyles'
+import { inOrder, listCats, lookFor, partnerLine, pathBoard, swingGain, weeksWon } from './managerStyles'
 
 const cats = (shares: Record<string, number>) =>
   Object.entries(shares).map(([cat, s]) => ({ cat, won: s * 5, weeks: 5 }))
@@ -11,7 +11,13 @@ const me = {
 } as unknown as ManagerStyleRow
 
 const data = {
-  win_path: { lock: ['BLK', 'FG%'], swing: ['FT%', 'TO', 'AST'], let_go: ['REB', '3PM', 'STL', 'PTS'], adds_bring: [], adds_should_bring: [] },
+  win_path: {
+    lock: ['BLK', 'FG%'],
+    swing: ['FT%', 'TO', 'AST'],
+    let_go: ['REB', '3PM', 'STL', 'PTS'],
+    adds_bring: [],
+    adds_should_bring: [],
+  },
 } as unknown as ManagerStyles
 
 describe('pathBoard', () => {
@@ -47,5 +53,27 @@ describe('inOrder and lookFor', () => {
     expect(lookFor(['FT%', 'AST', 'TO'])).toBe('Look for FT% and AST, without the turnovers.')
     expect(lookFor(['REB'])).toBe('Look for REB.')
     expect(lookFor(['TO'])).toBe('Look for adds that keep the turnovers down.')
+  })
+})
+
+describe('partnerLine', () => {
+  const base = {
+    activity: 'steady_hands',
+    lineup: 'sharp',
+    door: 'unknown',
+    declined: 0,
+    trades: 0,
+    missed_starts: 0,
+    starts_per_week: 38,
+    chases: ['STL', '3PM'],
+  } as unknown as ManagerStyleRow
+  it('says what matters most for a trade', () => {
+    expect(partnerLine({ ...base, door: 'closed', declined: 2 })).toBe('Door closed · declined 2, never traded')
+    expect(partnerLine({ ...base, door: 'open', trades: 1 })).toBe('Steady hands · door open, traded 1')
+    expect(partnerLine({ ...base, lineup: 'leaks_starts', missed_starts: 8 })).toBe(
+      'Steady hands · leaks starts, 8 missed',
+    )
+    expect(partnerLine(base)).toBe('Steady hands · chases 3PM and STL')
+    expect(partnerLine({ ...base, chases: [] })).toBe('Steady hands')
   })
 })
