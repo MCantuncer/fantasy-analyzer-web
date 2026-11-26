@@ -1,0 +1,299 @@
+/* Standings → Styles: compact rows with each manager's labels as chips, and a readout under the row. */
+/* The view switch on one line when it holds Current, Projected and Styles. */
+.standings-switch.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 320px;
+}
+.standings-switch.three button {
+  padding: 0 14px;
+}
+.sr-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sr-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.sr-row.mine {
+  background: linear-gradient(90deg, var(--gold-soft), transparent 60%), var(--surface-2);
+}
+.sr-row.rival {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--team, var(--muted)) 10%, transparent), transparent 60%),
+    var(--surface-2);
+}
+.sr-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.sr-rank {
+  width: 22px;
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.sr-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sr-name b {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sr-rec {
+  font-size: 13px;
+  color: var(--muted);
+}
+.sr-you {
+  color: var(--gold-text);
+  font-weight: 600;
+}
+.sr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sr-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 40px;
+  cursor: pointer;
+}
+.sr-chip b {
+  font-weight: 600;
+}
+.sr-chip.quiet {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.sr-chip.quiet b {
+  font-weight: 500;
+  color: var(--text-2);
+}
+.sr-chip-num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.sr-chip:hover {
+  background: color-mix(in srgb, var(--text) 8%, var(--raised));
+}
+.sr-chip.quiet:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.sr-chip.open,
+.sr-chip.open:hover {
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: none;
+}
+.sr-chip.open b,
+.sr-chip.open .sr-chip-num {
+  color: var(--bg);
+}
+.sr-chip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.sr-read-wrap {
+  grid-column: 1 / -1;
+}
+.sr-read {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  animation: sr-open 200ms ease-out;
+}
+@keyframes sr-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sr-read {
+    animation: none;
+  }
+}
+.sr-read-head {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.sr-read-head b {
+  color: var(--text);
+  font-weight: 600;
+}
+.sr-read-foot {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+/* The strip: dots on a track, labels above your dot and below the median tick. */
+.sr-strip {
+  position: relative;
+  height: 64px;
+  margin: 0 8px;
+}
+.sr-strip.small {
+  height: 20px;
+  margin: 0;
+}
+.sr-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 31px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--track);
+}
+.sr-strip.small .sr-track {
+  top: 9px;
+}
+.sr-dot {
+  position: absolute;
+  top: 25px;
+  width: 15px;
+  height: 15px;
+  margin-left: -7.5px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2.5px var(--text-2);
+}
+.sr-strip.small .sr-dot {
+  top: 4px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  box-shadow: inset 0 0 0 2px var(--muted);
+}
+.sr-dot.me,
+.sr-strip.small .sr-dot.me {
+  background: var(--gold);
+  box-shadow: none;
+  z-index: 1;
+}
+.sr-dot.me {
+  top: 22px;
+  width: 21px;
+  height: 21px;
+  margin-left: -10.5px;
+}
+.sr-tick {
+  position: absolute;
+  top: 20px;
+  width: 3px;
+  height: 25px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+.sr-strip.small .sr-tick {
+  top: 2px;
+  height: 16px;
+}
+.sr-me-label,
+.sr-tick-label {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.sr-me-label.l,
+.sr-tick-label.l {
+  transform: translateX(-12px);
+}
+.sr-me-label.r,
+.sr-tick-label.r {
+  transform: translateX(calc(-100% + 12px));
+}
+.sr-me-label {
+  top: 0;
+  color: var(--gold-text);
+  font-weight: 600;
+}
+.sr-tick-label {
+  top: 47px;
+  color: var(--muted);
+}
+.sr-cats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sr-cats li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 12px;
+}
+.sr-cat {
+  font-weight: 600;
+  font-size: 14px;
+}
+.sr-cat-num {
+  text-align: right;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+@media (max-width: 760px) {
+  .standings-switch.three {
+    min-width: 0;
+  }
+  .sr-rows {
+    padding: 0 12px 12px;
+  }
+  .sr-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+  .sr-chip {
+    min-height: 44px;
+    line-height: 44px;
+    font-size: 13.5px;
+    padding: 0 11px;
+  }
+  .sr-read {
+    padding: 14px;
+  }
+  .sr-strip {
+    margin: 0 4px;
+  }
+}

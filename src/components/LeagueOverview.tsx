@@ -6,6 +6,7 @@ import { isFresh, seenWeek } from '../lib/filmRoom'
 import { flipHint, teamColours } from '../lib/league'
 import MatchupProjection from './MatchupProjection'
 import { MatchupScout } from './MatchupScout'
+import { useManagerStyles } from '../lib/useManagerStyles'
 import { BoxScore, type BoxTeam } from './BoxScore'
 import { MaybeHandshake } from './MaybeHandshake'
 import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
@@ -109,6 +110,7 @@ export function LeagueOverview({
   onCheckTrade,
 }: Props) {
   const verified = o.my_team_id != null
+  const styles = useManagerStyles(leagueRef, creds ?? null, verified)
   const colours = useMemo(
     () =>
       teamColours(
@@ -631,6 +633,8 @@ export function LeagueOverview({
         playoffTeams={o.playoff_teams ?? null}
         projected={verified ? projected : null}
         onCheckTrade={onCheckTrade}
+        styles={styles.data}
+        opponentId={mine ? sides(mine)[1].team_id : null}
       />
 
       {!verified && (
