@@ -1,0 +1,149 @@
+/* League → Your matchup: the scouting report on this week's opponent. Board and notes come from ScoutBoard. */
+.ms {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* The opponent's abbreviation, huge and faint, top right, never behind a number. */
+.ms-mark {
+  position: absolute;
+  right: -8px;
+  top: -28px;
+  z-index: -1;
+  font-weight: 800;
+  font-size: 160px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.03;
+  pointer-events: none;
+  user-select: none;
+}
+.ms-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ms-head .eyebrow,
+.ms-head h2 {
+  margin: 0;
+}
+.ms-head h2 {
+  font-size: 1.5rem;
+}
+.ms-headline {
+  margin: 4px 0 0;
+  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 30ch;
+  text-wrap: balance;
+}
+.ms-gold {
+  color: var(--gold-text);
+}
+.ms-quiet {
+  display: block;
+  color: var(--text-2);
+}
+.ms-sub {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-2);
+}
+.ms-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: -4px 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ms-foot b {
+  color: var(--text);
+  font-weight: 600;
+}
+.ms-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 8px;
+}
+.ms-h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.ms-plays {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ms-plays li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface-2);
+}
+.ms-plays li.go {
+  background: var(--gold-soft);
+}
+.ms-play-n {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-2);
+}
+.ms-plays li.go .ms-play-n {
+  color: var(--gold-text);
+}
+.ms-plays b {
+  display: block;
+  font-size: 16px;
+  font-weight: 650;
+}
+.ms-plays p {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  line-height: 1.42;
+  color: var(--text-2);
+}
+.ms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.ms-chip {
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: var(--raised);
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+.ms-plays li.go .ms-chip {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+@media (max-width: 760px) {
+  .ms-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ms-mark {
+    font-size: 110px;
+    top: -16px;
+  }
+}

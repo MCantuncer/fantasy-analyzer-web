@@ -1,14 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
 import type { CSSProperties } from 'react'
 import {
-  fetchManagerStyles,
-  retryDropped,
-  retryDroppedDelay,
   type LeagueRef,
   type ManagerStyleRow,
   type ManagerStyles,
 } from '../api/client'
 import type { Credentials } from '../lib/credentials'
+import { useManagerStyles } from '../lib/useManagerStyles'
 import {
   ACTIVITY_LABEL,
   inOrder,
@@ -246,13 +243,7 @@ export function WinPathView({ data }: { data: ManagerStyles }) {
 
 /** My Team: how you play, and the categories your moves should chase. */
 export function WinPath({ leagueRef, creds }: { leagueRef: LeagueRef; creds: Credentials | null }) {
-  const q = useQuery({
-    queryKey: ['manager-styles', leagueRef.leagueId, leagueRef.season, creds?.swid ?? null],
-    queryFn: () => fetchManagerStyles(leagueRef, creds),
-    retry: retryDropped,
-    retryDelay: retryDroppedDelay,
-    staleTime: 30 * 60_000,
-  })
+  const q = useManagerStyles(leagueRef, creds)
   if (!q.data) return null
   return <WinPathView data={q.data} />
 }
