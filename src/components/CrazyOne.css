@@ -1489,23 +1489,196 @@
   border-bottom: 0;
   font-style: italic;
 }
-.cz-myths ul {
-  list-style: none;
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
+.cz-beliefs.is-players {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.cz-myths li {
+.cz-bel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 10px;
+}
+.cz-bel-row .cz-bel-group {
+  margin: 0;
+}
+.cz-beliefs + .cz-bel-row {
+  margin-top: 20px;
+}
+.cz-myth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--cz-edge);
+  border-radius: var(--radius-tag);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cz-myth-btn svg {
+  color: var(--cz-ink);
+}
+.cz-myth-btn .num {
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: var(--radius-tag);
+  background: var(--cz-ink-soft);
+  color: var(--cz-ink-strong);
+  font-size: 12px;
+  text-align: center;
+}
+.cz-myth-btn:hover {
+  border-color: var(--cz-ink);
+  color: var(--text);
+}
+.cz-myth-btn:focus-visible,
+.cz-sheet-x:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The myths pop-up: centred on desktop, a bottom sheet on phones. */
+body.cz-sheet-open {
+  overflow: hidden;
+}
+.cz-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--scrim);
+}
+.cz-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100dvh - 48px);
+  border: 1px solid var(--cz-edge);
+  border-radius: 20px;
+  background: linear-gradient(170deg, var(--cz-ink-soft), transparent 40%), var(--cz-wall);
+  box-shadow: var(--lift);
+  overflow: hidden;
+}
+.cz-sheet-handle {
+  display: none;
+  width: 40px;
+  height: 4px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background: var(--cz-edge);
+  flex: none;
+}
+.cz-sheet-head {
   display: grid;
-  gap: 1px;
-  font-size: 12.5px;
+  grid-template-columns: 40px minmax(0, 1fr) 36px;
+  gap: 12px;
+  align-items: start;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--cz-edge);
+}
+.cz-sheet-head .ci {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cz-edge);
+  border-radius: 50%;
+  color: var(--cz-ink);
+}
+.cz-sheet-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  color: var(--text);
+}
+.cz-sheet-head p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--muted);
 }
-.cz-myths s {
-  font-size: 14px;
+.cz-sheet-x {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cz-wall-2);
   color: var(--text-2);
-  text-decoration-thickness: 1.5px;
+  cursor: pointer;
+}
+.cz-myth-list {
+  list-style: none;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 4px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cz-myth-list li {
+  display: grid;
+  gap: 3px;
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--cz-edge) 60%, transparent);
+}
+.cz-myth-list li:last-child {
+  border-bottom: 0;
+}
+.cz-myth-list s {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration-color: var(--cz-ink);
+  text-decoration-thickness: 2px;
+}
+.cz-myth-list p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.cz-myth-list .says {
+  font-style: italic;
+  color: var(--muted);
+}
+.cz-myth-list .data {
+  color: var(--text-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cz-backdrop {
+    animation: cz-fade 180ms ease both;
+  }
+  .cz-sheet {
+    animation: cz-pop 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .cz-myth-btn {
+    transition:
+      border-color 150ms ease,
+      color 150ms ease;
+  }
+}
+@keyframes cz-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cz-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
 }
 
 /* Record: a tally of marks, and luck or lead. */
@@ -1680,7 +1853,8 @@
 
 /* Tablets */
 @media (max-width: 1023px) {
-  .cz-beliefs {
+  .cz-beliefs,
+  .cz-beliefs.is-players {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .cz-stage {
@@ -1745,8 +1919,28 @@
     font-size: 20px;
   }
   .cz-beliefs,
+  .cz-beliefs.is-players,
   .cz-rec {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .cz-backdrop {
+    align-items: flex-end;
+    padding: 24px 0 0;
+  }
+  .cz-sheet {
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+  }
+  .cz-sheet-handle {
+    display: block;
+  }
+  .cz-sheet-head {
+    padding: 12px 16px 12px;
+  }
+  .cz-myth-list {
+    padding: 4px 16px calc(16px + env(safe-area-inset-bottom));
   }
   .cz-sky-wrap {
     padding: 12px 10px;

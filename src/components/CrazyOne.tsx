@@ -20,7 +20,8 @@ import {
   X,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { fetchCrazyOne } from '../api/client'
 import type { CrazyBoom, CrazyBoomRecord, CrazyGame, CrazyOne as CrazyData, CrazyRecord } from '../api/client'
@@ -51,9 +52,11 @@ import {
   whyWords,
 } from '../lib/crazyBooms'
 import type { BoomBelief, BoomStat, Filter } from '../lib/crazyBooms'
+import type { Myth, MythKind } from '../lib/crazyOne'
 import {
   BELIEFS,
-  MYTHS,
+  GAME_MYTHS,
+  PLAYER_MYTHS,
   RECORD_WORDS,
   beliefOf,
   edge100,
@@ -70,7 +73,9 @@ import {
   totals,
   trackAt,
 } from '../lib/crazyOne'
+import { useEscapeLayer } from '../lib/escapeStack'
 import { clock } from '../lib/iddaaCompare'
+import { useSwipeToClose } from '../lib/swipeToClose'
 import { upgradeRequired } from '../lib/plans'
 import { useFeature } from '../lib/pro'
 import { PlayerHead, TeamLogo } from './PlayerHead'
@@ -874,10 +879,14 @@ function Breaks({ games, ctx }: { games: CrazyGame[]; ctx: Ctx }) {
 
 /** Each belief as a card with two sides: the creed and who it touches tonight, and its seasons. */
 function Beliefs({ booms, games, ctx }: { booms: CrazyBoom[]; games: CrazyGame[]; ctx: Ctx }) {
+  const [myths, setMyths] = useState<MythKind | null>(null)
   return (
     <>
-      <h3 className="cz-bel-group">For players: who goes way over</h3>
-      <ul className="cz-beliefs">
+      <div className="cz-bel-row">
+        <h3 className="cz-bel-group">For players: who goes way over</h3>
+        <MythButton kind="player" onOpen={setMyths} />
+      </div>
+      <ul className="cz-beliefs is-players">
         {BOOM_BELIEFS.map((b) => (
           <BeliefCard
             key={b.key}
@@ -897,25 +906,11 @@ function Beliefs({ booms, games, ctx }: { booms: CrazyBoom[]; games: CrazyGame[]
             }
           />
         ))}
-        <li className="cz-belief cz-myths">
-          <h4>
-            <span className="ci">
-              <Prohibit size={18} aria-hidden="true" />
-            </span>
-            Myths I refuse
-          </h4>
-          <p className="say">Fan favourites I tested and threw out.</p>
-          <ul>
-            {MYTHS.map((m) => (
-              <li key={m.name}>
-                <s>{m.name}</s>
-                <span>{m.data}</span>
-              </li>
-            ))}
-          </ul>
-        </li>
       </ul>
-      <h3 className="cz-bel-group">For games: who wins, and by how much</h3>
+      <div className="cz-bel-row">
+        <h3 className="cz-bel-group">For games: who wins, and by how much</h3>
+        <MythButton kind="game" onOpen={setMyths} />
+      </div>
       <ul className="cz-beliefs">
         {BELIEFS.map((b) => (
           <BeliefCard
@@ -947,7 +942,71 @@ function Beliefs({ booms, games, ctx }: { booms: CrazyBoom[]; games: CrazyGame[]
           />
         ))}
       </ul>
+      {myths && <MythSheet kind={myths} onClose={() => setMyths(null)} />}
     </>
+  )
+}
+
+const MYTHS_OF: Record<MythKind, { title: string; list: Myth[] }> = {
+  player: { title: 'Player myths I refuse', list: PLAYER_MYTHS },
+  game: { title: 'Game myths I refuse', list: GAME_MYTHS },
+}
+
+/** The way into a set of refused myths: a small button by its beliefs. */
+function MythButton({ kind, onOpen }: { kind: MythKind; onOpen: (k: MythKind) => void }) {
+  const { title, list } = MYTHS_OF[kind]
+  return (
+    <button type="button" className="cz-myth-btn" aria-haspopup="dialog" onClick={() => onOpen(kind)}>
+      <Prohibit size={16} aria-hidden="true" />
+      {title}
+      <span className="num">{list.length}</span>
+    </button>
+  )
+}
+
+/** The refused myths in a pop-up: centred on desktop, a bottom sheet you can swipe away on phones. */
+function MythSheet({ kind, onClose }: { kind: MythKind; onClose: () => void }) {
+  const { title, list } = MYTHS_OF[kind]
+  const sheet = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    sheet.current?.querySelector<HTMLElement>('.cz-sheet-x')?.focus()
+    document.body.classList.add('cz-sheet-open')
+    return () => {
+      document.body.classList.remove('cz-sheet-open')
+      opener?.focus?.()
+    }
+  }, [])
+  useEscapeLayer(true, onClose)
+  useSwipeToClose(sheet, onClose, { media: '(max-width: 719px)' })
+  return createPortal(
+    <div className="cz-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="cz-sheet" role="dialog" aria-modal="true" aria-labelledby="cz-sheet-t" ref={sheet}>
+        <div className="cz-sheet-handle" aria-hidden="true" />
+        <div className="cz-sheet-head">
+          <span className="ci">
+            <Prohibit size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="cz-sheet-t">{title}</h2>
+            <p>Fan favourites I tested on past seasons and threw out.</p>
+          </div>
+          <button type="button" className="cz-sheet-x" aria-label="Close" onClick={onClose}>
+            <X size={18} weight="bold" aria-hidden="true" />
+          </button>
+        </div>
+        <ul className="cz-myth-list">
+          {list.map((m) => (
+            <li key={m.name}>
+              <s>{m.name}</s>
+              <p className="says">“{m.says}”</p>
+              <p className="data">{m.data}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>,
+    document.body,
   )
 }
 

@@ -54,7 +54,8 @@ export const BELIEFS: Belief[] = [
   {
     key: 'one_man',
     name: 'Two one-man shows',
-    creed: 'When both teams run their shots through one or two players, defenses load up on them and the game comes in low.',
+    creed:
+      'When both teams run their shots through one or two players, defenses load up on them and the game comes in low.',
     weight: '−1 point off the game’s total (the total, not the winner)',
     held: 'Under Our call’s total in 4 of 5 seasons',
     pips: [4, 5],
@@ -77,14 +78,98 @@ export function totals(g: CrazyGame): { ours: number; crazy: number } | null {
   return { ours: g.ours.away + g.ours.home, crazy: g.crazy.away + g.crazy.home }
 }
 
-/** The myths it refuses, with what the data says. */
-export const MYTHS: { name: string; data: string }[] = [
-  { name: 'Revenge games', data: 'stars score 0.8 less after a bad loss' },
-  { name: 'Contract year', data: '−0.65 pts, 11 of 11 seasons' },
-  { name: '“He’s due”', data: 'cold leads to cold' },
-  { name: 'Win-streak complacency', data: 'flips every season' },
-  { name: 'Size mismatch', data: 'no effect' },
-  { name: 'Soft defense tonight', data: 'no more booms than expected; fewer in 3 of 5 seasons' },
+/** A fan belief Crazy One tested and refuses: what fans say, and what the data said. */
+export interface Myth {
+  name: string
+  /** What a fan says, in a fan's words. */
+  says: string
+  /** What the test found. */
+  data: string
+}
+
+export type MythKind = 'player' | 'game'
+
+/** Myths about players: who will go off tonight. Each was tested on past seasons and failed. */
+export const PLAYER_MYTHS: Myth[] = [
+  {
+    name: 'Revenge game',
+    says: 'A star who just had a bad loss comes back angry.',
+    data: 'Top-25 scorers scored 0.8 under their level the next game, below normal in 7 of 8 seasons.',
+  },
+  {
+    name: 'Contract year',
+    says: 'Players go off in the season before a new deal.',
+    data: '0.65 fewer points a game, lower in 11 of 11 seasons. The ones who reach the market are losing their role.',
+  },
+  {
+    name: '“He’s due”',
+    says: 'A cold player is about to heat up.',
+    data: 'Cold leads to cold: after a bad game, the next one runs slightly worse.',
+  },
+  {
+    name: 'Soft defense tonight',
+    says: 'A scorer booms against a bad defense.',
+    data: 'No more booms than expected against the softest defenses, and fewer in 3 of 5 seasons.',
+  },
+  {
+    name: 'Size mismatch',
+    says: 'A big man feasts on a team with no true center.',
+    data: 'Nothing for centers in points, rebounds or blocks over 5 seasons. Coaches go small too.',
+  },
+  {
+    name: 'His time of year',
+    says: 'He always plays better after the All-Star break.',
+    data: 'Personal rhythms don’t repeat: season to season they line up at +0.04, about chance.',
+  },
+  {
+    name: 'Hometown game',
+    says: 'He goes off in front of family.',
+    data: 'Looked real in 5 seasons, then held in only 4 of 7 older ones: luck.',
+  },
+  {
+    name: 'Big-game temperament',
+    says: 'Some players rise to the moment.',
+    data: 'Personal temperament is noise: 0 of 20 tests held, and it doesn’t repeat season to season.',
+  },
+]
+
+/** Myths about games: who wins, and by how much. Each was tested on past seasons and failed. */
+export const GAME_MYTHS: Myth[] = [
+  {
+    name: 'Win-streak complacency',
+    says: 'A favourite on a 5-game win streak gets lazy.',
+    data: 'Its sign flips by season, from −3.3 to +1.7 points on the margin.',
+  },
+  {
+    name: 'Payback rematch',
+    says: 'A team blown out last time wins the rematch.',
+    data: 'Rematches after a 15+ point loss play like any other game.',
+  },
+  {
+    name: 'Style clashes',
+    says: 'A fast team runs a slow one off the floor.',
+    data: 'Pace, shooting, turnover and rebounding matchups swing by season with weights that flip.',
+  },
+  {
+    name: 'Strength of schedule',
+    says: 'Adjust every team for who it has played.',
+    data: 'Worse than plain recent form in every season: the schedule evens out fast.',
+  },
+  {
+    name: 'Coach vs coach',
+    says: 'Some coaches have a rival’s number.',
+    data: 'Head-to-head and in-series adjustments fail over 30,000 games, 2002 to 2027.',
+  },
+  {
+    name: 'Tired legs',
+    says: 'The third game in four nights, or a long road trip, drags a team down.',
+    data: 'Rest days, 3 in 4 nights and road trip length found no weight in 5 seasons.',
+  },
+  {
+    name: 'The referee crew',
+    says: 'This crew calls everything.',
+    data: 'Free throws move a hair, and the sign flips by season.',
+  },
 ]
 
 export function beliefOf(key: string): Belief | undefined {
@@ -147,7 +232,12 @@ export function nightOf(games: Pick<CrazyGame, 'tip'>[]): string {
   const tips = games.map((g) => g.tip).sort()
   const d = tips.length ? new Date(tips[0]) : null
   if (!d || Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('en-GB', { timeZone: 'America/New_York', weekday: 'short', day: 'numeric', month: 'short' })
+  return d.toLocaleDateString('en-GB', {
+    timeZone: 'America/New_York',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
 }
 
 /** Its edge over Our call, per 100 games of log loss: "+0.4". */
