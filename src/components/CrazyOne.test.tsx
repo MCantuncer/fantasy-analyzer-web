@@ -254,7 +254,24 @@ describe('CrazyOne', () => {
     expect(within(card).getByRole('table').textContent).toContain('21-22+10%')
     expect(within(card).getByRole('table').textContent).toContain('26-27 so far−5%')
     expect(within(card).getByRole('button', { name: 'Turn back' })).toBeTruthy()
-    expect(screen.getByText('Soft defense tonight')).toBeTruthy()
+    expect(screen.queryByText('Soft defense tonight')).toBeNull()
+  })
+
+  it('opens the player myths and the game myths in their own pop-ups', async () => {
+    fetchMock.mockResolvedValue(data())
+    show()
+    const players = await screen.findByRole('button', { name: /Player myths I refuse/ })
+    fireEvent.click(players)
+    const sheet = screen.getByRole('dialog', { name: 'Player myths I refuse' })
+    expect(within(sheet).getByText('Soft defense tonight')).toBeTruthy()
+    expect(within(sheet).queryByText('Coach vs coach')).toBeNull()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Game myths I refuse/ }))
+    const games = screen.getByRole('dialog', { name: 'Game myths I refuse' })
+    expect(within(games).getByText('Coach vs coach')).toBeTruthy()
+    fireEvent.click(within(games).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('counts booms caught, filters the marks and reads one, and says it is too early', async () => {
