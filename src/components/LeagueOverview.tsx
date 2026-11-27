@@ -15,6 +15,7 @@ import { todayMatters, useTodayMatchup } from '../lib/todayData'
 import { FlipLine, MatchupSheet, type SheetSide } from './MatchupSheet'
 import { MatchupRows } from './MatchupRows'
 import { LeagueWire } from './LeagueWire'
+import { SeatExample } from './SeatExample'
 
 interface Props {
   overview: Overview
@@ -275,33 +276,7 @@ export function LeagueOverview({
         />
       </div>
 
-      {!verified && (
-        <section className="card stack" aria-labelledby="locked-title">
-          <span className="eyebrow" id="locked-title">
-            Once you pick your team
-          </span>
-          <ul className="locked">
-            {[
-              'Your best trades and FA targets',
-              'Your playoff odds and category outlook',
-              'League Chat and saved trade rules, after you verify it on ESPN',
-            ].map((t) => (
-              <li key={t}>
-                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                  <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" />
-                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.6" fill="none" />
-                </svg>
-                {t}
-              </li>
-            ))}
-          </ul>
-          <div className="row">
-            <button type="button" className="secondary" onClick={onVerify}>
-              Pick my team
-            </button>
-          </div>
-        </section>
-      )}
+      {!verified && <SeatExample />}
     </div>
   )
 }
