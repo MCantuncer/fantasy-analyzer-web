@@ -9,7 +9,7 @@ import { MyPlayers } from './MyPlayers'
 import { LeagueChat } from './LeagueChat'
 import { LeagueOverview } from './LeagueOverview'
 import { News } from './News'
-import { Outlook } from './Outlook'
+import { SeasonBand } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Scores } from './Scores'
@@ -194,17 +194,13 @@ export function Report({
               />
             )}
             {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} onGo={goTo} />}
-            <div className="split mv-lead">
-              <div className="wide" id="moves-best">
-                {tradesPending ? (
-                  <BestMovePending status={tradesStatus} onRetry={onRerun} />
-                ) : (
-                  <BestMove report={report} />
-                )}
-              </div>
-              <div className="narrow">
-                <Outlook report={report} />
-              </div>
+            {/* The lead: the best move, its odds chart and the season as its foot band. */}
+            <div id="moves-best">
+              {tradesPending ? (
+                <BestMovePending status={tradesStatus} onRetry={onRerun} foot={<SeasonBand report={report} />} />
+              ) : (
+                <BestMove report={report} foot={<SeasonBand report={report} />} />
+              )}
             </div>
             <CategoryTiles categories={report.categories} />
             {/* Two lists: Trades | FA Targets side by side from 1100px; below that FA Targets come first. */}

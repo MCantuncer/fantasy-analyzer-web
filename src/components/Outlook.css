@@ -1,167 +1,163 @@
-/* Season outlook (ol- prefix): flat card, big odds, a standings ladder with the playoff line, two records. */
-.card.outlook {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border-color: var(--border);
-  background: var(--surface);
+/* Season outlook as the lead's foot band (Quiet Lead, page prefix mvl-): the label, a flat ladder
+   with your seat in gold and the playoff line after the last spot, one sentence, two records. */
+.mvl-season {
+  grid-area: season;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 32px;
+  padding: 16px 28px;
+  background: var(--surface-2);
 }
 
-.ol-title {
+.mvl-season-k {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
-  font-size: 18px;
-  font-weight: 650;
-}
-
-.ol-title svg {
-  color: var(--text-2);
-}
-
-.ol-top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.ol-big {
-  font-size: 56px;
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-}
-
-.ol-pc {
-  margin-left: 2px;
-  font-size: 0.42em;
-  font-weight: 600;
-  color: var(--text-2);
-}
-
-.ol-sub {
-  margin-top: 4px;
   font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
   color: var(--text-2);
 }
 
-.ol-gap {
-  padding-bottom: 4px;
-  font-size: 13.5px;
-  line-height: 1.45;
-  text-align: right;
-  color: var(--text-2);
+.mvl-season-k svg {
+  color: var(--muted);
 }
 
-.ol-gap b {
-  font-weight: 650;
-  color: var(--text);
+.mvl-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
-.ol-ladder {
+.mvl-rungs {
   display: flex;
   align-items: center;
   gap: 4px;
+  height: 20px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.ol-rung {
-  display: grid;
-  flex: 1 1 0;
-  place-items: center;
-  min-width: 0;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--surface-2);
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.ol-rung.in {
-  background: var(--raised);
-  color: var(--text);
-}
-
-/* The playoff line: a short ink bar between the last team in and the first team out. */
-.ol-rung.in + .ol-rung:not(.in) {
+.mvl-rung {
   position: relative;
-  margin-left: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--track);
 }
 
-.ol-rung.in + .ol-rung:not(.in)::before {
+.mvl-rung.in {
+  background: color-mix(in srgb, var(--text-2) 42%, transparent);
+}
+
+.mvl-rung.me {
+  height: 12px;
+  background: var(--gold);
+}
+
+/* The scouted team in the sample: binoculars over its seat, the seat in the second ink. */
+.mvl-rung.scout {
+  height: 16px;
+  background: var(--text-2);
+  color: var(--surface-2);
+}
+
+/* The playoff line: a 2px rule after the last team in. */
+.mvl-rung.last-in {
+  margin-right: 10px;
+}
+
+.mvl-rung.last-in::after {
   content: '';
   position: absolute;
-  top: -4px;
-  bottom: -4px;
-  left: -8px;
+  top: 50%;
+  right: -8px;
   width: 2px;
+  height: 20px;
+  margin-top: -10px;
   border-radius: 1px;
-  background: var(--text);
+  background: var(--text-2);
 }
 
-.ol-rung.me {
-  background: var(--gold);
-  color: var(--on-gold);
-}
-
-/* The team being scouted in the sample league: an ink ring, never gold (gold is only ever you). */
-.ol-rung.scout {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: inset 0 0 0 2px var(--text);
-}
-
-.ol-key {
+.mvl-ladder-k {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.ol-key span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ol-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: auto;
-}
-
-.ol-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: var(--surface-2);
-}
-
-.ol-stat-label {
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.ol-stat .num {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--muted);
   white-space: nowrap;
 }
 
-/* Game Night: the playoff spots sit in a soft green zone (tint plus a 2px green floor); your rung
-   stays gold. */
-.ol-rung.in:not(.me):not(.scout) {
-  background: color-mix(in srgb, var(--good) 12%, var(--surface-2));
-  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--good) 70%, transparent);
+.mvl-season-say {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.mvl-season-say b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mvl-recs {
+  display: flex;
+  gap: 28px;
+}
+
+.mvl-rec-k {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mvl-rec-v {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* The band sits in the lead, which is a size container (mvl). Narrower than 1000px the label takes
+   its own line; stacked, the band comes last; on phones it is one column with stretched seats. */
+@container mvl (max-width: 999px) {
+  .mvl-season {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .mvl-season-k {
+    grid-column: 1 / -1;
+  }
+}
+
+@container mvl (max-width: 779px) {
+  .mvl-season {
+    order: 8;
+    margin-top: 8px;
+  }
+}
+
+@container mvl (max-width: 559px) {
+  .mvl-season {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px 16px 16px;
+  }
+
+  .mvl-rungs {
+    gap: 3px;
+  }
+
+  .mvl-rung {
+    flex: 1;
+    width: auto;
+  }
+
+  .mvl-recs {
+    gap: 24px;
+  }
 }

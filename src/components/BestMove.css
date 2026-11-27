@@ -1,80 +1,149 @@
-/* Best move, Front Office: an icon title with the accept chance top-right, then "You give" and
-   "You get" lanes (label on its own line, team-lit faces, team code and position), the odds for
-   both sides, a few category chips and an ink button. Also used by Trade For (OddsMeter). */
+/* Best move as the Quiet Lead (page prefix mvl-): the only lifted surface on the first screen.
+   The move on the left (Add at full weight, Drop one weight down, the week line, the one strong
+   button), the calm odds chart on the right, the season as the foot band. The lead is its own size
+   container: it stacks below 780px of its own width (a 900px window, or the sample's narrower
+   column), with the chart between the players and the week line. */
+
+/* The warm house light in the lead's corner. The sample swaps it for the scouted team's light. */
 .card.best {
-  position: relative;
+  background: radial-gradient(70% 90% at 0% 0%, var(--house), transparent 70%), var(--surface);
+}
+
+.card.best.mvl {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--lift);
+  overflow: clip;
+  container: mvl / inline-size;
+}
+
+.mvl-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+  grid-template-areas:
+    'move chart'
+    'season season';
+}
+
+.mvl-hold .mvl-grid,
+.mvl-wait .mvl-grid {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'move'
+    'season';
+}
+
+.mvl-move {
+  grid-area: move;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  border-color: var(--border);
-  background:
-    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
-    var(--surface);
+  min-width: 0;
+  padding: 24px 8px 24px 28px;
 }
 
-.bm-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.mvl-hold .mvl-move,
+.mvl-wait .mvl-move {
+  padding-right: 28px;
+}
+
+.mvl-chart {
+  grid-area: chart;
+  position: relative;
+  min-width: 0;
+  padding: 24px 28px 20px 16px;
+}
+
+/* Head: the target, "Best move", what sits beside it; the accept word top right on a trade. */
+.mvl-h {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
 }
 
-.bm-title {
+.mvl-title {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 24px;
+}
+
+.mvl-title svg {
+  color: var(--text-2);
+}
+
+.mvl-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mvl-partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.mvl-h .bm-when {
+  flex-basis: 100%;
+}
+
+.mvl-accept {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--text-2);
+}
+
+.mvl-accept-w {
+  font-size: 16px;
   font-weight: 650;
 }
 
-.bm-title svg {
-  color: var(--text-2);
-}
-
-.bm-partner {
-  grid-column: 1 / -1;
-}
-
-.bm-partner {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* Accept chance: top-right, a word beside the handshake. */
-.bm-accept {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  display: inline-flex;
-  align-items: center;
-  justify-self: end;
-  gap: 6px;
-  color: var(--text-2);
-}
-
-.bm-accept-word {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.bm-lanes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.bm-lane {
+/* The two sides. Add (or You get): a 72px team-lit face and the name at 28px. Drop (or You give):
+   a 44px face centred in the same 72px column, the name at 15px in the second ink. */
+.mvl-lane {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: var(--radius-row);
-  background: var(--surface-2);
+  gap: 6px;
+  min-width: 0;
+}
+
+.mvl-players {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mvl-player {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.mvl-face {
+  display: flex;
+  justify-content: center;
+}
+
+.mvl-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .bm-lane-label {
@@ -86,66 +155,126 @@
   color: var(--text-2);
 }
 
-.bm-players {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bm-player {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.bm-player-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.bm-name {
-  font-size: 16.5px;
-  font-weight: 650;
-  overflow-wrap: anywhere;
-}
-
-.bm-meta {
-  font-size: 12px;
+.bm-lane-label svg {
   color: var(--muted);
 }
 
-.bm-meta,
-.bm-chip-cat {
-  font-variant-numeric: tabular-nums;
-}
-
-.bm-note {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Their odds, so the partner's gain is visible on every best trade. */
-.bm-them {
+.mvl-name-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-  margin: -8px 0 0;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+}
+
+.mvl-big .mvl-name-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mvl-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mvl-big .mvl-name {
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 34px;
+  letter-spacing: -0.015em;
+}
+
+.mvl-big.mvl-many .mvl-name {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.mvl-small .mvl-name {
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-2);
 }
 
+.mvl-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* "and drop X", "Plays Sat for you first": under the names, in the text column. */
+.bm-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-left: 88px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.bm-note > svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.bm-note b {
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+/* The week line: the two biggest gains and costs as bare signed numbers after their code. */
+.mvl-week {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.mvl-week-k {
+  color: var(--muted);
+}
+
+.mvl-vs {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: center;
+}
+
+.mvl-vs b {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.mvl-wk {
+  white-space: nowrap;
+}
+
+.mvl-wk-c {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.mvl-steal {
+  margin-right: 3px;
+  color: var(--gold-text);
+  vertical-align: -1px;
+}
+
+.mvl-wk-v {
+  margin-left: 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* The one strong button, the bare link, and the adds left under them. */
 .bm-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 16px;
+  gap: 8px 12px;
 }
 
 .bm-actions .button {
@@ -154,123 +283,153 @@
   gap: 8px;
 }
 
-/* Odds: plain coloured delta with a small triangle, no pill. */
-.bm-figures {
-  position: relative;
+.bm-actions .button.mvl-bare {
+  padding-left: 8px;
+  color: var(--text-2);
 }
 
-.bm-delta {
-  font-size: 16px;
-  font-weight: 700;
+.bm-adds {
+  flex-basis: 100%;
+  margin-top: -2px;
+  font-size: 13px;
+  color: var(--muted);
   white-space: nowrap;
 }
 
-.big-odds .bm-delta {
-  align-self: center;
+.bm-adds b {
+  font-weight: 650;
+  color: var(--text);
 }
 
-.bm-meter-wrap {
-  flex: 1 1 220px;
-  min-width: 180px;
-  padding-bottom: 4px;
-}
-
-.bm-meter {
-  position: relative;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--track);
-}
-
-.bm-meter > span {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-
-.bm-base {
-  left: 0;
-  border-radius: 999px 0 0 999px;
-  background: var(--faint);
-}
-
-.bm-gain {
-  border-radius: 0 999px 999px 0;
-  background: var(--good);
-}
-
-.bm-gain.bm-loss {
-  background: var(--bad);
-}
-
-/* The playoff line: an ink notch at 50%. */
-.bm-meter > .bm-notch {
-  top: -5px;
-  bottom: -5px;
-  left: 50%;
-  width: 4px;
-  margin-left: -2px;
-  border-radius: 2px;
-  background: var(--text);
-}
-
-.bm-scale {
-  position: relative;
+/* What the choice costs, under the buttons. */
+.bm-foot {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: -8px 0 0;
+  font-size: 13px;
   color: var(--muted);
 }
 
-.bm-mid {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: 600;
+.bm-foot > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* A trade: the partner's odds under the chart, so their gain shows on every best trade. */
+.mvl-them {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 10px 0 0;
+  font-size: 13px;
   color: var(--text-2);
+}
+
+.mvl-them b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mvl-them-d {
+  font-weight: 700;
   white-space: nowrap;
 }
 
-/* Biggest category moves: small chips with an outcome edge, the category in the code face. */
-.bm-changes-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.mvl-ar {
+  margin-right: 2px;
+  font-size: 0.8em;
 }
 
-.bm-changes {
+/* Hold: a flat line at today's odds and what to do instead. */
+.mvl-flat {
+  position: relative;
+  padding-top: 26px;
+}
+
+.mvl-flat-line {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--muted);
+  opacity: 0.6;
+}
+
+.mvl-flat-say {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.mvl-flat-say b {
+  margin-right: 2px;
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mvl-hold-say {
+  margin: -6px 0 0;
+  font-size: 14px;
+}
+
+/* "Make this Sunday": one line under the title, the instruction in ink and the subtitle after it. */
+.bm-when {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 2px 6px;
   margin: 0;
-  padding: 0;
-  list-style: none;
+  font-size: 14px;
+  color: var(--muted);
 }
 
-.bm-chip {
+.bm-when-main {
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 7px 12px 8px;
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
-  box-shadow: inset 3px 0 0 currentColor;
-  font-weight: 700;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  color: var(--text);
 }
 
-.bm-chip.good {
-  color: var(--good);
+.bm-when-main svg {
+  color: var(--text-2);
 }
 
-.bm-chip.bad {
-  color: var(--bad);
+/* When waiting pays: no cream button, an outline one that says its cost on a second line. */
+.bm-actions .button.bm-quiet {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-height: 50px;
+  padding: 6px 16px 7px;
+  border-color: color-mix(in oklab, var(--text) 26%, transparent);
+  background: transparent;
+  color: var(--text);
+  line-height: 1.25;
 }
 
-.bm-chip-cat {
+.bm-quiet-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.bm-quiet-main svg {
+  color: var(--text-2);
+}
+
+.bm-quiet-sub {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-2);
+  color: var(--muted);
 }
 
 /* One-shot confetti around the new odds: 0.9s, then React removes it. Off under reduced motion. */
@@ -310,143 +469,122 @@
   }
 }
 
-/* Phones: the lanes stack, give over get. */
-@media (max-width: 640px) {
-  .bm-lanes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+
+/* ---------- The lead stacks: below 780px of its own width ---------- */
+@container mvl (max-width: 779px) {
+  .mvl-grid {
+    display: flex;
+    flex-direction: column;
+    padding-top: 22px;
   }
 
-  .bm-accept-word {
+  .mvl-move {
+    display: contents;
+  }
+
+  .mvl-move > * {
+    order: 5;
+    margin: 0 24px 16px;
+  }
+
+  .mvl-h {
+    order: 1;
+  }
+
+  .mvl-big {
+    order: 2;
+  }
+
+  .mvl-small {
+    order: 3;
+  }
+
+  .mvl-chart {
+    order: 4;
+    padding: 0 24px 16px;
+  }
+
+  .mvl-hold-say {
+    order: 6;
+    margin-top: -6px;
+  }
+
+  .bm-actions {
+    order: 6;
+  }
+
+  .bm-foot {
+    order: 7;
+    margin-top: -6px;
+  }
+}
+
+/* Phones: the Add face at 56, the name at 24, the claim button full width with the bare link and
+   the adds left on one line under it, the season band in one column. */
+@container mvl (max-width: 559px) {
+  .mvl-grid {
+    padding-top: 18px;
+  }
+
+  .mvl-move > * {
+    margin: 0 16px 14px;
+  }
+
+  .mvl-chart {
+    padding: 0 16px 12px;
+  }
+
+  .mvl-player {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .mvl-big .mvl-face .head {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .mvl-big .mvl-name {
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  .mvl-big.mvl-many .mvl-name {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .bm-note {
+    padding-left: 70px;
+  }
+
+  .mvl-accept-w {
     font-size: 15px;
   }
 
-  .bm-partner {
-    font-size: 15.5px;
+  .bm-actions {
+    justify-content: space-between;
+    row-gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .bm-actions > .button:first-child {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .bm-actions .button.mvl-bare {
+    padding-left: 0;
+  }
+
+  .bm-adds {
+    flex-basis: auto;
+    margin: 0 0 0 auto;
   }
 }
 
-/* "Make this Sunday": one line under the title, the instruction in ink and the subtitle after it. */
-.bm-when {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 6px;
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.bm-when-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 650;
-  color: var(--text);
-}
-
-.bm-when-main svg {
-  color: var(--text-2);
-}
-
-/* This week vs your opponent: the label names them, the chips are the same. */
-.bm-vs {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-}
-
-.bm-vs b {
-  font-weight: 600;
-  color: var(--text-2);
-}
-
-.bm-unit {
-  align-self: center;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.bm-chip-cat .bm-steal {
-  margin-right: 4px;
-  color: var(--gold);
-  vertical-align: -1px;
-}
-
-/* When waiting pays: no cream button, an outline one that says its cost on a second line. */
-.bm-actions .button.bm-quiet {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  min-height: 50px;
-  padding: 6px 16px 7px;
-  border-color: color-mix(in oklab, var(--text) 26%, transparent);
-  background: transparent;
-  color: var(--text);
-  line-height: 1.25;
-}
-
-.bm-quiet-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.bm-quiet-main svg {
-  color: var(--text-2);
-}
-
-.bm-quiet-sub {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-/* Under the buttons: what the choice costs, and adds left on the right. */
-.bm-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 16px;
-  margin: -8px 0 0;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.bm-foot > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.bm-adds {
-  white-space: nowrap;
-}
-
-.bm-adds .num {
-  font-weight: 650;
-  color: var(--text);
-}
-
-/* ---------- Game Night ----------
-   The Best Move card carries your warm light in its near corner and lifts off the page; the odds
-   gain glows green where it lands (a loss glows coral). */
-.card.best {
-  border-color: transparent;
-  background:
-    radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%),
-    radial-gradient(60% 120% at 100% 0%, var(--glow), transparent 65%),
-    var(--surface);
-  box-shadow: var(--lift);
-}
-
-.bm-gain {
-  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--good) 45%, transparent);
-}
-
-.bm-gain.bm-loss {
-  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--bad) 40%, transparent);
+@container mvl (max-width: 359px) {
+  .mvl-big .mvl-name {
+    font-size: 22px;
+  }
 }

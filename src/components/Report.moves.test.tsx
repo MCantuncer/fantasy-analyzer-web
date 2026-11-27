@@ -1,11 +1,14 @@
 import { cleanup, render } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { report } from '../test/newsSince'
 import { Report } from './Report'
 
 // Moves' own parts are tested on their own; here only their order on the page matters.
-vi.mock('./BestMove', () => ({ BestMove: () => <div data-part="best" /> }))
-vi.mock('./Outlook', () => ({ Outlook: () => <div data-part="outlook" /> }))
+vi.mock('./BestMove', () => ({
+  BestMove: ({ foot }: { foot?: ReactNode }) => <div data-part="best">{foot}</div>,
+}))
+vi.mock('./Outlook', () => ({ SeasonBand: () => <div data-part="season" /> }))
 vi.mock('./CategoryTiles', () => ({
   CategoryTiles: () => <div data-part="categories" />,
 }))
@@ -56,10 +59,16 @@ function renderMoves() {
 }
 
 describe('Moves page order', () => {
-  it('reads lead, categories, the two lists, then Trade of the day', () => {
+  it('reads the lead with its season band, categories, the two lists, then Trade of the day', () => {
     const { container } = renderMoves()
     const parts = [...container.querySelectorAll('[data-part]')].map((el) => el.getAttribute('data-part'))
-    expect(parts).toEqual(['best', 'outlook', 'categories', 'trades', 'fa', 'totd'])
+    expect(parts).toEqual(['best', 'season', 'categories', 'trades', 'fa', 'totd'])
+  })
+
+  it('folds the season outlook into the lead, with no card of its own', () => {
+    const { container } = renderMoves()
+    expect(container.querySelector('#moves-best [data-part="best"] [data-part="season"]')).not.toBeNull()
+    expect(container.querySelector('.mv-lead, .split')).toBeNull()
   })
 
   it('shows both lists at once, with no Trades / FA Targets switch', () => {

@@ -56,7 +56,8 @@ describe('SamplePage', () => {
     await waitFor(() => expect(view.getAllByText("Hammer's playoff odds").length).toBeGreaterThan(0))
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/sample\/teams\/3\?day=2026-11-11$/)
     expect(view.getByText('How often Hammer wins each category')).toBeInTheDocument()
-    expect(container.querySelector('.ol-rung.me')).toBeNull()
+    expect(container.querySelector('.mvl-rung.me:not(.scout)')).toBeNull()
+    expect(container.querySelector('.card.best .mvl-season .mvl-rung.scout')).not.toBeNull()
   })
 
   it('says when the run is late, and marks last season', () => {
