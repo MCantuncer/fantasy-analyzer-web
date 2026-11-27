@@ -27,7 +27,7 @@ export function Builds({
   )
   const sorted = [...builds].sort((a, b) => b.expected_cats_won - a.expected_cats_won)
   return (
-    <section className="bd" aria-labelledby="builds-title">
+    <section className="bd-builds" aria-labelledby="builds-title">
       <h2 className="bd-h" id="builds-title">
         <ChartBar className="bd-h-ic" aria-hidden="true" />
         League builds
