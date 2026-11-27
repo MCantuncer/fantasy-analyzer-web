@@ -1,5 +1,8 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { Target, User } from '@phosphor-icons/react'
+import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSide } from '../lib/catStrip'
 import { CATEGORY_ORDER } from '../lib/statOrder'
+import { TeamCrest } from './TeamCrest'
 import './CatStrip.css'
 
 export interface CatStripProps {
@@ -56,6 +59,106 @@ export function CatStrip({ changes, title, summary, categories, full = 0.15 }: C
           )
         })}
       </ul>
+    </div>
+  )
+}
+
+export interface CatStripPairProps {
+  /** The top row's team (you, in your own matchup). */
+  a: StripSide
+  b: StripSide
+  /** Which figures sit on top and drive the bars: today's (Today view) or the week's. */
+  top: 'today' | 'week'
+  /** The small figures under each side: the week so far, or none. */
+  sub?: 'week' | null
+  /** Which row is you. Bars are green/coral (good or bad for you) only when set; neutral otherwise. */
+  mine: 'a' | null
+  /** The key column: crest + name (default), crest only, or none. */
+  keyed?: 'name' | 'crest' | false
+  /** The list's accessible name, e.g. "Today's categories, with the week so far". */
+  label: string
+}
+
+const statLabel = (stat: string) => (stat === 'TO' ? 'TO↓' : stat)
+
+function PairBar({ cell, mine }: { cell: PairCell; mine: 'a' | null }) {
+  if (cell.leader === 'none') return null
+  if (cell.leader === 'tie') return <i className="cs-tie" />
+  const dir = cell.leader === 'a' ? 'cs-pup' : 'cs-pdn'
+  const tone = mine == null ? 'cs-neu' : cell.leader === mine ? 'cs-good' : 'cs-bad'
+  return <i className={`${dir} ${tone}`} style={{ '--share': barShare(cell).toFixed(3) } as CSSProperties} />
+}
+
+function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boolean }) {
+  return (
+    <>
+      <span className="cs-who">
+        <TeamCrest name={side.name} colour={side.colour} size={18} />
+        <span className="cs-nm">{side.short}</span>
+        {isMe && <User className="cs-me" weight="fill" aria-hidden="true" />}
+      </span>
+      {sub && (
+        <span className="cs-wk">
+          <span className="cs-lg">this week</span>
+          <span className="cs-sm">wk</span>
+        </span>
+      )}
+    </>
+  )
+}
+
+/**
+ * Two teams' categories as a line score: per category, the top team's figure, a bar from a short
+ * zero tick toward whoever leads (its length is the margin, from leadReach), and the other team's
+ * figure, each with an optional small week figure under it. Close categories (isClose on the
+ * week) get an amber label and a Target. Screen readers hear one item per category with the
+ * whole reading.
+ */
+export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label }: CatStripPairProps) {
+  const cells = pairCells(a, b, { top, sub, closeFrom: 'week' })
+  const hasSub = sub != null
+  const names = { a: mine === 'a' ? 'you' : a.short, b: b.short }
+  const cls = ['cs-pair', hasSub ? '' : 'cs-one', keyed === 'crest' ? 'cs-crestkey' : '', keyed ? '' : 'cs-nokey']
+    .filter(Boolean)
+    .join(' ')
+  const weight = (cellLeader: string, side: 'a' | 'b') => (cellLeader === side ? ' cs-w' : '')
+  return (
+    <div className={cls} role="list" aria-label={label} style={{ '--n': cells.length } as CSSProperties}>
+      {keyed && (
+        <div className="cs-key" aria-hidden="true">
+          <span />
+          <KeySide side={a} isMe={mine === 'a'} sub={hasSub} />
+          <span />
+          <KeySide side={b} isMe={false} sub={hasSub} />
+        </div>
+      )}
+      {cells.map((cell) => (
+        <div key={cell.stat} className="cs-pi" role="listitem" aria-label={pairLabel(cell, names)}>
+          <span className={cell.close ? 'cs-pl cs-close' : 'cs-pl'} aria-hidden="true">
+            {cell.close && <Target className="cs-ic" aria-hidden="true" />}
+            {statLabel(cell.stat)}
+          </span>
+          <span className={`cs-pv num${weight(cell.leader, 'a')}`} aria-hidden="true">
+            {pairFigure(cell.stat, cell.a)}
+          </span>
+          {hasSub && (
+            <span className={`cs-pk num${weight(cell.subLeader, 'a')}`} aria-hidden="true">
+              {pairFigure(cell.stat, cell.aSub)}
+            </span>
+          )}
+          <span className="cs-pb" aria-hidden="true">
+            <PairBar cell={cell} mine={mine} />
+          </span>
+          <span className={`cs-pv num${weight(cell.leader, 'b')}`} aria-hidden="true">
+            {pairFigure(cell.stat, cell.b)}
+          </span>
+          {hasSub && (
+            <span className={`cs-pk num${weight(cell.subLeader, 'b')}`} aria-hidden="true">
+              {pairFigure(cell.stat, cell.bSub)}
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

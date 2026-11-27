@@ -95,3 +95,286 @@
     font-size: 12px;
   }
 }
+
+/* ---------- pair: two teams' categories as a line score (League) ----------
+   Per category: the top team's figure, a bar from a short zero tick toward the leader (its length
+   is the margin), the other team's figure; optional small week figures under each. Everything is
+   scoped to .cs-pair so the change strip above (Trades, Moves) is untouched. */
+:root {
+  --cs-neutral: color-mix(in srgb, var(--text-2) 62%, transparent);
+  --cs-quiet: color-mix(in srgb, var(--text-2) 34%, transparent);
+}
+
+:root[data-theme='light'] {
+  --cs-neutral: color-mix(in srgb, var(--text-2) 52%, transparent);
+  --cs-quiet: color-mix(in srgb, var(--text-2) 26%, transparent);
+}
+
+.cs-pair {
+  --key: 24px;
+  --bw: 10px;
+  --reach: 24px;
+  --rows: 22px 22px 14px auto 22px 14px;
+  display: grid;
+  grid-template-columns: var(--key) repeat(var(--n, 9), minmax(0, 1fr));
+  column-gap: 2px;
+}
+
+.cs-pair.cs-one {
+  --rows: 22px 24px auto 24px;
+}
+
+.cs-pair.cs-crestkey {
+  --key: 28px;
+}
+
+.cs-pair.cs-nokey {
+  grid-template-columns: repeat(var(--n, 9), minmax(0, 1fr));
+}
+
+.cs-pi,
+.cs-key {
+  display: grid;
+  grid-template-rows: var(--rows);
+  align-items: center;
+  min-width: 0;
+}
+
+.cs-pi {
+  justify-items: center;
+}
+
+.cs-key {
+  justify-items: start;
+}
+
+.cs-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cs-nm,
+.cs-me {
+  display: none;
+}
+
+.cs-nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-me {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--gold);
+}
+
+.cs-wk {
+  padding-left: 2px;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cs-wk .cs-lg {
+  display: none;
+}
+
+.cs-pl {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.cs-pl.cs-close {
+  color: var(--warn);
+}
+
+.cs-ic {
+  display: none;
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.cs-pv,
+.cs-pk {
+  line-height: 1;
+  white-space: nowrap;
+  font-weight: 450;
+}
+
+.cs-pv {
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.cs-pv.cs-w {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.cs-pk {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.cs-pk.cs-w {
+  color: var(--text-2);
+  font-weight: 650;
+}
+
+/* The bar: --reach each way from a 1px tick that runs 6px past each side (no rule across the strip). */
+.cs-pb {
+  position: relative;
+  width: var(--bw);
+  height: calc(var(--reach) * 2 + 4px);
+}
+
+.cs-pb::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  right: -6px;
+  height: 1px;
+  background: var(--seam);
+}
+
+.cs-pb i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--reach) * var(--share, 0));
+}
+
+.cs-pup {
+  --dir: 0deg;
+  bottom: calc(50% + 1px);
+  border-radius: 6px 6px 2px 2px;
+}
+
+.cs-pdn {
+  --dir: 180deg;
+  top: calc(50% + 1px);
+  border-radius: 2px 2px 6px 6px;
+}
+
+/* The light reaching the leader: 55% at the tick, full by 70% of the length. */
+.cs-good {
+  background: linear-gradient(var(--dir), color-mix(in srgb, var(--good) 55%, transparent), var(--good) 70%);
+}
+
+.cs-bad {
+  background: linear-gradient(var(--dir), color-mix(in srgb, var(--bad) 55%, transparent), var(--bad) 70%);
+}
+
+/* Neither side is you: no good or bad, just the lead. */
+.cs-neu {
+  background: linear-gradient(var(--dir), var(--cs-quiet), var(--cs-neutral) 70%);
+}
+
+.cs-pb i.cs-tie {
+  top: calc(50% - 1px);
+  left: 1px;
+  right: 1px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--muted);
+}
+
+@media (min-width: 760px) {
+  .cs-pair {
+    --key: 112px;
+    --bw: 12px;
+    --reach: 28px;
+    --rows: 26px 30px 18px auto 30px 18px;
+    column-gap: 4px;
+  }
+
+  .cs-pair.cs-one {
+    --rows: 26px 32px auto 32px;
+  }
+
+  .cs-pl {
+    font-size: 12px;
+  }
+
+  .cs-ic {
+    display: inline;
+  }
+
+  .cs-pv {
+    font-size: 19px;
+  }
+
+  .cs-pk {
+    font-size: 12.5px;
+  }
+
+  .cs-key .crest {
+    --crest: 22px !important;
+  }
+
+  .cs-pair:not(.cs-crestkey) .cs-nm,
+  .cs-pair:not(.cs-crestkey) .cs-me {
+    display: inline;
+  }
+
+  .cs-wk {
+    padding-left: 30px;
+    font-size: 12px;
+  }
+
+  .cs-pair.cs-crestkey .cs-wk {
+    padding-left: 2px;
+  }
+
+  .cs-wk .cs-lg {
+    display: inline;
+  }
+
+  .cs-wk .cs-sm {
+    display: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .cs-pair {
+    --key: 150px;
+  }
+
+  .cs-pv {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 380px) {
+  .cs-pair {
+    --key: 20px;
+  }
+
+  .cs-pl {
+    font-size: 10.5px;
+  }
+
+  .cs-pv {
+    font-size: 12.5px;
+  }
+
+  .cs-pk {
+    font-size: 10px;
+  }
+}
