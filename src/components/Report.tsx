@@ -13,7 +13,6 @@ import { Outlook } from './Outlook'
 import { Pickups } from './Pickups'
 import { Roster } from './Roster'
 import { Scores } from './Scores'
-import { tradeKey } from '../lib/format'
 import { tonightMatchup } from '../lib/league'
 import { Season } from './Season'
 import { TradeFor } from './TradeFor'
@@ -24,7 +23,6 @@ import { TradeCheck } from './TradeCheck'
 import { CHECK_PARAM, EMPTY_DEAL, encodeDeal, type CheckDeal } from '../lib/tradeCheck'
 import { TradeModes, type TradeMode } from './TradeModes'
 import { Trades } from './Trades'
-import { Spinner } from './Spinner'
 import { BestMovePending, TradesPending, type TradesStatus } from './TradesPending'
 import { NewsSince, type NewsSinceProps } from './NewsSince'
 import type { NewsRowKind } from '../lib/newsSince'
@@ -33,6 +31,7 @@ import { Untouchable, UntouchableWorking } from './Untouchable'
 import { useUntouchableAsked } from '../lib/untouchable'
 import { useManagerStyles } from '../lib/useManagerStyles'
 import { partnerLine } from '../lib/managerStyles'
+import '../styles/moves.css'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
@@ -97,8 +96,6 @@ export function Report({
 }: Props) {
   // A preview: free agents are in, trades are still being screened.
   const tradesPending = (report.pending ?? []).includes('trades')
-  // On phones one list shows at a time: open on the one that's ready.
-  const [show, setShow] = useState<'trades' | 'pickups'>(tradesPending ? 'pickups' : 'trades')
   // Trade Park: the players picked to shop (kept across tab switches). Picking runs the search.
   const [picks, setPicks] = useState<number[]>([])
   // Trade Park finds deals or checks one you bring; a shared check link opens on the check.
@@ -138,10 +135,8 @@ export function Report({
     onRerun()
   }
 
-  // From the news card to the part of Moves it names: phones show one list at a time, so open it first.
+  // From the news card to the part of Moves it names: both lists are always on the page, so just scroll.
   const goTo = (kind: NewsRowKind) => {
-    if (kind === 'trades') setShow('trades')
-    if (kind === 'fa') setShow('pickups')
     requestAnimationFrame(() => {
       const heading = document.getElementById(NEWS_TARGETS[kind])
       const target = heading?.closest('section, #moves-best') ?? heading
@@ -187,7 +182,7 @@ export function Report({
     <FeedbackContext.Provider value={feedbackScope}>
       <div className="stack" style={{ gap: 24 }} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'moves' && (
-          <>
+          <div className="mv-page">
             {reworking && <UntouchableWorking players={keptNow} />}
             {asking && (
               <Untouchable
@@ -199,15 +194,7 @@ export function Report({
               />
             )}
             {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} onGo={goTo} />}
-            <TradeOfTheDay
-              leagueId={report.league.id}
-              season={report.league.season}
-              leagueName={report.league.name}
-              myTeamId={report.team_id}
-              teamIds={report.season.map((r) => r.team_id)}
-              creds={creds}
-            />
-            <div className="split">
+            <div className="split mv-lead">
               <div className="wide" id="moves-best">
                 {tradesPending ? (
                   <BestMovePending status={tradesStatus} onRetry={onRerun} />
@@ -220,57 +207,47 @@ export function Report({
               </div>
             </div>
             <CategoryTiles categories={report.categories} />
-            <div className="moves stack" data-show={show}>
-              <div className="moves-switch segmented" role="group" aria-label="Show">
-                <button type="button" aria-pressed={show === 'trades'} onClick={() => setShow('trades')}>
-                  Trades ·{' '}
-                  {!tradesPending ? (
-                    new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size
-                  ) : tradesStatus.running ? (
-                    <>
-                      <Spinner size={13} className="tp-count-spin" />
-                      <span className="sr-only">still screening</span>
-                    </>
-                  ) : (
-                    '–'
-                  )}
-                </button>
-                <button type="button" aria-pressed={show === 'pickups'} onClick={() => setShow('pickups')}>
-                  FA Targets · {report.pickups.length}
-                </button>
-              </div>
-              <div className="split">
-                <div className="wide">
-                  {tradesPending ? (
-                    <TradesPending status={tradesStatus} onRetry={onRerun} />
-                  ) : (
-                    <Trades
-                      fair={report.trades}
-                      edge={report.edge_trades}
-                      categories={report.league.categories}
-                      teams={report.league.teams}
-                      myTeamId={report.team_id}
-                      kept={keepChanged ? [] : keptNow}
-                      onEditKeep={() => onTab('team')}
-                      keep={keep}
-                      partnerStyles={partnerStyles}
-                      onToggleKeep={onToggleKeep}
-                    />
-                  )}
-                </div>
-                <div className="narrow">
-                  <Pickups
-                    pickups={report.pickups}
-                    faab={report.faab_remaining}
-                    waiverPriority={report.waiver_priority}
-                    teams={report.league.teams.length}
-                    week={report.week}
-                    today={{ leagueId: report.league.id, season: report.league.season, teamId: report.team_id, creds }}
+            {/* Two lists: Trades | FA Targets side by side from 1100px; below that FA Targets come first. */}
+            <div className="mv-lists">
+              <div className="mv-trades">
+                {tradesPending ? (
+                  <TradesPending status={tradesStatus} onRetry={onRerun} />
+                ) : (
+                  <Trades
+                    fair={report.trades}
+                    edge={report.edge_trades}
+                    categories={report.league.categories}
+                    teams={report.league.teams}
+                    myTeamId={report.team_id}
+                    kept={keepChanged ? [] : keptNow}
+                    onEditKeep={() => onTab('team')}
+                    keep={keep}
+                    partnerStyles={partnerStyles}
+                    onToggleKeep={onToggleKeep}
                   />
-                </div>
+                )}
+              </div>
+              <div className="mv-fa">
+                <Pickups
+                  pickups={report.pickups}
+                  faab={report.faab_remaining}
+                  waiverPriority={report.waiver_priority}
+                  teams={report.league.teams.length}
+                  week={report.week}
+                  today={{ leagueId: report.league.id, season: report.league.season, teamId: report.team_id, creds }}
+                />
               </div>
             </div>
-          </>
+            {/* Around the league, not your move: after your lists on every width. */}
+            <TradeOfTheDay
+              leagueId={report.league.id}
+              season={report.league.season}
+              leagueName={report.league.name}
+              myTeamId={report.team_id}
+              teamIds={report.season.map((r) => r.team_id)}
+              creds={creds}
+            />
+          </div>
         )}
 
         {(tab === 'park' || tab === 'trade-for') && <TradeModes mode={tradeMode} onMode={onTradeMode} />}
