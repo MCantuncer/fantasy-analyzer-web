@@ -137,3 +137,29 @@ export function pairLabel(cell: PairCell, names: { a: string; b: string }): stri
   const close = cell.close ? '. Close this week, can flip' : ''
   return head + week + close
 }
+
+/** One category in CatStrip's `rank` variant (League builds): which way the bar points, how far, its tone. */
+export interface RankBar {
+  /** Up for the top half of the league (strong), down for the bottom half (weak). */
+  dir: 'up' | 'down'
+  /** The bar's length as a share of the full reach: its distance from the middle rank, at least a stub. */
+  share: number
+  /** good for 1st–2nd, bad for a likely punt, neutral otherwise. */
+  tone: 'good' | 'bad' | 'neu'
+}
+
+/**
+ * A weekly category rank (1 is best, ``n`` teams) as a bar from the middle of the league: ranks
+ * 1 to n/2 point up, the rest down, and the length grows with the distance from the middle, so 1st
+ * and last reach full and the middle ranks are short stubs. 1st and 2nd are good; a likely punt
+ * (``punt``) is bad whatever its rank.
+ */
+export function rankBar(rank: number, n: number, punt = false): RankBar {
+  const mid = (n + 1) / 2
+  const far = Math.max(1, mid - 1)
+  return {
+    dir: rank < mid ? 'up' : 'down',
+    share: Math.max(0.18, Math.min(1, Math.abs(mid - rank) / far)),
+    tone: punt ? 'bad' : rank <= 2 ? 'good' : 'neu',
+  }
+}

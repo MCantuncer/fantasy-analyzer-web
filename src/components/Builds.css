@@ -1,0 +1,215 @@
+/* League builds (bd-): bare rows on the page, as Standings. Each team's weekly ranks are CatStrip
+   `rank` bars under one label row; cats a week and likely punts in words. Your row takes the house
+   light and your crest the gold badge. Phones stack name · cats a week, the bars, then the punts. */
+.bd {
+  min-width: 0;
+}
+
+.bd-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.bd-h-ic {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+
+.bd-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phones: name and cats a week on one line, the nine bars under them, the punts under those. */
+.bd-g {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'tm cw'
+    'st st'
+    'pu pu';
+  align-items: center;
+  column-gap: 12px;
+}
+
+.bd-g > .bd-tm {
+  grid-area: tm;
+}
+
+.bd-g > .cs-rank {
+  grid-area: st;
+}
+
+.bd-g > .bd-cw {
+  grid-area: cw;
+}
+
+.bd-g > .bd-pu {
+  grid-area: pu;
+}
+
+.bd-hd {
+  grid-template-areas: 'st st';
+  margin-top: 10px;
+  padding: 0 8px 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bd-hd > .bd-tm,
+.bd-hd > .bd-cw,
+.bd-hd > .bd-pu {
+  display: none;
+}
+
+.bd-r {
+  row-gap: 4px;
+  padding: 10px 8px;
+  border-radius: 12px;
+}
+
+.bd-r.mine {
+  background: linear-gradient(90deg, var(--house), transparent 80%);
+}
+
+.bd-tm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 550;
+}
+
+.bd-r.mine .bd-tm {
+  font-weight: 700;
+}
+
+.bd-nm {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.bd-cw {
+  font-size: 12.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.bd-cw b {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.bd-pu {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.bd-pu-w {
+  color: var(--muted);
+}
+
+/* No likely punt: nothing on phones; a muted dash in the desktop column. */
+.bd-pu.bd-none {
+  display: none;
+}
+
+@media (min-width: 760px) {
+  .bd-g {
+    grid-template-columns: 200px minmax(0, 1fr) 72px;
+    grid-template-areas:
+      'tm st cw'
+      'pu st cw';
+    column-gap: 16px;
+  }
+
+  .bd-hd {
+    grid-template-areas: 'tm st cw';
+    padding-inline: 12px;
+  }
+
+  .bd-hd > .bd-tm,
+  .bd-hd > .bd-cw {
+    display: block;
+  }
+
+  .bd-hd > .bd-cw {
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .bd-r {
+    row-gap: 2px;
+    min-height: 56px;
+    padding: 6px 12px;
+  }
+
+  .bd-r > .bd-tm {
+    align-self: end;
+  }
+
+  .bd-r > .bd-pu {
+    align-self: start;
+    padding-left: 30px;
+    font-size: 12.5px;
+  }
+
+  .bd-cw-w {
+    display: none;
+  }
+
+  .bd-r > .bd-tm:only-of-type,
+  .bd-r:has(.bd-none) > .bd-tm {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+}
+
+@media (min-width: 1100px) {
+  .bd-g {
+    grid-template-columns: 240px minmax(0, 580px) 96px minmax(0, 1fr);
+    grid-template-areas: 'tm st cw pu';
+  }
+
+  .bd-hd {
+    grid-template-areas: 'tm st cw pu';
+  }
+
+  .bd-hd > .bd-pu {
+    display: block;
+  }
+
+  .bd-r > .bd-tm,
+  .bd-r:has(.bd-none) > .bd-tm {
+    grid-row: auto;
+    align-self: center;
+  }
+
+  .bd-r > .bd-pu {
+    align-self: center;
+    padding-left: 0;
+    font-size: 13px;
+  }
+
+  .bd-pu-w {
+    display: none;
+  }
+
+  .bd-pu.bd-none {
+    display: block;
+    color: var(--muted);
+  }
+}
