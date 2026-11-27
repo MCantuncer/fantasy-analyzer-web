@@ -10,30 +10,29 @@ const hot = { kind: 'hot', reason: 'Playing well above his line.' } as PlayerBad
 describe('PlayerBadges', () => {
   afterEach(cleanup)
 
-  it('draws icons that name themselves for screen readers', () => {
-    render(<PlayerBadges badges={[keystone, hot]} />)
-    expect(screen.getByRole('img', { name: 'Keystone · BLK: His owner leans on him for blocks.' })).toHaveTextContent('BLK')
-    expect(screen.getByRole('img', { name: /^Hot:/ })).toBeInTheDocument()
-    expect(screen.queryByText('Hot')).toBeNull()
+  it('spells each badge out as a chip, with the reason for screen readers', () => {
+    const { container } = render(<PlayerBadges badges={[keystone, hot]} />)
+    const chips = [...container.querySelectorAll('.pb-chip')]
+    expect(chips.map((c) => c.firstChild?.textContent)).toEqual(['Keystone BLK', 'Hot'])
+    expect(chips[0]).toHaveTextContent('Keystone BLK: His owner leans on him for blocks.')
+    expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('shows the word and reason on tap without clicking the row', () => {
+  it('shows the reason on tap without clicking the row', () => {
     const onRow = vi.fn()
     render(
       <div onClick={onRow}>
         <PlayerBadges badges={[keystone]} />
       </div>,
     )
-    fireEvent.click(screen.getAllByRole('img', { name: /^Keystone/ }).at(-1)!)
+    fireEvent.click(screen.getByText('Keystone BLK'))
     expect(onRow).not.toHaveBeenCalled()
-    const tip = screen.getByRole('tooltip')
-    expect(tip).toHaveTextContent('Keystone · BLK')
-    expect(tip).toHaveTextContent('leans on him for blocks')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('His owner leans on him for blocks.')
   })
 
   it('closes the bubble with Escape', () => {
     render(<PlayerBadges badges={[hot]} />)
-    fireEvent.click(screen.getAllByRole('img', { name: /^Hot:/ }).at(-1)!)
+    fireEvent.click(screen.getByText('Hot'))
     expect(screen.getByRole('tooltip')).toBeInTheDocument()
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('tooltip')).toBeNull()
