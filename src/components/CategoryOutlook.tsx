@@ -23,7 +23,7 @@ export function CategoryOutlook({ categories }: { categories: Outlook[] }) {
   )
 
   return (
-    <section className="card co" aria-labelledby="cats-title">
+    <section className="co" aria-labelledby="cats-title">
       <div className="co-head">
         <h2 id="cats-title" className="co-title">
           <ChartBar size={22} aria-hidden="true" />
@@ -48,7 +48,7 @@ export function CategoryOutlook({ categories }: { categories: Outlook[] }) {
       )}
       <div className="co-ch" aria-hidden="true">
         <span>Rank</span>
-        <span className="co-ch-bar">Win chance · line at 50%</span>
+        <span className="co-ch-bar">Win chance</span>
         <span className="co-ch-avg">A week</span>
       </div>
       {groups.map((g) => (

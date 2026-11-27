@@ -66,7 +66,6 @@ function RosterRow({
   const drop = p.tier === 'droppable'
   const cv = catValue(p.value)
   const badges = p.badges?.length ? <PlayerBadges badges={p.badges} /> : null
-  const tagged = !QUIET.has(p.injury_status)
   return (
     <li className={`ro-row${out || drop ? ' ro-recede' : ''}`}>
       <button
@@ -80,7 +79,11 @@ function RosterRow({
         <span className="sr-only">Keep {p.name}</span>
       </button>
       <div className="ro-who">
-        <PlayerHead player={p} size={30} team={p.pro_team} />
+        {/* The badges (Jewel, Hot, …) sit on the face's corner, on the player they mark. */}
+        <span className="ro-face">
+          <PlayerHead player={p} size={30} team={p.pro_team} />
+          {badges && <span className="pb-quiet ro-face-bdg">{badges}</span>}
+        </span>
         <span className="ro-txt">
           <span className="ro-l1">
             <PlayerLink player={p} className="ro-nm">
@@ -88,7 +91,6 @@ function RosterRow({
               <span className="ro-short">{short}</span>
             </PlayerLink>
             <StatusTag status={p.injury_status} />
-            {badges && <span className={`pb-quiet${tagged ? ' ro-bdg-wide' : ''}`}>{badges}</span>}
           </span>
           <span className="ro-l2">
             <span className="ro-l2-txt">
@@ -100,8 +102,6 @@ function RosterRow({
                 </b>
               )}
             </span>
-            {/* Phones: beside a tag, the badges move to line 2, so the name and its tag keep line 1. */}
-            {badges && tagged && <span className="pb-quiet ro-bdg-phone">{badges}</span>}
           </span>
         </span>
       </div>
@@ -158,12 +158,11 @@ export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
     </ul>
   )
   return (
-    <section className={`card ro${onShop ? '' : ' ro-noshop'}`} aria-labelledby="roster-title">
+    <section className={`ro${onShop ? '' : ' ro-noshop'}`} aria-labelledby="roster-title">
       <h2 id="roster-title" className="ro-title">
         <Users size={22} aria-hidden="true" />
         Your roster
       </h2>
-      <p className="ro-hint">Tap a lock to keep a player out of trades and drops.</p>
       <div className="ro-ch" aria-hidden="true">
         <span className="ro-ch-keep">Keep</span>
         <span>Player</span>

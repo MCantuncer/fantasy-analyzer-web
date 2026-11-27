@@ -27,12 +27,18 @@
   flex-direction: column;
   gap: 8px;
 }
-.wp-head .eyebrow,
 .wp-head h2 {
   margin: 0;
 }
-.wp-head h2 {
-  font-size: 1.5rem;
+/* Icon and title, as every section on the My Team sheet. */
+.wp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-title svg {
+  flex: none;
+  color: var(--text-2);
 }
 .wp-headline {
   margin: 4px 0 0;
@@ -47,11 +53,6 @@
   color: var(--gold-text);
 }
 .wp-quiet {
-  color: var(--text-2);
-}
-.wp-sub {
-  margin: 0;
-  max-width: 68ch;
   color: var(--text-2);
 }
 .wp-foot {

@@ -118,3 +118,22 @@ describe('Roster quiet rows', () => {
     expect(shopped).toEqual([1])
   })
 })
+
+describe('Roster on the team sheet', () => {
+  it('puts the badges on the face corner, not loose after the name', () => {
+    const hot = { ...player, badges: [{ kind: 'hot', reason: 'Hot streak' }] } as PlayerRef
+    const { container } = render(<Roster roster={[hot]} keep={[]} onToggleKeep={() => {}} />)
+    const corner = container.querySelector('.ro-face .ro-face-bdg')
+    expect(corner).not.toBeNull()
+    expect(within(corner as HTMLElement).getByRole('img', { name: /Hot/ })).toBeInTheDocument()
+    expect(container.querySelector('.ro-l1 .pb-marks')).toBeNull()
+    expect(container.querySelectorAll('.pb-mark')).toHaveLength(1)
+  })
+
+  it('has no card box and no hint sentence: the Keep column head carries the locks', () => {
+    const { container } = render(<Roster roster={[player]} keep={[]} onToggleKeep={() => {}} />)
+    expect(container.querySelector('.card')).toBeNull()
+    expect(container.querySelector('.ro-hint')).toBeNull()
+    expect(within(container).getByText('Keep')).toBeInTheDocument()
+  })
+})

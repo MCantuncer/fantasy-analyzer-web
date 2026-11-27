@@ -120,7 +120,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
     const error = scores.error ?? lineup.error
     if (error && !scores.isFetching && !lineup.isFetching)
       return (
-        <section className="card mp mp-error" aria-labelledby="mp-title">
+        <section className="mp mp-error" aria-labelledby="mp-title">
           <h2 id="mp-title">My Players</h2>
           <p className="muted">Couldn't load your lineup from ESPN. {error.message}</p>
           <button
@@ -160,7 +160,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const tray: Tray = { id: 'mp-call', open: trayOpen, toggle: () => setCallOpen(!trayOpen) }
 
   return (
-    <section className={`card mp${switching ? ' mp-switching' : ''}`} aria-labelledby="mp-title" aria-busy={switching}>
+    <section className={`mp${switching ? ' mp-switching' : ''}`} aria-labelledby="mp-title" aria-busy={switching}>
       <header className="mp-head">
         <h2 className="mp-title" id="mp-title">
           <UsersThree size={22} aria-hidden="true" />
@@ -250,15 +250,6 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
 
         <h3 className="mp-group">
           Bench <span className="muted">· {past ? "didn't count" : "doesn't count"}</span>
-          <span className="mp-group-note muted">
-            {c.benchPlaying === 0
-              ? past
-                ? 'None of them played.'
-                : `None of them play ${when}.`
-              : swap
-                ? ''
-                : `${c.benchPlaying} of them ${past ? 'played' : `play ${when}`}.`}
-          </span>
         </h3>
         <ul className="mp-rows">
           {bench.map((r) => (
@@ -851,7 +842,7 @@ function phoneName(name: string, pill: boolean): string | null {
 
 function MyPlayersLoading() {
   return (
-    <section className="card mp" aria-busy="true" aria-label="My Players loading">
+    <section className="mp" aria-busy="true" aria-label="My Players loading">
       <header className="mp-head">
         <h2 className="mp-title">
           <UsersThree size={22} aria-hidden="true" />
