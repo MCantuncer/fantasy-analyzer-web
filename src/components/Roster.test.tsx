@@ -105,7 +105,7 @@ describe('Roster quiet rows', () => {
     none.unmount()
     const { container } = render(<Roster roster={[player, out]} keep={[2]} onToggleKeep={() => {}} />)
     const heads = [...container.querySelectorAll('.ro-sub')].map((h) => h.textContent)
-    expect(heads).toEqual(['Kept never offered or dropped', 'Everyone else'])
+    expect(heads).toEqual(['Kept', 'Everyone else'])
     expect(within(container).getByRole('button', { name: 'Keep Aday Mara' })).toHaveAttribute('aria-pressed', 'true')
   })
 

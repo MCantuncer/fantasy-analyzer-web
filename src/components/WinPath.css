@@ -1,26 +1,9 @@
 /* My Team: the self-scout. A scouting report on your own team, with the board of the nine categories. */
 .wp {
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-/* The art: your team's abbreviation, huge and faint, top right, never behind a number. */
-.wp-mark {
-  position: absolute;
-  right: -8px;
-  top: -28px;
-  z-index: -1;
-  font-weight: 800;
-  font-size: 160px;
-  letter-spacing: -0.045em;
-  line-height: 1;
-  color: var(--text);
-  opacity: 0.03;
-  pointer-events: none;
-  user-select: none;
 }
 .wp-head {
   display: flex;
@@ -183,9 +166,5 @@
 @media (max-width: 760px) {
   .wp-cols {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .wp-mark {
-    font-size: 110px;
-    top: -16px;
   }
 }

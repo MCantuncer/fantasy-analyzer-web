@@ -179,7 +179,7 @@ export function Roster({ roster, keep, onToggleKeep, onShop }: Props) {
       {kept.length > 0 ? (
         <>
           <h3 className="ro-sub">
-            Kept <span>never offered or dropped</span>
+            Kept
           </h3>
           {rows(kept, true, 'Kept')}
           {rest.length > 0 && (

@@ -219,9 +219,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
           ))}
         </div>
 
-        <h3 className="mp-group">
-          Starting <span className="muted">· counts</span>
-        </h3>
+        <h3 className="mp-group">Starting</h3>
         {/* The starters and their total sit on one soft field; the bench and IR sit on the bare page. */}
         <div className="mp-field">
           <ul className="mp-rows">
@@ -248,9 +246,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
           {totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />}
         </div>
 
-        <h3 className="mp-group">
-          Bench <span className="muted">· {past ? "didn't count" : "doesn't count"}</span>
-        </h3>
+        <h3 className="mp-group">Bench</h3>
         <ul className="mp-rows">
           {bench.map((r) => (
             <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
@@ -459,7 +455,6 @@ function Row({ row, ctx, swap, tray }: { row: PlayerRow; ctx: RowCtx; swap: bool
                 </>
               ) : undefined}
             </PlayerLink>
-            {line && !counted && <span className="mp-nocount">{past ? "Didn't count" : "Doesn't count"}</span>}
             {words && <span className="mp-play mp-play-under">{words}</span>}
           </span>
         </span>
@@ -520,7 +515,6 @@ function QuietCell({ row, ctx }: { row: PlayerRow; ctx: RowCtx }) {
               <TeamLogo abbrev={abbrev} size={16} /> {abbrev} plays <span className="num">{tipOff(game.start)}</span>
             </span>
           )}
-          <em> · </em>never counts
         </span>
       </span>
     )

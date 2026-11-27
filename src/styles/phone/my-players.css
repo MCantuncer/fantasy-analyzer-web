@@ -221,10 +221,6 @@
     font-size: 10px;
     line-height: 15px;
   }
-  .mp .mp-nocount {
-    white-space: nowrap;
-    font-size: 10.5px;
-  }
 
   /* game: a two-line scorebug on the right of line 1, the status (Final, clock, tip-off) centred under the score */
   .mp .mp-row .mp-game {

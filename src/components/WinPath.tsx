@@ -98,9 +98,6 @@ export function WinPathView({ data }: { data: ManagerStyles }) {
   const need = inOrder(path.adds_should_bring.length ? path.adds_should_bring : swing.map((c) => c.cat))
   return (
     <section className="wp" aria-labelledby="wp-title">
-      <span className="wp-mark" aria-hidden="true">
-        {me.abbrev}
-      </span>
       <div className="wp-head">
         <h2 id="wp-title" className="wp-title">
           <Path size={22} aria-hidden="true" />
