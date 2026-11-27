@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { NewsSkeleton } from './Skeleton'
 import { useEffect, useState } from 'react'
-import { CaretDown, SealCheck, TrendUp } from '@phosphor-icons/react'
+import { CaretDown, Eye, Pulse, SealCheck, TrendUp } from '@phosphor-icons/react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
   Beneficiary,
@@ -31,6 +31,7 @@ import type { NewsFilter, NewsScope } from '../lib/news'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { NewsRefresh } from './NewsRefresh'
+import { HowItWorks } from './HowItWorks'
 import { useNewsRefresh } from '../lib/useNewsRefresh'
 import './News.css'
 
@@ -51,6 +52,8 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
     queryFn: () => fetchNews(leagueId, season, showHeld, creds),
     retry: false,
     staleTime: 60_000,
+    // Showing or hiding the social-only stories keeps the page up while the other list loads.
+    placeholderData: keepPreviousData,
     // While the server is checking its sources, ask again shortly; otherwise every 5 minutes.
     // A check the reader asked for is followed more closely by the refresh button itself.
     refetchInterval: (q) => (q.state.data?.refreshing ? 15_000 : 300_000),
@@ -167,18 +170,24 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
               ))
             )}
           </section>
-          <label className="row small muted news-held">
-            <input type="checkbox" checked={showHeld} onChange={(e) => setShowHeld(e.target.checked)} />
-            Show stories seen only on social sites (not published)
-          </label>
+          <button
+            type="button"
+            className="news-held-row"
+            aria-pressed={showHeld}
+            onClick={() => setShowHeld((v) => !v)}
+          >
+            <Eye className="news-held-ic" aria-hidden="true" />
+            <span className="news-held-text">Show stories seen only on social sites</span>
+            <span className="news-held-switch" aria-hidden="true" />
+          </button>
         </div>
         <div className="narrow stack news-rail">
           <Trending players={data.trending} myTeamId={myTeamId} abbrev={abbrev} />
-          <Sources sources={data.sources} updatedAt={data.updated_at ?? null} now={now} />
+          <Sources sources={data.sources} now={now} />
         </div>
       </div>
 
-      <HowItWorks />
+      <HowItWorks notes={HOW_NOTES} />
     </div>
   )
 }
@@ -523,34 +532,37 @@ function Trending({
   )
 }
 
-/** Source health, folded into one line: it matters when something looks thin, not on every visit. */
-function Sources({ sources, updatedAt, now }: { sources: NewsSourceHealth[]; updatedAt: string | null; now: Date }) {
+/**
+ * Source health, folded into one quiet line: it matters when something looks thin, not on every
+ * visit. Open, each source with its state in words. When the sources were last checked is under
+ * Refresh news, so it isn't repeated here.
+ */
+function Sources({ sources, now }: { sources: NewsSourceHealth[]; now: Date }) {
+  const [open, setOpen] = useState(false)
   const answering = sources.filter((s) => s.ok === true).length
-  const down = sources.filter((s) => s.ok === false).length
   return (
-    <details className="card news-side news-health-card">
-      <summary>
-        <span className={`news-dot ${down > 0 ? 'down' : answering > 0 ? 'ok' : 'idle'}`} aria-hidden="true" />
-        <span className="grow">
-          <span className="news-health-title">Sources</span>{' '}
-          <span className="small muted">
-            {answering} of {sources.length} answering
-            {updatedAt ? ` · checked ${ago(updatedAt, now)}` : ' · not checked yet'}
-          </span>
+    <section className="news-srcs-sec" aria-label="Sources">
+      <button
+        type="button"
+        className="news-srcs-row"
+        aria-expanded={open}
+        aria-controls="news-src-list"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <Pulse className="news-srcs-ic" aria-hidden="true" />
+        <span className="news-srcs-sum">
+          <b>Sources</b> · {answering} of {sources.length} answering
         </span>
-      </summary>
-      <ul className="news-health">
+        <CaretDown className="news-srcs-caret" aria-hidden="true" />
+      </button>
+      <ul id="news-src-list" className="news-health" hidden={!open}>
         {sources.map((s) => (
           <li key={s.source_id}>
-            <span
-              className={`news-dot ${s.ok === true ? 'ok' : s.ok === false ? 'down' : 'idle'}`}
-              aria-hidden="true"
-            />
-            <span className="grow">
+            <span className="news-health-name">
               {s.name}
-              {s.kind === 'tip' && <span className="small muted"> (tips only)</span>}
+              {s.kind === 'tip' && <span className="news-health-tip"> · tips only</span>}
             </span>
-            <span className="small muted">
+            <span className={s.ok === false ? 'news-health-state news-health-down' : 'news-health-state'}>
               {s.ok === false
                 ? `Not answering${s.last_success ? `, last ${ago(s.last_success, now)}` : ''}`
                 : s.ok
@@ -560,7 +572,7 @@ function Sources({ sources, updatedAt, now }: { sources: NewsSourceHealth[]; upd
           </li>
         ))}
       </ul>
-    </details>
+    </section>
   )
 }
 
@@ -588,28 +600,19 @@ function EmptyNews({ data }: { data: NewsPage }) {
   )
 }
 
-function HowItWorks() {
-  return (
-    <details className="footnote">
-      <summary>How a story gets published</summary>
-      <ul>
-        <li>
-          Every 15 minutes, or when you press Refresh news, the site reads ESPN's player data and several news outlets.
-          Reddit counts only as a tip.
-        </li>
-        <li>Items naming the same player and the same kind of news within two days become one story.</li>
-        <li>
-          Confirmed: ESPN's data agrees (an injury status, a team change) or two independent outlets report it.
-          Reported: one outlet. A story seen only on social sites is not published.
-        </li>
-        <li>
-          A trade reported as done is marked "Didn't happen" if the player's team hasn't changed three days later.
-        </li>
-        <li>
-          Headlines and summaries are the sources' own. When sources disagree on an injury, the story shows each
-          version.
-        </li>
-      </ul>
-    </details>
-  )
-}
+/** How a story gets published: the shipped five notes, in the shared How this works row. */
+const HOW_NOTES = [
+  <>
+    Every 15 minutes, or when you press Refresh news, the site reads ESPN's player data and several news outlets. Reddit
+    counts only as a tip.
+  </>,
+  <>Items naming the same player and the same kind of news within two days become one story.</>,
+  <>
+    <b>Confirmed</b>: ESPN's data agrees (an injury status, a team change) or two independent outlets report it.{' '}
+    <b>Reported</b>: one outlet. A story seen only on social sites is not published.
+  </>,
+  <>A trade reported as done is marked "Didn't happen" if the player's team hasn't changed three days later.</>,
+  <>
+    Headlines and summaries are the sources' own. When sources disagree on an injury, the story shows each version.
+  </>,
+]
