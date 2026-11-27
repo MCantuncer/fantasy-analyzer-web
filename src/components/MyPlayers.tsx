@@ -634,7 +634,7 @@ function WhyBox({ play, now }: { play: PlayChance; now: number }) {
   return (
     <>
       <p>
-        {play.basis} The number gets sharper closer to tip-off; it is not a promise.
+        {play.basis}
       </p>
       <p>
         {play.news ? (

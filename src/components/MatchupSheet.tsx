@@ -1,10 +1,12 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { Fragment, type CSSProperties, type ReactNode } from 'react'
+import { Target } from '@phosphor-icons/react'
 import type { CategoryScore } from '../api/client'
 import { recText, shortTeam, todayLine, type Record3, type TodayLine } from '../lib/matchupSheet'
 import { tipOff } from '../lib/scores'
 import type { TodayData } from '../lib/todayData'
 import { CatStripPair } from './CatStrip'
 import { TodayLoading, TodayMatchup } from './TodayMatchup'
+import { MaybeHandshake } from './MaybeHandshake'
 import { YourCrest } from './YourCrest'
 import './MatchupSheet.css'
 
@@ -26,6 +28,36 @@ export function TodayWeekSwitch({ view, onPick }: { view: 'today' | 'week'; onPi
           {v === 'today' ? 'Today' : 'Week'}
         </button>
       ))}
+    </div>
+  )
+}
+
+const CATS = /(FG%|FT%|3PM|REB|AST|STL|BLK|TO|PTS)/
+
+/** The shipped flip hint with its categories in ink: "Flip **FT%**, **AST** or **STL** to win the week". */
+function hintWords(hint: string) {
+  return hint.split(CATS).map((part, i) => (i % 2 === 1 ? <b key={i}>{part}</b> : <Fragment key={i}>{part}</Fragment>))
+}
+
+/**
+ * The Week view's first line: what you can still flip (amber target, the shipped flipHint) and a soft
+ * Check a Trade With Them on the right. Renders nothing when there's neither.
+ */
+export function FlipLine({ hint, onCheckTrade }: { hint: string | null; onCheckTrade?: () => void }) {
+  if (!hint && !onCheckTrade) return null
+  return (
+    <div className="lms-flip">
+      {hint && (
+        <p className="lms-hint">
+          <Target size={18} aria-hidden="true" />
+          <span>{hintWords(hint)}</span>
+        </p>
+      )}
+      {onCheckTrade && (
+        <button type="button" className="lms-check" onClick={onCheckTrade}>
+          <MaybeHandshake size={20} /> Check a Trade With Them
+        </button>
+      )}
     </div>
   )
 }
@@ -157,7 +189,7 @@ export function MatchupSheet({
   } as CSSProperties
 
   return (
-    <section className={`lms${mine ? ' mine' : ''}`} aria-labelledby="lms-title" style={style}>
+    <section className={`lms-sheet${mine ? ' mine' : ''}`} aria-labelledby="lms-title" style={style}>
       <div className="lms-head">
         <h2 id="lms-title" className="lms-title">
           {title}
@@ -166,7 +198,7 @@ export function MatchupSheet({
         {canToday && <TodayWeekSwitch view={view} onPick={onView} />}
       </div>
 
-      <div className="lsb" role="img" aria-label={`${mine ? 'You' : a.name} against ${b.name}. ${said}`}>
+      <div className="lsb-board" role="img" aria-label={`${mine ? 'You' : a.name} against ${b.name}. ${said}`}>
         <Side side={a} mine={mine} sub={sub(0, a)} />
         <div className="lsb-mid">
           {isToday ? <Score rec={dayRec} quiet={!line?.started} /> : <Score rec={weekRec} />}

@@ -9,7 +9,7 @@ describe('ScoresHow', () => {
     const { container } = render(<ScoresHow />)
     const row = screen.getByRole('button', { name: /How this works/ })
     expect(row).toHaveAttribute('aria-expanded', 'false')
-    const notes = container.querySelector('.sc-how-notes')!
+    const notes = container.querySelector('.hiw-body')!
     expect(row).toHaveAttribute('aria-controls', notes.id)
     expect(notes).not.toBeVisible()
     fireEvent.click(row)
