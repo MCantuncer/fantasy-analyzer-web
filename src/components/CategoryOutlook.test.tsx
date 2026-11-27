@@ -30,6 +30,13 @@ describe('CategoryOutlook', () => {
     expect(row.querySelector<HTMLElement>('.co-bar i')!.style.getPropertyValue('--w')).toBe('89%')
   })
 
+  it('labels turnovers TO↓ and reads them out as lower wins, with the raw weekly figure', () => {
+    const { container } = render(<CategoryOutlook categories={[cat('TO', 0.7, 'swing', 1, 68)]} />)
+    const row = container.querySelector('.co-row')!
+    expect(row.querySelector('.co-cat [aria-hidden="true"]')!.textContent).toBe('TO↓')
+    expect(row.textContent).toBe('League rank 1st, TO↓turnovers, lower wins, wins 70%, averages 68')
+  })
+
   it('says it with the layout: no "?" button and no help sentence', () => {
     const { container } = render(<CategoryOutlook categories={cats} />)
     expect(within(container).queryByRole('button')).toBeNull()

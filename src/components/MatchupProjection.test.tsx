@@ -38,7 +38,7 @@ const me = { name: 'Kucukesat Aspavas', colour: undefined }
 const opp = { name: 'Kavaklidere Boytoys', colour: undefined }
 
 describe('projected final', () => {
-  it('names the winner of the week and draws the winning crest per category, in the site order', () => {
+  it('names the winner of the week and draws who takes each category as a bar, in the site order', () => {
     render(<ProjectionView data={data()} me={me} them={opp} />)
     expect(screen.getByRole('heading', { name: 'Projected final' })).toBeInTheDocument()
     expect(screen.getByText('You win')).toBeInTheDocument()
@@ -60,8 +60,11 @@ describe('projected final', () => {
       'FT%: you .500, Kavaklidere Boytoys .450, Kavaklidere Boytoys take it',
     )
     expect(items[7].getAttribute('aria-label')).toBe('TO: you 100, Kavaklidere Boytoys 90, Kavaklidere Boytoys take it')
-    // A winner crest in every column, the winner's figure in ink.
-    expect(strip.querySelectorAll('.cs-kc .crest')).toHaveLength(9)
+    // One bar in every column (up and blue for you, down and orange for them), no crests; the winner's figure in ink.
+    expect(strip.querySelectorAll('.cs-kc .crest')).toHaveLength(0)
+    expect(strip.querySelectorAll('.cs-km-me')).toHaveLength(6)
+    expect(strip.querySelectorAll('.cs-km-them')).toHaveLength(3)
+    expect(items[1].querySelector('.cs-km')).toHaveClass('cs-km-them')
     expect(items[0].querySelector('.cs-w')!.textContent).toBe('.500')
     // No close mark here: that one belongs to the strip above.
     expect(strip.querySelector('.cs-close, .cs-ic')).toBeNull()

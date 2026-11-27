@@ -72,11 +72,11 @@
 }
 
 .co-won .co-g b {
-  color: var(--good);
+  color: var(--help);
 }
 
 .co-lost .co-g b {
-  color: var(--bad);
+  color: var(--hurt);
 }
 
 .co-hint {
@@ -124,11 +124,11 @@
 }
 
 .co-won .co-bar i {
-  --co-tone: var(--good);
+  --co-tone: var(--help);
 }
 
 .co-lost .co-bar i {
-  --co-tone: var(--bad);
+  --co-tone: var(--hurt);
 }
 
 .co-bar b {
