@@ -36,7 +36,6 @@ export function NextGameLine({ line }: { line: Line }) {
           </tr>
         </tbody>
       </table>
-      <p className="ng-foot">A usual night, not a promise</p>
     </div>
   )
 }

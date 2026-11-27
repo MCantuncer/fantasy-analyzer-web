@@ -15,14 +15,6 @@
   margin: 0;
 }
 
-/* The one honesty cue, small, under the table. */
-.ng-foot {
-  margin: 10px 0 0;
-  font-size: 11px;
-  line-height: 14px;
-  color: var(--muted);
-}
-
 .ng-well {
   padding: 12px 14px 10px;
   border-radius: 12px;
@@ -221,10 +213,6 @@ button.ng-who:focus-visible {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
-}
-
-.ng-single .ng-foot {
-  margin-top: 8px;
 }
 
 /* The card is narrower than an FA row on phones: a little less side padding and slimmer

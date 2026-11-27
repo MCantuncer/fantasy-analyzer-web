@@ -547,9 +547,20 @@ button.pc-chip:focus-visible {
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px dashed var(--muted);
-  opacity: 0.7;
+  border-top: 1px dashed color-mix(in srgb, var(--muted) 70%, transparent);
   pointer-events: none;
+}
+
+/* The key beside the Minutes head: a short dashed swatch, then the season average. */
+.pc-avg-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pc-avg-key i {
+  width: 16px;
+  border-top: 1px dashed var(--muted);
 }
 
 .pc-bar-labels {
@@ -1162,11 +1173,6 @@ table.pc-table {
   font: 600 11px var(--font-num);
   font-stretch: var(--num-stretch);
   color: var(--muted);
-}
-
-.pc-swipe {
-  display: none;
-  margin: 0;
 }
 
 /* Moves: a timeline, newest first. */
