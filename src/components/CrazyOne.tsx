@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { fetchCrazyOne } from '../api/client'
+import { useMoonLook } from '../lib/useMoonLook'
 import type { CrazyBoom, CrazyBoomRecord, CrazyGame, CrazyOne as CrazyData, CrazyRecord } from '../api/client'
 import {
   BOOM_BELIEFS,
@@ -83,8 +84,8 @@ import { ProInside } from './ProInside'
 import './CrazyDoor.css'
 import './CrazyOne.css'
 
-/** Crazy One's World (?view=crazy): a persona that hunts booms, the nights far beyond what we expected,
- *  on beliefs that paid on average but not every season. Its own room, its own ink, always "Crazy One's
+/** Crazy 1's World (?view=crazy): a persona that hunts booms, the nights far beyond what we expected,
+ *  on beliefs that paid on average but not every season. Its own room, its own ink, always "Crazy 1's
  *  call", never Our call. Every part of it can be touched: the sky, the calls, the beliefs, the record. */
 export function CrazyOne({ onBack }: { onBack: () => void }) {
   const allowed = useFeature('estimates')
@@ -118,7 +119,7 @@ export function CrazyOne({ onBack }: { onBack: () => void }) {
         {q.isPending && <Loading />}
         {q.error && !ended && (
           <section className="cz-card cz-error" role="alert">
-            <p>{q.error instanceof Error ? q.error.message : 'Couldn’t reach Crazy One’s World.'}</p>
+            <p>{q.error instanceof Error ? q.error.message : 'Couldn’t reach Crazy 1’s World.'}</p>
           </section>
         )}
         {data && <World data={data} onDay={setDay} />}
@@ -189,8 +190,9 @@ function World({ data, onDay }: { data: CrazyData; onDay: (d: number) => void })
         <div className="cz-who cz-rise">
           <Face />
           <div className="cz-who-t">
+            <p className="cz-role">Heat Check</p>
             <h1 className="cz-name" id="cz-name">
-              Crazy <em>One</em>
+              Crazy <em>1</em>
             </h1>
             <p className="cz-voice">{boomVoice(booms)}</p>
           </div>
@@ -312,13 +314,17 @@ function nameOf(key: string): string {
 
 /** Its portrait: a disc with an off-centre moon and a slow dotted orbit. */
 function Face() {
+  // the same moon as the door, bigger: it orbits inside the disc and turns to look at a hovering pointer
+  const { moon, onPointerEnter, start } = useMoonLook(66)
   return (
-    <svg className="cz-face" viewBox="0 0 132 132" aria-hidden="true">
+    <svg className="cz-face" viewBox="0 0 132 132" aria-hidden="true" onPointerEnter={onPointerEnter}>
       <circle className="o1" cx="66" cy="66" r="62" />
       <circle className="o2" cx="66" cy="66" r="54" />
       <circle className="disc" cx="66" cy="66" r="42" />
-      <circle className="moon" cx="82" cy="52" r="16" />
-      <circle className="eye" cx="88" cy="47" r="4" />
+      <g ref={moon} transform={start}>
+        <circle className="moon" cx="87" cy="66" r="16" />
+        <circle className="eye" cx="95" cy="66" r="4" />
+      </g>
     </svg>
   )
 }
@@ -366,7 +372,7 @@ function Game({ g, rank, tag, look = '' }: { g: CrazyGame; rank?: number; tag?: 
   const cz = trackAt(g.crazy.home_chance)
   const label =
     `${g.away} at ${g.home}. Our call ${g.home} ${pct(g.ours.home_chance)}, ` +
-    `Crazy One’s call ${g.home} ${pct(g.crazy.home_chance)}` +
+    `Crazy 1’s call ${g.home} ${pct(g.crazy.home_chance)}` +
     (g.book_home_chance != null ? `, the book ${g.home} ${pct(g.book_home_chance)}` : '')
   return (
     <li className={`cz-game${quiet ? ' is-quiet' : ''}${look}`}>
@@ -424,7 +430,7 @@ function Game({ g, rank, tag, look = '' }: { g: CrazyGame; rank?: number; tag?: 
             <b>{leanWords(g.ours, g)}</b>
           </span>
           <span className="is-cz">
-            <span className="lab">Crazy One’s call</span>
+            <span className="lab">Crazy 1’s call</span>
             <b>{leanWords(g.crazy, g)}</b>
           </span>
         </div>
@@ -477,7 +483,7 @@ function Settled({ g }: { g: CrazyGame }) {
     )
   return (
     <p className="cz-settled">
-      {one('Crazy One', g.crazy_hit)}
+      {one('Crazy 1', g.crazy_hit)}
       {one('Our call', g.ours_hit)}
     </p>
   )
@@ -486,7 +492,7 @@ function Settled({ g }: { g: CrazyGame }) {
 function Loading() {
   return (
     <div className="cz-games" aria-busy="true">
-      <span className="sr-only">Loading Crazy One’s calls</span>
+      <span className="sr-only">Loading Crazy 1’s calls</span>
       {Array.from({ length: 3 }, (_, i) => (
         <div className="cz-game cz-sk" key={i} />
       ))}
@@ -495,7 +501,7 @@ function Loading() {
 }
 
 /** Tonight as a sky: games on the horizon in tip order, each boom call a star above its game, as high as
- *  Crazy One's chance; the hollow dot under it is Our chance, the stem the gap. Beliefs draw their
+ *  Crazy 1's chance; the hollow dot under it is Our chance, the stem the gap. Beliefs draw their
  *  constellation through the calls they pushed. */
 function Sky({
   data,
@@ -667,7 +673,7 @@ function touchCount(key: string, booms: CrazyBoom[], games: CrazyGame[]): number
   return t.calls.length + t.games.length
 }
 
-/** Two fills on one bar: Our chance and Crazy One's, out of the same ceiling. */
+/** Two fills on one bar: Our chance and Crazy 1's, out of the same ceiling. */
 function Fills({ ours, crazy, grow = false }: { ours: number; crazy: number; grow?: boolean }) {
   const scale = Math.max(0.3, Math.ceil(Math.max(ours, crazy) * 10) / 10)
   return (
@@ -677,7 +683,7 @@ function Fills({ ours, crazy, grow = false }: { ours: number; crazy: number; gro
         <span className="fill ours" style={{ width: `${(ours / scale) * 100}%` }} />
       </span>
       <span className="v num">{pct(ours)}</span>
-      <span className="lab is-cz">Crazy One</span>
+      <span className="lab is-cz">Crazy 1</span>
       <span className="bar" aria-hidden="true">
         <span className="fill cz" style={{ width: `${(crazy / scale) * 100}%` }} />
       </span>
@@ -696,7 +702,7 @@ function Result({ b }: { b: CrazyBoom }) {
   )
 }
 
-/** The picked call, opened: his ceiling with both chances, and why Crazy One believes it. */
+/** The picked call, opened: his ceiling with both chances, and why Crazy 1 believes it. */
 function BoomCard({ call, booms, onPick }: { call: CrazyBoom; booms: CrazyBoom[]; onPick: (id: string) => void }) {
   const mine = booms.filter((b) => b.player === call.player && b.game_id === call.game_id)
   const gap = gapOf(call)
@@ -832,7 +838,7 @@ function BoomRow({ b, ctx }: { b: CrazyBoom; ctx: Ctx }) {
   )
 }
 
-/** Games a belief moved: an upset, a lean or a low total, with Our call and Crazy One's on one line. */
+/** Games a belief moved: an upset, a lean or a low total, with Our call and Crazy 1's on one line. */
 function Breaks({ games, ctx }: { games: CrazyGame[]; ctx: Ctx }) {
   const moved = [...surprises(games)].sort((a, b) => Math.abs(b.swing) - Math.abs(a.swing))
   const quiet = calm(games)

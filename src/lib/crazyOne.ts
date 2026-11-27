@@ -1,7 +1,7 @@
 import type { CrazyGame, CrazyRecord } from '../api/client'
 
-/* Crazy One: a persona that believes what fans believe and the data backs on average, but not in every
-   season (api app/tunings.py STORY). Its numbers live only in its own world, always named "Crazy One's
+/* Crazy 1: a persona that believes what fans believe and the data backs on average, but not in every
+   season (api app/tunings.py STORY). Its numbers live only in its own world, always named "Crazy 1's
    call", never Our call. Everything here turns POST /api/crazy-one into words and marks. */
 
 export type BeliefKey = 'rivalry' | 'bounce' | 'slump' | 'tank' | 'one_man'
@@ -78,7 +78,7 @@ export function totals(g: CrazyGame): { ours: number; crazy: number } | null {
   return { ours: g.ours.away + g.ours.home, crazy: g.crazy.away + g.crazy.home }
 }
 
-/** A fan belief Crazy One tested and refuses: what fans say, and what the data said. */
+/** A fan belief Crazy 1 tested and refuses: what fans say, and what the data said. */
 export interface Myth {
   name: string
   /** What a fan says, in a fan's words. */
@@ -194,12 +194,12 @@ export function leanOf(call: { away: number; home: number }, g: Pick<CrazyGame, 
   return margin >= 0 ? { team: g.home, by: margin } : { team: g.away, by: -margin }
 }
 
-/** The team Crazy One moves toward and how far, in wins per 100 (from Our call's chance). */
+/** The team Crazy 1 moves toward and how far, in wins per 100 (from Our call's chance). */
 export function swingOf(g: CrazyGame): { team: string; per100: number } {
   return g.swing >= 0 ? { team: g.home, per100: g.swing * 100 } : { team: g.away, per100: -g.swing * 100 }
 }
 
-/** A game where Crazy One and Our call pick different winners. */
+/** A game where Crazy 1 and Our call pick different winners. */
 export function flips(g: CrazyGame): boolean {
   return g.crazy.home_chance >= 0.5 !== g.ours.home_chance >= 0.5
 }

@@ -93,7 +93,7 @@ const ALL_TABS: readonly { id: string; label: string }[] = [...TABS, ...LEAGUE_T
 // Read once, before the first render writes the URL (StrictMode runs state initialisers twice).
 const linkedReset = readResetToken()
 
-/** The pages that stand in for My leagues: Our Estimates and Crazy One's World (anyone signed in) and Site health (admins). */
+/** The pages that stand in for My leagues: Our Estimates and Crazy 1's World (anyone signed in) and Site health (admins). */
 type AdminView = '' | 'health' | 'estimates' | 'crazy'
 const ADMIN_VIEWS: AdminView[] = ['health', 'estimates', 'crazy']
 

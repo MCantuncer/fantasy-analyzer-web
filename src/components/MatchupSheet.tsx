@@ -41,7 +41,7 @@ function hintWords(hint: string) {
 }
 
 /**
- * The Week view's first line: what you can still flip (amber target, the shipped flipHint) and a soft
+ * The Week view's first line: what you can still flip (ink Target, the shipped flipHint) and a soft
  * Check a Trade With Them on the right. Renders nothing when there's neither.
  */
 export function FlipLine({ hint, onCheckTrade }: { hint: string | null; onCheckTrade?: () => void }) {
