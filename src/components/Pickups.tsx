@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import {
+  ArrowSquareOut,
   ArrowsLeftRight,
+  CalendarBlank,
+  CalendarX,
   CaretDown,
   CaretUp,
-  ClockCountdown,
-  Coins,
   HourglassMedium,
+  Info,
   UserPlus,
 } from '@phosphor-icons/react'
 import type { AnalysisReport, PickupIdea } from '../api/client'
 import { ImpactBars } from './ImpactBars'
-import { Sign } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
-import { ordinal, pct, ptsDiff } from '../lib/format'
+import { ordinal, pct, ptsDiff, signedInt } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import { PlayerChips, PlayerLink } from './PlayerCard'
@@ -104,45 +105,56 @@ function OppLogo({ abbrev }: { abbrev: string }) {
   )
 }
 
-/** Left of the slip: his game today. */
+/** Left of the slip: his game today, one line in ink ("Played today at ATL · Final"). */
 function DayHalf({ c }: { c: TodayCopy | null }) {
   if (!c) {
     return (
       <span className="fa-day" data-tone="loading">
-        <span className="fa-l1">Today</span>
-        <span className="fa-l2">Checking games…</span>
+        <CalendarBlank className="fa-day-icon" size={16} aria-hidden="true" />
+        <span className="fa-day-text">Checking today's games…</span>
       </span>
     )
   }
+  const Icon = c.lead.startsWith('No game') || c.tone === 'bad' ? CalendarX : CalendarBlank
   return (
     <span className="fa-day" data-tone={c.tone}>
-      <span className="fa-l1">
-        {c.tone === 'live' && <i className="fa-dot" />}
+      {c.tone === 'live' ? <i className="fa-dot" /> : <Icon className="fa-day-icon" size={16} aria-hidden="true" />}
+      <span className="fa-day-text">
         {c.lead}
-      </span>
-      <span className="fa-l2">
-        {c.opp && (
-          <>
-            {c.opp.word} <OppLogo abbrev={c.opp.abbrev} />
-            <span className="fa-opp">{c.opp.abbrev}</span>
-          </>
-        )}
-        <span className="fa-detail num">{c.detail}</span>
+        <span className="fa-day-rest">
+          {c.opp && (
+            <>
+              {' '}
+              {c.opp.word} <OppLogo abbrev={c.opp.abbrev} />
+              <span className="fa-opp">{c.opp.abbrev}</span>
+            </>
+          )}
+          {c.detail && <span className="fa-detail num"> · {c.detail}</span>}
+        </span>
       </span>
     </span>
   )
 }
 
-/** Right of the slip: when to make the move, and its one reason. */
-function MoveHalf({ m }: { m: MoveCopy }) {
-  const Glyph = m.kind === 'wait' ? HourglassMedium : m.kind === 'claim' ? ClockCountdown : null
+/** Right of the slip: the move as a bare link to ESPN ("Claim now ↗"), its one reason under it. */
+function MoveHalf({ m, href, name }: { m: MoveCopy; href: string | null; name: string }) {
   return (
     <span className="fa-move" data-move={m.kind}>
-      <span className="fa-l1">
-        {Glyph && <Glyph className="fa-glyph" size={14} weight="bold" />}
-        {m.verb}
-      </span>
-      {m.reason && <span className="fa-l2">{m.reason}</span>}
+      {href ? (
+        <a
+          className="fa-verb"
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`${m.verb} ${name} on ESPN${m.reason ? `, ${m.reason}` : ''}`}
+        >
+          {m.verb}
+          <ArrowSquareOut size={14} aria-hidden="true" />
+        </a>
+      ) : (
+        <span className="fa-verb">{m.verb}</span>
+      )}
+      {m.reason && <span className="fa-why">{m.reason}</span>}
     </span>
   )
 }
@@ -162,52 +174,64 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
       ? first.drop
       : null
   const sameStart = first && shown.every((p) => p.playoff_pct_before === first.playoff_pct_before)
+  // The verb on each row opens ESPN's add page for this league (when we know the league).
+  const espn = today ? `https://fantasy.espn.com/basketball/players/add?leagueId=${today.leagueId}` : null
   // Without the feed the timing still has today's date: its first day.
   const gameDate = feed?.date ?? first?.timing?.days[0]?.date ?? ''
 
   return (
-    <section className="card flush pickups-panel" aria-labelledby="pickups-title">
-      <div className="card-head">
-        <h2 id="pickups-title" className="fa-title">
-          <UserPlus size={20} aria-hidden="true" />
-          FA Targets
-        </h2>
-        <span className="fa-right">
+    <section className="fa-panel pickups-panel" aria-labelledby="pickups-title">
+      <h2 id="pickups-title" className="fa-title">
+        <UserPlus size={20} aria-hidden="true" />
+        FA Targets
+      </h2>
+      {(faab != null || waiverPriority != null || adds != null) && (
+        <div className="fa-stats">
           {faab != null && (
-            <span className="fa-faab">
-              <Coins size={16} aria-hidden="true" />
-              <b className="num">${faab}</b> FAAB left
+            <span className="fa-stat fa-faab">
+              <span className="fa-stat-v num">${faab}</span>
+              <span className="fa-stat-k">FAAB left</span>
             </span>
           )}
           {faab == null && waiverPriority != null && (
-            <span className="small muted">
-              Waiver priority {ordinal(waiverPriority)}
-              {teams ? ` of ${teams}` : ''}
+            <span className="fa-stat fa-priority">
+              <span className="fa-stat-v num">
+                {ordinal(waiverPriority)}
+                {teams ? <small> of {teams}</small> : null}
+              </span>
+              <span className="fa-stat-k">Waiver priority</span>
             </span>
           )}
           {adds != null && (
-            <span className="fa-adds">
-              <b className="num">{adds}</b> of {week?.adds_allowed} adds left
+            <span className="fa-stat fa-adds">
+              <span className="fa-stat-v num">
+                {adds}
+                <small> of {week?.adds_allowed}</small>
+              </span>
+              <span className="fa-stat-k">adds left this week</span>
             </span>
           )}
-        </span>
-      </div>
+        </div>
+      )}
       {pickups.length === 0 ? (
-        <p className="empty">No free agent improves your team right now.</p>
+        <p className="fa-empty">
+          <Info size={16} aria-hidden="true" />
+          No free agent improves your team right now.
+        </p>
       ) : (
         <>
           {sharedDrop && (
             <p className="pk-shared">
               <PlayerLink player={sharedDrop} decorative>
-                <PlayerHead player={sharedDrop} size={28} team={sharedDrop.pro_team} />
+                <PlayerHead player={sharedDrop} size={24} team={sharedDrop.pro_team} />
               </PlayerLink>
               <span>
                 Each one replaces{' '}
                 <strong>
                   <PlayerLink player={sharedDrop} />
                 </strong>
+                {sameStart && <span className="pk-from num"> · from {pct(first.playoff_pct_before)}</span>}
               </span>
-              {sameStart && <span className="pk-from num">from {pct(first.playoff_pct_before)}</span>}
             </p>
           )}
           {!showNext && (
@@ -215,7 +239,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
               <ProLock words="Next-game lines for these swaps" plural />
             </div>
           )}
-          <ol className="move-list" onClickCapture={keepRow}>
+          <ol className="fa-list" data-shared={sharedDrop ? '' : undefined} onClickCapture={keepRow}>
             {shown.map((p, i) => {
               const isOpen = open === p.add.id
               const addGame = feed ? todayGame(p.add, feed) : null
@@ -230,56 +254,69 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
               const waiting = waits(p.timing, gameDate)
               const cats = topCats(p.category_changes)
               const run = p.add.hot_run ?? null
+              const d = gain(p)
               return (
-                <li key={p.add.id} id={`pickup-${i}`} className={isOpen ? 'move open' : 'move'}>
-                  <button
-                    type="button"
-                    className="move-row pickup-row fa-row"
-                    aria-expanded={isOpen}
-                    aria-controls={`pickup-${i}-detail`}
-                    onClick={() => setOpen(isOpen ? null : p.add.id)}
-                  >
-                    <PlayerHead player={p.add} size={44} team={p.add.pro_team} />
-                    <span className="fa-text">
-                      <span className="fa-name">
-                        <span className="sr-only">Add </span>
+                <li key={p.add.id} id={`pickup-${i}`} className={isOpen ? 'fa-item open' : 'fa-item'}>
+                  {/* The row is a box, not a button, so the name opens the player card and the verb opens
+                      ESPN. The odds are the Details toggle, stretched over the rest of the row (Pickups.css). */}
+                  <div className="move-row fa-row">
+                    <span className="fa-rk num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span className="fa-face">
+                      <PlayerLink player={p.add} decorative>
+                        <PlayerHead player={p.add} size={44} team={p.add.pro_team} />
+                      </PlayerLink>
+                    </span>
+                    <span className="fa-name">
+                      <span className="sr-only">Add </span>
+                      <PlayerLink player={p.add}>
                         <NameWithSignals player={p.add} />
+                      </PlayerLink>
+                    </span>
+                    <span className="fa-sub">
+                      <span className="fa-meta">
+                        {[p.add.pro_team, p.add.positions.join('/')].filter(Boolean).join(' · ')}
                       </span>
-                      <span className="fa-sub">
-                        <span className="fa-meta">
-                          {[p.add.pro_team, p.add.positions.join('/')].filter(Boolean).join(' · ')}
+                      {p.stream && <span className="fa-tag fa-stream">This week</span>}
+                      {cats.map((c) => (
+                        <span key={c} className="fa-tag">
+                          {c}
                         </span>
-                        {p.stream && <span className="fa-tag fa-stream">This week</span>}
-                        {cats.map((c) => (
-                          <span key={c} className="fa-tag">
-                            {c}
-                          </span>
-                        ))}
-                      </span>
+                      ))}
                       {run && <HotLine run={run} />}
                     </span>
-                    <span className="fa-pts">
-                      <span className="sr-only">Playoff odds {pct(p.playoff_pct_before)} to </span>
-                      {move.ifMade && <span className="sr-only">{move.ifMade}, </span>}
-                      <span className="fa-pts-n num good">
-                        <Sign up={gain(p) >= 0} />
-                        {Math.abs(gain(p))}
+                    <button
+                      type="button"
+                      className="fa-odds"
+                      aria-expanded={isOpen}
+                      aria-controls={`pickup-${i}-detail`}
+                      onClick={() => setOpen(isOpen ? null : p.add.id)}
+                    >
+                      <span className="sr-only">
+                        Details. Playoff odds {pct(p.playoff_pct_before)} to {pct(p.playoff_pct_after)}
+                        {move.ifMade ? `, ${move.ifMade}` : ''}
                       </span>
-                      <span className="fa-pts-u">
-                        odds pts<span className="fa-to-comma">,</span>{' '}
-                        <span className="fa-to">to {pct(p.playoff_pct_after)}</span>
+                      <span className="fa-after num" aria-hidden="true">
+                        {pct(p.playoff_pct_after)}
                       </span>
-                      {isOpen && move.ifMade && <span className="fa-if">{move.ifMade}</span>}
-                    </span>
-                    <span className="fa-slip" data-solo={(!day && !pending) || undefined} aria-hidden="true">
-                      {(day || pending) && <DayHalf c={day} />}
-                      <MoveHalf m={move} />
-                    </span>
+                      <span className={`fa-delta num ${d >= 0 ? 'good' : 'bad'}`} aria-hidden="true">
+                        {d !== 0 && <span className="fa-ar">{d > 0 ? '▲' : '▼'}</span>}
+                        {signedInt(d)} pts
+                      </span>
+                      {isOpen && move.ifMade && (
+                        <span className="fa-if" aria-hidden="true">
+                          {move.ifMade}
+                        </span>
+                      )}
+                    </button>
+                    {(day || pending) && <DayHalf c={day} />}
+                    <MoveHalf m={move} href={espn} name={p.add.name} />
                     <span className="sr-only">{day ? ticketSaid(day, move) : `${move.said}.`}</span>
                     {run && <span className="sr-only"> {rowSaid(run)}</span>}
-                  </button>
+                  </div>
                   {isOpen && (
-                    <div className="move-detail" id={`pickup-${i}-detail`}>
+                    <div className="move-detail fa-detail-box" id={`pickup-${i}-detail`}>
                       <div>
                         {waiting && p.timing && move.story && (
                           <div className="fa-story">

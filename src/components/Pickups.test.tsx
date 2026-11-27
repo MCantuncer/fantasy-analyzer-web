@@ -30,7 +30,8 @@ describe('Pickups waiver priority', () => {
   it('shows your place in the waiver order in leagues without FAAB', () => {
     const { container } = render(<Pickups pickups={[pickup]} faab={null} waiverPriority={2} teams={12} />)
     const view = within(container)
-    expect(view.getByText('Waiver priority 2nd of 12')).toBeInTheDocument()
+    expect(container.querySelector('.fa-priority .fa-stat-v')?.textContent).toBe('2nd of 12')
+    expect(container.querySelector('.fa-priority .fa-stat-k')?.textContent).toBe('Waiver priority')
     fireEvent.click(view.getByRole('button', { expanded: false }))
     expect(view.getByText(/It uses your waiver priority \(2nd\)/)).toBeInTheDocument()
   })
@@ -38,7 +39,8 @@ describe('Pickups waiver priority', () => {
   it('shows FAAB instead when the league bids', () => {
     const { container } = render(<Pickups pickups={[pickup]} faab={98} waiverPriority={null} teams={10} />)
     const view = within(container)
-    expect(container.querySelector('.fa-faab')?.textContent).toBe('$98 FAAB left')
+    expect(container.querySelector('.fa-faab .fa-stat-v')?.textContent).toBe('$98')
+    expect(container.querySelector('.fa-faab .fa-stat-k')?.textContent).toBe('FAAB left')
     expect(view.queryByText(/Waiver priority/)).toBeNull()
   })
 })
@@ -50,7 +52,7 @@ describe('Pickups shared drop', () => {
     const view = within(container)
     expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
     expect(view.getAllByText('Aaron Wiggins')).toHaveLength(1)
-    expect(view.getByText('from 14%')).toBeInTheDocument()
+    expect(container.querySelector('.pk-from')?.textContent).toBe(' · from 14%')
   })
 
   it('opens the shared drop and the names in an opened row on the card', () => {
@@ -122,7 +124,8 @@ describe('Pickups timing', () => {
 
   it('shows adds left this week in the header', () => {
     const { container } = render(<Pickups pickups={[pickup]} faab={50} week={week} />)
-    expect(container.querySelector('.fa-adds')?.textContent).toBe('3 of 5 adds left')
+    expect(container.querySelector('.fa-adds .fa-stat-v')?.textContent).toBe('3 of 5')
+    expect(container.querySelector('.fa-adds .fa-stat-k')?.textContent).toBe('adds left this week')
     expect(container.querySelector('.fa-move')?.textContent).toBe('Claim nowfor Wiggins')
   })
 })
@@ -136,18 +139,18 @@ describe('Pickups fold', () => {
   it('opens on the best five and shows the rest on request', () => {
     const { container } = render(<Pickups pickups={many} faab={50} />)
     const view = within(container)
-    expect(container.querySelectorAll('.move')).toHaveLength(5)
+    expect(container.querySelectorAll('.fa-item')).toHaveLength(5)
     expect(view.queryByText('Free Agent 6')).toBeNull()
     fireEvent.click(view.getByRole('button', { name: 'Show all 7' }))
-    expect(container.querySelectorAll('.move')).toHaveLength(7)
+    expect(container.querySelectorAll('.fa-item')).toHaveLength(7)
     expect(container.textContent).toContain('Free Agent 7')
     fireEvent.click(view.getByRole('button', { name: 'Show top 5' }))
-    expect(container.querySelectorAll('.move')).toHaveLength(5)
+    expect(container.querySelectorAll('.fa-item')).toHaveLength(5)
   })
 
   it('has no fold when five or fewer ideas fit as they are', () => {
     const { container } = render(<Pickups pickups={many.slice(0, 5)} faab={50} />)
-    expect(container.querySelectorAll('.move')).toHaveLength(5)
+    expect(container.querySelectorAll('.fa-item')).toHaveLength(5)
     expect(within(container).queryByRole('button', { name: /Show all/ })).toBeNull()
   })
 
@@ -208,7 +211,7 @@ describe('Pickups today', () => {
       <Pickups pickups={[lakers]} faab={50} today={{ leagueId: 1, season: 2027, teamId: 3, creds: null }} />,
     )
     expect(await findByText('vs DEN', { exact: false })).toBeInTheDocument()
-    expect(container.querySelector('.fa-day')?.textContent).toMatch(/^Plays (tonight|today)vs DEN/)
+    expect(container.querySelector('.fa-day')?.textContent).toMatch(/^Plays (tonight|today) vs DEN · /)
     expect(vi.mocked(fetchScores)).toHaveBeenCalledWith(1, 2027, 27, 3, null)
   })
 })
@@ -250,5 +253,46 @@ describe('Pickups hot run', () => {
     expect(story.textContent).toContain('About a fifth of it should last')
     expect(story.textContent).toContain('His odds number already counts this.')
     expect([...story.querySelectorAll('.hr-label')].map((e) => e.textContent)).toEqual(['Shooting', 'Per 10 minutes'])
+  })
+})
+
+describe('Pickups rows (Quiet Lead)', () => {
+  it('numbers the rows and leads with the after-odds over the ▲ delta', () => {
+    const other = { ...pickup, add: ref(3, 'Neemias Queta'), playoff_pct_after: 0.18 } as PickupIdea
+    const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
+    expect([...container.querySelectorAll('.fa-rk')].map((e) => e.textContent)).toEqual(['1', '2'])
+    expect(container.querySelector('.fa-after')?.textContent).toBe('20%')
+    expect(container.querySelector('.fa-delta')?.textContent).toBe('▲+6 pts')
+    expect(container.querySelector('.fa-odds .sr-only')?.textContent).toBe('Details. Playoff odds 14% to 20%')
+  })
+
+  it('makes the verb a link to the ESPN add page, its reason under it', () => {
+    const { container } = render(
+      <Pickups pickups={[pickup]} faab={50} today={{ leagueId: 77, season: 2027, teamId: 3, creds: null }} />,
+    )
+    const link = within(container).getByRole('link', { name: 'Claim now Miles Bridges on ESPN, for Wiggins' })
+    expect(link).toHaveAttribute('href', 'https://fantasy.espn.com/basketball/players/add?leagueId=77')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(container.querySelector('.fa-why')?.textContent).toBe('for Wiggins')
+  })
+
+  it("opens the player's card from the name and the face, and the details from the odds", () => {
+    const open = vi.fn()
+    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
+    const { container } = render(<Pickups pickups={[pickup]} faab={50} />)
+    fireEvent.click(within(container.querySelector('.fa-name') as HTMLElement).getByRole('button'))
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 1 }))
+    expect(container.querySelector('.fa-face .pc-link-face .head')).not.toBeNull()
+    const toggle = container.querySelector('.fa-odds') as HTMLElement
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(container.querySelector('.fa-item.open .move-detail')).not.toBeNull()
+    act(() => setPlayerCardHost(null))
+  })
+
+  it('says so in one quiet line when no free agent helps', () => {
+    const { container } = render(<Pickups pickups={[]} faab={50} />)
+    expect(container.querySelector('.fa-empty')?.textContent).toBe('No free agent improves your team right now.')
   })
 })
