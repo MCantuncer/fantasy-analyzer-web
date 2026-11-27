@@ -21,8 +21,6 @@ interface Props {
   colours: Map<number, string>
   myTeamId: number | null
   mine: OverviewMatchup | undefined
-  /** The matchup of the week, marked only for a follower (no team of their own), where it is the featured matchup. */
-  star: OverviewMatchup | undefined
   week: { start: string | null | undefined; end: string | null | undefined }
   leagueRef?: LeagueRef
   creds: Credentials | null
@@ -30,11 +28,11 @@ interface Props {
 
 /**
  * League → the week's matchups as mirrored rows: crest · name · score – score · name · crest, the
- * leader in ink. A short marker line says what's worth knowing (ties, within one, and for a follower the featured matchup of the week).
+ * leader in ink. A short marker line says what's worth knowing (ties, within one).
  * A row with a box score opens it in place, right under itself: CatStrip pair for the week, or today's
  * strip and both lineups. Esc closes it.
  */
-export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, star, week, leagueRef, creds }: Props) {
+export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, week, leagueRef, creds }: Props) {
   const [open, setOpen] = useState<string | null>(null)
   const focusBox = useRef(false)
   const rows = useRef(new Map<string, HTMLButtonElement>())
@@ -144,10 +142,8 @@ export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, 
         const [a, b] = sides(m)
         const k = key(m)
         const isMine = m === mine
-        const isStar = myTeamId == null && m === star
         const close1 = withinOne(a, b)
         const marks = [
-          isStar ? <span key="star">Matchup of the week</span> : null,
           a.ties > 0 ? <span key="tied">{a.ties} tied</span> : null,
           close1 ? (
             <span key="close" className="lmr-close-mark">
@@ -181,7 +177,6 @@ export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, 
         const isOpen = k === open && !!openMatchup
         const said = [
           `${isMine ? 'Your matchup: ' : ''}${nameOf(a.team_id)} ${a.wins}, ${nameOf(b.team_id)} ${b.wins}`,
-          isStar ? 'matchup of the week' : '',
           a.ties > 0 ? `${a.ties} tied` : '',
           close1 ? 'within one' : '',
         ]
