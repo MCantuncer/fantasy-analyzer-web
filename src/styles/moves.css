@@ -1,0 +1,46 @@
+/* Moves page order (Quiet Lead): the lead, the category line, the two lists, then Trade of the day.
+   Page-own rules, prefix mv-. */
+
+.mv-page {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  min-width: 0;
+}
+
+/* Two lists. Side by side from 1100px (Trades | FA Targets); below that one column with FA Targets
+   first, because two to five adds read faster than a list of trades that start closed. */
+.mv-lists {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'fa'
+    'trades';
+  gap: 48px;
+  align-items: start;
+}
+
+.mv-trades {
+  grid-area: trades;
+  min-width: 0;
+}
+
+.mv-fa {
+  grid-area: fa;
+  min-width: 0;
+}
+
+@media (min-width: 1100px) {
+  .mv-lists {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-areas: 'trades fa';
+    gap: 56px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mv-page,
+  .mv-lists {
+    gap: 36px;
+  }
+}
