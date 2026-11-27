@@ -62,9 +62,12 @@ export function LeagueSwitcher({ leagues, current, leagueName, teamName, onOpen,
                       <span className="switcher-item-name">{l.name}</span>
                       {l.team_id ? <VerifiedBadge /> : null}
                     </span>
-                    <span className="small muted">
-                      {here && teamName ? teamName : l.team_id ? 'Verified manager' : 'League view only'}
-                    </span>
+                    {/* A verified league already says Verified beside its name. */}
+                    {here && teamName ? (
+                      <span className="small muted">{teamName}</span>
+                    ) : (
+                      !l.team_id && <span className="small muted">League view only</span>
+                    )}
                   </span>
                   <svg className="check" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     {here && <path d="m3.5 8.5 3 3 6-7" stroke="currentColor" strokeWidth="1.8" fill="none" />}

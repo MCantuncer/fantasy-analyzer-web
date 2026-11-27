@@ -106,7 +106,7 @@
 .ic-head-r2:empty {
   display: none;
 }
-/* 44x44 icon buttons (Back, Site health, Close) */
+/* 44x44 icon buttons (Back, Close) */
 .ic-ib {
   width: 44px;
   height: 44px;
@@ -126,6 +126,28 @@
 }
 .ic-back {
   margin-left: -10px;
+  color: var(--text);
+}
+/* Site health (admins): the pulse and the word, a quiet 44px button beside How to read. */
+.ic-health {
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ic-health:hover {
+  background: var(--ic-hover);
   color: var(--text);
 }
 .ic-how-btn {
@@ -979,9 +1001,19 @@
     --band-max: 50px;
   }
   /* Phones: row 1 keeps Back, the title and Site health; How to read moves beside the night tabs
-     and the meta wraps under them. */
+     and the meta wraps under them. Health drops its pulse so the title keeps one line at 360px. */
   .ic-head {
     gap: 8px;
+  }
+  .ic-head-btns {
+    gap: 2px;
+  }
+  .ic-health {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+  .ic-health svg {
+    display: none;
   }
   .ic-head-r1 .page-title {
     font-size: 26px;

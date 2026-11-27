@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { CaretRight, DotsThree, SealCheck, Trophy } from '@phosphor-icons/react'
+import { CaretRight, SealCheck, Trophy } from '@phosphor-icons/react'
 import { ApiError, addLeague, clearNotices, removeLeague } from '../api/client'
 import type { Me, MyLeague } from '../api/client'
 import type { Credentials } from '../lib/credentials'
@@ -147,9 +147,7 @@ export function MyLeagues({ me, creds, onCreds, onOpen, onEstimates, focusAdd = 
                 <CaretRight className="ml-go" aria-hidden="true" />
               </button>
               <details className="ml-menu">
-                <summary aria-label={`More for ${l.name}`} title="More">
-                  <DotsThree weight="bold" aria-hidden="true" />
-                </summary>
+                <summary aria-label={`More for ${l.name}`}>More</summary>
                 <div className="menu card">
                   <button
                     type="button"

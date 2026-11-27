@@ -58,7 +58,7 @@ describe('MyLeagues', () => {
     expect(within(rows[1] as HTMLElement).getByRole('button', { name: /Office League/ })).toHaveTextContent(
       'Following · verify your team to see your moves',
     )
-    expect(container.querySelector('[aria-label="More for Office League"]')).not.toBeNull()
+    expect(container.querySelector('[aria-label="More for Office League"]')?.textContent).toBe('More')
     expect(screen.getAllByRole('button', { name: 'Remove from my leagues', hidden: true })).toHaveLength(2)
     expect(screen.getByLabelText('Add a league')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()

@@ -1,0 +1,19 @@
+/* The account button shows your initial in a circle, an avatar rather than an icon to decode
+   (account- prefix; the 44px button itself is styled in index.css). */
+.account-menu summary:has(.account-initial) {
+  padding: 0;
+  border-color: transparent;
+}
+
+.account-initial {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}

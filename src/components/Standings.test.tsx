@@ -45,6 +45,8 @@ describe('Standings trade check', () => {
     )
     const view = within(container)
     expect(view.queryByRole('button', { name: 'Check a trade with Kucukesat Aspavas' })).toBeNull()
+    expect(view.getByRole('button', { name: 'Check a trade with Aliaga Hermanos' })).toHaveTextContent(/^Trade$/)
+    expect(container.querySelector('.st-tr svg')).toBeNull()
     fireEvent.click(view.getByRole('button', { name: 'Check a trade with Aliaga Hermanos' }))
     expect(onCheckTrade).toHaveBeenCalledWith(9)
   })

@@ -179,6 +179,8 @@ describe('TradePark, nothing picked', () => {
     expect(rows[0].querySelector('.park-mt')?.textContent).toBe('C · CLE')
     expect(rows[1].textContent).toContain('Keeper')
     expect(screen.queryByRole('button', { name: 'Shop Kyshawn George' })).toBeNull()
+    // The meta line says Keeper; the toggle cell stays empty, with no lock icon to decode.
+    expect(rows[1].querySelector('.park-tog')?.childElementCount).toBe(0)
     expect(rows[4].textContent).toContain('Droppable')
     expect(rows[5].textContent).toContain('OUT')
   })
@@ -187,6 +189,7 @@ describe('TradePark, nothing picked', () => {
 describe('TradePark, picking', () => {
   it('numbers the picks and runs one search on the sorted ids once they settle', async () => {
     setup()
+    expect(screen.getByRole('button', { name: 'Shop Davion Mitchell' }).textContent).toBe('Shop')
     fireEvent.click(screen.getByRole('button', { name: 'Shop Davion Mitchell' }))
     fireEvent.click(screen.getByRole('button', { name: 'Shop Jarrett Allen' }))
     expect(screen.getByRole('button', { name: 'Shop Davion Mitchell' })).toHaveAttribute('aria-pressed', 'true')

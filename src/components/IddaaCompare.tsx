@@ -147,8 +147,9 @@ export function IddaaCompare({ onBack, onHealth, onCrazy, searchLeague = null }:
           <div className="ic-head-btns">
             {howButton('wide')}
             {onHealth && (
-              <button type="button" className="ic-ib" aria-label="Site health" title="Site health" onClick={onHealth}>
-                <Pulse size={20} aria-hidden="true" />
+              <button type="button" className="ic-health" aria-label="Site health" onClick={onHealth}>
+                <Pulse size={18} aria-hidden="true" />
+                Health
               </button>
             )}
             {onCrazy && <CrazyDoor onOpen={onCrazy} />}

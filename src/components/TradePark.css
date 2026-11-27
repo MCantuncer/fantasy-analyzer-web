@@ -92,7 +92,7 @@
   text-align: right;
 }
 
-/* The 44px toggle: a faint ring with +, your pick number once picked. */
+/* The 44px toggle: the word Shop (as on My Team's roster), your pick number in a ring once picked. */
 .park-tog {
   display: grid;
   place-items: center;
@@ -105,7 +105,7 @@
   min-height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 10px;
   background: transparent;
   color: var(--text-2);
 }
@@ -119,8 +119,14 @@
   box-shadow: inset 0 0 0 1.5px var(--faint);
 }
 
-.park-row button.park-tog:hover .park-ring {
-  box-shadow: inset 0 0 0 1.5px var(--text-2);
+.park-shop {
+  font-size: 13.5px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.park-row button.park-tog[aria-pressed='false']:hover {
+  background: var(--field-hover, color-mix(in srgb, var(--text) 4%, transparent));
   color: var(--text);
 }
 
@@ -134,16 +140,7 @@
 
 .park-row button.park-tog[aria-disabled='true'] {
   cursor: not-allowed;
-}
-
-.park-row button.park-tog[aria-disabled='true'] .park-ring {
-  box-shadow: inset 0 0 0 1.5px var(--track);
   color: var(--muted);
-}
-
-.park-lock {
-  color: var(--muted);
-  cursor: default;
 }
 
 /* ---------- The get end before a pick ---------- */

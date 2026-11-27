@@ -46,11 +46,12 @@
   list-style: none;
 }
 
-/* Phones: # · team · W–L–T · Back · trade (Win % from 760px). The number columns are as tight as
-   the figures allow so a two-word name gets its own two lines instead of being cut. */
+/* Phones: # · team · W–L–T · Back (Win % and the Trade button from 760px; on a phone the row's
+   matchup sheet and Check a Trade cover it). The number columns are as tight as the figures allow
+   so a two-word name gets its own two lines instead of being cut. */
 .st-g {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) 58px 30px 44px;
+  grid-template-columns: 18px minmax(0, 1fr) 58px 30px;
   align-items: center;
   column-gap: 6px;
 }
@@ -136,15 +137,23 @@
 }
 
 /* The trade check: muted, no outline, lights up on hover. */
+.st-tr-slot {
+  display: none;
+}
+
 .st-tr {
   justify-self: end;
-  width: 44px;
+  min-width: 44px;
   min-height: 44px;
-  padding: 0;
+  padding: 0 8px;
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: var(--muted);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .st-tr:hover {
@@ -231,8 +240,12 @@
 
 @media (min-width: 760px) {
   .st-g {
-    grid-template-columns: 26px minmax(0, 1fr) 76px 56px 48px 44px;
+    grid-template-columns: 26px minmax(0, 1fr) 76px 56px 48px 58px;
     column-gap: 8px;
+  }
+
+  .st-tr-slot {
+    display: block;
   }
 
   .st-tm {
