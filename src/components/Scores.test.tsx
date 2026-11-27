@@ -181,17 +181,20 @@ describe('Scores', () => {
     ])
   })
 
-  it("lifts games with your or your rival's players and rings their faces", async () => {
+  it("lifts games with your or your rival's players and marks them with each crest and its count", async () => {
     mockApi()
     renderScores({ opponentId: 5, opponentName: 'Los Avokados' })
     await screen.findByRole('heading', { name: /Tonight in your matchup/ })
     const card = document.querySelector('.game-card.stake')!
     expect(card).not.toBeNull()
-    expect(card.querySelectorAll('.face-ring.you')).toHaveLength(1)
-    expect(card.querySelectorAll('.face-ring.rival')).toHaveLength(2)
-    expect(
-      within(card as HTMLElement).getByText(/Your opponent's players: Alperen Sengun, Victor Wembanyama/),
-    ).toBeInTheDocument()
+    const mark = card.querySelector('.sc-own')!
+    expect(mark.querySelector('.sc-own-side.you')?.textContent).toBe('KA1')
+    expect(mark.querySelector('.sc-own-side.rival')?.textContent).toBe('LA2')
+    // The names are in the title and in screen-reader text, not as faces on the card.
+    const label = "1 of your players: Amen Thompson. 2 of your opponent's: Alperen Sengun, Victor Wembanyama"
+    expect(mark).toHaveAttribute('title', label)
+    expect(within(card as HTMLElement).getByText(label)).toHaveClass('sr-only')
+    expect(card.querySelector('.game-status .head')).toBeNull()
     expect(document.querySelector('.game-card.cold')).toBeNull()
   })
 

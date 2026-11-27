@@ -17,6 +17,7 @@ import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { best, dayLabel, leader, longDayLabel, myLines, nickname, nightTotals, statLine, usToday } from '../lib/scores'
 import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
+import { TeamCrest } from './TeamCrest'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
 import { useFitsWidth } from '../lib/useFitsWidth'
@@ -45,6 +46,12 @@ import { LiveLine } from './LiveLine'
 import { ProCall } from './Pro'
 import { useFeature } from '../lib/pro'
 type FixturePlayer = FixtureDay['games'][number]['my_players'][number]
+
+/** The two fantasy teams in your matchup, as their crests: the owner mark on each game card. */
+interface Sides {
+  you: { name: string; colour: string }
+  rival: { name: string; colour: string } | null
+}
 
 interface Props {
   leagueId: number
@@ -183,6 +190,13 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           teamId,
         ).get(rivalId)
       : undefined
+  const sides: Sides = {
+    you: { name: teams.find((t) => t.id === teamId)?.name ?? 'You', colour: 'var(--gold)' },
+    rival:
+      rivalId != null && matchup
+        ? { name: matchup.opponentName, colour: rivalColour ?? 'var(--muted)' }
+        : null,
+  }
   const cold = (g: Game) =>
     !pending &&
     g.status !== 'scheduled' &&
@@ -276,6 +290,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
             teamId={teamId}
             rivalId={rivalId ?? null}
             rivalColour={rivalColour}
+            sides={sides}
             abbrev={abbrev}
             date={data.date}
             pending={pending}
@@ -366,6 +381,7 @@ function GameBoard({
   teamId,
   rivalId,
   rivalColour,
+  sides,
   abbrev,
   date,
   pending,
@@ -382,6 +398,7 @@ function GameBoard({
   teamId: number
   rivalId: number | null
   rivalColour?: string
+  sides: Sides
   abbrev: Map<number, string>
   date: string | null | undefined
   pending: boolean
@@ -578,6 +595,7 @@ function GameBoard({
             game={g}
             teamId={teamId}
             rivalId={rivalId}
+            sides={sides}
             upcoming={upcoming.get(g.id) ?? []}
             open={g.id === open?.id && !closing}
             origin={tabOrigin(ids, g.id, strip ? 0 : cols)}
@@ -818,15 +836,15 @@ function YourNight({
 }
 
 /**
- * One game. Game Night: a game with your players or your rival's lifts off the page, its club logos
- * glow in their team colour and the faces carry a ring (gold yours, rival colour theirs). A finished
- * or live game with neither sits back, flat with grey logos and "Not in your matchup". The winning
- * score gets a small caret.
+ * One game. Game Night: a game with your players or your rival's lifts off the page and carries the
+ * owner mark (your crest and theirs, each with its count). A finished or live game with neither sits
+ * back, flat with grey logos and "Not in your matchup". The winning score gets a small caret.
  */
 function GameCard({
   game,
   teamId,
   rivalId = null,
+  sides,
   upcoming,
   open,
   origin,
@@ -838,6 +856,7 @@ function GameCard({
   teamId: number
   /** This week's opponent, whose players in the game count as a stake too. */
   rivalId?: number | null
+  sides: Sides
   /** Your players in this game from the week's fixtures, for games that haven't started. */
   upcoming: FixturePlayer[]
   /** Its box score is open: the card comes forward and is the box's tab. */
@@ -866,10 +885,6 @@ function GameCard({
   const final = game.status === 'final'
   const call = game.call ?? null
   const showCalls = useFeature('game_calls')
-  const faces = [
-    ...mine.map((p) => ({ ...p, side: 'you' as const })),
-    ...rivals.map((p) => ({ ...p, side: 'rival' as const })),
-  ].slice(0, 3)
   // The open game's edge runs from the away club's light to the home club's.
   const edge = {
     ...tabStyle(origin),
@@ -889,8 +904,8 @@ function GameCard({
     call ? 'has-call' : '',
     // Room for "Our call · 84%" in the foot: a long top performer keeps one stat.
     call && top && shortName(top.name).length > 10 ? 'one' : '',
-    // Two or more faces, or the "Not in your matchup" note: on a narrow card "off by N" drops.
-    faces.length > 1 || (cold && faces.length === 0 && rivalId != null) ? 'crowd' : '',
+    // The "Not in your matchup" note: on a narrow card "off by N" drops.
+    cold && rivalId != null ? 'crowd' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -907,24 +922,8 @@ function GameCard({
         ) : (
           <GameTime game={game} ember={ember} />
         )}
-        {faces.length > 0 ? (
-          <span className="game-mine game-faces">
-            {faces.map((p) => (
-              <span key={p.player_id} className={`face-ring ${p.side}`}>
-                {plain ? (
-                  <PlayerLink player={{ id: p.player_id, name: p.name }} decorative>
-                    <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
-                  </PlayerLink>
-                ) : (
-                  <PlayerHead player={{ id: p.player_id, name: p.name }} size={22} />
-                )}
-              </span>
-            ))}
-            {mine.length > 0 && <span className="sr-only">Your players: {mine.map((p) => p.name).join(', ')}</span>}
-            {rivals.length > 0 && (
-              <span className="sr-only">. Your opponent's players: {rivals.map((p) => p.name).join(', ')}</span>
-            )}
-          </span>
+        {stake ? (
+          <OwnerMark mine={mine} rivals={rivals} sides={sides} />
         ) : (
           cold && rivalId != null && <span className="game-cold muted">Not in your matchup</span>
         )}
@@ -1013,6 +1012,43 @@ function GameCard({
     >
       {body}
     </button>
+  )
+}
+
+/**
+ * Whose players are in a game: your crest with your count, your rival's crest with theirs. The names
+ * are in the title and in screen-reader text; the card's one face is its top performer's.
+ */
+function OwnerMark({
+  mine,
+  rivals,
+  sides,
+}: {
+  mine: { name: string }[]
+  rivals: { name: string }[]
+  sides: Sides
+}) {
+  const names = (ps: { name: string }[]) => ps.map((p) => p.name).join(', ')
+  const label = [
+    mine.length > 0 && `${mine.length} of your players: ${names(mine)}`,
+    rivals.length > 0 && `${rivals.length} of your opponent's: ${names(rivals)}`,
+  ]
+    .filter(Boolean)
+    .join('. ')
+  const side = (team: { name: string; colour: string }, n: number, who: string) => (
+    <span className={`sc-own-side ${who}`}>
+      <TeamCrest name={team.name} colour={team.colour} size={18} />
+      <b className="num">{n}</b>
+    </span>
+  )
+  return (
+    <span className="sc-own" title={label}>
+      <span className="sc-own-marks" aria-hidden="true">
+        {mine.length > 0 && side(sides.you, mine.length, 'you')}
+        {rivals.length > 0 && sides.rival && side(sides.rival, rivals.length, 'rival')}
+      </span>
+      <span className="sr-only">{label}</span>
+    </span>
   )
 }
 
