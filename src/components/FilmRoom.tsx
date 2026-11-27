@@ -68,11 +68,14 @@ interface Props {
   onBack: () => void
 }
 
-const MINE_ICON = (
-  <svg className="fr-me" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0z" />
-  </svg>
+/** Your crest carries a small gold person badge on its top-right corner. */
+const MINE_BADGE = (
+  <span className="fr-me" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0z" />
+    </svg>
+  </span>
 )
 
 export function FilmRoom({ leagueRef, creds, teams, colours, myTeamId, period, onPeriod, onBack }: Props) {
@@ -176,8 +179,10 @@ export function FilmRoomPage({
     teams.find((t) => t.id === id)?.name ?? r.teams.find((t) => t.team_id === id)?.name ?? 'Unknown team'
   const team = (id: number, size = 22) => (
     <span className="fr-tn">
-      {id === myTeamId && MINE_ICON}
-      <TeamCrest name={name(id)} colour={colours.get(id)} size={size} />
+      <span className={size < 20 ? 'fr-crest sm' : 'fr-crest'}>
+        <TeamCrest name={name(id)} colour={colours.get(id)} size={size} />
+        {id === myTeamId && MINE_BADGE}
+      </span>
       <span className="fr-tn-name">
         {id === myTeamId && <span className="sr-only">Your team: </span>}
         {name(id)}
@@ -404,7 +409,6 @@ function MissedAssignments({
           <UserPlus size={20} aria-hidden="true" />
           Missed assignments
         </h2>
-        <span className="fr-sec-sub">Free agents who stood out</span>
       </div>
       <div className="fr-seg full" role="group" aria-label="Free agents">
         <button type="button" aria-pressed={panel === 'still'} onClick={() => setPanel('still')}>
@@ -443,13 +447,12 @@ function MissedAssignments({
                   </div>
                 ))}
               </div>
-              <p className="fr-honest">
-                <Info size={16} aria-hidden="true" />
-                <span>
-                  <b>One week, {games(star.games)}.</b> {star.picked_up ? `${dropped(star)}. ` : 'Nobody added him. '}A hot
-                  week is not a trend: check his minutes before you add.
-                </span>
-              </p>
+              {star.picked_up && (
+                <p className="fr-honest">
+                  <Info size={16} aria-hidden="true" />
+                  <span>{dropped(star)}.</span>
+                </p>
+              )}
               <div className="fr-feat-act">
                 <a className="button" href={espnAdd} target="_blank" rel="noreferrer">
                   <ArrowSquareOut size={17} aria-hidden="true" />
@@ -720,16 +723,8 @@ function BoxScoreTable({
         </h2>
         <span className="fr-sec-sub">Players of the week</span>
       </div>
-      <p className="fr-how">
-        <Info size={14} aria-hidden="true" />
-        <span>
-          Ranked by 9-cat value over the week among every NBA player: the week's totals against the 200 busiest
-          players, FG% and FT% weighted by attempts, TO counting against.
-        </span>
-      </p>
       <div className="card fr-tbl-card">
         <div className="fr-tbl-head">
-          <p>Crest = owner</p>
           <span className="fr-seg" role="group" aria-label="Stat view">
             <button type="button" aria-pressed={mode === 'tot'} onClick={() => setMode('tot')}>
               Totals
@@ -751,7 +746,12 @@ function BoxScoreTable({
                     {k}
                   </th>
                 ))}
-                <th scope="col">Value</th>
+                <th
+                  scope="col"
+                  title="9-cat value over the week among every NBA player: the week's totals against the 200 busiest players, FG% and FT% weighted by attempts, TO counting against"
+                >
+                  Value
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -775,8 +775,10 @@ function BoxScoreTable({
                               <span className="fr-fa-mark">FA</span>
                             ) : (
                               <span className="fr-owner" title={name(p.owner_team_id)}>
-                                {p.owner_team_id === myTeamId && MINE_ICON}
-                                <TeamCrest name={name(p.owner_team_id)} colour={colours.get(p.owner_team_id)} size={15} />
+                                <span className="fr-crest sm">
+                                  <TeamCrest name={name(p.owner_team_id)} colour={colours.get(p.owner_team_id)} size={15} />
+                                  {p.owner_team_id === myTeamId && MINE_BADGE}
+                                </span>
                                 <span className="sr-only">Owner: {name(p.owner_team_id)}</span>
                               </span>
                             )}

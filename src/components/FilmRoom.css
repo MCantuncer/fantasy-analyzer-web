@@ -28,9 +28,48 @@
   white-space: nowrap;
 }
 
-.fr-me {
+/* Your crest: a small gold person badge on its top-right corner, ringed in the page colour (as in Standings). */
+.fr-crest {
+  position: relative;
+  display: inline-flex;
   flex: none;
-  fill: var(--gold);
+}
+
+.fr-crest:has(.fr-me) {
+  margin-right: 4px;
+}
+
+.fr-me {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+.fr-me svg {
+  width: 8px;
+  height: 8px;
+  fill: var(--bg);
+}
+
+/* Small crests (under 20px) get a smaller badge so the initials still show. */
+.fr-crest.sm .fr-me {
+  top: -3px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  box-shadow: 0 0 0 1px var(--surface);
+}
+
+.fr-crest.sm .fr-me svg {
+  width: 6px;
+  height: 6px;
 }
 
 .fr-min {
@@ -578,11 +617,6 @@ button.fr-back:hover {
   margin-top: 1px;
 }
 
-.fr-honest b {
-  color: var(--text);
-  font-weight: 650;
-}
-
 .fr-feat-act {
   display: flex;
   align-items: center;
@@ -862,19 +896,6 @@ details[open] > summary .fr-chev {
 }
 
 /* ---- Box score: players of the week ---- */
-.fr-how {
-  display: flex;
-  gap: 7px;
-  align-items: flex-start;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.fr-how svg {
-  flex: none;
-  margin-top: 2px;
-}
-
 .card.fr-tbl-card {
   padding: 0;
   overflow: hidden;
@@ -882,15 +903,10 @@ details[open] > summary .fr-chev {
 
 .fr-tbl-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 10px;
   padding: 10px 12px 10px 16px;
-}
-
-.fr-tbl-head p {
-  font-size: 12.5px;
-  color: var(--muted);
 }
 
 .fr-tbl-wrap {

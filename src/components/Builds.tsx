@@ -21,10 +21,6 @@ export function Builds({
     <section className="card flush" aria-labelledby="builds-title">
       <div className="card-head">
         <h2 id="builds-title">League builds</h2>
-        <span className="small muted">
-          Weekly rank per category, 1 is best. Deep red usually means a punt, so players who help there are worth less
-          to that team.
-        </span>
       </div>
       <div className="table-wrap">
         <table>

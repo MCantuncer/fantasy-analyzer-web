@@ -436,48 +436,6 @@ export function LeagueOverview({
                 />
               )
             })()}
-          {matchupView === 'week' && (
-            <ul className="small muted box-legend lo-legend" aria-label="How to read the box score">
-              {mine ? (
-                <>
-                  <li>
-                    <span className="lo-lit good" aria-hidden="true" />
-                    you lead
-                  </li>
-                  <li>
-                    <span className="lo-lit bad" aria-hidden="true" />
-                    they lead
-                  </li>
-                </>
-              ) : (
-                <li>
-                  <span className="box-cell lead num" aria-hidden="true">
-                    12
-                  </span>
-                  leading
-                </li>
-              )}
-              {mine && (
-                <li>
-                  <span className="lo-res" aria-hidden="true">
-                    <span className="box-res W">W</span>
-                    <span className="box-res L">L</span>
-                  </span>
-                  your result
-                </li>
-              )}
-              <li>
-                <Target size={16} className="lo-legend-close" aria-hidden="true" />
-                close, can flip
-              </li>
-              <li>
-                <span className="box-cell tie num" aria-hidden="true">
-                  0
-                </span>
-                tied
-              </li>
-            </ul>
-          )}
           {mine &&
             leagueRef &&
             matchupView === 'week' &&
@@ -522,7 +480,6 @@ export function LeagueOverview({
       <section className="stack" style={{ gap: 12 }} aria-labelledby="mu-title">
         <div className="section-head">
           <h2 id="mu-title">Week {o.matchup_period} matchups</h2>
-          {o.matchups.some(hasBox) && <span className="small muted">Open a matchup for its box score</span>}
         </div>
         {o.matchups.length ? (
           <ul

@@ -14,19 +14,29 @@ export interface BoxTeam {
   mine?: boolean
 }
 
-const MINE_ICON = (
-  <svg className="box-mine-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-    <title>Your team</title>
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0z" />
-  </svg>
+/** Your crest carries a small gold person badge on its top-right corner. */
+const MINE_BADGE = (
+  <span className="box-me" aria-hidden="true">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0z" />
+    </svg>
+  </span>
 )
 
-/** The team's name; yours is marked by a person icon (before the name, or left of the crest on phones). */
-function TeamName({ team, icon = true }: { team: BoxTeam; icon?: boolean }) {
+function MineCrest({ team, size }: { team: BoxTeam; size: number }) {
+  return (
+    <span className="box-cr">
+      <TeamCrest name={team.name} colour={team.colour} size={size} />
+      {team.mine && MINE_BADGE}
+    </span>
+  )
+}
+
+/** The team's name; yours is marked by the badge on its crest. */
+function TeamName({ team }: { team: BoxTeam }) {
   return (
     <span className={team.mine ? 'box-team-name mine' : 'box-team-name'}>
-      {team.mine && icon && MINE_ICON}
       {team.mine && <span className="sr-only">Your team: </span>}
       {team.name}
     </span>
@@ -120,12 +130,9 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
               className={`box-compact-team${hasMe && !t.mine ? ' rival' : ''}`}
               style={{ '--team': t.colour } as CSSProperties}
             >
-              <span className="box-crest-wrap">
-                <TeamCrest name={t.name} colour={t.colour} size={36} />
-                {t.mine && MINE_ICON}
-              </span>
+              <MineCrest team={t} size={36} />
               <span className="box-name">
-                <TeamName team={t} icon={false} />
+                <TeamName team={t} />
                 <span className="num box-record">{record(t.side)}</span>
               </span>
               <Games team={t} />
@@ -162,7 +169,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                 <span className={`box-compact-stat${close.has(c.stat) ? ' close' : ''}`}>
                   <span className="box-stat-code">
                     {c.stat}
-                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
+                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" alt="Close, can flip" />}
                   </span>
                   {lit && (
                     <span className="box-margin num" aria-label={`your margin ${lit.margin}`}>
@@ -190,7 +197,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                 <th key={c.stat} scope="col" className={close.has(c.stat) ? 'close' : undefined}>
                   <span className="box-stat">
                     {c.stat}
-                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" />}
+                    {close.has(c.stat) && <Target size={14} aria-label="close, can flip" alt="Close, can flip" />}
                   </span>
                 </th>
               ))}
@@ -205,7 +212,7 @@ export function BoxScore({ home, away, caption }: { home: BoxTeam; away: BoxTeam
                 <tr key={t.side.team_id} style={{ '--team': t.colour } as CSSProperties}>
                   <th scope="row" className="left">
                     <span className="crest-name">
-                      <TeamCrest name={t.name} colour={t.colour} size={32} />
+                      <MineCrest team={t} size={32} />
                       <span className="box-name">
                         <TeamName team={t} />
                         {t.sub && <span className="small muted">{t.sub}</span>}
