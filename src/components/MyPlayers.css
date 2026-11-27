@@ -1375,3 +1375,66 @@
 .mp-keep {
   white-space: nowrap;
 }
+
+/* ---------- The lineup as Quiet Field rows (QuietField.tsx), as on Today ---------- */
+
+/* The status line: every starting slot once. Gold only on the live dot. */
+.mp-status-line b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mp-status-line em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.mp-status-line .mp-dot {
+  margin-right: 2px;
+  vertical-align: 0;
+}
+
+.mp-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mp-notes .mp-call {
+  margin: 0;
+}
+
+.mp-lineup .tm-slide-head {
+  font-size: 12.5px;
+}
+
+/* The play words and his next game sit outside the card button: their names open their own cards. */
+.mp-lineup .tm-note .pc-link {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.mp-lineup .tm-note .mp-pw em {
+  font-style: normal;
+}
+
+.mp-lineup h4.tm-sublab {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Phones: the next tip on its own line under the counts, beside the stats pager. */
+@media (max-width: 759px) {
+  .mp-next-sep {
+    display: none;
+  }
+
+  .mp-next-tip {
+    display: block;
+    color: var(--muted);
+  }
+}

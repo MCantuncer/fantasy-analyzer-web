@@ -65,6 +65,42 @@ export function counts(rows: PlayerRow[], openSlots: number): Counts {
   }
 }
 
+/**
+ * The status line: every starting slot accounted for once. Out means his team plays without him (ESPN
+ * OUT, or ruled out tonight); idle means his team has no game; empty means nobody is in the slot.
+ */
+export interface StatusCounts {
+  live: number
+  final: number
+  /** Played that day but never got in (his game is over). */
+  dnp: number
+  later: number
+  out: number
+  idle: number
+  empty: number
+  /** The next tip-off among the starters still to come. */
+  nextTip: string | null
+}
+
+export function statusCounts(rows: PlayerRow[], openSlots: number): StatusCounts {
+  const c: StatusCounts = { live: 0, final: 0, dnp: 0, later: 0, out: 0, idle: 0, empty: openSlots, nextTip: null }
+  for (const r of rows) {
+    if (!r.spot.starting) continue
+    const played = !!r.line && r.line.minutes > 0
+    const out = !played && (OUT.has(r.spot.injury_status) || r.spot.play?.chance === 0)
+    if (r.state === 'idle') c.idle += 1
+    else if (out) c.out += 1
+    else if (r.state === 'live') c.live += 1
+    else if (r.state === 'final' && played) c.final += 1
+    else if (r.state === 'final' || r.state === 'dnp') c.dnp += 1
+    else {
+      c.later += 1
+      if (r.game && (!c.nextTip || r.game.start < c.nextTip)) c.nextTip = r.game.start
+    }
+  }
+  return c
+}
+
 export interface Totals {
   played: number
   on: number

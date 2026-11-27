@@ -9,22 +9,14 @@ import {
   CaretDown,
   CaretLeft,
   CaretRight,
-  CaretUp,
-  CheckCircle,
-  Clock,
   ClockCountdown,
-  Info,
-  Minus,
-  UserSwitch,
   UsersThree,
 } from '@phosphor-icons/react'
 import { fetchLineup, fetchScores } from '../api/client'
-import type { Game, GameLine, LineupDay, LineupSpot, PlayChance, SeasonAverage } from '../api/client'
+import type { LineupDay, LineupSpot, PlayChance, SeasonAverage } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { nbaAbbrev } from '../lib/filmRoom'
 import { injuryShort } from '../lib/injury'
-import { gradeWords, minutesDelta, nightGrade, signed } from '../lib/nightGrade'
-import type { Category, NightGrade } from '../lib/nightGrade'
 import {
   benchLeftOut,
   buildRows,
@@ -39,22 +31,22 @@ import {
   isIR,
   lastName,
   newsAge,
-  nextLabel,
   PLAY_TAG,
   pct,
   playTone,
   rowCall,
   starterTotals,
+  statusCounts,
   swapToMake,
   weekday,
   wordLate,
 } from '../lib/myPlayers'
-import type { Counts, Fill, GameCall, PlayerRow, RowCall, RowState, Swap, Totals } from '../lib/myPlayers'
-import { leader, longDayLabel, tipOff } from '../lib/scores'
-import { STAT_COLUMNS } from '../lib/statOrder'
+import type { Fill, GameCall, PlayerRow, RowCall, StatusCounts, Swap } from '../lib/myPlayers'
+import { shortNames } from '../lib/todayMatchup'
+import { longDayLabel, tipOff } from '../lib/scores'
 import { PlayerLink } from './PlayerCard'
-import { PlayerHead, TeamLogo } from './PlayerHead'
-import { ShotSplit } from './ShotSplit'
+import { ColumnHead, EmptyRow, Field, Row, Slide, Totals, TotalsBeforeTip } from './QuietField'
+import type { RowExtras } from './QuietField'
 import { Bone } from './Skeleton'
 import './MyPlayers.css'
 
@@ -79,6 +71,8 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const [today, setToday] = useState<number | null>(null)
   // The game-time call's tray on phones: null follows the night (open when Can must decide now).
   const [callOpen, setCallOpen] = useState<boolean | null>(null)
+  // The rated rows whose why is open under them.
+  const [whyOpen, setWhyOpen] = useState<Set<number>>(() => new Set())
   const swid = creds?.swid ?? null
   const scores = useQuery({
     // The Scores page's own query, so the two pages share one fetch.
@@ -142,21 +136,39 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const rows = buildRows(lineup.data.spots, switching ? [] : data.games)
   const open = lineup.data.open_slots
   const c = counts(rows, open.length)
+  const status = statusCounts(rows, open.length)
   const swap = past ? null : swapToMake(rows, open)
   const totals = starterTotals(rows)
   const starters = rows.filter((r) => r.spot.starting)
   const bench = rows.filter((r) => isBench(r.spot))
+  const benchPlays = bench.filter((r) => r.state !== 'idle')
+  const benchIdle = bench.filter((r) => r.state === 'idle')
   const ir = rows.filter((r) => isIR(r.spot))
   const leftOut = past ? benchLeftOut(rows) : null
   const i = data.days.findIndex((d) => d.day === data.day)
   const prev = data.days[i - 1]
   const next = data.days[i + 1]
   const espn = espnTeamUrl(leagueId, teamId, season)
-  const swapIds = swap ? new Set([swap.bench.spot.player_id, swap.idle?.spot.player_id]) : new Set<number | undefined>()
   const call = past || switching ? null : gameTimeCall(rows)
   const ctx: RowCtx = { past, now, day: lineup.data.day, week: lineup.data.week ?? [], call, marks: callMarks(call) }
   const trayOpen = call ? (callOpen ?? (call.verdict === 'now' || inWordWindow(call, now))) : false
   const tray: Tray = { id: 'mp-call', open: trayOpen, toggle: () => setCallOpen(!trayOpen) }
+  // Phones: last names, told apart only within your own roster ("George", not "K. George").
+  const names = shortNames(rows.map((r) => r.spot.name))
+  // Before any starter has played a minute there are no figures: no column head, no pager, no zeros.
+  const pretip = !starters.some((r) => r.line && r.line.minutes > 0)
+  const whyOf = (r: PlayerRow) => ({
+    open: whyOpen.has(r.spot.player_id),
+    toggle: () =>
+      setWhyOpen((s) => {
+        const n = new Set(s)
+        if (!n.delete(r.spot.player_id)) n.add(r.spot.player_id)
+        return n
+      }),
+  })
+  const row = (r: PlayerRow, opts: { bench?: boolean; quiet?: boolean } = {}) => (
+    <Row key={r.spot.player_id} row={r} names={names} {...opts} {...extrasFor(r, ctx, whyOf(r), !!opts.bench)} />
+  )
 
   return (
     <section className={`mp${switching ? ' mp-switching' : ''}`} aria-labelledby="mp-title" aria-busy={switching}>
@@ -202,70 +214,65 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </div>
       </header>
 
-      <NightLine rows={rows} counts={c} past={past} now={now} />
-
       {swap && <SwapNote swap={swap} espn={espn} />}
-
-      <div className="mp-table">
-        <div className="mp-cols" aria-hidden="true">
-          <span className="mp-col-slot">Slot</span>
-          <span>Player</span>
-          <span>Game</span>
-          {STAT_COLUMNS.map((s) => (
-            <span key={s} className="mp-col-stat">
-              {s === 'TO' ? 'TO↓' : s}
-            </span>
-          ))}
-        </div>
-
-        <h3 className="mp-group">Starting</h3>
-        {/* The starters and their total sit on one soft field; the bench and IR sit on the bare page. */}
-        <div className="mp-field">
-          <ul className="mp-rows">
-            {starters.map((r) => (
-              <Fragment key={r.spot.player_id}>
-                <Row row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} tray={call?.doubt === r ? tray : undefined} />
-                {call?.doubt === r && <CallCard call={call} now={now} tray={tray} />}
-              </Fragment>
-            ))}
-            {open.map((slot, k) => (
-              <li key={`open-${slot}-${k}`} className="mp-row mp-idle mp-empty">
-                <span className="mp-spine">
-                  <Mark state="idle" />
-                  <span className="mp-slot">{slot}</span>
-                </span>
-                <span className="mp-who muted">Empty</span>
-                <span className="mp-game muted" aria-hidden="true">
-                  –
-                </span>
-              </li>
-            ))}
-          </ul>
-          {totals.played > 0 && <TotalsRow totals={totals} past={past || totals.on === 0} />}
-        </div>
-
-        <h3 className="mp-group">Bench</h3>
-        <ul className="mp-rows">
-          {bench.map((r) => (
-            <Row key={r.spot.player_id} row={r} ctx={ctx} swap={swapIds.has(r.spot.player_id)} />
-          ))}
+      {call && (
+        <ul className="mp-notes">
+          <CallCard call={call} now={now} tray={tray} />
         </ul>
+      )}
+
+      {/* Quiet Field, as on Today: the starters and their total on one soft field, the bench and IR on
+          the bare page. Slot, face and name stay pinned on phones while the figures slide. */}
+      <div className="tm mp-lineup">
+        <Slide starters={starters} pager={!pretip} head={<StatusLine c={status} past={past} now={now} />}>
+          <>
+            {!pretip && <ColumnHead />}
+            <Field>
+              <ol className="tm-list" aria-label="Starters">
+                {starters.map((r) => row(r))}
+                {open.map((slot, k) => (
+                  <EmptyRow key={`open-${slot}-${k}`} slot={slot} />
+                ))}
+              </ol>
+              {totals.played > 0 ? (
+                <Totals totals={totals} label={past ? "Starters' total" : 'Starters so far'} />
+              ) : (
+                <TotalsBeforeTip firstTip={past ? null : status.nextTip} label={past ? "Starters' total" : 'Starters so far'} />
+              )}
+            </Field>
+            {bench.length > 0 && (
+              <>
+                <h3 className="tm-sub">Bench</h3>
+                {benchPlays.length > 0 && (
+                  <ol className="tm-list tm-bench" aria-label="Bench">
+                    {benchPlays.map((r) => row(r, { bench: true }))}
+                  </ol>
+                )}
+                {benchIdle.length > 0 && (
+                  <>
+                    <p className="tm-sublab">No game</p>
+                    <ol className="tm-list tm-bench" aria-label="Bench, no game">
+                      {benchIdle.map((r) => row(r, { bench: true, quiet: true }))}
+                    </ol>
+                  </>
+                )}
+              </>
+            )}
+            {ir.length > 0 && (
+              <>
+                <h4 className="tm-sublab">IR</h4>
+                <ol className="tm-list tm-bench" aria-label="IR">
+                  {ir.map((r) => row(r, { bench: true, quiet: true }))}
+                </ol>
+              </>
+            )}
+          </>
+        </Slide>
         {leftOut && leftOut.line && (
           <p className="mp-left-out small">
             <Last spot={leftOut.spot} tail="'s" /> <b className="num">{leftOut.line.pts}</b> pts sat on your bench while{' '}
             {c.idle === 1 ? 'a starting slot was' : `${c.idle} starting slots were`} idle.
           </p>
-        )}
-
-        {ir.length > 0 && (
-          <>
-            <h3 className="mp-group">IR</h3>
-            <ul className="mp-rows">
-              {ir.map((r) => (
-                <Row key={r.spot.player_id} row={r} ctx={ctx} swap={false} />
-              ))}
-            </ul>
-          </>
         )}
       </div>
     </section>
@@ -304,28 +311,51 @@ function SwapNote({ swap, espn }: { swap: Swap; espn: string }) {
   )
 }
 
-const STATE_WORD: Record<RowState, string> = {
-  live: 'Live',
-  final: 'Final',
-  dnp: "Didn't play",
-  later: 'Later',
-  idle: 'No game',
-}
-
-/** The gutter signal. A live player sitting on his NBA bench keeps a hollow dot: in the game, not lit. */
-function Mark({ state, sitting = false }: { state: RowState; sitting?: boolean }) {
+/**
+ * Every starting slot, once: "● 4 live · 3 to come · 2 out · 1 idle · next tip 1:00 AM, in 31m". A past
+ * day: "9 played · 1 idle". The gold dot is the only gold, and only while someone is live.
+ */
+function StatusLine({ c, past, now }: { c: StatusCounts; past: boolean; now: number }) {
+  const parts: ReactNode[] = []
+  const add = (n: number, words: string, key: string) => {
+    if (n > 0) parts.push(<span key={key}>{words.replace('#', String(n))}</span>)
+  }
+  if (past) {
+    add(c.final + c.live, '# played', 'played')
+    add(c.dnp, "# didn't play", 'dnp')
+  } else {
+    if (c.live > 0)
+      parts.push(
+        <span key="live">
+          <i className="mp-dot" aria-hidden="true" /> <b>{c.live} live</b>
+        </span>,
+      )
+    add(c.final + c.dnp, '# final', 'final')
+    add(c.later, '# to come', 'later')
+  }
+  add(c.out, '# out', 'out')
+  add(c.idle, '# idle', 'idle')
+  add(c.empty, c.empty === 1 ? '# empty slot' : '# empty slots', 'empty')
+  const tip =
+    !past && c.nextTip ? (
+      <span className="mp-next-tip">
+        {c.live + c.final + c.dnp > 0 ? 'next tip' : 'first tip'} {tipOff(c.nextTip)}, {countdown(c.nextTip, now).text}
+      </span>
+    ) : null
   return (
-    <span className={`mp-mark ${state}${sitting ? ' sitting' : ''}`} title={sitting ? 'On the bench right now' : undefined}>
-      {state === 'live' ? (
-        <i className="mp-dot" aria-hidden="true" />
-      ) : state === 'final' || state === 'dnp' ? (
-        <CheckCircle size={18} weight="fill" aria-hidden="true" />
-      ) : state === 'later' ? (
-        <Clock size={18} aria-hidden="true" />
-      ) : (
-        <Minus size={18} aria-hidden="true" />
+    <span className="mp-status-line num">
+      {parts.map((p, k) => (
+        <Fragment key={k}>
+          {k > 0 && <em> · </em>}
+          {p}
+        </Fragment>
+      ))}
+      {tip && (
+        <>
+          <em className="mp-next-sep"> · </em>
+          {tip}
+        </>
       )}
-      <span className="sr-only">{sitting ? 'Live, on the bench' : STATE_WORD[state]}</span>
     </span>
   )
 }
@@ -350,437 +380,122 @@ function callMarks(call: GameCall | null): Map<number, RowMark> {
   return m
 }
 
-/** The call's tray under the doubtful starter: his row and the strip both open and close it. */
+/** The call's tray: its strip opens and closes it on phones. */
 interface Tray {
   id: string
   open: boolean
   toggle: () => void
 }
 
-function Row({ row, ctx, swap, tray }: { row: PlayerRow; ctx: RowCtx; swap: boolean; tray?: Tray }) {
-  const [whyOpen, setWhyOpen] = useState(false)
-  const { past } = ctx
-  const { spot, game, line, state } = row
-  const quiet = state === 'idle' || isIR(spot)
-  // In a game but on his NBA bench right now: the row stays calm, the game clock keeps its gold.
-  const sitting = state === 'live' && line?.on_court === false
-  const avg = state === 'later' && !past ? spot.season_avg : null
-  const abbrev = nbaAbbrev(spot.pro_team_id)
-  const counted = spot.starting
-  const injured = spot.injury_status !== 'ACTIVE' && spot.injury_status !== 'NORMAL'
-  const play = past ? null : (spot.play ?? null)
+const OUT_STATUS = new Set(['OUT', 'INJURY_RESERVE', 'SUSPENSION'])
+
+/**
+ * What My Players adds to a Quiet Field row: the injury tag after the name, the play words and his
+ * next game (line 3 on phones, the MIN edge from 760), the grade's carets and minutes on a final
+ * line, and the why behind a play chance.
+ */
+function extrasFor(
+  row: PlayerRow,
+  ctx: RowCtx,
+  why: { open: boolean; toggle: () => void },
+  bench: boolean,
+): RowExtras {
+  const { spot, state, line, game } = row
+  const ir = isIR(spot)
+  const play = ctx.past ? null : (spot.play ?? null)
   const rated = !!play && play.tag !== 'Available'
   const mark = ctx.marks.get(spot.player_id) ?? null
   const rc = rated ? rowCall(row, ctx.call) : null
-  const words = playWords(spot, play, mark, rc, callPeople(ctx.call))
-  // The injury-report tag. Probable stays quiet: no tag, the number alone.
-  const tag = rated && play.tag !== 'Probable' ? <PlayTag play={play} /> : null
-  // Ruled out tonight in a slot that counts: the one state that dims his face.
-  const ruled = rated && play.chance === 0 && counted && state === 'later'
-  // The basis sits behind a tap on every rated row (a tooltip alone never reaches a phone).
-  const whyId = `mp-why-${spot.player_id}`
-  const canWhy = rated && !tray
-  const expanded = tray ? tray.open : whyOpen
-  const short = phoneName(spot.name, injured && !tag)
-  const player = { id: spot.player_id, name: spot.name }
-  // The night grade: only at the final whistle. A live line is partial, so it gets no letter.
-  const grade = state === 'final' && !isIR(spot) ? nightGrade(line) : null
-  const cls = [
-    'mp-row',
-    `mp-${state}`,
-    line ? 'mp-card' : '',
-    grade ? `mp-graded mp-g-${grade.tier}` : '',
-    counted ? 'mp-starter' : 'mp-sub',
-    isIR(spot) ? 'mp-ir' : '',
-    quiet ? 'mp-quiet' : '',
-    avg ? 'mp-pre' : '',
-    sitting ? 'mp-sitting' : '',
-    swap ? 'mp-swap' : '',
-    tray ? `mp-docked${tray.open ? ' mp-docked-open' : ''}` : '',
-    words ? 'mp-has-play' : '',
-    rc ? 'mp-acts' : '',
-    tray || canWhy ? 'mp-tappable' : '',
-    ruled ? 'mp-ruled' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-  // Phones: the tag leaves the name for line 2, so the name keeps its room.
-  const lead = words ? (
-    <>
-      {tag && <span className="mp-tag-line">{tag}</span>}
-      {words}
-    </>
+  const played = !!line && line.minutes > 0
+  const words = played ? null : playWords(spot, play, mark, rc, callPeople(ctx.call))
+  const injured = spot.injury_status !== 'ACTIVE' && spot.injury_status !== 'NORMAL'
+  // The injury-report tag. Probable stays quiet: no tag, the number alone. Once he has played, the
+  // question is answered: the tag goes.
+  const tag = played ? null : rated ? (
+    play.tag !== 'Probable' ? (
+      <PlayTag play={play} />
+    ) : null
+  ) : injured ? (
+    <span
+      className={`tm-tag${OUT_STATUS.has(spot.injury_status) ? ' tm-out' : ''}`}
+      title={spot.injury_status.replace(/_/g, ' ').toLowerCase()}
+    >
+      {injuryShort(spot.injury_status)}
+    </span>
   ) : null
+  const usual = spot.season_avg && state === 'later' && !bench ? <Usual avg={spot.season_avg} /> : null
+  const left = ctx.week.length > 1 ? gamesLeft(spot, ctx.day) : null
+  const nx = spot.next_game
+  const ex: RowExtras = { tag, detail: true }
+  if (rated && !played && ctx.call?.doubt !== row) {
+    ex.why = {
+      id: `mp-why-${spot.player_id}`,
+      label: `What ${pct(play.chance)} means for ${lastName(spot.name)}`,
+      body: <WhyBox play={play} now={ctx.now} />,
+      ...why,
+    }
+  }
+  if (ir) {
+    // Under the IR label "On IR" would say it twice: line 2 is his team's game, from 760.
+    ex.status = game ? (
+      <span className="tm-wmid">
+        {nbaAbbrev(spot.pro_team_id)} plays {tipOff(game.start)}
+      </span>
+    ) : undefined
+    if (words) ex.note = words
+    return ex
+  }
+  if (state === 'idle') {
+    const where = nx ? (
+      <>
+        next {weekday(nx.date)} {nx.home ? 'vs' : '@'} {nx.opponent.abbrev}
+        <span className="tm-wmid"> {tipOff(nx.start)}</span>
+      </>
+    ) : null
+    const leftWords = left !== null ? `${left} left this week` : null
+    if (bench) {
+      // Phones: one line ("next Mon vs LAC · 0 left"); from 760 the games left move to the MIN edge.
+      ex.status = where ? (
+        <>
+          {where}
+          {left !== null && <span className="tm-nmid"> · {left} left</span>}
+        </>
+      ) : undefined
+      if (leftWords) {
+        ex.note = leftWords
+        ex.noteWide = true
+      }
+      return ex
+    }
+    ex.note =
+      where || leftWords ? (
+        <>
+          {where}
+          {where && leftWords && ' · '}
+          {leftWords}
+        </>
+      ) : undefined
+    return ex
+  }
+  // Ruled out tonight in a slot that counts: the one state that dims his face.
+  ex.dim = rated && play.chance === 0 && spot.starting && state === 'later'
+  if (words)
+    ex.note = (
+      <>
+        {words}
+        {usual && <span className="tm-wmid"> · {usual}</span>}
+      </>
+    )
+  if (bench) ex.usual = false
+  return ex
+}
+
+/** "usually 8 PTS · 3 REB · 2 AST": his season average, rounded. */
+function Usual({ avg }: { avg: SeasonAverage }) {
   return (
     <>
-      <li className={cls}>
-        {(tray || canWhy) && (
-          <button
-            type="button"
-            className="mp-why-hit"
-            aria-expanded={expanded}
-            aria-controls={tray ? tray.id : whyId}
-            onClick={tray ? tray.toggle : () => setWhyOpen((o) => !o)}
-          >
-            <span className="sr-only">
-              {tray ? `Game-time call on ${lastName(spot.name)}` : `What ${pct(play!.chance)} means for ${lastName(spot.name)}`}
-            </span>
-          </button>
-        )}
-        <span className="mp-spine">
-          {grade ? <GradeMark grade={grade} /> : <Mark state={isIR(spot) ? 'idle' : state} sitting={sitting} />}
-          <span className={`mp-slot${counted ? '' : ' sub'}`}>{spot.slot}</span>
-        </span>
-        <span className="mp-who">
-          <PlayerLink player={player} decorative>
-            <PlayerHead player={player} size={32} team={abbrev} />
-          </PlayerLink>
-          <span className={`mp-name${short ? ' mp-has-short' : ''}`}>
-            <PlayerLink
-              player={player}
-              after={
-                tag ? (
-                  <span className="mp-tag-name">{tag}</span>
-                ) : injured && !play ? (
-                  <span className={`mp-inj${spot.injury_status === 'OUT' ? ' out' : ''}`}>{injuryShort(spot.injury_status)}</span>
-                ) : undefined
-              }
-            >
-              {short ? (
-                <>
-                  <span className="mp-full-name">{spot.name}</span>
-                  <span className="mp-short-name">{short}</span>
-                </>
-              ) : undefined}
-            </PlayerLink>
-            {words && <span className="mp-play mp-play-under">{words}</span>}
-          </span>
-        </span>
-        {words && (quiet || !avg) && <span className="mp-play mp-playline">{lead}</span>}
-        {quiet ? (
-          <QuietCell row={row} ctx={ctx} />
-        ) : (
-          <>
-            <GameCell game={game} pro={spot.pro_team_id} now={ctx.now} />
-            {line ? (
-              <Stats line={line} grade={grade} avgMin={state === 'final' ? spot.season_avg?.min : null} />
-            ) : avg ? (
-              <AverageNote
-                avg={avg}
-                lead={lead}
-                basis={rated && rc && !tray ? <BasisLine play={play} now={ctx.now} /> : null}
-              />
-            ) : (
-              <span className="mp-note">{quietNote(row)}</span>
-            )}
-          </>
-        )}
-      </li>
-      {canWhy && (
-        <li id={whyId} className="mp-whybox" hidden={!whyOpen}>
-          <WhyBox play={play} now={ctx.now} />
-        </li>
-      )}
+      usually {Math.round(avg.pts)} PTS · {Math.round(avg.reb)} REB · {Math.round(avg.ast)} AST
     </>
-  )
-}
-
-function quietNote(row: PlayerRow): ReactNode {
-  const { spot, state } = row
-  // No average to show: he hasn't played this season (null), or the server predates averages.
-  if (state === 'later') return spot.season_avg === null ? <span className="mp-long">No games played yet this season</span> : ''
-  if (state === 'live') return 'Not in yet'
-  if (state === 'dnp') return "Didn't play"
-  return ''
-}
-
-/**
- * A row with nothing on that day: an idle starting slot, a bench player without a game, or IR.
- * Says when he plays next and how many games he has left this week.
- */
-function QuietCell({ row, ctx }: { row: PlayerRow; ctx: RowCtx }) {
-  const { spot, game } = row
-  const nx = spot.next_game
-  if (isIR(spot)) {
-    const abbrev = nbaAbbrev(spot.pro_team_id)
-    return (
-      <span className="mp-quiet-cell">
-        <span className="mp-what">
-          <strong>On IR</strong>
-          {game && (
-            <span className="mp-long-ir">
-              <em> · </em>
-              <TeamLogo abbrev={abbrev} size={16} /> {abbrev} plays <span className="num">{tipOff(game.start)}</span>
-            </span>
-          )}
-        </span>
-      </span>
-    )
-  }
-  const tonight = ctx.past ? 'that day' : 'tonight'
-  return (
-    <span className="mp-quiet-cell">
-      <span className="mp-what">
-        <strong>No game {tonight}</strong>
-        {nx && (
-          <>
-            <em> · </em>next {weekday(nx.date)} {nx.home ? 'vs' : '@'} <TeamLogo abbrev={nx.opponent.abbrev} size={16} />{' '}
-            {nx.opponent.abbrev} <span className="num">{tipOff(nx.start)}</span>
-          </>
-        )}
-      </span>
-      {nx && (
-        <span className="mp-next">
-          <span className="mp-next-word">Next </span>
-          {nextLabel(nx)}
-        </span>
-      )}
-      {ctx.week.length > 1 && (
-        <span className="mp-left muted">
-          <span className="num">{gamesLeft(spot, ctx.day)}</span> left this week
-        </span>
-      )}
-    </span>
-  )
-}
-
-function GameCell({ game, pro, now }: { game: Game | null; pro: number; now: number }) {
-  if (!game) return <span className="mp-game muted">No game</span>
-  const scheduled = game.status === 'scheduled'
-  if (scheduled) return <TipCell game={game} pro={pro} now={now} />
-  const lead = leader(game)
-  const side = (s: Game['away'], who: 'away' | 'home') => (
-    <span className={`mp-side${lead === who ? ' lead' : ''}`}>
-      {who === 'home' && !scheduled && <span className="num mp-score">{s.score ?? 0}</span>}
-      <TeamLogo abbrev={s.abbrev} size={18} />
-      <span className="mp-abbrev">{s.abbrev}</span>
-      {who === 'away' && !scheduled && <span className="num mp-score">{s.score ?? 0}</span>}
-    </span>
-  )
-  return (
-    <span className="mp-game">
-      <span className="mp-score-line">
-        {side(game.away, 'away')}
-        <span className="mp-vs" aria-hidden="true">
-          {scheduled ? '@' : '–'}
-        </span>
-        {side(game.home, 'home')}
-      </span>
-      <span className="mp-status small">
-        {game.status === 'live' ? (
-          <span className="mp-clock">
-            <i className="mp-dot" aria-hidden="true" />
-            {game.clock ?? 'Live'}
-          </span>
-        ) : scheduled ? (
-          <span className="num">{tipOff(game.start)}</span>
-        ) : (
-          <span className="mp-final-tag">Final</span>
-        )}
-      </span>
-    </span>
-  )
-}
-
-/**
- * A game still to come, shaped like a live one: the matchup on top, and where the clock would be,
- * the tip-off and the time left ("4:00 AM · in 11m", gold inside the last hour).
- */
-function TipCell({ game, pro, now }: { game: Game; pro: number; now: number }) {
-  const cd = countdown(game.start, now)
-  const home = game.home.pro_team_id === pro
-  const side = (sd: Game['away'], own: boolean) => (
-    <span className={`mp-side${own ? ' own' : ' opp'}`}>
-      <TeamLogo abbrev={sd.abbrev} size={18} />
-      <span className="mp-abbrev">{sd.abbrev}</span>
-    </span>
-  )
-  return (
-    <span className="mp-game mp-tipcell">
-      <span className="mp-score-line">
-        <span className="mp-where" aria-hidden="true">
-          {home ? 'vs' : '@'}
-        </span>
-        {side(game.away, !home)}
-        <span className="mp-vs" aria-hidden="true">
-          @
-        </span>
-        {side(game.home, home)}
-      </span>
-      <span className="mp-status small">
-        <span className="num mp-tip-time">{tipOff(game.start)}</span>
-        <span className="mp-sep" aria-hidden="true">
-          ·
-        </span>
-        <span className={`mp-cd num${cd.soon ? ' soon' : ''}`}>{cd.text}</span>
-      </span>
-    </span>
-  )
-}
-
-/**
- * The night grade, set like a letter on a report card in the row's spine, under the slot: the letter
- * large, its plus or minus small and raised. The A range is green, D and F coral, B and C neutral.
- * Final lines only; the spoken form says the letter and what moved it.
- */
-function GradeMark({ grade }: { grade: NightGrade }) {
-  const words = gradeWords(grade)
-  return (
-    <span className={`mp-grade ${grade.tier}`} title={words}>
-      <span className="mp-grade-l" aria-hidden="true">
-        {grade.letter}
-        {grade.mod && <span className="mp-grade-m">{grade.mod}</span>}
-      </span>
-      <span className="sr-only">Final, {words}</span>
-    </span>
-  )
-}
-
-type Drive = 'up' | 'down'
-
-function Stats({ line, grade, avgMin }: { line: GameLine; grade: NightGrade | null; avgMin?: number | null }) {
-  const drive = new Map<string, Drive>((grade?.drivers ?? []).map((d) => [d.cat, d.z > 0 ? 'up' : 'down']))
-  const delta = minutesDelta(line.minutes, avgMin)
-  const cells: [string, ReactNode][] = [
-    [
-      'MIN',
-      delta === null ? (
-        line.minutes
-      ) : (
-        <span className="mp-min">
-          {line.minutes}
-          <span className="mp-min-d" title="Minutes against his season average">
-            <span className="sr-only">, </span>
-            {signed(delta)}
-            <span className="sr-only"> against his average</span>
-          </span>
-        </span>
-      ),
-    ],
-    ['FG', <ShotSplit made={line.fgm} attempts={line.fga} label="FG" />],
-    ['FT', <ShotSplit made={line.ftm} attempts={line.fta} label="FT" />],
-    ['3PM', line.tpm],
-    ['REB', line.reb],
-    ['AST', line.ast],
-    ['STL', line.stl],
-    ['BLK', line.blk],
-    ['TO', line.to],
-    ['PTS', line.pts],
-  ]
-  return <StatCells cells={cells} drive={drive} />
-}
-
-const CATEGORY_OF: Record<string, Category | undefined> = {
-  FG: 'FG',
-  FT: 'FT',
-  '3PM': '3PM',
-  REB: 'REB',
-  AST: 'AST',
-  STL: 'STL',
-  BLK: 'BLK',
-  TO: 'TO',
-  PTS: 'PTS',
-}
-
-function StatCells({ cells, drive }: { cells: [string, ReactNode][]; drive?: Map<string, Drive> }) {
-  return (
-    <dl className="mp-stats">
-      {cells.map(([k, v]) => {
-        const cat = CATEGORY_OF[k]
-        const d = cat ? drive?.get(cat) : undefined
-        const cls = ['mp-stat', k === 'PTS' && 'pts', k === 'MIN' && 'min', d && `drv ${d}`, v === 0 && 'zero']
-          .filter(Boolean)
-          .join(' ')
-        return (
-          <div key={k} className={cls}>
-            <dt>
-              {k === 'TO' ? 'TO↓' : k}
-              {d && <span className="sr-only">{d === 'up' ? ', helped most' : ', hurt most'}</span>}
-            </dt>
-            <dd className="num">
-              {d ? (
-                <span className="mp-drv">
-                  {v}
-                  <span className="mp-drv-c" aria-hidden="true">
-                    {d === 'up' ? <CaretUp weight="fill" /> : <CaretDown weight="fill" />}
-                  </span>
-                </span>
-              ) : (
-                v
-              )}
-            </dd>
-          </div>
-        )
-      })}
-    </dl>
-  )
-}
-
-/** Before tip-off, one quiet line: what he usually brings ("Season avg 26.9 pts · 3.7 reb · 5.5 ast"). */
-function AverageNote({ avg, lead, basis }: { avg: SeasonAverage; lead?: ReactNode; basis?: ReactNode }) {
-  const one = (v: number) => v.toFixed(1)
-  return (
-    <span className={`mp-note mp-avg-note${lead ? ' mp-led' : ''}`} title={`Season average over ${avg.gp} games`}>
-      {lead && (
-        <span className="mp-play mp-play-lead">
-          {lead}
-          <em className="mp-season-sep"> · </em>
-        </span>
-      )}
-      <span className="mp-season">
-        <span className="mp-long">Season avg </span>
-        <b className="num">{one(avg.pts)}</b> pts
-        <span className="mp-avg-reb">
-          {' '}
-          · <b className="num">{one(avg.reb)}</b> reb
-        </span>
-        <span className="mp-avg-ast">
-          {' '}
-          · <b className="num">{one(avg.ast)}</b> ast
-        </span>
-      </span>
-      {basis}
-    </span>
-  )
-}
-
-/** The night in one calm line: the next tip-off (or what's on now), and how many starting slots play. */
-function NightLine({ rows, counts: c, past, now }: { rows: PlayerRow[]; counts: Counts; past: boolean; now: number }) {
-  const next = rows
-    .filter((r) => r.spot.starting && r.state === 'later' && r.game)
-    .sort((a, b) => a.game!.start.localeCompare(b.game!.start))[0]
-  const idle = rows.filter((r) => r.spot.starting && r.state === 'idle').map((r) => r.spot)
-  const cd = next?.game ? countdown(next.game.start, now) : null
-  return (
-    <p className="mp-night">
-      {!past && next?.game ? (
-        <span className="mp-night-tip">
-          <span className="muted">{c.live + c.final > 0 ? 'Next tip' : 'First tip'}</span>{' '}
-          <b className="num">{tipOff(next.game.start)}</b>{' '}
-          <span className={`mp-cd num${cd?.soon ? ' soon' : ''}`}>{cd?.text}</span>
-        </span>
-      ) : c.live > 0 ? (
-        <span className="mp-night-tip">
-          <i className="mp-dot" aria-hidden="true" /> <b className="num">{c.live}</b> live now
-        </span>
-      ) : null}
-      <span>
-        <b className="num">{c.playing}</b> of <span className="num">{c.starters}</span> starting slots{' '}
-        {past ? 'played' : 'play tonight'}
-        {idle.length > 0 && (
-          <span className="muted">
-            {' '}
-            · {past ? 'sat' : 'idle'}:{' '}
-            {idle.map((spot, i) => (
-              <Fragment key={spot.player_id}>
-                {i > 0 && ' '}
-                <Last spot={spot} tail={i < idle.length - 1 ? ',' : undefined} />
-              </Fragment>
-            ))}
-          </span>
-        )}
-      </span>
-    </p>
   )
 }
 
@@ -792,44 +507,6 @@ function useNow(): number {
     return () => window.clearInterval(t)
   }, [])
   return now
-}
-
-function TotalsRow({ totals: t, past }: { totals: Totals; past: boolean }) {
-  return (
-    <div className="mp-totals">
-      <span className="mp-spine" aria-hidden="true" />
-      <span className="mp-totals-label">
-        <b>{past ? "Starters' total" : 'Starters so far'}</b>
-        <span className="small muted">
-          {' '}
-          {t.played} played{t.on > 0 ? ` · ${t.on} still on` : ''}
-        </span>
-      </span>
-      <StatCells
-        cells={[
-          ['MIN', t.min],
-          ['FG', <ShotSplit made={t.fgm} attempts={t.fga} label="FG" />],
-          ['FT', <ShotSplit made={t.ftm} attempts={t.fta} label="FT" />],
-          ['3PM', t.tpm],
-          ['REB', t.reb],
-          ['AST', t.ast],
-          ['STL', t.stl],
-          ['BLK', t.blk],
-          ['TO', t.to],
-          ['PTS', t.pts],
-        ]}
-      />
-    </div>
-  )
-}
-
-/**
- * The name phones show when the full one won't fit beside the face and the score: the last name
- * ("Antetokounmpo"). Null when the full name fits (about 18 characters, 15 with an injury pill).
- */
-function phoneName(name: string, pill: boolean): string | null {
-  if (!name.includes(' ') || name.length <= (pill ? 15 : 18)) return null
-  return lastName(name)
 }
 
 function MyPlayersLoading() {
@@ -859,7 +536,7 @@ function PlayTag({ play }: { play: PlayChance }) {
   const tone = play.upgraded ? 'low' : playTone(play)
   const word = play.upgraded ? 'OUT' : PLAY_TAG[play.tag]
   return (
-    <span className={`mp-inj mp-tag ${tone}`} title={play.upgraded ? 'ESPN still lists him out' : play.tag}>
+    <span className={`tm-tag${tone === 'calm' ? '' : ` tm-${tone}`}`} title={play.upgraded ? 'ESPN still lists him out' : play.tag}>
       {word}
       <span className="sr-only"> ({play.upgraded ? 'out on ESPN' : play.tag})</span>
     </span>
@@ -881,7 +558,6 @@ function playWords(
   if (mark?.kind === 'covers')
     return (
       <span className="mp-pw covers">
-        <UserSwitch size={13} weight="bold" aria-hidden="true" />
         <b className="mp-verb">
           Covers <Last spot={mark.who} />
         </b>
@@ -953,36 +629,20 @@ function playWords(
   )
 }
 
-/** Desktop, under the season line: what the number is and how fresh the word is. */
-function BasisLine({ play, now }: { play: PlayChance; now: number }) {
-  const b = basisShort(play)
-  if (!b) return null
-  return (
-    <span className="mp-basis">
-      {b}
-      <em> · </em>
-      {newsAge(play, now)}
-    </span>
-  )
-}
-
 /** Behind the row's tap: the whole basis, then ESPN's word on him (or that there's none yet). */
 function WhyBox({ play, now }: { play: PlayChance; now: number }) {
   return (
     <>
-      <p className="mp-why-basis">
-        <Info size={14} weight="bold" aria-hidden="true" />
-        <span>
-          {play.basis}
-        </span>
+      <p>
+        {play.basis}
       </p>
-      <p className="mp-why-news">
+      <p>
         {play.news ? (
           <>
-            “{play.news}” <span className="muted">ESPN · {newsAge(play, now).replace('news ', '')}</span>
+            “{play.news}” ESPN · {newsAge(play, now).replace('news ', '')}
           </>
         ) : (
-          <span className="muted">No word from the team yet.</span>
+          'No word from the team yet.'
         )}
       </p>
     </>

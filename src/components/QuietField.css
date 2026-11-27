@@ -455,6 +455,84 @@ button.pc-link.tm-pick:focus-visible {
   background: none;
 }
 
+/* The play-chance tag after a name (My Players): amber for a real doubt, coral when he likely sits,
+   green when he's coming back. A likely player gets the neutral tag. */
+.tm-l1 > .tm-tag {
+  flex: none;
+}
+
+.tm-tag.tm-toss {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.tm-tag.tm-low {
+  color: var(--bad);
+  background: var(--bad-soft);
+}
+
+.tm-tag.tm-up {
+  color: var(--good);
+  background: var(--good-soft);
+}
+
+/* Ruled out tonight: the one state that dims his face. */
+.tm-row.tm-dim .head {
+  opacity: 0.5;
+}
+
+/* A rated row: a tap off the face and name opens its why under it. The card button stays on top. */
+.tm-who > .tm-pick {
+  position: relative;
+  z-index: 2;
+}
+
+button.tm-why-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+button.tm-why-hit:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.tm-row.tm-whyable .tm-note {
+  pointer-events: none;
+}
+
+/* The why, under its row, indented to the name. No box. */
+.tm-why {
+  position: sticky;
+  left: 0;
+  width: 100cqw;
+  padding: 0 var(--tm-pr) 10px calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 36px);
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.tm-why p {
+  margin: 0;
+}
+
+.tm-why p + p {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.tm-st b {
+  font-weight: 650;
+  color: var(--text);
+}
+
 .tm-stats {
   display: contents;
 }
@@ -476,6 +554,38 @@ button.pc-link.tm-pick:focus-visible {
   color: var(--muted);
 }
 
+/* Minutes against his average, under MIN: the voice of the .500 under FG, one step stronger. */
+.tm-stats > span small.tm-md {
+  color: var(--text-2);
+}
+
+/* What moved the grade: the figure keeps its ink, a 7px caret says which way. */
+.tm-stats > span.tm-drv {
+  position: relative;
+}
+
+.tm-stats > span.tm-drv > i {
+  position: absolute;
+  top: 2px;
+  margin-left: 2px;
+  display: flex;
+  width: 7px;
+  height: 7px;
+}
+
+.tm-stats > span.tm-drv > i svg {
+  width: 7px;
+  height: 7px;
+}
+
+.tm-stats > span.tm-drv-up > i {
+  color: var(--g-good);
+}
+
+.tm-stats > span.tm-drv-down > i {
+  color: var(--g-bad);
+}
+
 .tm-stats > span.tm-pts {
   font-size: 17px;
   font-weight: 700;
@@ -493,7 +603,7 @@ button.pc-link.tm-pick:focus-visible {
 }
 
 /* Final: settled. The figures step back one tone; PTS and the grade stay strong. */
-.tm-row.tm-final .tm-stats > span:not(.tm-pts):not(.tm-z) {
+.tm-row.tm-final .tm-stats > span:not(.tm-pts):not(.tm-z):not(.tm-drv) {
   color: var(--text-2);
 }
 
@@ -609,6 +719,12 @@ button.pc-link.tm-pick:focus-visible {
   color: var(--text-2);
 }
 
+/* A bench player whose game is still to come: in ink, he may yet come in. */
+.tm-row.tm-benchrow.tm-plays .tm-nm {
+  font-weight: 550;
+  color: var(--text);
+}
+
 /* Left on the bench: the warn words say it; the name stays at full ink. */
 .tm-row.tm-left {
   min-height: 56px;
@@ -648,8 +764,15 @@ button.pc-link.tm-pick:focus-visible {
     grid-column: 2 / -1;
     justify-self: start;
     width: max-content;
+    /* never past the screen: the line ends in an ellipsis */
+    max-width: calc(100cqw - var(--tm-pl) - var(--tm-slot-w) - 4px - 36px - var(--tm-pr));
     margin: 1px 0 0 36px;
-    overflow: visible;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tm-note.tm-note-wide {
+    display: none;
   }
 
   /* before the first tip, the words go under the label */
@@ -713,6 +836,15 @@ button.pc-link.tm-pick:focus-visible {
 
   .tm-field > .tm-list {
     padding-top: 10px;
+  }
+
+  .tm-benchrow .tm-note {
+    align-self: center;
+    padding-bottom: 0;
+  }
+
+  .tm-why {
+    padding-left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 46px);
   }
 
   /* Bigger faces once the line has room (PlayerHead sets its phone size inline). */
