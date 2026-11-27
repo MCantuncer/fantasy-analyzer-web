@@ -483,3 +483,67 @@
     font-size: 10px;
   }
 }
+
+/* ---------- pick: the team projected to take each category (Projected final) ----------
+   Rides on .cs-pair's grid (the same key gutter and nine columns as the strip above it). */
+.cs-pick .cs-ki {
+  display: grid;
+  grid-template-rows: 22px auto auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 6px;
+  min-width: 0;
+}
+
+.cs-pick .cs-kc .crest {
+  --crest: 22px !important;
+}
+
+/* Phones: the two figures stack, the winner's in ink. */
+.cs-kv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cs-kv i {
+  display: none;
+  font-style: normal;
+}
+
+.cs-kv .cs-w {
+  color: var(--text);
+  font-weight: 700;
+}
+
+@media (min-width: 760px) {
+  .cs-pick .cs-ki {
+    grid-template-rows: 26px auto auto;
+    row-gap: 8px;
+  }
+
+  .cs-pick .cs-kc .crest {
+    --crest: 26px !important;
+  }
+
+  .cs-kv {
+    flex-direction: row;
+    gap: 4px;
+    font-size: 12.5px;
+  }
+
+  .cs-kv i {
+    display: inline;
+  }
+}
+
+@media (max-width: 380px) {
+  .cs-kv {
+    font-size: 10px;
+  }
+}

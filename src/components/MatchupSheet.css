@@ -1,7 +1,7 @@
 /* League → your matchup as one sheet ("Line Score"): lms- for the sheet, lsb- for its scoreboard.
    (ms-/sb- are taken by the scouting report and ScoutBoard.) One surface, no rim; your warm house
    light in the near corner and the rival's crest light in the far one. Gold = you and live. */
-.lms {
+.lms-sheet {
   --lms-py: 16px;
   --lms-px: 12px;
   --yc-ring: var(--surface);
@@ -22,7 +22,7 @@
 }
 
 /* Someone else's matchup (a follower's Matchup of the week): each crest lights its own corner. */
-.lms:not(.mine) {
+.lms-sheet:not(.mine) {
   background:
     radial-gradient(
       ellipse 60% 360px at 100% 0%,
@@ -115,7 +115,7 @@ button.lms-retry {
 }
 
 /* ---------- Scoreboard: crest · name, the category score, name · crest ---------- */
-.lsb {
+.lsb-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -136,7 +136,7 @@ button.lms-retry {
   --crest: 40px !important;
 }
 
-.lsb-crest .yc {
+.lsb-crest .yourcrest {
   --yc: 14px !important;
 }
 
@@ -211,17 +211,17 @@ button.lms-retry {
 }
 
 /* ---------- The strip and what follows ---------- */
-.lms > .cs-pair {
+.lms-sheet > .cs-pair {
   margin-top: 22px;
 }
 
 /* The team switch bleeds to the sheet's edges, whatever its padding. */
-.lms .tm-bar {
+.lms-sheet .tm-bar {
   margin-inline: calc(-1 * var(--lms-px));
   padding-inline: var(--lms-px);
 }
 
-.lms .tm {
+.lms-sheet .tm {
   margin-top: 8px;
 }
 
@@ -247,6 +247,11 @@ button.lms-retry {
 .lms-hint svg {
   flex: none;
   color: var(--warn);
+}
+
+.lms-hint b {
+  font-weight: 650;
+  color: var(--text);
 }
 
 button.lms-check {
@@ -283,7 +288,7 @@ button.lms-check:hover {
 }
 
 @media (min-width: 760px) {
-  .lms {
+  .lms-sheet {
     --lms-py: 22px;
     --lms-px: 20px;
     margin-inline: 0;
@@ -297,7 +302,7 @@ button.lms-check:hover {
     font-size: 13px;
   }
 
-  .lsb {
+  .lsb-board {
     gap: 16px;
     margin-top: 22px;
   }
@@ -317,7 +322,7 @@ button.lms-check:hover {
     --crest: 52px !important;
   }
 
-  .lsb-crest .yc {
+  .lsb-crest .yourcrest {
     --yc: 17px !important;
   }
 
@@ -346,13 +351,13 @@ button.lms-check:hover {
     font-size: 13.5px;
   }
 
-  .lms > .cs-pair {
+  .lms-sheet > .cs-pair {
     margin-top: 28px;
   }
 }
 
 @media (min-width: 1100px) {
-  .lms {
+  .lms-sheet {
     --lms-py: 26px;
     --lms-px: 32px;
   }

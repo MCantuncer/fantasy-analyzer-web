@@ -21,9 +21,9 @@ export function YourCrest({
   if (!mine) return <TeamCrest name={name} colour={colour} size={size} />
   const badge = Math.max(12, Math.round(size * 0.32))
   return (
-    <span className="yc" style={{ '--yc': `${badge}px` } as CSSProperties}>
+    <span className="yourcrest" style={{ '--yc': `${badge}px` } as CSSProperties}>
       <TeamCrest name={name} colour={colour} size={size} />
-      <span className="yc-me" role="img" aria-label="your team">
+      <span className="yourcrest-me" role="img" aria-label="your team">
         <User weight="fill" aria-hidden="true" />
       </span>
     </span>

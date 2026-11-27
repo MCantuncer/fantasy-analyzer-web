@@ -1,7 +1,7 @@
 /* League builds (bd-): bare rows on the page, as Standings. Each team's weekly ranks are CatStrip
    `rank` bars under one label row; cats a week and likely punts in words. Your row takes the house
    light and your crest the gold badge. Phones stack name · cats a week, the bars, then the punts. */
-.bd {
+.bd-builds {
   min-width: 0;
 }
 

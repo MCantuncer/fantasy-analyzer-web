@@ -1,10 +1,10 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { CategoryScore, DayLineup, LineupSpot, ScoreDay } from '../api/client'
 import { todayLine } from '../lib/matchupSheet'
 import type { TodayData } from '../lib/todayData'
 import { game, line } from '../test/fixtures'
-import { MatchupSheet, type SheetSide } from './MatchupSheet'
+import { FlipLine, MatchupSheet, type SheetSide } from './MatchupSheet'
 
 afterEach(cleanup)
 
@@ -166,9 +166,9 @@ describe('MatchupSheet', () => {
   it('marks your team with the badge on your crest, never an icon beside the name', () => {
     sheet()
     // On the scoreboard crest and the strip's key crest, and nowhere loose.
-    const badges = document.querySelectorAll('.yc > .yc-me')
+    const badges = document.querySelectorAll('.yourcrest > .yourcrest-me')
     expect(badges).toHaveLength(2)
-    expect(document.querySelectorAll('.cs-me, .yc-me').length).toBe(2)
+    expect(document.querySelectorAll('.cs-me, .yourcrest-me').length).toBe(2)
   })
 
   it('Week: the week score on top, today under it, and the week extras instead of the lineup', () => {
@@ -185,5 +185,21 @@ describe('MatchupSheet', () => {
     expect(document.querySelector('.cs-good, .cs-bad')).toBeNull()
     expect(document.querySelectorAll('.cs-neu').length).toBeGreaterThan(0)
     expect(screen.queryByRole('img', { name: 'your team' })).toBeNull()
+  })
+})
+
+describe('FlipLine', () => {
+  it('puts the categories of the flip hint in ink, next to a soft trade check', () => {
+    let checked = 0
+    render(<FlipLine hint="Flip FT%, AST or STL to win the week" onCheckTrade={() => checked++} />)
+    expect([...document.querySelectorAll('.lms-hint b')].map((b) => b.textContent)).toEqual(['FT%', 'AST', 'STL'])
+    expect(document.querySelector('.lms-hint')!.textContent).toBe('Flip FT%, AST or STL to win the week')
+    fireEvent.click(screen.getByRole('button', { name: /Check a Trade With Them/ }))
+    expect(checked).toBe(1)
+  })
+
+  it('is absent with nothing to flip and no trade check', () => {
+    const { container } = render(<FlipLine hint={null} />)
+    expect(container.firstChild).toBeNull()
   })
 })

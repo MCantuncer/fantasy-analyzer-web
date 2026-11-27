@@ -1,7 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Target } from '@phosphor-icons/react'
 import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSide } from '../lib/catStrip'
+import { formatStat } from '../lib/league'
 import { CATEGORY_ORDER } from '../lib/statOrder'
+import { TeamCrest } from './TeamCrest'
 import { YourCrest } from './YourCrest'
 import './CatStrip.css'
 
@@ -166,4 +168,71 @@ export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', labe
       ))}
     </div>
   )
+}
+
+/** One projected category for CatStrip `pick`: both projected figures and who's projected to take it. */
+export interface PickRow {
+  stat: string
+  mine: number
+  theirs: number
+  winner: 'me' | 'them'
+  /** It could still go either way. */
+  close: boolean
+}
+
+export interface PickSide {
+  name: string
+  colour: string | undefined
+}
+
+/**
+ * CatStrip's `pick` variant (the Projected final): per category, the crest of the team projected
+ * to take it and both projected figures under it, the winner's in ink. The same nine columns (and
+ * key gutter) as the pair strip above it, so the categories line up. Plain labels: the amber close
+ * mark belongs to the strip above, and the two projected figures already show how close it is.
+ */
+export function CatStripPick({
+  rows,
+  me,
+  them,
+  label,
+}: {
+  rows: readonly PickRow[]
+  me: PickSide
+  them: PickSide
+  label: string
+}) {
+  const order = stripCategoriesOf(rows)
+  return (
+    <div className="cs-pair cs-pick" role="list" aria-label={label} style={{ '--n': order.length } as CSSProperties}>
+      <span className="cs-pkey" aria-hidden="true" />
+      {order.map((r) => {
+        const side = r.winner === 'me' ? me : them
+        const said = `${r.stat}: you ${formatStat(r.stat, r.mine)}, ${them.name} ${formatStat(r.stat, r.theirs)}, ${
+          r.winner === 'me' ? 'you take it' : `${them.name} take it`
+        }`
+        return (
+          <div key={r.stat} className="cs-ki" role="listitem" aria-label={said}>
+            <span className="cs-pl" aria-hidden="true">
+              {statLabel(r.stat)}
+            </span>
+            <span className="cs-kc" aria-hidden="true">
+              <TeamCrest name={side.name} colour={side.colour} size={26} />
+            </span>
+            <span className="cs-kv num" aria-hidden="true">
+              <span className={r.winner === 'me' ? 'cs-w' : undefined}>{formatStat(r.stat, r.mine)}</span>
+              <i>·</i>
+              <span className={r.winner === 'them' ? 'cs-w' : undefined}>{formatStat(r.stat, r.theirs)}</span>
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function stripCategoriesOf(rows: readonly PickRow[]): PickRow[] {
+  const by = new Map(rows.map((r) => [r.stat, r]))
+  const known = CATEGORY_ORDER.filter((c) => by.has(c)).map((c) => by.get(c)!)
+  return [...known, ...rows.filter((r) => !(CATEGORY_ORDER as readonly string[]).includes(r.stat))]
 }

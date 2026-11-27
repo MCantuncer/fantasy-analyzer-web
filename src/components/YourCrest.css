@@ -1,11 +1,11 @@
-/* Your crest: the gold person badge on the crest's top-right corner, as in Standings (yc- prefix). */
-.yc {
+/* Your crest: the gold person badge on the crest's top-right corner, as in Standings (yourcrest prefix; --yc is the badge size). */
+.yourcrest {
   position: relative;
   display: inline-flex;
   flex: none;
 }
 
-.yc-me {
+.yourcrest-me {
   position: absolute;
   top: calc(var(--yc) * -0.33);
   right: calc(var(--yc) * -0.4);
@@ -19,7 +19,7 @@
   box-shadow: 0 0 0 1.5px var(--yc-ring, var(--bg));
 }
 
-.yc-me svg {
+.yourcrest-me svg {
   width: 66%;
   height: 66%;
 }

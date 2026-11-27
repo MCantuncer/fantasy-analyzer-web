@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render as rtlRender, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render as rtlRender, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PickupIdea, ScoreDay } from '../api/client'
 import { fetchScores } from '../api/client'
 import { setPlayerCardHost } from '../lib/playerCard'
@@ -10,8 +10,19 @@ import { Pickups } from './Pickups'
 vi.mock('../api/client', async (orig) => ({ ...(await orig<object>()), fetchScores: vi.fn() }))
 
 // Pickups reads today's games through react-query; without a source it never fetches.
-const render = (ui: ReactElement) =>
-  rtlRender(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>)
+const clients: QueryClient[] = []
+const render = (ui: ReactElement) => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  clients.push(client)
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>)
+}
+
+// Unmount every render and stop its queries, so no fetch or refetch timer lands after jsdom is torn
+// down (it did: React's scheduler threw "window is not defined" after the run, in CI).
+afterEach(() => {
+  cleanup()
+  for (const c of clients.splice(0)) c.clear()
+})
 
 const ref = (id: number, name: string) =>
   ({ id, name, positions: ['SF'], percent_owned: 40, injury_status: 'ACTIVE' }) as PickupIdea['add']

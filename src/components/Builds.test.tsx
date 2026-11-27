@@ -25,8 +25,8 @@ describe('Builds', () => {
     expect(names).toEqual(["Jze's Scary Team", 'Kucukesat Aspavas', 'Antalya Apaches'])
     const mine = document.querySelector('.bd-r.mine')!
     expect(mine.querySelector('.bd-nm')!.textContent).toBe('Kucukesat Aspavas')
-    expect(mine.querySelector('.yc > .yc-me')).toBeTruthy()
-    expect(document.querySelectorAll('.yc-me')).toHaveLength(1)
+    expect(mine.querySelector('.yourcrest > .yourcrest-me')).toBeTruthy()
+    expect(document.querySelectorAll('.yourcrest-me')).toHaveLength(1)
   })
 
   it("draws each team's nine ranks in the site's category order, punts and top two called out", () => {
