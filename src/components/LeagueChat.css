@@ -255,11 +255,6 @@
   white-space: nowrap;
 }
 
-.feed-you {
-  flex: none;
-  color: var(--gold-text);
-}
-
 .feed-players {
   display: contents;
 }
@@ -566,11 +561,6 @@
 .feed-side-team b {
   font-weight: 650;
   color: var(--text);
-}
-
-.feed-side-team .feed-you {
-  margin-left: 4px;
-  vertical-align: -1px;
 }
 
 .feed-side-list {
