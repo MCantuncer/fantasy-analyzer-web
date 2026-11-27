@@ -234,6 +234,19 @@ describe('News', () => {
     expect(within(trending).queryByText(/Biggest rise/)).not.toBeInTheDocument()
   })
 
+  it('says only what happened when there are no stories, with no explainer under it', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ ...PAGE, stories: [], refreshing: false }))),
+    )
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <News leagueId={1} season={2027} myTeamId={3} teams={TEAMS} creds={null} />
+      </QueryClientProvider>,
+    )
+    expect(await screen.findByText('No checked stories in the last 7 days.')).toBeInTheDocument()
+    expect(screen.queryByText(/A story shows once/)).not.toBeInTheDocument()
+  })
+
   it('filters by kind and by my roster', async () => {
     renderNews()
     await screen.findByText('Kris Dunn moves into the starting lineup')

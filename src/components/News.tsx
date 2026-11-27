@@ -577,10 +577,6 @@ function EmptyNews({ data }: { data: NewsPage }) {
     return (
       <div className="stack news-empty">
         <p>No checked stories in the last 7 days.</p>
-        <p className="small muted">
-          A story shows once ESPN's data confirms it or an outlet reports it. The source list says which sources are
-          answering.
-        </p>
       </div>
     )
   }
