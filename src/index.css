@@ -1610,14 +1610,6 @@ button.game-card:hover {
   font-size: 12px;
 }
 
-.game-mine .head-stack {
-  margin-right: 0;
-}
-
-.game-mine .head + .head {
-  margin-left: -6px;
-}
-
 .team-row {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) 3.5ch;

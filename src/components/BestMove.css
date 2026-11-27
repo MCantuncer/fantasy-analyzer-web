@@ -32,7 +32,6 @@
   color: var(--text-2);
 }
 
-.bm-sub,
 .bm-partner {
   grid-column: 1 / -1;
 }
