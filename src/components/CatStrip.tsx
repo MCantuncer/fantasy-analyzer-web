@@ -186,7 +186,8 @@ export interface PickSide {
 /**
  * CatStrip's `pick` variant (the Projected final): per category, the crest of the team projected
  * to take it and both projected figures under it, the winner's in ink. The same nine columns (and
- * key gutter) as the pair strip above it, so the categories line up. Close ones get the amber label.
+ * key gutter) as the pair strip above it, so the categories line up. Plain labels: the amber close
+ * mark belongs to the strip above, and the two projected figures already show how close it is.
  */
 export function CatStripPick({
   rows,
@@ -207,15 +208,10 @@ export function CatStripPick({
         const side = r.winner === 'me' ? me : them
         const said = `${r.stat}: you ${formatStat(r.stat, r.mine)}, ${them.name} ${formatStat(r.stat, r.theirs)}, ${
           r.winner === 'me' ? 'you take it' : `${them.name} take it`
-        }${r.close ? ', close' : ''}`
+        }`
         return (
           <div key={r.stat} className="cs-ki" role="listitem" aria-label={said}>
-            <span
-              className={r.close ? 'cs-pl cs-close' : 'cs-pl'}
-              title={r.close ? 'Close, can go either way' : undefined}
-              aria-hidden="true"
-            >
-              {r.close && <Target className="cs-ic" aria-hidden="true" />}
+            <span className="cs-pl" aria-hidden="true">
               {statLabel(r.stat)}
             </span>
             <span className="cs-kc" aria-hidden="true">

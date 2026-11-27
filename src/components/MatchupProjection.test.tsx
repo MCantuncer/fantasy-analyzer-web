@@ -59,13 +59,13 @@ describe('projected final', () => {
     expect(items[1].getAttribute('aria-label')).toBe(
       'FT%: you .500, Kavaklidere Boytoys .450, Kavaklidere Boytoys take it',
     )
-    expect(items[7].getAttribute('aria-label')).toBe(
-      'TO: you 100, Kavaklidere Boytoys 90, Kavaklidere Boytoys take it, close',
-    )
+    expect(items[7].getAttribute('aria-label')).toBe('TO: you 100, Kavaklidere Boytoys 90, Kavaklidere Boytoys take it')
     // A winner crest in every column, the winner's figure in ink.
     expect(strip.querySelectorAll('.cs-kc .crest')).toHaveLength(9)
     expect(items[0].querySelector('.cs-w')!.textContent).toBe('.500')
-    expect(strip.querySelector('.cs-close')!.textContent).toBe('TO↓')
+    // No close mark here: that one belongs to the strip above.
+    expect(strip.querySelector('.cs-close, .cs-ic')).toBeNull()
+    expect(items[7].querySelector('.cs-pl')!.textContent).toBe('TO↓')
   })
 
   it('says when the opponent is projected to win', () => {
