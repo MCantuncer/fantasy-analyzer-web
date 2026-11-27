@@ -3,13 +3,13 @@ import { Fragment, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   ArrowSquareOut,
-  ArrowElbowDownRight,
   ArrowsClockwise,
   ArrowUp,
   CaretDown,
   CaretLeft,
   CaretRight,
   ClockCountdown,
+  UserSwitch,
   UsersThree,
 } from '@phosphor-icons/react'
 import { fetchLineup, fetchScores } from '../api/client'
@@ -214,11 +214,12 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
         </div>
       </header>
 
-      {swap && <SwapNote swap={swap} espn={espn} />}
-      {call && (
-        <ul className="mp-notes">
-          <CallCard call={call} now={now} tray={tray} />
-        </ul>
+      {/* Notes, only when there's something to do: the swap, then the call. Bare text, one action. */}
+      {(swap || call) && (
+        <div className="mpn-notes">
+          {swap && <SwapNote swap={swap} espn={espn} />}
+          {call && <CallNote call={call} now={now} tray={tray} />}
+        </div>
       )}
 
       {/* Quiet Field, as on Today: the starters and their total on one soft field, the bench and IR on
@@ -293,20 +294,24 @@ function Ago({ iso }: { iso: string }) {
 function SwapNote({ swap, espn }: { swap: Swap; espn: string }) {
   const tip = swap.bench.game ? tipOff(swap.bench.game.start) : ''
   return (
-    <div className="mp-swap-note" role="note">
-      <p>
-        <b>Swap before {tip}:</b> <Last spot={swap.bench.spot} /> plays from your bench,{' '}
-        {swap.idle ? (
-          <>
-            <Last spot={swap.idle.spot} /> has no game in {swap.slot}.
-          </>
-        ) : (
-          <>your {swap.slot} slot is empty.</>
-        )}
-      </p>
-      <a className="button mp-swap-go" href={espn} target="_blank" rel="noopener noreferrer">
-        Open team in ESPN <ArrowSquareOut size={16} aria-hidden="true" />
-      </a>
+    <div className="mpn-item" role="note">
+      <UserSwitch size={20} className="mpn-ic" aria-hidden="true" />
+      <div className="mpn-body mpn-swap">
+        <p className="mpn-t">
+          <b>Swap before {tip}.</b> <Last spot={swap.bench.spot} /> plays from your bench and{' '}
+          {swap.idle ? (
+            <>
+              <Last spot={swap.idle.spot} /> has no game in {swap.slot}.
+            </>
+          ) : (
+            <>your {swap.slot} slot is empty.</>
+          )}
+        </p>
+        <a className="mpn-act" href={espn} target="_blank" rel="noopener noreferrer">
+          Open team in ESPN <ArrowSquareOut size={15} aria-hidden="true" />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
     </div>
   )
 }
@@ -712,18 +717,29 @@ function Last({ spot, tail }: { spot: Person; tail?: string }) {
 const at = (iso: string) => new Date(iso).getTime()
 const clockShort = (t: number) => tipOff(new Date(t).toISOString()).replace(/\s?[AP]M$/i, '')
 
+/** "55% of questionable players like him played", its number in ink. */
+function BasisWords({ text }: { text: string }) {
+  const m = /^(\d+%)(.*)$/.exec(text)
+  if (!m) return <>{text}</>
+  return (
+    <>
+      <span className="num mpn-n">{m[1]}</span>
+      {m[2]}
+    </>
+  )
+}
+
 /**
- * The game-time call, docked under the doubtful starter like a tray pulled from his row. On desktop
- * it is open: the decision, the night as two lanes (him and the bench player who can step in) to
- * their tip-offs, a gold column where the final word usually lands, and the two ifs. On phones it is
- * one 44px strip (the verdict, its deadline and a thumbnail of the lanes) that opens on a tap, and
- * opens itself when Can must decide now or the word is due.
+ * The game-time call, a note above the lineup. On desktop it is open: the decision, the night as
+ * lanes (him and the bench player who can step in) to their tip-offs, a gold column where the final
+ * word usually lands, and the ifs. On phones it is one 44px strip (the verdict and its deadline) that
+ * opens on a tap, and opens itself when Can must decide now or the word is due.
  */
-function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray }) {
+function CallNote({ call, now, tray }: { call: GameCall; now: number; tray: Tray }) {
   const { doubt, play, fill } = call
   const name = lastName(doubt.spot.name)
   const sub = fill ? lastName(fill.sub.spot.name) : ''
-  // In the open tray the names open the player card; the strip (a button) and the lanes' label keep the words.
+  // In the open note the names open the player card; the strip is a button, so it keeps plain words.
   const nameL = <Last spot={doubt.spot} />
   const subL = fill ? <Last spot={fill.sub.spot} /> : null
   const subTip = fill?.sub.game ? at(fill.sub.game.start) : null
@@ -731,209 +747,205 @@ function CallCard({ call, now, tray }: { call: GameCall; now: number; tray: Tray
   const span = Math.max(end - now, HOUR_MS)
   const x = (t: number) => Math.min(100, Math.max(0, ((t - now) / span) * 100))
   const time = (t: number) => tipOff(new Date(t).toISOString())
-  const wordShort = `${clockShort(call.wordFrom)}–${time(call.wordTo)}`
-  const gap = subTip ? Math.round(((subTip - call.tip) / HOUR_MS) * 2) / 2 : 0
-  const gapWords = gap === 1 ? 'an hour' : `${Math.abs(gap)} hours`
   const late = call.verdict === 'wait' && wordLate(call, now)
+  const ruledOut = play.chance === 0
   const lock = subTip ? clockShort(subTip) : ''
-  // The strip: why and by when, short enough for 360px. The row above already has the verb.
+  // The strip: the verb, then by when. Short enough for 360px.
   const strip: [string, string] =
     call.verdict === 'wait'
       ? late
-        ? ['Still no word', `decide by ${lock}`]
-        : ['Wait for the word', `free till ${lock}`]
-      : play.chance === 0
-        ? [`${sub} in at ${fill!.slot}`, `locks ${lock}`]
-        : [`${sub} locks ${lock}`, 'before the word']
+        ? [`Still no word on ${name}`, `decide by ${lock}`]
+        : [`Leave ${name} in`, `free till ${lock}`]
+      : ruledOut
+        ? [`Swap ${sub} in`, `locks ${lock}`]
+        : [play.chance < 0.3 ? `Swap ${name} out` : `Decide on ${name}`, `${sub} locks ${lock}`]
   const headline =
     call.verdict === 'wait' ? (
       late ? (
         <>
-          Still no word on <Last spot={doubt.spot} tail="." /> <span className="mp-call-soft">Decide by {time(subTip!)}.</span>
+          Still no word on {nameL}. Decide by {time(subTip!)}.
         </>
       ) : (
-        <>
-          Leave {nameL} in. <span className="mp-call-soft">Wait for the word.</span>
-        </>
+        <>Leave {nameL} in. Wait for the word.</>
       )
+    ) : ruledOut ? (
+      <>
+        {nameL} is ruled out. Swap {subL} in.
+      </>
     ) : (
       <>
-        {play.chance < 0.3 ? <>Swap {nameL} out now.</> : 'Decide now.'}{' '}
-        <span className="mp-call-soft">{play.chance === 0 ? "He's ruled out." : <>{subL} locks first.</>}</span>
+        {play.chance < 0.3 ? <>Swap {nameL} out now.</> : 'Decide now.'} {subL} locks first.
       </>
     )
+  const basis = basisShort(play)
   const lanes: { key: string; who: PlayerRow; t: number; role: string }[] = [
     { key: 'doubt', who: doubt, t: call.tip, role: 'doubt' },
     ...(fill && subTip ? [{ key: 'sub', who: fill.sub, t: subTip, role: 'sub' }] : []),
   ]
   const cols = { ['--c0' as string]: `${x(call.wordFrom)}%`, ['--c1' as string]: `${x(call.wordTo)}%` }
-  const basis = basisShort(play)
-  // Ruled out: the word has landed, so there is no column to wait for, only the sub's lock.
-  const ruledOut = play.chance === 0
-  // Inside the window the column starts at "now": one label says both.
-  const due = !ruledOut && !late && now >= call.wordFrom
-  return (
-    <li className={`mp-call ${call.verdict}${tray.open ? ' open' : ''}`} aria-label={`Game-time call: ${name}`}>
-      <button type="button" className="mp-call-strip" aria-expanded={tray.open} aria-controls={tray.id} onClick={tray.toggle}>
-        <span className="mp-thumb" style={cols} aria-hidden="true">
-          {lanes.map((l) => (
-            <i key={l.key} className={l.role} style={{ ['--x' as string]: `${x(l.t)}%` }} />
-          ))}
-        </span>
-        <span className="mp-strip-text">
-          <b>{strip[0]}</b>
-          <em> · </em>
-          {strip[1]}
-        </span>
-        <CaretDown size={16} weight="bold" className="mp-strip-caret" aria-hidden="true" />
-      </button>
-
-      <div className="mp-call-body" id={tray.id}>
-        <div className="mp-call-lead">
-          <p className="mp-call-kicker">
-            <ClockCountdown size={14} weight="bold" aria-hidden="true" />
-            Game-time call
-          </p>
-          <p className="mp-call-head">{headline}</p>
-          {basis && (
-            <p className="mp-call-odds" title={play.basis}>
-              <span className="num mp-call-n">{pct(play.chance)}</span>
-              <span className="mp-call-n-label">{basis.replace(/^\d+% /, '')}</span>
-            </p>
-          )}
-        </div>
-
-        <div className="mp-call-time" role="img" aria-label={laneWords(call, name, sub, time)}>
-          <div className="mp-lanes" style={cols}>
-            <span className="mp-now" aria-hidden="true">
-              {due ? 'Now · word due' : 'Now'}
-            </span>
-            {!ruledOut && !late && (
+  // Ruled out or late, there is no word column to wait for. Inside the window it starts at "now".
+  const word = !ruledOut && !late
+  const due = word && now >= call.wordFrom
+  const gap = subTip ? Math.round(((subTip - call.tip) / HOUR_MS) * 2) / 2 : 0
+  const gapWords = gap === 1 ? 'an hour' : `${Math.abs(gap)} hours`
+  // The third if: why the timing is what it is.
+  const why: { wide: string; narrow: string; body: ReactNode } | null =
+    fill && subTip
+      ? ruledOut
+        ? {
+            wide: 'By',
+            narrow: 'By',
+            body: (
               <>
-                <span className={`mp-word${x(call.wordFrom) > 55 ? ' end' : ''}${due ? ' due' : ''}`} aria-hidden="true">
-                  <span className="mp-wide">Final word usually </span>
-                  <span className="mp-narrow">Word </span>~<span className="num">{wordShort}</span>
-                </span>
-                <span className="mp-col" aria-hidden="true" />
+                <b>{time(subTip)}</b>, when {subL}'s game locks
               </>
-            )}
+            ),
+          }
+        : late
+          ? {
+              wide: 'Deadline',
+              narrow: 'By',
+              body: (
+                <>
+                  <b>{time(subTip)}</b>, when {subL} locks
+                </>
+              ),
+            }
+          : call.free
+            ? {
+                wide: 'Why wait',
+                narrow: 'Wait',
+                body: (
+                  <>
+                    {subL} tips {gapWords} after <Last spot={doubt.spot} tail=":" /> <b>waiting is free until {time(subTip)}.</b>
+                  </>
+                ),
+              }
+            : {
+                wide: 'Why now',
+                narrow: 'Now',
+                body: (
+                  <>
+                    {subL} tips at <span className="num">{time(subTip)}</span>, before <Last spot={doubt.spot} tail="'s" /> word
+                    lands.
+                  </>
+                ),
+              }
+      : null
+  return (
+    <div className={`mpn-item mpn-call${tray.open ? ' open' : ''}`} role="group" aria-label={`Game-time call: ${name}`}>
+      <ClockCountdown size={20} className="mpn-ic" aria-hidden="true" />
+      <div className="mpn-body">
+        <p className="mpn-t mpn-call-head">
+          <b>{headline}</b>
+          {basis && !ruledOut && (
+            <>
+              {' '}
+              <BasisWords text={basis} />.
+            </>
+          )}
+        </p>
+        <button type="button" className="mpn-strip" aria-expanded={tray.open} aria-controls={tray.id} onClick={tray.toggle}>
+          <span className="mpn-strip-t">
+            <b>{strip[0]}</b> · {strip[1]}
+          </span>
+          <CaretDown size={16} weight="bold" className="mpn-caret" aria-hidden="true" />
+        </button>
+
+        <div className="mpn-call-body" id={tray.id}>
+          <div className="mpn-lanes" role="img" aria-label={laneWords(call, name, sub, time)}>
+            <span className="mpn-art" style={cols} aria-hidden="true">
+              <span className="mpn-now-l">{due ? 'Now · word due' : 'Now'}</span>
+              <span className="mpn-now" />
+              {word && !due && (
+                <span className={`mpn-word-l${x(call.wordFrom) > 55 ? ' end' : ''}`}>
+                  Word usually {clockShort(call.wordFrom)}–{clockShort(call.wordTo)}
+                </span>
+              )}
+              {word && <span className="mpn-word" />}
+            </span>
             {lanes.map((l) => (
-              <span
-                key={l.key}
-                className={`mp-lane ${l.role}${x(l.t) < 45 ? ' short' : ''}${x(l.t) < 25 ? ' tiny' : ''}`}
-                style={{ ['--x' as string]: `${x(l.t)}%` }}
-              >
-                <span className="mp-lane-who">
-                  {lastName(l.who.spot.name)}
-                  <span className="mp-lane-who-t">
-                    {' '}
-                    · <span className="num">{time(l.t)}</span>
-                  </span>
+              <span key={l.key} className={`mpn-lane ${l.role}`} aria-hidden="true">
+                <span className="mpn-lane-who">{lastName(l.who.spot.name)}</span>
+                <span className="mpn-track" style={{ ['--x' as string]: `${x(l.t)}%` }}>
+                  <span className="mpn-bar" />
+                  <span className="mpn-tip num">{time(l.t)}</span>
                 </span>
-                <span className="mp-lane-tip">
-                  <span className="num">{time(l.t)}</span>
-                  <span className="mp-wide"> tip</span>
-                </span>
-                <span className="mp-lane-bar" />
               </span>
             ))}
           </div>
-          {fill && subTip && (
-            <p className="mp-call-why">
-              {ruledOut ? (
-                <>
-                  Nothing to wait for: <b>swap {subL} in by {time(subTip)}</b>, when his game locks.
-                </>
-              ) : late ? (
-                <>
-                  No word on {nameL} yet. <b>Decide by {time(subTip)}</b>, when {subL} locks.
-                </>
-              ) : call.free ? (
-                <>
-                  {subL} tips {gapWords} after <Last spot={doubt.spot} tail=":" /> <b>waiting is free until {time(subTip)}.</b>
-                </>
-              ) : (
-                <>
-                  {subL} tips at <span className="num">{time(subTip)}</span>, before <Last spot={doubt.spot} tail="'s" /> word lands.
-                </>
-              )}
-            </p>
-          )}
-        </div>
 
-        <ul className="mp-call-ifs">
-          {fill && (
-            <>
+          <ul className="mpn-ifs">
+            {fill && (
               <li>
-                <ArrowElbowDownRight size={14} weight="bold" aria-hidden="true" />
-                <span className="mp-if">
+                <span className="mpn-if">
                   {call.verdict === 'now' ? (
                     'Swap now'
                   ) : (
                     <>
-                      <span className="mp-wide">Ruled out</span>
-                      <span className="mp-narrow">Sits</span>
+                      <span className="mpn-wide">Ruled out</span>
+                      <span className="mpn-narrow">Sits</span>
                     </>
                   )}
                 </span>
                 <span>{fillWords(fill, doubt.spot.slot)}</span>
               </li>
-              {play.chance > 0 && (
-                <li>
-                  <ArrowElbowDownRight size={14} weight="bold" aria-hidden="true" />
-                  <span className="mp-if">
-                    {call.verdict === 'now' ? (
-                      'Keep him'
-                    ) : (
-                      <>
-                        <span className="mp-wide">He plays</span>
-                        <span className="mp-narrow">Plays</span>
-                      </>
-                    )}
-                  </span>
-                  <span>
-                    {call.planB ? (
-                      <>
-                        <b>{subL}</b> takes <Last spot={call.planB.row.spot} tail="'s" /> spot
-                        <span className="mp-wide">
-                          {' '}
-                          (<span className="num">{pct(call.planB.row.spot.play!.chance)}</span> to play) by{' '}
-                          <span className="num">{time(subTip ?? call.tip)}</span>
-                        </span>
-                      </>
-                    ) : call.verdict === 'now' ? (
-                      <>
-                        <span className="num">{pct(play.chance)}</span> he plays, {subL} sits
-                      </>
-                    ) : (
-                      <>{subL} stays on the bench</>
-                    )}
-                  </span>
-                </li>
-              )}
-            </>
-          )}
-        </ul>
+            )}
+            {fill && play.chance > 0 && (
+              <li>
+                <span className="mpn-if">
+                  {call.verdict === 'now' ? (
+                    'Keep him'
+                  ) : (
+                    <>
+                      <span className="mpn-wide">He plays</span>
+                      <span className="mpn-narrow">Plays</span>
+                    </>
+                  )}
+                </span>
+                <span>
+                  {call.planB ? (
+                    <>
+                      <b>{subL}</b> takes <Last spot={call.planB.row.spot} tail="'s" /> spot
+                      <span className="mpn-wide">
+                        {' '}
+                        (<span className="num">{pct(call.planB.row.spot.play!.chance)}</span> to play) by{' '}
+                        <span className="num">{time(subTip ?? call.tip)}</span>
+                      </span>
+                    </>
+                  ) : call.verdict === 'now' ? (
+                    <>
+                      <span className="num">{pct(play.chance)}</span> he plays, {subL} sits
+                    </>
+                  ) : (
+                    <>{subL} stays on the bench</>
+                  )}
+                </span>
+              </li>
+            )}
+            {why && (
+              <li>
+                <span className="mpn-if">
+                  <span className="mpn-wide">{why.wide}</span>
+                  <span className="mpn-narrow">{why.narrow}</span>
+                </span>
+                <span>{why.body}</span>
+              </li>
+            )}
+          </ul>
 
-        <p className="mp-call-news">
-          {play.news ? (
-            <>
-              <span className="mp-call-news-t">“{play.news}”</span>
-              <span className="mp-call-news-at"> ESPN · {newsAge(play, now).replace('news ', '')}</span>
-            </>
-          ) : (
-            <span className="mp-call-news-at">No word from the team yet.</span>
-          )}
-        </p>
-        {basis && (
-          <p className="mp-call-basis">
-            {basisShort(play, true)}
-            <em> · </em>
-            {newsAge(play, now)}
+          <p className="mpn-news">
+            {play.news ? (
+              <>
+                “{play.news}” <span className="mpn-news-at">ESPN · {newsAge(play, now).replace('news ', '')}</span>
+              </>
+            ) : (
+              <span className="mpn-news-at">No word from the team yet.</span>
+            )}
           </p>
-        )}
+        </div>
       </div>
-    </li>
+    </div>
   )
 }
 

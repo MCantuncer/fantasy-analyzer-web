@@ -1,36 +1,5 @@
 /* Trade rows on Moves. */
 
-/* A quiet caveat (e.g. you give up one of the league's jewels): a small amber mark beside muted
-   text, so it reads as a note on the deal rather than an alarm. */
-.trades-warning {
-  list-style: none;
-  margin: 0 0 4px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.trades-warning li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.trades-warning svg {
-  flex: none;
-  margin-top: 2px;
-  color: var(--warn);
-}
-
-/* Overview / Feedback tabs inside an open trade sit centred over the details. */
-.move-tabs {
-  justify-content: center;
-}
-
 /* Trades to offer on Moves (mvt- prefix, Quiet Lead): a bare section, two control lines, then
    numbered rows on the bare page. A row: the partner and the accept word on top, then Centre Line's
    geometry (you give | your odds | you get), then Show details and the expected gain. Rows are
@@ -451,9 +420,121 @@
   color: var(--muted);
 }
 
-/* Opened: the details sit inside the lifted row. */
-.mvt-item .move-tabs {
-  margin-top: 4px;
+/* Opened: the details sit inside the lifted row, one level deep. Overview | Feedback as a 44px
+   segment, then two columns: the pitch and their side of the deal (Centre Line's TheirSide), and the
+   weekly win chance strip with the deal's notes, each a line with its mark. */
+.mvt-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 8px 16px 20px 40px;
+}
+
+.mvt-tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(104px, auto));
+  padding: 2px;
+  border-radius: 12px;
+  background: var(--track);
+}
+
+.mvt-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.mvt-tabs button[aria-selected='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+.mvt-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 28px 32px;
+  width: 100%;
+}
+
+.mvt-fb {
+  width: 100%;
+}
+
+.mvt-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* The strip's heading over its summary, as in the design: the column is too narrow for both on one line. */
+.mvt-aside .cs-head {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mvt-cats {
+  font-weight: 650;
+}
+
+/* Copy pitch and Check This Trade keep their words on one line: side by side when they fit, else stacked. */
+.mvt-detail .tt-btn {
+  white-space: nowrap;
+}
+
+/* A fact's figure stays on one line; its label wraps instead. */
+.mvt-detail .tt-facts dd {
+  white-space: nowrap;
+}
+
+.mvt-detail .tt-facts > div {
+  padding: 4px 0;
+}
+
+.mvt-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mvt-notes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-2);
+}
+
+.mvt-notes svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.mvt-notes .mvt-notes-warn svg {
+  color: var(--warn);
+}
+
+.mvt-aside .badge-notes {
+  padding-left: 0;
+  list-style: none;
+  font-size: 13px;
 }
 
 @container mvt-list (max-width: 559px) {
@@ -483,6 +564,14 @@
   .mvt-odds-them {
     margin-top: 0;
   }
+
+  .mvt-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mvt-detail {
+    padding-left: 16px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -508,6 +597,15 @@
   .mvt-deal,
   .mvt-foot {
     grid-column: 1;
+  }
+
+  .mvt-detail {
+    padding: 4px 8px 16px;
+  }
+
+  .mvt-tabs {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

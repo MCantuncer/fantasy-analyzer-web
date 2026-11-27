@@ -22,10 +22,15 @@ const idea = {
   acceptance_label: 'possible',
   value_they_get: 15,
   value_they_give: 13,
+  my_cats_gain: 0.13,
+  their_cats_gain: -0.03,
+  pitch: 'Helps their FT% (5th in the league).',
+  pitch_needs: [{ category: 'FT%', league_rank: 5, per_game: null }],
+  owner_premium: 0,
   reasons: [],
   facts: [],
   warnings: [],
-  category_changes: {},
+  category_changes: { REB: 0.09, AST: -0.04 },
 } as unknown as TradeIdea
 
 const show = (ui: ReactElement) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>)
@@ -93,7 +98,7 @@ function OneTrade({ trade }: { trade: TradeIdea }) {
   const [open, setOpen] = useState(false)
   return (
     <ul>
-      <TradeItem trade={trade} id="t1" open={open} onToggle={() => setOpen((o) => !o)} why="Why" />
+      <TradeItem trade={trade} id="t1" open={open} onToggle={() => setOpen((o) => !o)} />
     </ul>
   )
 }
@@ -134,7 +139,7 @@ describe('TradeItem', () => {
     const onToggleKeep = vi.fn()
     const row = (keep: number[]) => (
       <ul>
-        <TradeItem trade={idea} id="t1" open onToggle={() => {}} why="Why" keeper={{ keep, onToggleKeep }} />
+        <TradeItem trade={idea} id="t1" open onToggle={() => {}} keeper={{ keep, onToggleKeep }} />
       </ul>
     )
     const view = show(row([]))
@@ -154,7 +159,7 @@ describe('TradeItem', () => {
   it('dims an offer that gives a player you just kept, and says why', () => {
     const row = (keep: number[]) => (
       <ul>
-        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} why="Why" keeper={{ keep, onToggleKeep: () => {} }} />
+        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} keeper={{ keep, onToggleKeep: () => {} }} />
       </ul>
     )
     const view = show(row([]))
@@ -171,8 +176,8 @@ describe('TradeItem', () => {
   it('leaves the Keep locks out of a closed row and of lists without a Keep list', () => {
     show(
       <ul>
-        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} why="Why" keeper={{ keep: [], onToggleKeep: () => {} }} />
-        <TradeItem trade={idea} id="t2" open onToggle={() => {}} why="Why" />
+        <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} keeper={{ keep: [], onToggleKeep: () => {} }} />
+        <TradeItem trade={idea} id="t2" open onToggle={() => {}} />
       </ul>,
     )
     expect(screen.queryByRole('button', { name: /^Keep / })).toBeNull()
@@ -194,5 +199,66 @@ describe('TradeItem', () => {
     expect(odds.querySelector('.mvt-odds-big')).toHaveTextContent('55%')
     expect(odds.querySelector('.mvt-odds-from')).toHaveTextContent('from 51% ▲+4 pts')
     expect(odds.querySelector('.mvt-odds-them')).toHaveTextContent('Them 89% → 88% ▼−1')
+  })
+
+  it('opens to their side of the deal, the weekly strip and the notes, and checks the trade as one you send', () => {
+    const onCheck = vi.fn()
+    const trade = {
+      ...idea,
+      give: [ref(1, 'Davion Mitchell'), ref(4, 'Aday Mara')],
+      my_add: ref(5, 'Paul Reed'),
+      their_drop: ref(6, 'Klay Thompson'),
+      facts: [
+        { kind: 'paper_win', tone: 'for', text: 'On paper they win.', ratio: 1.38 },
+        { kind: 'sell_high', tone: 'for', text: 'Sell high', player_id: 1, player_name: 'Davion Mitchell', owners_value: 13, our_value: 3 },
+        { kind: 'roster_squeeze', tone: 'against', text: 'They have to cut a player.', count: 1 },
+        { kind: 'vs_pickup', tone: 'note', text: 'Measured against just adding Paul Reed.', player_id: 5, player_name: 'Paul Reed' },
+      ],
+    } as unknown as TradeIdea
+    const { container } = show(
+      <ul>
+        <TradeItem
+          trade={trade}
+          id="t1"
+          open
+          onToggle={() => {}}
+          categories={['REB', 'AST']}
+          pickups={[{ add: ref(5, 'Paul Reed'), drop: ref(9, 'Neemias Queta') } as never]}
+          onCheck={onCheck}
+        />
+      </ul>,
+    )
+    // The pitch and their side, flat: the sell-high fact names the player and both prices.
+    expect(screen.getByRole('heading', { name: 'Your pitch to Aliaga Hermanos' })).toBeInTheDocument()
+    const facts = container.querySelector('.tt-facts') as HTMLElement
+    expect(facts).toHaveTextContent('Sell high on Davion Mitchell$13 paid · $3 worth')
+    expect(facts).toHaveTextContent('Roster squeeze1 player they cut')
+    // The paper win is the "On paper" row, never a second one.
+    expect(facts.textContent?.match(/On paper/g)).toHaveLength(1)
+    // The strip and its summary.
+    expect(container.querySelector('.cs-sum')).toHaveTextContent('+0.13 categories won a week')
+    expect(screen.getByRole('listitem', { name: 'REB +9 points' })).toBeInTheDocument()
+    // Notes: each player named opens the card, and the measured-against line names the drop too.
+    const notes = container.querySelector('.mvt-notes') as HTMLElement
+    expect(notes).toHaveTextContent('Pick up Paul Reed for the open spot. The odds include him.')
+    expect(notes).toHaveTextContent('Odds vs. just adding Paul Reed for Neemias Queta')
+    expect(notes).not.toHaveTextContent('count only what the trade adds')
+    expect(notes).toHaveTextContent('They would likely drop Klay Thompson.')
+    expect(notes).toHaveTextContent('A roster squeeze deal is accepted about half as often as a 1-for-1.')
+    expect(within(notes).getByText('Neemias Queta').closest('.pin')?.querySelector('.head')).not.toBeNull()
+    expect(container.querySelector('.pc-rt, .rt, .impact')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Check This Trade' }))
+    expect(onCheck).toHaveBeenCalledWith({ partner: 7, give: [1, 4], get: [2], mode: 'sending', cut: null })
+  })
+
+  it('leaves Check This Trade out where there is no Check a Trade to open', () => {
+    show(
+      <ul>
+        <TradeItem trade={idea} id="t1" open onToggle={() => {}} />
+      </ul>,
+    )
+    expect(screen.getByRole('button', { name: 'Copy pitch' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Check This Trade' })).toBeNull()
+    expect(screen.queryByRole('tablist')).toBeNull()
   })
 })
