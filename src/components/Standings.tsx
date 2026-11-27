@@ -113,13 +113,6 @@ export function Standings({
           </div>
         )}
       </div>
-      <p className="st-sub">
-        {view === 'current'
-          ? 'Category record so far'
-          : view === 'projected'
-            ? 'Thousands of simulated seasons'
-            : 'How each manager plays. Tap a label for its number.'}
-      </p>
 
       {view === 'current' && (
         <ol className="st-list" aria-label="Current standings">

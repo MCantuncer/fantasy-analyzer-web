@@ -40,14 +40,8 @@
   white-space: nowrap;
 }
 
-.st-sub {
-  margin: 2px 4px 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
 .st-list {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }

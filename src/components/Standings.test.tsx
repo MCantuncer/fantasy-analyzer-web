@@ -59,7 +59,7 @@ describe('Standings trade check', () => {
 describe('Standings rows', () => {
   it('reads as bare rows with your row marked and the playoff line labelled after the 6th', () => {
     render(<Standings teams={ten} colours={new Map()} myTeamId={3} playoffTeams={6} onCheckTrade={() => {}} />)
-    expect(screen.getByText('Category record so far')).toBeTruthy()
+    expect(screen.queryByText('Category record so far')).toBeNull()
     expect(screen.queryByText(/make the playoffs/)).toBeNull()
     const list = screen.getByRole('list', { name: 'Current standings' })
     const items = [...list.children] as HTMLElement[]
@@ -90,7 +90,6 @@ describe('Standings rows', () => {
   it('shows the season simulation on Projected: odds bar, yours lit, 1st seed', () => {
     render(<Standings teams={ten} colours={new Map()} myTeamId={3} playoffTeams={6} projected={season} />)
     fireEvent.click(screen.getByRole('button', { name: 'Projected' }))
-    expect(screen.getByText('Thousands of simulated seasons')).toBeTruthy()
     const list = screen.getByRole('list', { name: 'Projected standings' })
     const rows = list.querySelectorAll('.st-r')
     expect(rows).toHaveLength(10)
