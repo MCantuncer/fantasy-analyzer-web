@@ -22,7 +22,6 @@ function Door({ onJoin }: { onJoin: () => void }) {
         <OpenCrest />
         <span className="smp-door-text">
           <span className="smp-door-main">Get my best move</span>
-          <span className="smp-door-sub">Your ESPN league, your team</span>
         </span>
       </button>
     </div>
@@ -100,9 +99,6 @@ function ScoutList({
         <ListNumbers size={20} aria-hidden="true" />
         Scout another team
       </h2>
-      <p className="small muted">
-        Every team here gets its own best move. Projected finish; the top {spots} make the playoffs.
-      </p>
       <ol className="smp-ladder">
         {ladder.map((t) => {
           const here = t.id === scout.id
@@ -141,7 +137,6 @@ function ScoutList({
         <OpenCrest size={24} />
         <span className="smp-yours-text">
           <span className="smp-team-name">Your team</span>
-          <span className="small muted">Not in this sample. Get its own best move.</span>
         </span>
         <CaretRight size={16} weight="bold" aria-hidden="true" />
       </button>
