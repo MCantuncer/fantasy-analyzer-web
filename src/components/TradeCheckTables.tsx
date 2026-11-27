@@ -175,11 +175,13 @@ export function TradeCheckTables({ check, myName, partnerName, partnerColour }: 
                     punt={myPunts.has(r.category)}
                   />
                   <th scope="row" className="tck-tb-spine">
-                    {r.category}
-                    {r.category === 'TO' && (
-                      <small aria-label="fewer turnovers wins">
-                        <ArrowDown size={9} weight="bold" aria-hidden="true" /> fewer
-                      </small>
+                    {r.category === 'TO' ? (
+                      <>
+                        <span aria-hidden="true">TO↓</span>
+                        <span className="sr-only">turnovers, lower wins</span>
+                      </>
+                    ) : (
+                      r.category
                     )}
                     {(myPunts.has(r.category) || theirPunts.has(r.category)) && (
                       <small className="tck-tb-punt">

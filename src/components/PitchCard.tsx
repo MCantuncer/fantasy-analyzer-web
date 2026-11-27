@@ -56,14 +56,11 @@ export function PitchCard({ partner, colour, flap, teams, pitch, needs, children
           <span className="pp-to-k">Your pitch to</span> <span className="pp-to-v">{partner}</span>
         </header>
         {list.length > 0 ? (
-          <>
-            <p className="pp-lede">This trade gives you</p>
-            <ul className="pp-gifts">
-              {list.map((n) => (
-                <Gift key={n.category} need={n} teams={teams} />
-              ))}
-            </ul>
-          </>
+          <ul className="pp-gifts">
+            {list.map((n) => (
+              <Gift key={n.category} need={n} teams={teams} />
+            ))}
+          </ul>
         ) : (
           <p className="pp-lede pp-empty">Balances your roster without costing you a category.</p>
         )}
@@ -92,17 +89,17 @@ function Gift({ need: n, teams }: { need: Need; teams?: number }) {
   const turnover = n.category === 'TO'
   // per_game is the gain, already flipped for TO: shown as fewer turnovers.
   const big = n.per_game == null ? 'Improves' : `${turnover ? '−' : '+'}${n.per_game.toFixed(1)}`
-  const sub = n.per_game == null ? (LONG[n.category] ?? n.category) : (UNIT[n.category] ?? 'a game')
+  const sub = n.per_game == null ? `their ${LONG[n.category] ?? n.category}` : (UNIT[n.category] ?? 'a game')
   const rank = `${ordinal(n.league_rank)}${teams ? ` of ${teams}` : ''}`
   const sr =
     n.per_game == null
-      ? `${LONG[n.category] ?? n.category}: ${rank} in the league now, improves`
-      : `${LONG[n.category] ?? n.category}: ${rank} in the league now, ${turnover ? 'down' : 'up'} ${n.per_game.toFixed(1)} a game`
+      ? `Their ${LONG[n.category] ?? n.category}: ${rank} in the league now, improves`
+      : `Their ${LONG[n.category] ?? n.category}: ${rank} in the league now, ${turnover ? 'down' : 'up'} ${n.per_game.toFixed(1)} a game`
   return (
     <li className="pp-gift">
       <span className="sr-only">{sr}</span>
       <div className="pp-gift-top" aria-hidden="true">
-        <span className="pp-cat">{n.category}</span>
+        <span className="pp-cat">{turnover ? 'TO↓' : n.category}</span>
         <span className="pp-rank num">
           {ordinal(n.league_rank)}
           {teams ? <span className="pp-of">/{teams}</span> : null}

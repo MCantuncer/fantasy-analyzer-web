@@ -391,17 +391,18 @@
   font-weight: 650;
 }
 
-.tt-pcol-h span {
+.tt-pcol-h > .num {
   font-size: 12px;
   font-weight: 500;
   color: var(--muted);
 }
 
+/* Their gain, not yours: ink, not the "helps you" blue. */
 .tt-pcol-v {
   font-size: 28px;
   line-height: 34px;
   font-weight: 700;
-  color: var(--good);
+  color: var(--text);
 }
 
 .tt-pcol-u {
@@ -448,15 +449,6 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-2);
-}
-
-.tt-facts dd.good,
-.tt-facts dd .good {
-  color: var(--good);
-}
-
-.tt-facts dd.bad {
-  color: var(--bad);
 }
 
 /* ---------- States ---------- */

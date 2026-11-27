@@ -4,7 +4,7 @@ import './ChangeDot.css'
 
 /**
  * Before and after on one track: a muted ring for today, a solid dot for after the trade, and the
- * segment between them. Your side is green or coral; the other team's side is always partner violet,
+ * segment between them. Your side is blue (helps you) or orange (hurts you); the other team's side is always partner violet,
  * full strength for a gain and faded for a loss. Values are shares (0..1) on a 0..100 axis that grows
  * away from the centre seam: leftward for you (`me`), rightward for them. Decorative: the numbers
  * beside it carry the meaning.

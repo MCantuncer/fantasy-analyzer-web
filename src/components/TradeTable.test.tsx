@@ -83,6 +83,7 @@ describe('TheirSide', () => {
         needs={[
           { category: 'FG%', league_rank: 7, per_game: null },
           { category: 'REB', league_rank: 7, per_game: 2 },
+          { category: 'TO', league_rank: 3, per_game: null },
         ]}
         teams={10}
         valueGet={7.5}
@@ -97,6 +98,7 @@ describe('TheirSide', () => {
     expect([...container.querySelectorAll('.tt-pcol')].map((c) => c.textContent)).toEqual([
       'FG%7th of 10Improvestheir field goal %',
       'REB7th of 10+2.0rebounds a game',
+      'TO↓turnovers, lower wins3rd of 10Improvestheir turnovers',
     ])
     expect(view.getByRole('button', { name: 'Copy pitch' })).toBeInTheDocument()
     expect(view.getByRole('button', { name: 'Check This Trade' })).toBeInTheDocument()
@@ -104,6 +106,8 @@ describe('TheirSide', () => {
       'On paper they get107% of what they send',
       'Their categories a week−0.02',
     ])
+    // Their side is theirs: no "good for you" or "bad for you" colour anywhere in it.
+    expect(container.querySelector('.good, .bad')).toBeNull()
   })
 
   it('shows the trade value only when there is no on-paper share to show', () => {

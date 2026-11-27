@@ -303,7 +303,7 @@ export function TheirSide({
             <div>
               <dt>On paper they get</dt>
               <dd className="num">
-                <span className={paper >= 100 ? 'good' : undefined}>{paper}%</span> <small>of what they send</small>
+                {paper}% <small>of what they send</small>
               </dd>
             </div>
           )}
@@ -318,7 +318,7 @@ export function TheirSide({
           )}
           <div>
             <dt>Their categories a week</dt>
-            <dd className={`num ${theirCats > 0 ? 'good' : theirCats < 0 ? 'bad' : ''}`}>{signed(theirCats)}</dd>
+            <dd className="num">{signed(theirCats)}</dd>
           </div>
         </dl>
       </div>
@@ -334,7 +334,14 @@ function PitchColumn({ need: n, teams }: { need: PitchNeed; teams?: number }) {
   return (
     <li className="tt-pcol">
       <span className="tt-pcol-h">
-        {n.category}
+        {turnover ? (
+          <span className="tt-pcol-c">
+            <span aria-hidden="true">TO↓</span>
+            <span className="sr-only">turnovers, lower wins</span>
+          </span>
+        ) : (
+          <span className="tt-pcol-c">{n.category}</span>
+        )}
         <span className="num">
           {ordinal(n.league_rank)}
           {teams ? ` of ${teams}` : ''}
