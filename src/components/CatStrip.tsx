@@ -79,7 +79,7 @@ export interface CatStripPairProps {
   keyed?: 'name' | 'crest' | false
   /** The list's accessible name, e.g. "Today's categories, with the week so far". */
   label: string
-  /** Flag categories that are close this week (amber label + Target). Off for a strip without a week. */
+  /** Flag categories that are close this week (ink label with a Target, underlined on phones). Off for a strip without a week. */
   close?: boolean
 }
 
@@ -114,7 +114,7 @@ function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boo
  * Two teams' categories as a line score: per category, the top team's figure, a bar from a short
  * zero tick toward whoever leads (its length is the margin, from leadReach), and the other team's
  * figure, each with an optional small week figure under it. Close categories (isClose on the
- * week) get an amber label and a Target. Screen readers hear one item per category with the
+ * week) get an ink label with a Target (an underline on phones). Screen readers hear one item per category with the
  * whole reading.
  */
 export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label, close = true }: CatStripPairProps) {
@@ -188,7 +188,7 @@ export interface PickSide {
 /**
  * CatStrip's `pick` variant (the Projected final): per category, the crest of the team projected
  * to take it and both projected figures under it, the winner's in ink. The same nine columns (and
- * key gutter) as the pair strip above it, so the categories line up. Plain labels: the amber close
+ * key gutter) as the pair strip above it, so the categories line up. Plain labels: the close
  * mark belongs to the strip above, and the two projected figures already show how close it is.
  */
 export function CatStripPick({
