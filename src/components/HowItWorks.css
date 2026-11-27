@@ -1,0 +1,119 @@
+/* "How this works" (hiw- prefix): a bare 56px row on the page, no panel. Open, up to four short
+   columns, then the notes one per line under the only rule. */
+.hiw-sec {
+  margin-top: 8px;
+}
+
+.hiw-sec .hiw-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% + 32px);
+  min-height: 56px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms;
+}
+
+.hiw-sec .hiw-row:hover {
+  background: var(--field-hover);
+}
+
+.hiw-row b {
+  flex: 1;
+  font-weight: 600;
+}
+
+.hiw-ic {
+  flex: none;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.hiw-caret {
+  flex: none;
+  font-size: 16px;
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+
+.hiw-row[aria-expanded='true'] .hiw-caret {
+  transform: rotate(180deg);
+}
+
+.hiw-body {
+  display: grid;
+  gap: 20px;
+  padding: 8px 0 16px;
+}
+
+.hiw-body[hidden] {
+  display: none;
+}
+
+.hiw-parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px 32px;
+}
+
+.hiw-part h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 20px;
+  color: var(--text);
+}
+
+.hiw-part p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.hiw-big {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 28px;
+  color: var(--text);
+}
+
+.hiw-notes {
+  display: grid;
+  gap: 10px;
+  max-width: 72ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* The only rule: under the columns, across the full width. */
+.hiw-parts:has(+ .hiw-notes) {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.hiw-notes b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-sec .hiw-row,
+  .hiw-caret {
+    transition: none;
+  }
+}

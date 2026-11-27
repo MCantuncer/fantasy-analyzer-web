@@ -28,6 +28,7 @@ import { NewsSince, type NewsSinceProps } from './NewsSince'
 import type { NewsRowKind } from '../lib/newsSince'
 import type { Credentials } from '../lib/credentials'
 import { Untouchable, UntouchableLine, UntouchableWorking } from './Untouchable'
+import { HowItWorks, type HowPart } from './HowItWorks'
 import { useUntouchableAsked } from '../lib/untouchable'
 import { tradeKey } from '../lib/format'
 import { useManagerStyles } from '../lib/useManagerStyles'
@@ -76,6 +77,32 @@ interface Props {
   onDismissNews?: () => void
   /** Set while the team is picked but not verified: opens the ESPN check. Chat, feedback and rules wait for it. */
   onVerify?: () => void
+}
+
+/** How this works: the run on every tab; on Moves also what ranks the trades and the two lists. */
+function howParts(report: AnalysisReport, moves: boolean): HowPart[] {
+  const run: HowPart = {
+    title: 'The model',
+    body: (
+      <>
+        <b className="hiw-big num">{report.assumptions.simulations.toLocaleString()}</b>
+        season simulations, run in <span className="num">{(report.elapsed_ms / 1000).toFixed(1)}</span>s.
+      </>
+    ),
+  }
+  if (!moves) return [run]
+  return [
+    run,
+    {
+      title: 'Expected gain',
+      body: 'Your odds gain times the chance they say yes. Trades are ranked by it.',
+    },
+    { title: 'Chance they say yes', body: 'How offers like this one went in real leagues: Likely, Possible or Long shot.' },
+    {
+      title: 'Fair and Bold',
+      body: "Fair: both teams' odds rise at least a point. Bold: they win on paper, you win on the court.",
+    },
+  ]
 }
 
 export function Report({
@@ -352,18 +379,7 @@ export function Report({
         )}
 
         {tab !== 'chat' && tab !== 'park' && tab !== 'trade-for' && tab !== 'scores' && tab !== 'news' && (
-          <details className="footnote">
-            <summary>How this works</summary>
-            <ul>
-              {report.assumptions.notes.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-              <li>
-                {report.assumptions.simulations.toLocaleString()} season simulations, run in{' '}
-                {(report.elapsed_ms / 1000).toFixed(1)}s.
-              </li>
-            </ul>
-          </details>
+          <HowItWorks parts={howParts(report, tab === 'moves')} notes={report.assumptions.notes} />
         )}
       </div>
     </FeedbackContext.Provider>
