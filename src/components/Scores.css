@@ -10,86 +10,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Front Office: "Tonight in your matchup" is a flat card with an icon title. In each category the
-   leader's number is ink and bold, the other side's stays quiet; no coloured underlines. */
-.card.your-night,
-.card.your-night.versus {
-  border-color: var(--border);
-  background: var(--surface);
-}
-
-.night-title {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0;
-  font-size: 17px;
-  font-weight: 650;
-  line-height: 1.3;
-}
-
-.night-title svg {
-  flex: none;
-  margin-top: 1px;
-  color: var(--text-2);
-}
-
-.night-vs {
-  font-weight: 500;
-  color: var(--text-2);
-}
-
-.your-night.versus .night-cats dd.num {
-  color: var(--text-2);
-  font-weight: 500;
-  box-shadow: none;
-  padding-bottom: 0;
-}
-
-.your-night.versus .night-cats dd.num.ahead {
-  color: var(--text);
-  font-weight: 700;
-}
-
 /* Game cards: your players show as faces in the corner, so no gold edge on the card. */
 .game-grid .game-card.has-mine {
   box-shadow: none;
-}
-
-/* The "All 13 of your players combined, against 10 of theirs" line wraps instead of running off. */
-.night-totals-label {
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.night-totals {
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* Phones: all nine categories stay reachable. The You / opponent labels stick to the left and the
-   rest scrolls inside the card, with a fade at the right edge as the cue (it used to clip after BLK). */
-@media (max-width: 640px) {
-  .your-night .night-cats {
-    column-gap: 10px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding-bottom: 4px;
-    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
-  }
-
-  .your-night .night-cats::-webkit-scrollbar {
-    display: none;
-  }
-
-  .your-night .night-who {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    padding-right: 8px;
-    background: var(--surface);
-  }
 }
 
 /* Box score: the column names (Min, Pts, ... Ast, Stl) stay in view while you scroll down the
@@ -133,7 +56,7 @@
 /* Games first: the cards are up at once and the numbers fill in. While a new day loads,
    the last one stays on screen, a little faded, instead of going back to grey blocks. */
 .scores.scores-switching .game-grid,
-.scores.scores-switching .your-night {
+.scores.scores-switching .sc-tonight {
   opacity: 0.55;
   transition: opacity 0.2s ease;
 }
@@ -182,7 +105,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .scores.scores-switching .game-grid,
-  .scores.scores-switching .your-night,
+  .scores.scores-switching .sc-tonight,
   .game-card .team-row .score,
   .card .box tbody {
     transition: none;
@@ -190,151 +113,176 @@
   }
 }
 
-/* ---------- Game Night: Tonight in your matchup ----------
-   The night's category count leads ("6-3 Won the night"). Each category carries a W/L letter, and
-   the winner's number lights: green from the top on your row, coral from the bottom on theirs.
-   Your warm light sits in the near corner, the rival's crest colour (--rival) in the far one. */
-.card.your-night.versus {
-  border-color: transparent;
-  background:
-    radial-gradient(
-      ellipse 560px 240px at 100% 0%,
-      color-mix(in srgb, var(--rival) var(--rival-a), transparent),
-      transparent 70%
-    ),
-    radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%), var(--surface);
+/* ---------- Tonight in your matchup: League's line score sheet (sc-tn-) ----------
+   One surface with your house light in the near corner and the rival's crest light in the far one.
+   The night's count and verdict, then CatStrip pair with tonight's figures, then the top performer.
+   Wide screens: the count and performer on the left, the strip on the right. */
+.sc-tonight {
+  display: grid;
+  grid-template-areas: 'title' 'score' 'strip' 'lead';
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+  background: var(--surface);
   box-shadow: var(--lift);
 }
 
-.night-score {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 2px 0;
+.sc-tonight.versus {
+  background:
+    radial-gradient(
+      ellipse 60% 320px at 100% 0%,
+      color-mix(in srgb, var(--rival, var(--accent)) var(--rival-a), transparent),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 60% 320px at 0% 0%, var(--house), transparent 70%), var(--surface);
 }
 
-.night-score > b {
-  font-family: var(--font-num);
-  font-size: 44px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
+.sc-tn-title {
+  grid-area: title;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.3;
 }
 
-.night-score-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.sc-tn-title svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
   color: var(--text-2);
 }
 
-.night-verdict {
+.sc-tn-vs {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.sc-tn-score {
+  grid-area: score;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+}
+
+/* "2–5–2" with the digits in ink and the dashes light, as on League's sheet. */
+.sc-tn-big {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.sc-tn-big i {
+  margin: 0 0.04em;
+  font-size: 0.62em;
+  font-style: normal;
+  font-weight: 300;
+  vertical-align: 0.22em;
+  color: var(--muted);
+}
+
+.sc-tn-verdict {
   font-size: 16px;
   font-weight: 650;
   color: var(--text);
 }
 
-.night-verdict.W {
+.sc-tn-verdict.W {
   color: var(--good);
 }
 
-.night-verdict.L {
+.sc-tn-verdict.L {
   color: var(--bad);
 }
 
-.night-cats.lit dt {
+.sc-tn-wait {
+  grid-area: score;
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sc-tn-strip {
+  grid-area: strip;
+  min-width: 0;
+}
+
+.sc-tn-lead {
+  grid-area: lead;
   display: flex;
-  flex-direction: column-reverse;
   align-items: center;
-  gap: 3px;
-}
-
-.night-res {
-  display: inline-grid;
-  place-items: center;
-  min-width: 18px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 5px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
   color: var(--text-2);
-  background: var(--raised);
 }
 
-.night-res.W {
-  color: var(--good);
-  background: color-mix(in srgb, var(--good) 16%, transparent);
-}
-
-.night-res.L {
-  color: var(--bad);
-  background: color-mix(in srgb, var(--bad) 16%, transparent);
-}
-
-.your-night.versus .night-cats.lit dd.num {
-  min-width: 44px;
-  padding: 3px 8px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.your-night.versus .night-cats.lit dd.num.won {
+.sc-tn-lead a,
+.sc-tn-lead .pc-link {
   color: var(--text);
-  font-weight: 700;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--good) var(--cell-good), transparent),
-    color-mix(in srgb, var(--good) 3%, transparent)
-  );
-  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--good) 75%, transparent);
+  font-weight: 600;
 }
 
-.your-night.versus .night-cats.lit dd.num.lost {
-  color: var(--text);
-  font-weight: 700;
-  background: linear-gradient(
-    0deg,
-    color-mix(in srgb, var(--bad) var(--cell-bad), transparent),
-    color-mix(in srgb, var(--bad) 3%, transparent)
-  );
-  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--bad) 75%, transparent);
-}
-
-/* "You · big / KVK · small" explains the phone grid only. */
-.night-key {
-  display: none;
-}
-
-/* Rows line up with the You / opponent labels: every category head is the same height (letter over
-   name), your numbers sit on one 34px line and theirs on a 30px one, labels included. */
-.night-cats.lit dt {
-  height: 36px;
-  justify-content: flex-start;
-}
-
-.your-night.versus .night-cats.lit dd.num {
+/* Your row alone, before your rival has played: label over figure, one column per category. */
+.sc-tn-solo {
   display: grid;
-  place-items: center;
-  height: 34px;
-  padding-block: 0;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 6px 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.your-night.versus .night-cats.lit dd.num.them {
-  height: 30px;
-  margin-top: 4px;
+.sc-tn-solo li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
 }
 
-.night-cats.lit .night-who dd {
-  height: 34px;
-  line-height: 34px;
+.sc-tn-cat {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-2);
 }
 
-.night-cats.lit .night-who dd.them {
-  height: 30px;
-  line-height: 30px;
-  margin-top: 4px;
+.sc-tn-solo b {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  .sc-tonight {
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'title strip'
+      'score strip'
+      'lead strip';
+    column-gap: 32px;
+    row-gap: 10px;
+    padding: 20px 24px;
+  }
+
+  .sc-tn-strip {
+    align-self: center;
+  }
+
+  .sc-tn-lead {
+    align-self: end;
+  }
+
+  .sc-tn-solo b {
+    font-size: 19px;
+  }
 }
 
 /* ---------- Game Night: game cards ----------
