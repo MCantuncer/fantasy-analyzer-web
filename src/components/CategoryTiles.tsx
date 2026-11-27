@@ -35,12 +35,12 @@ export function CategoryTiles({
 }) {
   const ordered = [...categories].sort((a, b) => place(a.category) - place(b.category))
   return (
-    <section className="ct" aria-labelledby="tiles-title">
-      <h2 className="ct-title" id="tiles-title">
+    <section className="mvcat" aria-labelledby="tiles-title">
+      <h2 className="mvcat-title" id="tiles-title">
         <Ranking size={20} aria-hidden="true" />
         How often {scout ?? 'you'} {scout ? 'wins' : 'win'} each category
       </h2>
-      <ul className="ct-line">
+      <ul className="mvcat-line">
         {ordered.map((c) => {
           const tag = TAG[c.tag]
           const share = Math.round(c.win_pct * 100)
@@ -48,21 +48,21 @@ export function CategoryTiles({
           return (
             <li
               key={c.category}
-              className={`ct-cell ct-${tag.tone}`}
+              className={`mvcat-cell mvcat-${tag.tone}`}
               aria-label={`${c.category}${lower ? ' (lower is better)' : ''}: wins ${share}% of weeks, ${ordinal(c.league_rank)} in the league, ${tag.label}`}
             >
-              <span className="ct-top" aria-hidden="true">
-                <span className="ct-code num">
+              <span className="mvcat-top" aria-hidden="true">
+                <span className="mvcat-code num">
                   {c.category}
                   {lower && <ArrowDown size={10} weight="bold" />}
                 </span>
-                <span className="ct-rank num">{ordinal(c.league_rank)}</span>
+                <span className="mvcat-rank num">{ordinal(c.league_rank)}</span>
               </span>
-              <span className="ct-pct num" aria-hidden="true">
+              <span className="mvcat-pct num" aria-hidden="true">
                 {share}
                 <small>%</small>
               </span>
-              <span className="ct-word" aria-hidden="true">
+              <span className="mvcat-word" aria-hidden="true">
                 {tag.label}
               </span>
             </li>
