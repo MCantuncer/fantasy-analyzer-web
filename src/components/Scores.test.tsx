@@ -421,15 +421,19 @@ describe('Scores', () => {
     expect(week).toHaveTextContent('1 start left · 1 player sits on full days')
     expect(within(week).getByRole('button', { name: 'Sat 24, 1 sit' })).toBeInTheDocument()
     expect(within(week).getByRole('columnheader', { name: 'Starts' })).toBeInTheDocument()
-    // Someone sits, so the legend says what that means.
-    expect(week).toHaveTextContent('sits: more games that day than your lineup spots')
+    // No legend in words: the badge and the summary line carry it, the day head's title spells it out.
+    expect(week).not.toHaveTextContent('sits: more games that day than your lineup spots')
+    expect(within(week).getByRole('button', { name: 'Sat 24, 1 sit' })).toHaveAttribute(
+      'title',
+      'Games on Sat 24 · 1 player sits: more games than lineup spots',
+    )
     const row = (name: string) => within(week).getByRole('rowheader', { name }).parentElement as HTMLElement
     expect(within(row('G. Antetokounmpo')).getByText('Plays CHA')).toBeInTheDocument()
     // The opponent in words: "@CHA" away, "vs MIA" at home.
     expect(row('G. Antetokounmpo').querySelector('.sw-op')).toHaveTextContent('@CHA')
     expect(row('K. Dunn').querySelector('.sw-op')).toHaveTextContent('vs MIA')
     expect(within(row('D. Mitchell')).getByText('Out, vs MIA')).toBeInTheDocument()
-    expect(within(row('K. Dunn')).getByText('Sits, vs MIA')).toBeInTheDocument()
+    expect(within(row('K. Dunn')).getByText('Sits (no lineup spot), vs MIA')).toBeInTheDocument()
     // The full list of NBA games is one tap away.
     fireEvent.click(within(week).getByRole('button', { name: 'All 2 NBA games' }))
     expect(week).toHaveTextContent('NO@DEN')

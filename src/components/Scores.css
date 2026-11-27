@@ -534,22 +534,13 @@
   background: color-mix(in srgb, var(--text) 4%, transparent);
 }
 .sc-how-row b {
-  flex: none;
+  flex: 1;
   font-weight: 600;
 }
 .sc-how-ic {
   flex: none;
   font-size: 18px;
   color: var(--muted);
-}
-.sc-how-sub {
-  flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .sc-how-caret {
   flex: none;
@@ -579,13 +570,6 @@
   color: var(--text);
 }
 @media (max-width: 640px) {
-  /* Phones: the row says only "How this works"; the notes say the rest. */
-  .sc-how-sub {
-    display: none;
-  }
-  .sc-how-row b {
-    flex: 1;
-  }
   .sc-how-notes {
     padding-left: 0;
   }

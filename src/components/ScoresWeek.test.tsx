@@ -33,11 +33,11 @@ describe('ScoresWeek', () => {
     ).toHaveTextContent('@GS')
   })
 
-  it('shows the legend once someone sits', () => {
+  it('says who sits with the badge and the summary, never a legend in words', () => {
     render(<ScoresWeek week={[day(1, '2026-11-22', [1])]} onPick={() => {}} />)
-    expect(screen.getByRole('region', { name: 'Still to play this week' })).toHaveTextContent(
-      'sits: more games that day than your lineup spots',
-    )
+    const week = screen.getByRole('region', { name: 'Still to play this week' })
+    expect(week).not.toHaveTextContent('sits: more games that day than your lineup spots')
+    expect(week).toHaveTextContent('1 player sits on full days')
   })
 
   it("marks today's column with the gold dot and picks a day from its header", () => {

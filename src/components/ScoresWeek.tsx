@@ -100,7 +100,7 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
                     type="button"
                     className="sw-day"
                     onClick={() => onPick(d.day)}
-                    title={`Games on ${dayLabel(d.date)}`}
+                    title={`Games on ${dayLabel(d.date)}${n > 0 ? ` · ${n} ${n === 1 ? 'player sits' : 'players sit'}: more games than lineup spots` : ''}`}
                     aria-label={`${dayLabel(d.date)}${isToday ? ', today' : ''}${n > 0 ? `, ${n} sit` : ''}`}
                   >
                     {isToday && <i className="sw-today" aria-hidden="true" />}
@@ -168,12 +168,6 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
           {all ? 'Hide NBA games' : `All ${nbaGames} NBA games`}
           <CaretDown className="sw-all-caret" aria-hidden="true" />
         </button>
-        {sitTotal > 0 && (
-          <span className="sw-legend">
-            <BenchBadge />
-            sits: more games that day than your lineup spots
-          </span>
-        )}
       </div>
       {all && <AllGames week={week} onPick={onPick} />}
     </section>
@@ -183,7 +177,7 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
 function cellTitle(c: Cell): string {
   if (c.kind === 'none' || !c.opp) return c.kind === 'out' ? 'Out' : 'No game'
   if (c.kind === 'out') return `Out, vs ${c.opp.abbrev}`
-  return c.kind === 'sit' ? `Sits, vs ${c.opp.abbrev}` : `Plays ${c.opp.abbrev}`
+  return c.kind === 'sit' ? `Sits (no lineup spot), vs ${c.opp.abbrev}` : `Plays ${c.opp.abbrev}`
 }
 
 function BenchBadge() {
