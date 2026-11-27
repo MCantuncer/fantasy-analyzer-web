@@ -22,7 +22,6 @@ function Door({ onJoin }: { onJoin: () => void }) {
         <OpenCrest />
         <span className="smp-door-text">
           <span className="smp-door-main">Get my best move</span>
-          <span className="smp-door-sub">Your ESPN league, your team</span>
         </span>
       </button>
     </div>
@@ -151,7 +150,6 @@ function ScoutList({
         <OpenCrest size={24} />
         <span className="smp-yours-text">
           <span className="smp-yours-name">Your team</span>
-          <span className="smp-yours-sub">Not in this sample · get its own best move</span>
         </span>
         <CaretRight size={16} weight="bold" aria-hidden="true" />
       </button>

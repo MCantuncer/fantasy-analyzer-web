@@ -139,6 +139,15 @@ describe('SamplePage', () => {
     expect(onJoin).toHaveBeenCalledTimes(3)
     expect(view.queryByText('Make the claim on ESPN')).toBeNull()
   })
+
+  it('says it with the layout: no sub-lines under the door or Your team', () => {
+    const { container } = renderSample()
+    const text = container.textContent ?? ''
+    expect(within(container).getByRole('button', { name: /Your team/ })).toBeInTheDocument()
+    expect(text).not.toMatch(/Your ESPN league, your team/)
+    expect(text).not.toMatch(/Every team here gets its own best move/)
+    expect(text).not.toMatch(/Not in this sample/)
+  })
 })
 
 describe('SampleSwitcher', () => {
