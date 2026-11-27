@@ -222,11 +222,12 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
         <>
           {sharedDrop && (
             <p className="pk-shared">
+              <ArrowsLeftRight size={16} weight="bold" className="pk-shared-swap" aria-hidden="true" />
               <PlayerLink player={sharedDrop} decorative>
                 <PlayerHead player={sharedDrop} size={24} team={sharedDrop.pro_team} />
               </PlayerLink>
               <span>
-                Each one replaces{' '}
+                <span className="sr-only">Each one replaces </span>
                 <strong>
                   <PlayerLink player={sharedDrop} />
                 </strong>

@@ -88,6 +88,7 @@ describe('Trade of the day, Quiet Lead', () => {
       'BLK: +6 points of weekly win chance, +0.6 blocks a game, 7th of 3 in the league nowBLK+6 pts+0.6 blocks a gamenow 7th of 3',
     ])
     expect(container.querySelector('[aria-expanded]')).toBeNull()
+    expect(container.querySelector('.totd-note')?.textContent).toBe('Next at 00:00 UTC')
   })
 
   it('opens the player card from the names in the deal', async () => {
@@ -131,5 +132,6 @@ describe('Trade of the day, Quiet Lead', () => {
     const { container } = await show(pick({ status: 'pending', sides: [], stage: null } as Partial<Pick>))
     expect(container.querySelector('.totd-status')?.textContent).toContain('Waiting its turn')
     expect(container.querySelector('.totd-bones')).not.toBeNull()
+    expect(container.textContent).not.toContain('Looking at every pair of teams')
   })
 })

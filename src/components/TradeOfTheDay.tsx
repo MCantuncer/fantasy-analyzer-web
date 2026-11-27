@@ -390,7 +390,6 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
             </span>
           }
         />
-        <p className="totd-line">Looking at every pair of teams for a deal both sides win.</p>
         <Bones />
       </section>
     )
@@ -468,7 +467,7 @@ export function TradeOfTheDay({ leagueId, season, leagueName, myTeamId, teamIds,
         {half(b, a, 'r')}
         <div className="totd-foot">
           <span className="totd-note">
-            Same trade for every team today. A new one every day at <span className="num">00:00</span> UTC.
+            Next at <span className="num">00:00</span> UTC
           </span>
           <span className="totd-acts">
             {me && other && (
