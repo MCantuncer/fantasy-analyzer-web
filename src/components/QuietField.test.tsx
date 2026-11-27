@@ -123,4 +123,23 @@ describe('Quiet Field slide', () => {
     )
     expect(withHead.container.querySelector('.tm-slide-head')?.textContent).toBe('9 to come')
   })
+
+  it('puts ‹ where the sliding columns start and › right before PTS, where the hidden ones are', () => {
+    const sw = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(800)
+    const cw = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400)
+    const { container } = render(
+      <Slide pager>
+        <ColumnHead />
+      </Slide>,
+    )
+    const prev = screen.getByRole('button', { name: 'Earlier stats' })
+    const next = screen.getByRole('button', { name: 'More stats' })
+    expect(container.querySelector('.tm-ch-pin')).toContainElement(prev)
+    expect(container.querySelector('.tm-colhead > .tm-pts')).toContainElement(next)
+    expect(prev).toBeDisabled()
+    expect(next).toBeEnabled()
+    expect(container.querySelector('.tm-slide')).toHaveClass('tm-paged')
+    sw.mockRestore()
+    cw.mockRestore()
+  })
 })

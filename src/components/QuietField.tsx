@@ -31,8 +31,8 @@ export function Field({ children }: { children: ReactNode }) {
   )
 }
 
-/** The scroller's ‹ › pager, drawn by ColumnHead in its pinned corner. */
-const PagerContext = createContext<ReactNode>(null)
+/** The scroller's ‹ and ›, drawn by ColumnHead: ‹ where the sliding columns start, › right before PTS. */
+const PagerContext = createContext<{ prev: ReactNode; next: ReactNode } | null>(null)
 
 /**
  * One team's full stat lines in whatever width the lineup has: the names stay pinned on the left and
@@ -78,24 +78,39 @@ export function Slide({
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     el.scrollBy({ left: dir * el.clientWidth * 0.5, behavior: reduce ? 'auto' : 'smooth' })
   }
-  // Mouse only (CSS): touch swipes, and sees the next column peek under the fade instead.
+  // Mouse only (CSS): touch swipes, and sees the next column peek under the fade instead. Each arrow sits
+  // where the columns it brings back are hidden: ‹ at the start of the sliding columns, › before PTS.
   const pagerNode =
-    pager && !(at.start && at.end) ? (
-      <span className="tm-pager">
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="Earlier stats"
-          disabled={at.start}
-          onClick={() => page(-1)}
-        >
-          <CaretLeft size={16} aria-hidden="true" />
-        </button>
-        <button type="button" className="icon-button" aria-label="More stats" disabled={at.end} onClick={() => page(1)}>
-          <CaretRight size={16} aria-hidden="true" />
-        </button>
-      </span>
-    ) : null
+    pager && !(at.start && at.end)
+      ? {
+          prev: (
+            <span className="tm-pager">
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Earlier stats"
+                disabled={at.start}
+                onClick={() => page(-1)}
+              >
+                <CaretLeft size={16} weight="bold" aria-hidden="true" />
+              </button>
+            </span>
+          ),
+          next: (
+            <span className="tm-pager">
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="More stats"
+                disabled={at.end}
+                onClick={() => page(1)}
+              >
+                <CaretRight size={16} weight="bold" aria-hidden="true" />
+              </button>
+            </span>
+          ),
+        }
+      : null
   // The box is the size container the layout reads (tm-box): the name measure, the snap and which
   // columns pin all follow the lineup's own width, not the window's.
   return (
@@ -105,7 +120,11 @@ export function Slide({
           <span className="tm-slide-counts">{head}</span>
         </div>
       )}
-      <div className={`tm-slide${at.start ? '' : ' tm-slid'}${at.end ? '' : ' tm-more'}`} ref={ref} onScroll={read}>
+      <div
+        className={`tm-slide${at.start ? '' : ' tm-slid'}${at.end ? '' : ' tm-more'}${pagerNode ? ' tm-paged' : ''}`}
+        ref={ref}
+        onScroll={read}
+      >
         <PagerContext.Provider value={pagerNode}>{children}</PagerContext.Provider>
       </div>
     </div>
@@ -117,12 +136,19 @@ export function ColumnHead() {
   // The labels are decorative (each figure carries its column for screen readers); the pager isn't.
   return (
     <div className="tm-colhead">
-      <span className="tm-ch-pin">{pager}</span>
-      {STAT_COLUMNS.map((c) => (
-        <span key={c} className={c === 'PTS' ? 'tm-pts' : undefined} aria-hidden="true">
-          {c === 'TO' ? 'TO↓' : c}
-        </span>
-      ))}
+      <span className="tm-ch-pin">{pager?.prev}</span>
+      {STAT_COLUMNS.map((c) =>
+        c === 'PTS' ? (
+          <span key={c} className="tm-pts">
+            {pager?.next}
+            <span aria-hidden="true">PTS</span>
+          </span>
+        ) : (
+          <span key={c} aria-hidden="true">
+            {c === 'TO' ? 'TO↓' : c}
+          </span>
+        ),
+      )}
     </div>
   )
 }
