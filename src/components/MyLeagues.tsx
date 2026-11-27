@@ -109,7 +109,7 @@ export function MyLeagues({ me, creds, onCreds, onOpen, onEstimates, focusAdd = 
   )
 
   return (
-    <div className={`my-leagues ml${empty ? ' ml-new' : ''}`}>
+    <div className={`my-leagues ml-page${empty ? ' ml-new' : ''}`}>
       <h1 className="page-title ml-title">My leagues</h1>
 
       {me.notices.length > 0 && (

@@ -1,6 +1,6 @@
 /* My leagues: one calm column on the bare page. League rows, the add field inline under them,
    then Our Estimates. No cards. */
-.ml {
+.ml-page {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -10,11 +10,11 @@
   min-height: calc(100dvh - 169px); /* the top bar (65), main's padding (24 + 80) */
 }
 
-.ml .ml-title {
+.ml-page .ml-title {
   margin: 12px 0 20px;
 }
 
-.ml > .notice {
+.ml-page > .notice {
   margin-bottom: 16px;
 }
 
@@ -182,22 +182,22 @@
   color: var(--muted);
 }
 
-.ml > .card {
+.ml-page > .card {
   margin-top: 14px;
 }
 
 /* Our Estimates follows the add field. */
 .ml-add + *,
-.ml > .card + * {
+.ml-page > .card + * {
   margin-top: 32px;
 }
 
 @media (max-width: 640px) {
-  .ml {
+  .ml-page {
     min-height: calc(100dvh - 161px); /* the top bar (65), main's padding (16 + 80) */
   }
 
-  .ml .ml-title {
+  .ml-page .ml-title {
     margin: 4px 0 16px;
   }
 
