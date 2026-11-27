@@ -306,9 +306,7 @@ function TeamColumn({ side }: { side: Side }) {
             </ol>
             {pretip ? <TotalsBeforeTip firstTip={firstTip} /> : <Totals totals={side.totals} />}
           </Field>
-          <h3 className="tm-sub">
-            Bench <span>doesn't count</span>
-          </h3>
+          <h3 className="tm-sub">Bench</h3>
           <ol className="tm-list tm-bench">
             {left.map((r) => (
               <Row key={r.spot.player_id} row={r} names={names} bench left />
