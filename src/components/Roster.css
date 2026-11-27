@@ -104,7 +104,7 @@ button.ro-lock[aria-pressed='true'] {
 }
 
 /* Face and name: one target that opens the card. The name's button stretches over the face and both
-   lines (at least 44px tall); the tag and the badges sit above it and keep their own taps. */
+   lines (at least 44px tall); the tag and the badge chips sit above it and keep their own taps. */
 .ro-who {
   position: relative;
   display: flex;
@@ -118,42 +118,6 @@ button.ro-lock[aria-pressed='true'] {
   position: relative;
   flex: none;
   display: flex;
-}
-
-/* Badges on the face's bottom-right corner, ringed in the sheet's colour; a second one stacks above. */
-.ro-face-bdg {
-  position: absolute;
-  right: -6px;
-  bottom: -4px;
-  z-index: 1;
-}
-
-.ro-face-bdg .pb-marks {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 2px;
-}
-
-.ro-face-bdg .pb-mark {
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  margin: 0;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 0 0 1.5px var(--surface);
-}
-
-.ro-face-bdg .pb-icon {
-  width: 11px;
-  height: 11px;
-}
-
-/* The 16px corner disc only fits the icon: a keystone's category ("REB") spilled over the name.
-   The bubble and the screen-reader label still name it. */
-.ro-face-bdg .pb-cat {
-  display: none;
 }
 
 .ro-txt {
@@ -220,8 +184,9 @@ button.ro-lock[aria-pressed='true'] {
 
 .ro-l2 {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 3px 6px;
   min-width: 0;
   font-size: 12.5px;
   line-height: 16px;
@@ -233,6 +198,17 @@ button.ro-lock[aria-pressed='true'] {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* Badge chips follow the positions on line 2 and wrap under them, one by one, when the line is full:
+   the positions never get squeezed out and the chips never cut the name above. They sit above the
+   name's stretched button, so a tap shows the reason. */
+.ro-l2 > .pb-chips {
+  display: contents;
+}
+
+.ro-l2 .pb-chip {
+  z-index: 1;
 }
 
 .ro-l2 b {
