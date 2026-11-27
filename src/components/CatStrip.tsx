@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Target, User } from '@phosphor-icons/react'
+import { Target } from '@phosphor-icons/react'
 import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSide } from '../lib/catStrip'
 import { CATEGORY_ORDER } from '../lib/statOrder'
-import { TeamCrest } from './TeamCrest'
+import { YourCrest } from './YourCrest'
 import './CatStrip.css'
 
 export interface CatStripProps {
@@ -93,9 +93,8 @@ function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boo
   return (
     <>
       <span className="cs-who">
-        <TeamCrest name={side.name} colour={side.colour} size={18} />
+        <YourCrest name={side.name} colour={side.colour} size={18} mine={isMe} />
         <span className="cs-nm">{side.short}</span>
-        {isMe && <User className="cs-me" weight="fill" aria-hidden="true" />}
       </span>
       {sub && (
         <span className="cs-wk">
@@ -134,7 +133,11 @@ export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', labe
       )}
       {cells.map((cell) => (
         <div key={cell.stat} className="cs-pi" role="listitem" aria-label={pairLabel(cell, names)}>
-          <span className={cell.close ? 'cs-pl cs-close' : 'cs-pl'} aria-hidden="true">
+          <span
+            className={cell.close ? 'cs-pl cs-close' : 'cs-pl'}
+            title={cell.close ? 'Close this week, can flip' : undefined}
+            aria-hidden="true"
+          >
             {cell.close && <Target className="cs-ic" aria-hidden="true" />}
             {statLabel(cell.stat)}
           </span>

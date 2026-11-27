@@ -1367,13 +1367,16 @@ button.fr-drop:hover {
   position: relative;
 }
 
+/* A soft button on the League week line: a filled track, no outline. */
 button.fr-pick-btn {
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--border);
-  background: none;
+  border: 0;
+  border-radius: 12px;
+  background: var(--track);
   color: var(--text);
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .fr-menu {

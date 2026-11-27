@@ -38,12 +38,15 @@ export function TodayMatchup({
   me,
   them,
   myId,
+  head = true,
 }: {
   data: TodayData
   /** The first side: you, in your own matchup. */
   me: TodaySide
   them: TodaySide
   myId: number | null
+  /** False inside League's matchup sheet, which draws the status, score and categories itself. */
+  head?: boolean
 }) {
   const [view, setView] = useState<0 | 1>(0)
   // The bench flag's player, to bring into view once his team is on screen.
@@ -54,7 +57,10 @@ export function TodayMatchup({
     // Looked up inside this view: the same player can be on screen twice (your card and an open matchup).
     const el = root.current?.querySelector<HTMLElement>(`[data-tm-p='${seek}']`)
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    el?.scrollIntoView?.({ block: 'center', behavior: reduce ? 'auto' : 'smooth' })
+    el?.scrollIntoView?.({
+      block: 'center',
+      behavior: reduce ? 'auto' : 'smooth',
+    })
     el?.focus({ preventScroll: true })
     setSeek(null)
   }, [seek, view])
@@ -93,44 +99,48 @@ export function TodayMatchup({
 
   return (
     <div className="tm" ref={root}>
-      <p className="tm-status">
-        {live ? (
-          <span className="tm-live">
-            <span className="tm-dot" aria-hidden="true" />
-            <b>Live</b>
+      {head && (
+        <p className="tm-status">
+          {live ? (
+            <span className="tm-live">
+              <span className="tm-dot" aria-hidden="true" />
+              <b>Live</b>
+            </span>
+          ) : allFinal ? (
+            <b className="tm-final-word">Final</b>
+          ) : !started && scores.games.length ? (
+            <span>First tip {tipOff(scores.games.map((g) => g.start).sort()[0])}</span>
+          ) : null}
+          <span>
+            {data.stale ? 'Updated' : 'updated'} {tipOff(scores.updated_at)}
           </span>
-        ) : allFinal ? (
-          <b className="tm-final-word">Final</b>
-        ) : !started && scores.games.length ? (
-          <span>First tip {tipOff(scores.games.map((g) => g.start).sort()[0])}</span>
-        ) : null}
-        <span>
-          {data.stale ? 'Updated' : 'updated'} {tipOff(scores.updated_at)}
-        </span>
-        {data.stale && (
-          <button type="button" className="tm-retry" onClick={data.refetch}>
-            Retry
-          </button>
-        )}
-      </p>
+          {data.stale && (
+            <button type="button" className="tm-retry" onClick={data.refetch}>
+              Retry
+            </button>
+          )}
+        </p>
+      )}
 
-      <div className="tm-score">
-        <ScoreSide side={sides[0]} sub={started ? `${toCome(sides[0])} to come` : null} />
-        <div className="tm-rec">
-          <span
-            className={`num tm-big${started ? '' : ' tm-quiet'}`}
-            aria-label={`${rec.wins} wins, ${rec.losses} losses, ${rec.ties} ties today`}
-          >
-            {rec.wins}
-            <i>–</i>
-            {rec.losses}
-            <i>–</i>
-            {rec.ties}
-          </span>
-          <small>today · week {weekRec(me)}</small>
+      {head && (
+        <div className="tm-score">
+          <ScoreSide side={sides[0]} sub={started ? `${toCome(sides[0])} to come` : null} />
+          <div className="tm-rec">
+            <span
+              className={`num tm-big${started ? '' : ' tm-quiet'}`}
+              aria-label={`${rec.wins} wins, ${rec.losses} losses, ${rec.ties} ties today`}
+            >
+              {rec.wins}
+              <i>–</i>
+              {rec.losses}
+              <i>–</i>
+              {rec.ties}
+            </span>
+            <small>today · week {weekRec(me)}</small>
+          </div>
+          <ScoreSide side={sides[1]} sub={started ? `${toCome(sides[1])} to come` : null} theirs />
         </div>
-        <ScoreSide side={sides[1]} sub={started ? `${toCome(sides[1])} to come` : null} theirs />
-      </div>
+      )}
 
       {flag && (
         <BenchFlag
@@ -144,11 +154,13 @@ export function TodayMatchup({
         />
       )}
 
-      <ul className="tm-tiles" aria-label="Today's categories">
-        {cats.map((c) => (
-          <Tile key={c.stat} cat={c} week={[me.week, them.week]} sides={sides} />
-        ))}
-      </ul>
+      {head && (
+        <ul className="tm-tiles" aria-label="Today's categories">
+          {cats.map((c) => (
+            <Tile key={c.stat} cat={c} week={[me.week, them.week]} sides={sides} />
+          ))}
+        </ul>
+      )}
 
       <div className="tm-bar">
         <div className="segmented tm-seg" role="group" aria-label="Team">
@@ -342,15 +354,17 @@ function TeamColumn({ side }: { side: Side }) {
 }
 
 /** The shape of the Today view while the day's games and both lineups load. */
-export function TodayLoading() {
+export function TodayLoading({ head = true }: { head?: boolean }) {
   return (
     <div className="tm tm-loading" aria-busy="true" aria-label="Loading today's matchup">
-      <Bone h={64} className="tm-bone-score" />
-      <div className="tm-tiles">
-        {Array.from({ length: 9 }, (_, i) => (
-          <Bone key={i} h={64} className="tm-bone-tile" />
-        ))}
-      </div>
+      {head && <Bone h={64} className="tm-bone-score" />}
+      {head && (
+        <div className="tm-tiles">
+          {Array.from({ length: 9 }, (_, i) => (
+            <Bone key={i} h={64} className="tm-bone-tile" />
+          ))}
+        </div>
+      )}
       <div className="tm-cols">
         {[0, 1].map((c) => (
           <div key={c} className="tm-col">

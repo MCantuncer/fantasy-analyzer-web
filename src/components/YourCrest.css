@@ -1,0 +1,25 @@
+/* Your crest: the gold person badge on the crest's top-right corner, as in Standings (yc- prefix). */
+.yc {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.yc-me {
+  position: absolute;
+  top: calc(var(--yc) * -0.33);
+  right: calc(var(--yc) * -0.4);
+  display: grid;
+  place-items: center;
+  width: var(--yc);
+  height: var(--yc);
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--yc-ring, var(--bg));
+}
+
+.yc-me svg {
+  width: 66%;
+  height: 66%;
+}

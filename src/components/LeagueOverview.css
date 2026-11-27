@@ -159,27 +159,27 @@
   gap: 6px;
   font-size: 13px;
   color: var(--text-2);
+  white-space: nowrap;
+}
+
+.lo-wk-long {
+  display: none;
+}
+
+@media (min-width: 760px) {
+  .lo-wk-long {
+    display: inline;
+  }
+
+  .lo-wk-short {
+    display: none;
+  }
 }
 
 .lo-title {
   margin: 0;
   font-size: 18px;
   font-weight: 650;
-}
-
-/* "Flip AST to win 5-4-0": a target mark and plain ink, not an amber pill. */
-.lo-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.lo-hint svg {
-  flex: none;
-  color: var(--gold);
 }
 
 /* League pulse: plain icons, no tinted squares. */
@@ -219,13 +219,6 @@
     ),
     radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%), var(--surface);
   box-shadow: var(--lift);
-}
-
-/* Check a Trade With Them: your opponent's trade check, from your matchup card. */
-button.lo-check {
-  margin-left: auto;
-  min-height: 44px;
-  padding: 0 14px;
 }
 
 /* The standings' last column: a trade check with that team (not yours). */

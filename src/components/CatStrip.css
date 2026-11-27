@@ -159,21 +159,13 @@
   white-space: nowrap;
 }
 
-.cs-nm,
-.cs-me {
+.cs-nm {
   display: none;
 }
 
 .cs-nm {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.cs-me {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  color: var(--gold);
 }
 
 .cs-wk {
@@ -328,8 +320,7 @@
     --crest: 22px !important;
   }
 
-  .cs-pair:not(.cs-crestkey) .cs-nm,
-  .cs-pair:not(.cs-crestkey) .cs-me {
+  .cs-pair:not(.cs-crestkey) .cs-nm {
     display: inline;
   }
 

@@ -1,3 +1,5 @@
+import { useId, useState } from 'react'
+import { CaretDown } from '@phosphor-icons/react'
 import { type LeagueRef, type ManagerStyleRow, type ManagerStyles } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { useManagerStyles } from '../lib/useManagerStyles'
@@ -5,6 +7,7 @@ import { ACTIVITY_LABEL, LINEUP_LABEL, inOrder, listCats, pct } from '../lib/man
 import { gamePlan, matchBoard, matchHeadline, weeksIn, type MatchCell } from '../lib/matchupScout'
 import { CATEGORY_ORDER } from '../lib/statOrder'
 import { ScoutBoard, ScoutLabel, ScoutNotes, type ScoutNote } from './ScoutBoard'
+import { TeamCrest } from './TeamCrest'
 import './MatchupScout.css'
 
 const BANDS = [
@@ -123,25 +126,50 @@ function doorLabel(t: ManagerStyleRow) {
   return null
 }
 
-export function MatchupScoutView({ data, opponentId }: { data: ManagerStyles; opponentId: number }) {
+export function MatchupScoutView({
+  data,
+  opponentId,
+  colour,
+}: {
+  data: ManagerStyles
+  opponentId: number
+  /** The opponent's crest colour. */
+  colour?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const body = useId()
   const them = data.teams.find((t) => t.team_id === opponentId)
   if (!them || !data.matchup || data.matchup.opponent_id !== opponentId || data.matchup.calls.length === 0) return null
   const board = matchBoard(data, them)
   const head = matchHeadline(board)
-  const hold = board.filter((c) => c.band === 'hold')
-  const go = board.filter((c) => c.band === 'go')
-  const letGo = board.filter((c) => c.band === 'let_go')
-  const majority = Math.floor(board.length / 2) + 1
-  const spare = hold.length + go.length - majority
   const plays = gamePlan(board)
   return (
-    <section className="card ms" aria-labelledby="ms-title">
-      <span className="ms-mark" aria-hidden="true">
-        {them.abbrev}
-      </span>
-      <div className="ms-head">
-        <p className="eyebrow">Scouting report · week {data.matchup.matchup_period}</p>
-        <h2 id="ms-title">How to beat {them.name}</h2>
+    <section className="ms" aria-labelledby="ms-title">
+      <h2 className="ms-h">
+        <button
+          type="button"
+          className="ms-row"
+          aria-expanded={open}
+          aria-controls={body}
+          onClick={() => setOpen(!open)}
+        >
+          <TeamCrest name={them.name} colour={colour} size={28} />
+          <span className="ms-txt">
+            <span id="ms-title" className="ms-title">
+              How to beat {them.name}
+            </span>
+            <span className="ms-headline">
+              {head.plan}
+              {head.plan && head.go ? ' ' : ''}
+              {head.go && <span className="ms-gold">{head.go}</span>}
+              {head.result && <span className="ms-quiet"> {head.result}</span>}
+            </span>
+          </span>
+          <CaretDown className="ms-caret" size={16} aria-hidden="true" />
+        </button>
+      </h2>
+
+      <div id={body} className="ms-body" hidden={!open}>
         <div className="sb-labels">
           <ScoutLabel word={ACTIVITY_LABEL[them.activity]}>
             {them.adds_per_week.toFixed(1)}/wk · median {data.medians.adds_per_week.toFixed(1)}
@@ -153,73 +181,54 @@ export function MatchupScoutView({ data, opponentId }: { data: ManagerStyles; op
           )}
           {doorLabel(them)}
         </div>
-      </div>
 
-      <p className="ms-headline">
-        {head.plan}
-        {head.plan && head.go ? ' ' : ''}
-        {head.go && <span className="ms-gold">{head.go}</span>}
-        <span className="ms-quiet">{head.result}</span>
-      </p>
+        <ScoutBoard
+          label={`This week's nine categories against ${them.name}`}
+          cats={CATEGORY_ORDER}
+          bands={BANDS}
+          catHint={(cat) => (cat === 'TO' ? 'lower wins' : undefined)}
+          magnets={board.map((c) => ({
+            cat: c.cat,
+            band: c.band,
+            big: c.margin,
+            small: c.totals,
+            tone: c.margin.startsWith('+') ? 'lead' : c.margin.startsWith('−') ? 'trail' : undefined,
+            dim: c.band === 'let_go',
+            tag: c.call === 'flip' ? 'Flip' : undefined,
+          }))}
+        />
 
-      <ScoutBoard
-        label={`This week's nine categories against ${them.name}`}
-        cats={CATEGORY_ORDER}
-        bands={BANDS}
-        catHint={(cat) => (cat === 'TO' ? 'lower wins' : undefined)}
-        magnets={board.map((c) => ({
-          cat: c.cat,
-          band: c.band,
-          big: c.margin,
-          small: c.totals,
-          tone: c.margin.startsWith('+') ? 'lead' : c.margin.startsWith('−') ? 'trail' : undefined,
-          dim: c.band === 'let_go',
-          tag: c.call === 'flip' ? 'Flip' : undefined,
-        }))}
-      />
-      <p className="ms-foot">
-        <span>
-          <b>Hold</b> {hold.length}
-        </span>
-        <span>
-          <b>Go after</b> {go.length} = {hold.length + go.length}
-          {spare > 0 ? ', one spare' : ''}
-        </span>
-        <span>
-          <b>Let go</b> {letGo.length}
-        </span>
-      </p>
-
-      <div className="ms-cols">
-        <div>
-          <h3 className="ms-h3">Scout's notes</h3>
-          <ScoutNotes notes={notesFor(board)} label="Scout's notes" />
-        </div>
-        {plays.length > 0 && (
+        <div className="ms-cols">
           <div>
-            <h3 className="ms-h3">Game plan this week</h3>
-            <ol className="ms-plays">
-              {plays.map((p, i) => (
-                <li key={p.title} className={i === 0 ? 'go' : undefined}>
-                  <span className="ms-play-n" aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <b>{p.title}</b>
-                    <p>{p.body}</p>
-                    <span className="ms-chips">
-                      {p.cats.map((c) => (
-                        <span key={c} className="ms-chip">
-                          {c}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <h3 className="ms-h3">Scout's notes</h3>
+            <ScoutNotes notes={notesFor(board)} label="Scout's notes" />
           </div>
-        )}
+          {plays.length > 0 && (
+            <div>
+              <h3 className="ms-h3">Game plan this week</h3>
+              <ol className="ms-plays">
+                {plays.map((p, i) => (
+                  <li key={p.title} className={i === 0 ? 'go' : undefined}>
+                    <span className="ms-play-n num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <b>{p.title}</b>
+                      <p>{p.body}</p>
+                      <span className="ms-chips">
+                        {p.cats.map((c) => (
+                          <span key={c} className="ms-chip">
+                            {c}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )
@@ -230,12 +239,14 @@ export function MatchupScout({
   leagueRef,
   creds,
   opponentId,
+  colour,
 }: {
   leagueRef: LeagueRef
   creds: Credentials | null
   opponentId: number
+  colour?: string
 }) {
   const q = useManagerStyles(leagueRef, creds)
   if (!q.data) return null
-  return <MatchupScoutView data={q.data} opponentId={opponentId} />
+  return <MatchupScoutView data={q.data} opponentId={opponentId} colour={colour} />
 }
