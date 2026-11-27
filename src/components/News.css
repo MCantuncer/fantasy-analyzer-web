@@ -1,6 +1,6 @@
-/* NBA News: league-wide stories, each checked against several sources.
-   Player first, then the headline, then one quiet line of details. Your team is marked
-   with a small accent touch (a tinted chip and a bar), never a big pill. */
+/* NBA News: league-wide stories, each checked against several sources, on the bare page.
+   Player first, then the headline, then one quiet line of details. Your team is marked only by
+   the small gold owner dot on its abbreviation. */
 
 /* Title and line on the left, the page's own refresh on the right. It is a labelled button,
    unlike the top bar's round icon, which reruns the trade analysis instead. */
@@ -134,31 +134,27 @@
   background: var(--border);
 }
 
-/* Feed */
+/* Feed: stories on the bare page under a plain day head, a hairline between them. */
+.news-group + .news-group {
+  margin-top: 24px;
+}
+
 .news-day {
-  margin: 0;
-  padding: 8px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--divider);
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--text);
 }
 
 .news-story {
   display: grid;
-  gap: 8px;
-  padding: 16px 20px;
+  gap: 6px;
+  padding: 16px 0 18px;
   border-bottom: 1px solid var(--divider);
 }
 
 .news-story:last-child {
   border-bottom: 0;
-}
-
-/* A story about one of your players: a thin accent bar on the left edge. */
-.news-story[data-mine] {
-  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 .news-story[data-status='held'],
@@ -202,57 +198,68 @@
   white-space: nowrap;
 }
 
-.news-injury {
-  margin-left: 4px;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: var(--bad-soft);
-  color: var(--bad);
-  font-size: 12px;
-  font-weight: 600;
+/* In a story the club and ESPN's injury status follow the name on its line. */
+.news-player-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
-/* Fantasy owner: the same chip for every team. Yours: accent tint + dot. */
-.news-owner {
-  display: inline-flex;
+.news-player-line .news-player-name {
+  min-width: 0;
+}
+
+.news-player-club {
   flex: none;
-  align-items: center;
-  gap: 5px;
-  min-width: 44px;
-  justify-content: center;
-  padding: 2px 8px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: var(--track);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.news-injury {
+  flex: none;
+  color: var(--bad);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+/* Fantasy owner: a plain abbreviation on the right. Yours in ink with the gold owner dot at its
+   top right; another team's in secondary ink; a free agent muted. */
+.news-owner {
+  position: relative;
+  flex: none;
+  margin-left: auto;
+  padding-right: 8px;
   color: var(--text-2);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .news-owner-mine {
-  border-color: var(--gold);
-  background: var(--gold-soft);
-  color: var(--gold-text);
+  color: var(--text);
+  font-weight: 700;
 }
 
 .news-owner-dot {
+  position: absolute;
+  top: -1px;
+  right: 0;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--gold);
 }
 
 .news-owner-free {
-  background: var(--good-soft);
-  color: var(--good);
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .news-headline {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 650;
   line-height: 1.35;
   text-wrap: pretty;
 }
@@ -272,14 +279,12 @@
   max-width: 68ch;
 }
 
+/* What each source says, as a plain line; "Sources disagree" in the meta line flags it. */
 .news-conflict {
   margin: 0;
-  padding: 8px 12px;
-  border-left: 3px solid var(--bad);
-  border-radius: var(--radius-sm);
-  background: var(--bad-soft);
-  color: var(--text);
-  font-size: 13px;
+  color: var(--text-2);
+  font-size: 14px;
+  max-width: 68ch;
 }
 
 /* One quiet line: kind · how well confirmed · when · where from. */
@@ -299,55 +304,41 @@
 }
 
 .news-kind {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   font-weight: 600;
   color: var(--text-2);
 }
 
-.news-kind::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: var(--faint);
-}
-
-.news-kind-injury::before {
-  background: var(--bad);
-}
-
-.news-kind-return::before {
-  background: var(--good);
-}
-
-.news-kind-trade::before,
-.news-kind-signing::before,
-.news-kind-waive::before {
-  background: var(--accent);
-}
-
-.news-kind-rumor::before,
-.news-kind-role::before {
-  background: var(--warn);
-}
-
+/* How well a story is confirmed, in words: Confirmed in ink with its seal, Reported in secondary
+   ink, Sources disagree in amber. */
 .news-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 500;
+  color: var(--text-2);
 }
 
 .news-status-confirmed {
-  color: var(--good);
+  color: var(--text);
+  font-weight: 600;
 }
 
-.news-status-reported {
-  color: var(--warn);
+.news-seal {
+  width: 15px;
+  height: 15px;
+  flex: none;
 }
 
-.news-status-held,
-.news-status-didnt_happen,
+.news-status-held {
+  color: var(--muted);
+}
+
 .news-status-conflict {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.news-status-didnt_happen {
   color: var(--bad);
 }
 
@@ -377,7 +368,7 @@ a.news-source:hover {
 }
 
 .news-empty {
-  padding: 24px 20px;
+  padding: 16px 0;
   gap: 4px;
 }
 
@@ -394,9 +385,26 @@ a.news-source:hover {
   margin: 4px 0 0;
 }
 
+/* Trending pickups: a bare section, 52px rows; the rise is in ink with its sign, not green,
+   because it isn't an outcome. */
+.news-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.news-rail-head svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--text-2);
+}
+
 .news-trending {
   list-style: none;
-  margin: 0;
+  margin: 8px 0 0;
   padding: 0;
 }
 
@@ -404,21 +412,21 @@ a.news-source:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
-  border-top: 1px solid var(--divider);
+  min-height: 52px;
 }
 
-.news-trend:first-child {
-  border-top: 0;
-  padding-top: 0;
+.news-trend .news-owner {
+  margin-left: 0;
+  min-width: 44px;
+  text-align: right;
 }
 
 .news-trend-change {
   flex: none;
-  min-width: 36px;
+  min-width: 48px;
   text-align: right;
-  font-weight: 600;
-  color: var(--good);
+  font-weight: 650;
+  color: var(--text);
 }
 
 .news-health-card > summary {
@@ -484,16 +492,47 @@ a.news-source:hover {
   background: var(--bad);
 }
 
-/* Who gains from an injury: opens under the injured player. */
+/* Who gains from an injury: a bare 44px button under the story; the panel opens under it. */
 .news-gains-toggle {
-  min-height: 34px;
-  padding: 0 12px;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.news-gains-caret {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.news-gains-toggle[aria-expanded='true'] .news-gains-caret {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-gains-caret {
+    transition: none;
+  }
+}
+
+.news-gains-wrap {
+  margin-top: -4px;
+}
+
+.news-story:has(> .news-gains-wrap) {
+  padding-bottom: 4px;
 }
 
 .news-gains {
-  flex-basis: 100%;
-  margin-top: 4px;
+  margin-bottom: 14px;
   padding: 12px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
@@ -524,32 +563,26 @@ a.news-source:hover {
   margin: 0;
 }
 
+/* How sure the gain is, as a word: strong in ink, some in secondary ink, an estimate muted. */
 .news-conf {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
+  color: var(--text-2);
 }
 
 .news-conf-strong {
-  background: var(--good-soft);
-  color: var(--good);
-}
-
-.news-conf-some {
-  background: var(--track);
   color: var(--text);
 }
 
 .news-conf-estimate {
   color: var(--muted);
-  border: 1px dashed var(--border);
+  font-weight: 500;
 }
 
-/* .news-kind is a flex row with a gap, so its trailing dot needs less margin. */
-.news-meta > .news-kind::after {
-  margin-left: 2px;
+/* .news-status is a flex row with a gap, so its trailing dot needs less margin. */
+.news-meta > .news-status::after {
+  margin-left: 4px;
 }
 
 /* A linked name and the punctuation after it stay on one line. */

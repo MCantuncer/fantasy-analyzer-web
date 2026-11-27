@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { NewsSkeleton } from './Skeleton'
 import { useEffect, useState } from 'react'
+import { CaretDown, SealCheck, TrendUp } from '@phosphor-icons/react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
   Beneficiary,
@@ -15,6 +16,7 @@ import type { Credentials } from '../lib/credentials'
 import {
   CONFIDENCE_LABEL,
   KIND_LABEL,
+  STATUS_LABEL,
   ago,
   groupByDay,
   inFilter,
@@ -23,11 +25,10 @@ import {
   minutesChange,
   ownership,
   shortStatus,
-  statusText,
   topGains,
 } from '../lib/news'
 import type { NewsFilter, NewsScope } from '../lib/news'
-import { PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { NewsRefresh } from './NewsRefresh'
 import { useNewsRefresh } from '../lib/useNewsRefresh'
@@ -98,9 +99,6 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
     <div className="stack news">
       <header className="news-head">
         <h2>NBA News</h2>
-        <p className="small muted">
-          Injuries, trades and role changes from around the NBA, checked against several sources before they show.
-        </p>
         <NewsRefresh data={data} now={now} refresh={refresh} />
         {news.isError && (
           <p className="small muted" role="status">
@@ -146,12 +144,12 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
 
       <div className="split">
         <div className="wide">
-          <section className="card flush news-feed" aria-label="Stories">
+          <section className="news-feed" aria-label="Stories">
             {shown.length === 0 ? (
               <EmptyNews data={data} />
             ) : (
               groupByDay(shown, now).map((g) => (
-                <div key={g.day}>
+                <div key={g.day} className="news-group">
                   <h3 className="news-day">{g.day}</h3>
                   {g.stories.map((s) => (
                     <Story
@@ -205,20 +203,14 @@ function Story({
 } & ImpactContext) {
   const lead = story.sources.find((s) => s.title === story.headline && s.url) ?? story.sources.find((s) => s.url)
   const held = story.status === 'held' || story.status === 'didnt_happen'
-  const mine = myTeamId !== null && story.players.some((p) => p.owner_team_id === myTeamId)
+  // Only published injury stories, and only for a player on an NBA team.
+  const injured = story.kind === 'injury' && !held ? story.players.filter((p) => p.pro_team) : []
   return (
-    <article className="news-story" data-status={story.status} data-mine={mine || undefined}>
+    <article className="news-story" data-status={story.status}>
       {story.players.length > 0 && (
         <ul className="news-players">
           {story.players.map((p) => (
-            <PlayerRow
-              key={p.player_id}
-              player={p}
-              myTeamId={myTeamId}
-              abbrev={abbrev}
-              // Only published injury stories, and only for a player on an NBA team.
-              impact={story.kind === 'injury' && !held && p.pro_team ? ctx : null}
-            />
+            <PlayerRow key={p.player_id} player={p} myTeamId={myTeamId} abbrev={abbrev} />
           ))}
         </ul>
       )}
@@ -234,12 +226,15 @@ function Story({
       {story.summary && <p className="news-summary">{story.summary}</p>}
       {story.conflict && (
         <p className="news-conflict" role="note">
-          {story.conflict} Treat the worse version as true until the official injury report settles it.
+          {story.conflict}
         </p>
       )}
       <div className="news-meta small">
         <span className={`news-kind news-kind-${story.kind}`}>{KIND_LABEL[story.kind]}</span>
-        <span className={`news-status news-status-${story.status}`}>{statusText(story)}</span>
+        <span className={`news-status news-status-${story.status}`}>
+          {story.status === 'confirmed' && <SealCheck className="news-seal" aria-hidden="true" />}
+          {STATUS_LABEL[story.status]}
+        </span>
         {story.conflict && <span className="news-status news-status-conflict">Sources disagree</span>}
         {/* When the story broke (its earliest source), not when its latest source came in. */}
         <time className="muted" dateTime={story.published_at}>
@@ -268,12 +263,60 @@ function Story({
           ))}
         </span>
       </div>
+      {injured.map((p) => (
+        <Gains
+          key={p.player_id}
+          player={p}
+          label={injured.length > 1 ? `Who gains with ${p.name} out?` : undefined}
+          myTeamId={myTeamId}
+          abbrev={abbrev}
+          {...ctx}
+        />
+      ))}
     </article>
   )
 }
 
-/** Fantasy owner as one compact chip: always the team's abbreviation; yours gets an accent tint and a dot. */
-function OwnerChip({
+/** "Who gains?" under an injury story: a bare button that opens the teammates who gain. */
+function Gains({
+  player,
+  label,
+  myTeamId,
+  abbrev,
+  ...impact
+}: {
+  player: NewsPlayer
+  /** Only when a story has more than one injured player, to say whose absence. */
+  label?: string
+  myTeamId: number | null
+  abbrev: Map<number, string>
+} & ImpactContext) {
+  const [open, setOpen] = useState(false)
+  const panelId = `gains-${player.player_id}`
+  return (
+    <div className="news-gains-wrap">
+      <button
+        type="button"
+        className="news-gains-toggle"
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={label}
+        onClick={() => setOpen((o) => !o)}
+      >
+        Who gains?
+        <CaretDown className="news-gains-caret" aria-hidden="true" />
+      </button>
+      {open && (
+        <div id={panelId} className="news-gains">
+          <WhoGains player={player} myTeamId={myTeamId} abbrev={abbrev} {...impact} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Fantasy owner as a plain abbreviation: yours in ink with the small gold owner dot, a free agent muted. */
+function NewsOwner({
   player,
   myTeamId,
   abbrev,
@@ -295,8 +338,8 @@ function OwnerChip({
   if (own === 'mine') {
     return (
       <span className="news-owner news-owner-mine" title="Your team">
-        <span className="news-owner-dot" aria-hidden="true" />
         {code}
+        <span className="news-owner-dot" aria-hidden="true" />
         <span className="sr-only">Your team</span>
       </span>
     )
@@ -304,52 +347,34 @@ function OwnerChip({
   return <span className="news-owner">{code}</span>
 }
 
+/** Face, name and club on one line, with ESPN's injury status when there is one; the owner on the right. */
 function PlayerRow({
   player,
   myTeamId,
   abbrev,
-  impact,
 }: {
   player: NewsPlayer
   myTeamId: number | null
   abbrev: Map<number, string>
-  impact: ImpactContext | null
 }) {
-  const [open, setOpen] = useState(false)
   const status = shortStatus(player)
-  const panelId = `gains-${player.player_id}`
   return (
     <li className="news-player">
       <PlayerLink player={{ id: player.player_id, name: player.name }} decorative>
-        <PlayerHead player={{ id: player.player_id, name: player.name }} size={36} team={player.pro_team} />
+        <PlayerHead player={{ id: player.player_id, name: player.name }} size={32} team={player.pro_team} />
       </PlayerLink>
-      <span className="news-player-id">
+      <span className="news-player-id news-player-line">
         <span className="news-player-name">
           <PlayerLink player={{ id: player.player_id, name: player.name }} />
         </span>
-        <span className="news-player-sub small muted">
-          <TeamLogo abbrev={player.pro_team} size={16} />
-          {player.pro_team || 'Free agent'}
-          {status && <span className="news-injury">ESPN: {status}</span>}
-        </span>
+        <span className="news-player-club">{player.pro_team || 'Free agent'}</span>
+        {status && (
+          <span className="news-injury" title={`ESPN status: ${status}`}>
+            {status}
+          </span>
+        )}
       </span>
-      <OwnerChip player={player} myTeamId={myTeamId} abbrev={abbrev} />
-      {impact && (
-        <button
-          type="button"
-          className="secondary news-gains-toggle"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? 'Hide' : 'Who gains?'}
-        </button>
-      )}
-      {impact && open && (
-        <div id={panelId} className="news-gains">
-          <WhoGains player={player} myTeamId={myTeamId} abbrev={abbrev} {...impact} />
-        </div>
-      )}
+      <NewsOwner player={player} myTeamId={myTeamId} abbrev={abbrev} />
     </li>
   )
 }
@@ -409,7 +434,7 @@ function GainsList({
     <div className="stack news-gains-body">
       <p className="small muted">
         {games > 0
-          ? `Based on about ${games} ${data.pro_team} game${games === 1 ? '' : 's'} without him (older games count less), compared with games he played (${data.minutes.toFixed(0)} min a game).`
+          ? `Based on about ${games} ${data.pro_team} game${games === 1 ? '' : 's'} without him, compared with games he played (${data.minutes.toFixed(0)} min a game).`
           : `${data.pro_team} haven't played without him yet, so this is an estimate from positions and minutes.`}
       </p>
       {data.beneficiaries.length === 0 ? (
@@ -441,7 +466,7 @@ function GainRow({ b, myTeamId, abbrev }: { b: Beneficiary; myTeamId: number | n
         <span className="name">
           <PlayerLink player={{ id: b.player_id, name: b.name }} />
         </span>
-        <OwnerChip player={b} myTeamId={myTeamId} abbrev={abbrev} />
+        <NewsOwner player={b} myTeamId={myTeamId} abbrev={abbrev} />
         <span className={`news-conf news-conf-${b.confidence}`}>{CONFIDENCE_LABEL[b.confidence]}</span>
       </div>
       <div className="row small">
@@ -467,11 +492,11 @@ function Trending({
 }) {
   if (players.length === 0) return null
   return (
-    <section className="card stack news-side" aria-labelledby="trending-h">
-      <div>
-        <h3 id="trending-h">Trending pickups</h3>
-        <p className="small muted">Biggest rise today in % of ESPN leagues rostering him.</p>
-      </div>
+    <section className="news-side news-trend-rail" aria-labelledby="trending-h">
+      <h3 id="trending-h" className="news-rail-head">
+        <TrendUp aria-hidden="true" />
+        Trending pickups
+      </h3>
       <ol className="news-trending">
         {players.slice(0, 8).map((p) => (
           <li key={p.player_id} className="news-trend">
@@ -483,12 +508,14 @@ function Trending({
                 <PlayerLink player={{ id: p.player_id, name: p.name }} />
               </span>
               <span className="news-player-sub small muted">
-                <TeamLogo abbrev={p.pro_team} size={14} />
                 {p.pro_team || 'Free agent'} · <span className="num">{p.percent_owned.toFixed(0)}%</span> rostered
               </span>
             </span>
-            <OwnerChip player={p} myTeamId={myTeamId} abbrev={abbrev} />
-            <span className="num news-trend-change">{`${p.percent_change >= 0 ? '+' : '−'}${Math.abs(p.percent_change).toFixed(1)}`}</span>
+            <NewsOwner player={p} myTeamId={myTeamId} abbrev={abbrev} />
+            <span
+              className="num news-trend-change"
+              title={`Share of ESPN leagues rostering him, today: ${p.percent_change >= 0 ? '+' : '−'}${Math.abs(p.percent_change).toFixed(1)} points`}
+            >{`${p.percent_change >= 0 ? '+' : '−'}${Math.abs(p.percent_change).toFixed(1)}%`}</span>
           </li>
         ))}
       </ol>
@@ -560,7 +587,7 @@ function EmptyNews({ data }: { data: NewsPage }) {
   return (
     <div className="stack news-empty">
       <p>No stories match.</p>
-      <p className="small muted">Try "All NBA" or another filter.</p>
+      <p className="small muted">Try All NBA or another filter.</p>
     </div>
   )
 }
