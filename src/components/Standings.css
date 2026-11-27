@@ -118,12 +118,30 @@
   font-weight: 700;
 }
 
+/* Your crest: a small gold person badge sits on its top-right corner, ringed in the page colour. */
+.st-cr {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
 .st-me {
-  width: 14px;
-  height: 14px;
-  margin-left: 6px;
-  vertical-align: -2px;
-  color: var(--gold);
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--bg);
+}
+
+.st-me svg {
+  width: 8px;
+  height: 8px;
 }
 
 .st-n {

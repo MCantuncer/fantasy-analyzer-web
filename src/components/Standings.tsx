@@ -31,17 +31,21 @@ function winPct(t: OverviewTeam) {
 
 const back = (t: OverviewTeam) => (t.games_back ? t.games_back.toFixed(1).replace(/\.0$/, '') : '–')
 
-/** Rank, crest and name (two lines at most, never cut short), with the person icon on your row. */
+/** Rank, crest and name (two lines at most, never cut short); your crest carries a small person badge on its top-right corner. */
 function TeamCell({ rank, name, colour, mine }: { rank: number; name: string; colour?: string; mine: boolean }) {
   return (
     <>
       <span className="st-rk num">{rank}</span>
       <span className="st-tm">
-        <TeamCrest name={name} colour={colour} size={22} />
-        <span className="st-nm">
-          {name}
-          {mine && <User className="st-me" weight="fill" role="img" aria-label="your team" />}
+        <span className="st-cr">
+          <TeamCrest name={name} colour={colour} size={22} />
+          {mine && (
+            <span className="st-me" role="img" aria-label="your team">
+              <User weight="fill" aria-hidden="true" />
+            </span>
+          )}
         </span>
+        <span className="st-nm">{name}</span>
       </span>
     </>
   )
