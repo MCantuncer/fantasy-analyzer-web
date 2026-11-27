@@ -1,6 +1,6 @@
 /* League → the week's matchups as mirrored rows on the bare page (lmr- prefix). No cards, no tags:
    the leader's name and score in ink, a short sentence-case marker line, your row lit from the left
-   (your crest carries the badge). A row's box score opens in place right under it. */
+   (a gold "You" tag after your name). A row's box score opens in place right under it. */
 .lmr-rows {
   margin: 0;
   padding: 0;
@@ -62,6 +62,13 @@ button.lmr-row:hover {
 
 .lmr-dash {
   display: none;
+}
+
+.lmr-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .lmr-nm {
@@ -192,21 +199,27 @@ button.lmr-close:hover {
     column-gap: 8px;
   }
 
+  /* The score column hugs its one digit (tabular, so every row's dash still lines up), which
+     leaves your name room for its full length plus the "You" tag. */
   .lmr-side {
-    grid-template-columns: 22px minmax(0, 1fr) 30px;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    column-gap: 8px;
   }
 
   .lmr-b {
-    grid-template-columns: 30px minmax(0, 1fr) 22px;
+    grid-template-columns: auto minmax(0, 1fr) 22px;
   }
 
-  .lmr-b .yourcrest,
   .lmr-b > .crest {
     order: 3;
   }
 
-  .lmr-b .lmr-nm {
+  .lmr-b .lmr-who {
     order: 2;
+    justify-content: flex-end;
+  }
+
+  .lmr-b .lmr-nm {
     text-align: right;
   }
 

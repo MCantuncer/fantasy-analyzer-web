@@ -3,7 +3,6 @@ import type { StatValue } from '../lib/catStrip'
 import { CatStripPair } from './CatStrip'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
-import { YourCrest } from './YourCrest'
 import './SeatExample.css'
 
 // Fixed sample data with no real team or player in it: "You" against a grey "Them", 2–5–2 today.
@@ -51,7 +50,7 @@ export function SeatExample() {
         <div className="lx-piece lx-mu">
           <h3 className="lx-ph">Your matchup, live</h3>
           <p className="lx-score">
-            <YourCrest name={YOU.name} colour={YOU.colour} size={22} mine />
+            <TeamCrest name={YOU.name} colour={YOU.colour} size={22} />
             <span>You</span>
             <b className="num">
               2<i>–</i>5<i>–</i>2

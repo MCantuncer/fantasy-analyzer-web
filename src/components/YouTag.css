@@ -1,0 +1,17 @@
+/* "You" after your team's name (youtag prefix). One size everywhere: 11px, never wraps or shrinks.
+   No outer margin: a flex row's gap spaces it; inline text gives it a margin where it sits. */
+.youtag {
+  display: inline-block;
+  flex: none;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+

@@ -83,14 +83,17 @@ describe('MatchupRows', () => {
     expect(within(items[1] as HTMLElement).getByText('Within one')).toBeTruthy()
   })
 
-  it('lights your row and badges your crest, with no words beside the name', () => {
+  it('lights your row and tags your name "You", with no badge on the crest', () => {
     const { container } = rows()
     const mine = container.querySelector('.lmr-item.mine') as HTMLElement
     expect(mine).toBeTruthy()
-    expect(mine.querySelectorAll('.yourcrest > .yourcrest-me')).toHaveLength(1)
+    const tags = mine.querySelectorAll('.lmr-who > .youtag')
+    expect(tags).toHaveLength(1)
+    expect(tags[0].previousElementSibling?.textContent).toBe('Kucukesat Aspavas')
     expect(within(mine).queryByText(/your matchup/i)).toBeNull()
     expect(rowOf(/^Your matchup: Kucukesat Aspavas 5, Aachen ShowManners 4/)).toBeTruthy()
-    expect(container.querySelectorAll('.lmr-item:not(.mine) .yourcrest-me')).toHaveLength(0)
+    expect(container.querySelectorAll('.youtag')).toHaveLength(1)
+    expect(container.querySelector('.yourcrest-me')).toBeNull()
   })
 
   it('has no matchup of the week marker: the sheet above names the featured matchup', () => {
@@ -174,11 +177,12 @@ describe('LeagueWire', () => {
     expect(facts[2].textContent).toBe('1trade this season')
   })
 
-  it('badges the FAAB leader when it is your team, and says so when nobody has spent', () => {
+  it('tags the FAAB leader "You" when it is your team, and says so when nobody has spent', () => {
     const { container, rerender } = render(
       <LeagueWire pulse={pulse()} nameOf={nameOf} colours={colours} myTeamId={3} />,
     )
-    expect(container.querySelectorAll('.yourcrest > .yourcrest-me')).toHaveLength(1)
+    expect(container.querySelectorAll('.lwr-team > .youtag')).toHaveLength(1)
+    expect(container.querySelector('.yourcrest-me')).toBeNull()
     rerender(
       <LeagueWire
         pulse={pulse({ faab_leader_id: null, claims_last_7_days: 1, trades_this_season: 0 })}

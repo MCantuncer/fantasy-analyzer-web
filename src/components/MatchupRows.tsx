@@ -8,7 +8,8 @@ import { todayMatters, useTodayMatchup } from '../lib/todayData'
 import { CatStripPair } from './CatStrip'
 import { TodayWeekSwitch } from './MatchupSheet'
 import { TodayLoading, TodayMatchup } from './TodayMatchup'
-import { YourCrest } from './YourCrest'
+import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './MatchupRows.css'
 
 const key = (m: OverviewMatchup) => `${m.home.team_id}-${m.away.team_id}`
@@ -153,13 +154,11 @@ export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, 
         const lead = a.wins > b.wins ? 'a' : b.wins > a.wins ? 'b' : null
         const team = (s: MatchupSide, at: 'a' | 'b') => (
           <span className={`lmr-side lmr-${at}${lead === at ? ' lmr-lead' : ''}`}>
-            <YourCrest
-              name={nameOf(s.team_id)}
-              colour={colours.get(s.team_id)}
-              size={22}
-              mine={s.team_id === myTeamId}
-            />
-            <span className="lmr-nm">{nameOf(s.team_id)}</span>
+            <TeamCrest name={nameOf(s.team_id)} colour={colours.get(s.team_id)} size={22} />
+            <span className="lmr-who">
+              <span className="lmr-nm">{nameOf(s.team_id)}</span>
+              {s.team_id === myTeamId && <YouTag />}
+            </span>
             <span className="lmr-sc num">{s.wins}</span>
           </span>
         )

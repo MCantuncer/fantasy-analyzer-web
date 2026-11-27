@@ -70,7 +70,9 @@ describe('Standings rows', () => {
     expect(items[7].textContent).toBe('Playoff line · top 6')
     const mine = list.querySelector('.st-r.mine') as HTMLElement
     expect(mine.textContent).toContain('Kucukesat Aspavas')
-    expect(within(mine).getByRole('img', { name: 'your team' })).toBeTruthy()
+    expect(mine.querySelector('.st-nm + .youtag')?.textContent).toBe('You')
+    expect(list.querySelectorAll('.youtag')).toHaveLength(1)
+    expect(within(mine).queryByRole('img', { name: 'your team' })).toBeNull()
     expect(within(mine).queryByRole('button')).toBeNull()
     expect(list.querySelectorAll('.st-r:not(.mine) .st-tr')).toHaveLength(9)
     const first = items[1]
