@@ -1,4 +1,4 @@
-import type { Game, GameLine, LineupSpot, NextGame, PlayChance } from '../api/client'
+import type { Game, GameLine, LineupSpot, PlayChance } from '../api/client'
 
 /**
  * What one of your players is doing on the day on screen:
@@ -203,11 +203,6 @@ export function weekday(date: string | null | undefined): string {
   if (!date) return ''
   const [y, m, d] = date.split('-').map(Number)
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short' })
-}
-
-/** "Wed @ IND" / "Wed vs BKN": where his team plays next. */
-export function nextLabel(g: NextGame): string {
-  return `${weekday(g.date)} ${g.home ? 'vs' : '@'} ${g.opponent.abbrev}`
 }
 
 /** His team's games left this week after the day on screen. */
