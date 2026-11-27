@@ -218,24 +218,8 @@
 }
 
 .park-accept {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.park-accept-w {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 24px;
-  font-weight: 650;
-}
-
-.park-accept-k {
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--muted);
 }
 
 .park-get {
@@ -620,7 +604,6 @@ button.park-drow[aria-current='true'] {
 .park-dacc {
   flex: none;
   font-size: 13px;
-  font-weight: 650;
 }
 
 /* Rows with nothing to put on the table: muted tokens, never opacity. */
@@ -798,6 +781,18 @@ button.park-drow[aria-current='true'] {
   /* "On the table" wraps under the team rather than being cut. */
   .park-dt .park-dmt {
     white-space: normal;
+  }
+
+  /* The accept chance stacks, "Accept" over "1 in 9", so the names keep their room. */
+  .park-dacc {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    line-height: 18px;
+  }
+
+  .park-dacc .acn-chance-dot {
+    display: none;
   }
 
   .park-dnone {

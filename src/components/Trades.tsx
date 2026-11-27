@@ -34,12 +34,7 @@ import { PlayoffsMark } from './PlayoffsMark'
 import { KeptPlayers, PlayerInline } from './PlayerInline'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 import { keptNames } from '../lib/untouchable'
-
-export const ACCEPTANCE = {
-  likely: { label: 'Likely', tone: 'good' },
-  possible: { label: 'Possible', tone: 'warn' },
-  long_shot: { label: 'Long shot', tone: 'bad' },
-} as const
+import { AcceptChance } from './AcceptChance'
 
 interface Keeper {
   keep: number[]
@@ -359,7 +354,6 @@ export function TradeItem({
   onCheck,
 }: ItemProps) {
   const rounds = useRoundValues()
-  const acc = ACCEPTANCE[t.acceptance_label]
   // Moves never offer a kept player, so a listed trade that gives one was kept a moment ago: the
   // offer is on its way out and dims until moves are updated.
   const keptOut = keeper ? t.give.filter((p) => keeper.keep.includes(p.id)) : []
@@ -466,13 +460,7 @@ export function TradeItem({
             </span>
             {styleLine && <span className="mvt-style">{styleLine}</span>}
           </span>
-          <span className="mvt-accept" title="How offers like this one went in real leagues">
-            <Handshake size={18} aria-hidden="true" />
-            <span className={`mvt-accept-w ${acc.tone}`}>
-              <span className="sr-only">chance they accept, </span>
-              {acc.label}
-            </span>
-          </span>
+          <AcceptChance p={t.acceptance} className="mvt-accept" />
         </div>
         <div className="mvt-deal">
           <RowLane end="give" players={t.give} extra={faab > 0 ? `+ $${faab} FAAB` : undefined} keeper={open ? keeper : null} />

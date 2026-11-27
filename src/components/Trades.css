@@ -1,7 +1,7 @@
 /* Trade rows on Moves. */
 
 /* Trades to offer on Moves (mvt- prefix, Quiet Lead): a bare section, two control lines, then
-   numbered rows on the bare page. A row: the partner and the accept word on top, then Centre Line's
+   numbered rows on the bare page. A row: the partner and the accept chance on top, then Centre Line's
    geometry (you give | your odds | you get), then Show details and the expected gain. Rows are
    closed by default and tint on hover; only the opened row lifts. Narrower than 560px a row stacks:
    give, the odds band between two rules, get. */
@@ -165,31 +165,10 @@
   color: var(--text-2);
 }
 
-/* Accept chance: a word beside the handshake, never a percentage. */
+/* Accept chance: "Accept · 1 in 9" beside the partner (AcceptChance). */
 .mvt-accept {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   min-height: 32px;
-  color: var(--text-2);
-}
-
-.mvt-accept-w {
-  font-size: 16px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.mvt-accept-w.good {
-  color: var(--good);
-}
-
-.mvt-accept-w.warn {
-  color: var(--warn);
-}
-
-.mvt-accept-w.bad {
-  color: var(--bad);
+  font-size: 15px;
 }
 
 .mvt-deal {
@@ -355,7 +334,7 @@
   transform: rotate(180deg);
 }
 
-/* An offer that gives a player you have just kept is on its way out: its deal, accept word and
+/* An offer that gives a player you have just kept is on its way out: its deal, accept chance and
    foot go to the muted ink through the tokens (no opacity) until moves are updated. */
 .mvt-kept .mvt-deal,
 .mvt-kept .mvt-accept,

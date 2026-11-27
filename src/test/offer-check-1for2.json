@@ -74,6 +74,7 @@
     ],
     "value_they_get": 9.8,
     "value_they_give": 16.6,
+    "acceptance": 0.11,
     "acceptance_label": "possible",
     "playoff_pct_before": 0.429,
     "playoff_pct_after": 0.526,

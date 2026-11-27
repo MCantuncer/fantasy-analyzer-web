@@ -1,0 +1,23 @@
+/* The accept chance (acn-chance-): "🤝 Accept · 1 in 9" on one line, in ink, never a tone. */
+.acn-chance {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.acn-chance-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.acn-chance-dot {
+  color: var(--muted);
+}
+
+.acn-chance-v {
+  font-weight: 650;
+  color: var(--text);
+}

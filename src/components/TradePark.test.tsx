@@ -105,6 +105,7 @@ function richReport(offered: PlayerRef[]): ShopReport {
   const both = deal([roster[2], roster[3]], [herro], {
     partner_team_id: 5,
     partner_team_name: 'Los Avokados',
+    acceptance: 0.07,
     acceptance_label: 'long_shot',
     playoff_pct_after: 0.55,
     uses_all: true,
@@ -274,14 +275,15 @@ describe('TradePark, the deal on the table', () => {
 
   async function picked() {
     const view = setup({ start: [3, 4] })
-    await screen.findByText('Chance they say yes')
+    await screen.findByText('chance they accept: 1 in 2', { selector: '.park-accept .sr-only' })
     return view
   }
 
   it('puts the best deal on the table: odds on the centre line, your side marked, theirs in the get end', async () => {
     const { container } = await picked()
     expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs56%, from 54%, up 2 points.56%▲2Their playoff odds 47% to 46%, down 1.Them 47% → 46% ▼1')
-    expect(container.querySelector('.park-accept')?.textContent).toBe('PossibleChance they say yes')
+    expect(container.querySelector('.park-accept')?.textContent).toBe('chance they accept: 1 in 2Accept·1 in 2')
+    expect(container.querySelectorAll('.park-dacc .acn-chance-v')[1]?.textContent).toBe('1 in 14')
     expect(container.querySelector('.park-partner')?.textContent).toBe('SWSariyer Wolfpack15–21–0 · best deal, 1 of 2')
     expect(container.querySelector('.park-get .park-card')?.textContent).toBe('Ausar ThompsonSF/PF · DET · $7 trade value')
     const inDeal = [...container.querySelectorAll('.park-row.park-in')]
@@ -365,7 +367,7 @@ describe('TradePark, the deal on the table', () => {
     const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
     fireEvent.click(container.querySelectorAll('button.park-drow')[1])
     expect(container.querySelector('.tt-plate')?.textContent).toContain('55%')
-    expect(container.querySelector('.park-accept')?.textContent).toBe('Long shotChance they say yes')
+    expect(container.querySelector('.park-accept .acn-chance-v')?.textContent).toBe('1 in 14')
     expect(container.querySelector('.park-partner')?.textContent).toContain('deal, 2 of 2')
     expect(container.querySelectorAll('.park-row.park-in')).toHaveLength(2)
     expect(container.querySelectorAll('button.park-drow')[1]).toHaveAttribute('aria-current', 'true')
@@ -406,7 +408,7 @@ describe('TradePark, no deal and errors', () => {
       return richReport(roster.filter((p) => ids.includes(p.id)))
     })
     const { container } = setup({ start: [3] })
-    await screen.findByText('Chance they say yes')
+    await screen.findByText('chance they accept: 1 in 2', { selector: '.park-accept .sr-only' })
     fireEvent.click(screen.getByRole('button', { name: 'Shop Davion Mitchell' }))
     await act(() => vi.advanceTimersByTimeAsync(710))
     expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't update for Allen + Mitchell. Timed out")

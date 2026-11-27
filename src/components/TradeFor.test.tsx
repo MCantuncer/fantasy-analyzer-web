@@ -77,6 +77,7 @@ const offer = {
   my_drop: player(4, 'Cam Spencer'),
   angle: 'best',
   angle_note: '',
+  acceptance: 0.11,
   acceptance_label: 'possible',
   playoff_pct_before: 0.54,
   playoff_pct_after: 0.56,
