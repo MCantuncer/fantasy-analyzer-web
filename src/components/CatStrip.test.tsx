@@ -1,6 +1,7 @@
 import { cleanup, render, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { CatStrip } from './CatStrip'
+import type { StripSide } from '../lib/catStrip'
+import { CatStrip, CatStripPair } from './CatStrip'
 
 afterEach(cleanup)
 
@@ -37,5 +38,66 @@ describe('CatStrip', () => {
   it('gives a column to every category asked for, even one without a change', () => {
     const { container } = render(<CatStrip changes={{ AST: 0.05 }} categories={['PTS', 'AST', 'BLK']} title="t" />)
     expect([...container.querySelectorAll('.cs-c')].map((c) => c.textContent)).toEqual(['AST', 'BLK', 'PTS'])
+  })
+})
+
+describe('CatStripPair', () => {
+  const CATS = ['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS']
+  const vals = (xs: number[]) => CATS.map((stat, i) => ({ stat, value: xs[i] }))
+  const a: StripSide = {
+    id: 3,
+    name: 'Kucukesat Aspavas',
+    short: 'You',
+    colour: 'var(--gold)',
+    today: vals([0.5, 1, 1, 6, 5, 1, 0, 3, 21]),
+    week: vals([0.509, 0.744, 60, 225, 134, 37, 25, 62, 539]),
+  }
+  const b: StripSide = {
+    id: 7,
+    name: 'Çayyolu Bastards',
+    short: 'Bastards',
+    today: vals([0.429, 1, 5, 30, 16, 5, 0, 5, 53]),
+    week: vals([0.476, 0.746, 82, 181, 144, 37, 11, 69, 669]),
+  }
+
+  it('reads one labelled item per category and keys the rows', () => {
+    const { getByRole } = render(<CatStripPair a={a} b={b} top="today" sub="week" mine="a" label="Today's categories" />)
+    const list = getByRole('list', { name: "Today's categories" })
+    const items = within(list).getAllByRole('listitem')
+    expect(items).toHaveLength(9)
+    expect(items[0]).toHaveAccessibleName('FG%: you .500, Bastards .429, you lead. Week .509 to .476')
+    expect(list.querySelector('.cs-key')?.textContent).toBe('KAYouthis weekwkÇBBastardsthis weekwk')
+    expect([...list.querySelectorAll('.cs-pl')].map((l) => l.textContent)).toContain('TO↓')
+  })
+
+  it('points the bar at the leader: green for you, coral for them, a dash for a tie', () => {
+    const { container } = render(<CatStripPair a={a} b={b} top="today" sub="week" mine="a" label="t" />)
+    const bars = [...container.querySelectorAll('.cs-pb i')].map((i) => i.className)
+    expect(bars).toEqual([
+      'cs-pup cs-good',
+      'cs-tie',
+      'cs-pdn cs-bad',
+      'cs-pdn cs-bad',
+      'cs-pdn cs-bad',
+      'cs-pdn cs-bad',
+      'cs-tie',
+      'cs-pup cs-good',
+      'cs-pdn cs-bad',
+    ])
+    const close = [...container.querySelectorAll('.cs-pl.cs-close')].map((l) => l.textContent)
+    expect(close).toEqual(['FT%', 'AST', 'STL', 'TO↓'])
+    expect(container.querySelectorAll('.cs-pv.cs-w')).toHaveLength(7)
+  })
+
+  it("keeps bars neutral when neither side is you, and drops the sub row and key when asked", () => {
+    const { container } = render(
+      <CatStripPair a={{ ...a, short: 'Aspavas' }} b={b} top="week" mine={null} keyed={false} label="t" />,
+    )
+    expect(container.querySelector('.cs-key')).toBeNull()
+    expect(container.querySelector('.cs-pk')).toBeNull()
+    expect(container.querySelector('.cs-pair')).toHaveClass('cs-one', 'cs-nokey')
+    const tones = [...container.querySelectorAll('.cs-pb i:not(.cs-tie)')].map((i) => i.classList[1])
+    expect(new Set(tones)).toEqual(new Set(['cs-neu']))
+    expect(within(container).getAllByRole('listitem')[0]).toHaveAccessibleName('FG%: Aspavas .509, Bastards .476, Aspavas lead')
   })
 })
