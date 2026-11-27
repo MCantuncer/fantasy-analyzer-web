@@ -199,12 +199,15 @@ button.lmr-close:hover {
     column-gap: 8px;
   }
 
+  /* The score column hugs its one digit (tabular, so every row's dash still lines up), which
+     leaves your name room for its full length plus the "You" tag. */
   .lmr-side {
-    grid-template-columns: 22px minmax(0, 1fr) 30px;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    column-gap: 8px;
   }
 
   .lmr-b {
-    grid-template-columns: 30px minmax(0, 1fr) 22px;
+    grid-template-columns: auto minmax(0, 1fr) 22px;
   }
 
   .lmr-b > .crest {
