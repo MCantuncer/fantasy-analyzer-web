@@ -27,8 +27,9 @@ import { BestMovePending, TradesPending, type TradesStatus } from './TradesPendi
 import { NewsSince, type NewsSinceProps } from './NewsSince'
 import type { NewsRowKind } from '../lib/newsSince'
 import type { Credentials } from '../lib/credentials'
-import { Untouchable, UntouchableWorking } from './Untouchable'
+import { Untouchable, UntouchableLine, UntouchableWorking } from './Untouchable'
 import { useUntouchableAsked } from '../lib/untouchable'
+import { tradeKey } from '../lib/format'
 import { useManagerStyles } from '../lib/useManagerStyles'
 import { partnerLine } from '../lib/managerStyles'
 import '../styles/moves.css'
@@ -128,6 +129,8 @@ export function Report({
   const keptNow = report.roster.filter((p) => keep.includes(p.id))
   const reworking = rerunning && keepChanged && keep.length > 0
   const asking = !asked && !tradesPending && !reworking && (keep.length === 0 || keepChanged)
+  // The trades the answer changes: the unique ones across Fair and Bold.
+  const waiting = new Set([...report.trades, ...report.edge_trades].map(tradeKey)).size
   useEffect(() => {
     if (!asked && keep.length > 0 && !keepChanged) markAsked()
   }, [asked, keep.length, keepChanged, markAsked])
@@ -191,7 +194,7 @@ export function Report({
                 keep={keep}
                 onToggleKeep={onToggleKeep}
                 onEveryone={markAsked}
-                onMyTeam={() => onTab('team')}
+                waiting={waiting}
               />
             )}
             {news && news.changes.length > 0 && <NewsSince {...news} onDismiss={onDismissNews} onGo={goTo} />}
@@ -217,7 +220,9 @@ export function Report({
                     teams={report.league.teams}
                     myTeamId={report.team_id}
                     kept={keepChanged ? [] : keptNow}
-                    onEditKeep={() => onTab('team')}
+                    untouchable={
+                      !asking && <UntouchableLine roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} />
+                    }
                     keep={keep}
                     partnerStyles={partnerStyles}
                     onToggleKeep={onToggleKeep}

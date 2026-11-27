@@ -278,7 +278,7 @@ describe('PlayerCard next game', () => {
     const nums = [...dialog.querySelectorAll('.ng-single .ng-nums td')].map((td) => td.textContent)
     expect(nums).toEqual(['33', '.471', '.802', '4', '7', '7', '2', '0', '4', '32'])
     expect(dialog.querySelector('.ng-single [data-win]')).toBeNull()
-    expect(within(dialog).getByText('A usual night, not a promise')).toBeInTheDocument()
+    expect(within(dialog).queryByText('A usual night, not a promise')).toBeNull()
   })
 
   it('has no next-game section while he has no line', async () => {
