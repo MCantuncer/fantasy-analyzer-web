@@ -1,13 +1,12 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
-import { CaretDown, Handshake, LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
+import { ArrowDownLeft, ArrowUpRight, CaretDown, Handshake, LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import { PitchCard } from './PitchCard'
 import type { FeedbackSource, PlayerRef, TradeIdea } from '../api/client'
-import { tradeKey } from '../lib/format'
+import { pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { ImpactBars } from './ImpactBars'
-import { OddsChange } from './OddsChange'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
 import { premiumValue, useRoundValues } from '../lib/tradeValue'
@@ -44,68 +43,88 @@ interface Keeper {
   onToggleKeep: (id: number) => void
 }
 
-/** One side of a trade row: a label, then a small team-lit face, name, injury pill and "MIL · PF" per player.
- *  Names are plain text while the row is closed, so a tap anywhere opens the details; once it is open
- *  each name opens the player's card. */
+/** "▲ +2 pts": the sign and a small arrow, never colour alone. */
+function Delta({ before, after, unit = true }: { before: number; after: number; unit?: boolean }) {
+  const d = ptsDiff(before, after)
+  return (
+    <span className={`mvt-d num ${d > 0 ? 'good' : d < 0 ? 'bad' : ''}`}>
+      {d !== 0 && (
+        <span className="mvt-ar" aria-hidden="true">
+          {d > 0 ? '▲' : '▼'}
+        </span>
+      )}
+      {signedInt(d)}
+      {unit && ' pts'}
+    </span>
+  )
+}
+
+/**
+ * One end of a trade row: "You give" or "You get", then each player with a small team-lit face,
+ * the name (it opens the card; it sits above the row's tap layer) and "MIL · PF". On the side you
+ * give, once the row is open, a "Keep" column of 44px locks.
+ */
 function RowLane({
-  label,
+  end,
   players,
   extra,
-  linked,
   keeper = null,
 }: {
-  label: string
+  end: 'give' | 'get'
   players: TradeIdea['give']
   extra?: string
-  linked: boolean
-  /** Set on the side you give once the trade is open: a "Keep him" switch beside each player. */
+  /** Set on the side you give once the trade is open: a Keep lock beside each player. */
   keeper?: Keeper | null
 }) {
+  const Icon = end === 'give' ? ArrowUpRight : ArrowDownLeft
   return (
-    <span className="tr-lane">
-      <span className="tr-lane-label">{label}</span>
+    <div className={`mvt-lane mvt-${end}`}>
+      <span className="mvt-lane-k">
+        <span className="mvt-lane-l">
+          <Icon size={14} aria-hidden="true" />
+          {end === 'give' ? 'You give' : 'You get'}
+        </span>
+        {keeper && (
+          <span className="mvt-keep-k" aria-hidden="true">
+            Keep
+          </span>
+        )}
+      </span>
       {players.map((p) => (
-        <span key={p.id} className="tr-player">
-          <PlayerHead player={p} size={32} team={p.pro_team} />
-          <span className="tr-player-text">
-            <span className="tr-name">
-              {linked ? (
-                <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
-              ) : (
-                <>
-                  {p.name}
-                  <InjuryBadges players={[p]} />
-                </>
-              )}
+        <span key={p.id} className="mvt-player">
+          <span className="mvt-face">
+            <PlayerLink player={p} decorative>
+              <PlayerHead player={p} size={40} team={p.pro_team} />
+            </PlayerLink>
+          </span>
+          <span className="mvt-who">
+            <span className="mvt-name">
+              <PlayerLink player={p} after={<InjuryBadges players={[p]} />} />
             </span>
-            <span className="tr-meta">{[p.pro_team, p.positions.join('/')].filter(Boolean).join(' · ')}</span>
+            <span className="mvt-meta">{[p.pro_team, p.positions.join('/')].filter(Boolean).join(' · ')}</span>
           </span>
           {keeper && (
             <KeepSwitch name={p.name} kept={keeper.keep.includes(p.id)} onToggle={() => keeper.onToggleKeep(p.id)} />
           )}
         </span>
       ))}
-      {extra && <span className="tr-extra num">{extra}</span>}
-    </span>
+      {extra && <span className="mvt-extra num">{extra}</span>}
+    </div>
   )
 }
 
-/** The same switch as Keep in My Team, asked at the moment you see a player you would never give. */
+/** The same switch as Keep in My Team: a 44px lock under the "Keep" column label. */
 function KeepSwitch({ name, kept, onToggle }: { name: string; kept: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
-      className="tr-keep secondary"
+      className="mvt-keep"
       aria-pressed={kept}
       aria-label={kept ? `${name} is kept out of trades` : `Keep ${name} out of trades`}
+      title={kept ? 'Kept' : 'Keep him'}
       onClick={onToggle}
     >
-      {kept ? (
-        <LockSimple size={14} weight="fill" aria-hidden="true" />
-      ) : (
-        <LockSimpleOpen size={14} aria-hidden="true" />
-      )}
-      {kept ? 'Kept' : 'Keep him'}
+      {kept ? <LockSimple size={18} weight="fill" aria-hidden="true" /> : <LockSimpleOpen size={18} aria-hidden="true" />}
     </button>
   )
 }
@@ -130,6 +149,8 @@ interface ItemProps {
   keeper?: Keeper | null
   /** How the partner plays, as one quiet line under their name. */
   styleLine?: string
+  /** The row's place in the list (1 is the best expected gain). */
+  rank?: number
 }
 
 /** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
@@ -147,6 +168,7 @@ export function TradeItem({
   teamCount,
   keeper = null,
   styleLine,
+  rank,
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
@@ -154,6 +176,10 @@ export function TradeItem({
   // offer is on its way out and dims until moves are updated.
   const keptOut = keeper ? t.give.filter((p) => keeper.keep.includes(p.id)) : []
   const expected = expectedGain(t.acceptance, t.playoff_pct_before, t.playoff_pct_after)
+  const them =
+    t.partner_playoff_pct_before != null && t.partner_playoff_pct_after != null
+      ? { before: t.partner_playoff_pct_before, after: t.partner_playoff_pct_after }
+      : null
   const scope = useContext(FeedbackContext)
   const tabs = scope !== null && feedbackSource !== undefined
   const [panel, setPanel] = useState<'overview' | 'feedback'>('overview')
@@ -214,78 +240,81 @@ export function TradeItem({
     </>
   )
   return (
-    <li id={id} className={['move', open && 'open', keptOut.length > 0 && 'tr-stale'].filter(Boolean).join(' ')}>
+    <li id={id} className={['mvt-item', open && 'open', keptOut.length > 0 && 'mvt-kept'].filter(Boolean).join(' ')}>
       {/* The row is a box, not a button, so the names inside can open player cards. The Details button
           stretches over the whole row (Trades.css), so a tap anywhere else still opens or closes it. */}
-      <div className="tr-row">
-        <span className="tr-top">
-          <span className="tr-with">
-            <span className="sr-only">Trade with </span>
-            <TeamCrest name={t.partner_team_name} colour={colour} size={20} />
-            <span className="tr-partner">{t.partner_team_name}</span>
-            {tag}
-            {keptOut.length > 0 && (
-              <span className="tr-kept-tag">
-                <LockSimple size={11} weight="fill" aria-hidden="true" />
-                {open ? <KeptPlayers players={keptOut} face={false} /> : keptNames(keptOut.map((p) => p.name))}{' '}
-                {keptOut.length > 1 ? 'are' : 'is'} kept
-              </span>
-            )}
-            {styleLine && <span className="tr-style">{styleLine}</span>}
+      <div className="mvt-row">
+        {rank != null && (
+          <span className="mvt-rank num" aria-hidden="true">
+            {rank}
           </span>
-          <span className="tr-accept" title="How offers like this one went in real leagues">
-            <Handshake size={16} aria-hidden="true" />
-            <span className={`tr-accept-w ${acc.tone}`}>
+        )}
+        <div className="mvt-head">
+          <TeamCrest name={t.partner_team_name} colour={colour} size={32} />
+          <span className="mvt-team">
+            <span className="mvt-team-line">
+              <span className="mvt-partner">
+                <span className="sr-only">Trade with </span>
+                {t.partner_team_name}
+              </span>
+              {tag}
+              {keptOut.length > 0 && (
+                <span className="mvt-kept-tag">
+                  <LockSimple size={12} weight="fill" aria-hidden="true" />
+                  {open ? <KeptPlayers players={keptOut} face={false} /> : keptNames(keptOut.map((p) => p.name))}{' '}
+                  {keptOut.length > 1 ? 'are' : 'is'} kept
+                </span>
+              )}
+            </span>
+            {styleLine && <span className="mvt-style">{styleLine}</span>}
+          </span>
+          <span className="mvt-accept" title="How offers like this one went in real leagues">
+            <Handshake size={18} aria-hidden="true" />
+            <span className={`mvt-accept-w ${acc.tone}`}>
               <span className="sr-only">chance they accept, </span>
               {acc.label}
             </span>
           </span>
-        </span>
-        <span className="tr-deal">
-          <RowLane
-            label="You give"
-            players={t.give}
-            extra={faab > 0 ? `+ $${faab} FAAB` : undefined}
-            linked={open}
-            keeper={open ? keeper : null}
-          />
-          <RowLane label="You get" players={t.get} linked={open} />
-          <span className="tr-odds">
-            <span className="tr-ol">
-              <span className="tr-who">You</span>
-              <OddsChange before={t.playoff_pct_before} after={t.playoff_pct_after} />
+        </div>
+        <div className="mvt-deal">
+          <RowLane end="give" players={t.give} extra={faab > 0 ? `+ $${faab} FAAB` : undefined} keeper={open ? keeper : null} />
+          <div className="mvt-odds">
+            <span className="mvt-odds-k">Your odds</span>
+            <span className="mvt-odds-big num">{pct(t.playoff_pct_after)}</span>
+            <span className="mvt-odds-from num">
+              from {pct(t.playoff_pct_before)} <Delta before={t.playoff_pct_before} after={t.playoff_pct_after} />
             </span>
-            {t.partner_playoff_pct_before != null && t.partner_playoff_pct_after != null && (
-              <span className="tr-ol">
-                <span className="tr-who">Them</span>
-                <OddsChange before={t.partner_playoff_pct_before} after={t.partner_playoff_pct_after} />
+            {them && (
+              <span className="mvt-odds-them num">
+                Them {pct(them.before)} → {pct(them.after)} <Delta before={them.before} after={them.after} unit={false} />
               </span>
             )}
-          </span>
-        </span>
-        <span className="tr-foot">
+          </div>
+          <RowLane end="get" players={t.get} />
+        </div>
+        <div className="mvt-foot">
           <button
             type="button"
-            className="tr-more"
+            className="mvt-more"
             aria-expanded={open}
             aria-controls={`${id}-detail`}
             onClick={onToggle}
           >
-            {open ? 'Hide details' : 'Details'}{' '}
+            {open ? 'Hide details' : 'Show details'}{' '}
             <span className="sr-only">
               of the trade with {t.partner_team_name}: you give {t.give.map((p) => p.name).join(', ')}, you get{' '}
               {t.get.map((p) => p.name).join(', ')}
             </span>
             <CaretDown size={14} weight="bold" aria-hidden="true" />
           </button>
-          <span className="tr-exp">
-            <span className="tr-exp-l">Expected gain</span>
-            <span className="tr-exp-n num" aria-hidden="true">
+          <span className="mvt-exp">
+            <span className="mvt-exp-l">Expected gain</span>
+            <span className="mvt-exp-n num" aria-hidden="true">
               {expectedGainText(expected)}
             </span>
             <span className="sr-only">, {expectedGainSpoken(expected)}</span>
           </span>
-        </span>
+        </div>
       </div>
       {open && !tabs && (
         <div className="move-detail" id={`${id}-detail`}>
@@ -404,8 +433,8 @@ export function Trades({
   const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
-  const first = (mode === 'fair' ? allFair : allEdge)[0]
-  const [open, setOpen] = useState<string | null>(first ? tradeKey(first) : null)
+  // Every row starts closed: the best move is already the lead; the user opens what they want.
+  const [open, setOpen] = useState<string | null>(null)
   const keepRow = useKeepRowInView(open)
   const noFair = allFair.length === 0
   const keeper = useMemo(() => (keep && onToggleKeep ? { keep, onToggleKeep } : null), [keep, onToggleKeep])
@@ -421,44 +450,48 @@ export function Trades({
 
   const choose = (m: Mode) => {
     setMode(m)
-    const list = m === 'fair' ? fair : edge
-    setOpen(list[0] ? tradeKey(list[0]) : null)
+    setOpen(null)
   }
 
   return (
-    <section className="card flush trades-panel" aria-labelledby="trades-title">
-      <div className="card-head">
-        <h2 id="trades-title">Trades to offer</h2>
+    <section className="mvt-sec trades-panel" aria-labelledby="trades-title">
+      <div className="mvt-h">
+        <h2 id="trades-title" className="mvt-title">
+          <Handshake size={20} aria-hidden="true" />
+          Trades to offer
+        </h2>
         {!noFair && (
-          <div className="segmented" role="group" aria-label="Trade style">
+          <div className="mvt-seg" role="group" aria-label="Trade style">
             {(Object.keys(MODES) as Mode[]).map((m) => (
               <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)} title={MODES[m].hint}>
-                {MODES[m].label} · {(m === 'fair' ? fair : edge).length}
+                {MODES[m].label} <span className="mvt-seg-n num">{(m === 'fair' ? fair : edge).length}</span>
               </button>
             ))}
           </div>
         )}
       </div>
-      {untouchable}
-      {!nothing && (
-        <>
-          <RulesBar
-            skipped={skipped.length}
-            showSkipped={showSkipped}
-            onShowSkipped={() => setShowSkipped(!showSkipped)}
-            categories={categories}
-            teams={teams}
-            myTeamId={myTeamId}
-            kept={kept}
-          />
-          {noFair && <p className="small muted trades-hint">{BOLD_ONLY}</p>}
-        </>
-      )}
+      <div className="mvt-controls">
+        {untouchable}
+        {!nothing && (
+          <>
+            <RulesBar
+              skipped={skipped.length}
+              showSkipped={showSkipped}
+              onShowSkipped={() => setShowSkipped(!showSkipped)}
+              categories={categories}
+              teams={teams}
+              myTeamId={myTeamId}
+              kept={kept}
+            />
+            {noFair && <p className="mvt-note">{BOLD_ONLY}</p>}
+          </>
+        )}
+      </div>
       {trades.length === 0 && !(showSkipped && skipped.length) ? (
-        <p className="empty">{nothing ? NOTHING : MODES[mode].empty}</p>
+        <p className="mvt-note">{nothing ? NOTHING : MODES[mode].empty}</p>
       ) : (
         <>
-          <ol className="move-list" onClickCapture={keepRow}>
+          <ol className="mvt-list" onClickCapture={keepRow}>
             {trades.map((t, i) => {
               const key = tradeKey(t)
               const isOpen = open === key
@@ -475,6 +508,7 @@ export function Trades({
                   colour={colours.get(t.partner_team_id)}
                   teamCount={teams.length || undefined}
                   styleLine={partnerStyles?.get(t.partner_team_id)}
+                  rank={i + 1}
                 />
               )
             })}

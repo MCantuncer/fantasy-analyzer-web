@@ -143,10 +143,9 @@
   color: var(--text);
 }
 
-/* Answered: one 44px line at the top of Trades to offer. */
+/* Answered: one 44px line at the top of Trades to offer, on the bare page. */
 .unt-answer {
-  padding: 0 20px;
-  border-bottom: 1px solid var(--divider);
+  min-width: 0;
 }
 
 .unt-answer .unt-rail {
@@ -224,9 +223,6 @@
     font-size: 11.5px;
   }
 
-  .unt-answer {
-    padding: 0 16px;
-  }
 }
 
 /* While moves update, the sticky button stays solid: see-through, it was unreadable over the page. */

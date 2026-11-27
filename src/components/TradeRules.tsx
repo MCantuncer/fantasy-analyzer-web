@@ -1,5 +1,6 @@
 import { useContext, useId, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CaretRight, SlidersHorizontal } from '@phosphor-icons/react'
 import {
   addTradeRule,
   deleteTradeRule,
@@ -73,18 +74,27 @@ export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, team
       />
     )
   }
+  const label = (
+    <span className="rules-title">
+      <SlidersHorizontal size={16} aria-hidden="true" />
+      Trade rules
+    </span>
+  )
   if (rules.length === 0) {
     return (
       <div className="rules-bar">
-        <button type="button" className="ghost" aria-expanded={false} onClick={() => setEditing(true)}>
-          Add a rule
+        {label}
+        <b className="rules-none">None yet</b>
+        <button type="button" className="link rules-add" aria-expanded={false} onClick={() => setEditing(true)}>
+          Add a Rule
+          <CaretRight size={12} weight="bold" aria-hidden="true" />
         </button>
       </div>
     )
   }
   return (
     <div className="rules-bar">
-      <span className="rules-title">Your rules</span>
+      {label}
       {rules.map((r) => (
         <span key={r.id} className="rule-chip" title={r.why || undefined}>
           {r.label}
@@ -98,8 +108,9 @@ export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, team
           </button>
         </span>
       ))}
-      <button type="button" className="ghost" aria-expanded={false} onClick={() => setEditing(true)}>
+      <button type="button" className="link rules-add" aria-expanded={false} onClick={() => setEditing(true)}>
         Edit
+        <CaretRight size={12} weight="bold" aria-hidden="true" />
       </button>
       {skipped > 0 && (
         <span className="rules-skipped small">

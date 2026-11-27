@@ -1,12 +1,6 @@
-/* Trade rules on phones: full-width gutters, the skipped count on its own line, and the
-   group hint under its title instead of beside it. */
+/* Trade rules on phones: the skipped count takes its own line. (The bar is a bare line on the page
+   and the editor sits on the soft field, so neither needs its own gutters.) */
 @media (max-width: 480px) {
-  .rules-bar,
-  .rules-editor {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
   .rules-skipped {
     margin-left: 0;
     flex-basis: 100%;
