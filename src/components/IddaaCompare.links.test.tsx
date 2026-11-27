@@ -229,10 +229,10 @@ describe("Player names on Our Estimates", () => {
         </ProProvider>
       </QueryClientProvider>,
     );
-    const who = await screen.findByText("Josh Hart");
-    const row = who.closest(".ic-teaser-pl")!;
-    expect(row.querySelector(".head img")!.getAttribute("src")).toContain("41");
-    // the whole card is the way in, so nothing inside it is a second button
-    expect(row.closest("button")!.querySelector("button")).toBeNull();
+    const who = await screen.findByText(/Josh Hart · Rebounds: ours/);
+    const row = who.closest(".et-row")!;
+    expect(row.querySelector(".et-ic .head img")!.getAttribute("src")).toContain("41");
+    // the whole row is the way in, so nothing inside it is a second button
+    expect(row.querySelector("button")).toBeNull();
   });
 });
