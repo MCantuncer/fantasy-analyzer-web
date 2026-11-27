@@ -1,7 +1,7 @@
 /* The shared player card (PlayerCard.tsx): a centered dialog here, a bottom sheet on phones
    (src/styles/phone/player-card.css). Every class is prefixed pc-. */
 
-/* A player's name that opens his card: reads as the name, with a dotted underline as the hint. */
+/* A player's name that opens his card: reads as the name; it underlines on hover, the face beside it is the hint. */
 button.pc-link {
   display: inline;
   min-height: 0;
@@ -13,35 +13,25 @@ button.pc-link {
   font-weight: inherit;
   text-align: inherit;
   cursor: pointer;
-  text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent);
+  /* No underline at rest: the face beside a name already says it opens (Can, 2026-11-23, habit 7). */
+  text-decoration: none;
   text-underline-offset: 3px;
 }
 
-/* A headshot beside a linked name: same card, no underline. */
 button.pc-link.pc-link-face {
   display: inline-flex;
   flex: none;
-  text-decoration: none;
   border-radius: 50%;
 }
 
-button.pc-link:hover {
-  color: var(--accent-text);
-  text-decoration-color: currentColor;
-}
-
-/* A name with a mark after it: only the name is underlined, the mark keeps its own look. */
-button.pc-link.pc-link-split {
-  text-decoration: none;
-}
-
-.pc-link-split .pc-link-name {
-  text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent);
-  text-underline-offset: 3px;
-}
-
-.pc-link-split:hover .pc-link-name {
-  text-decoration-color: currentColor;
+/* A name with a mark after it: only the name underlines on hover, the mark keeps its own look. */
+@media (hover: hover) {
+  button.pc-link:not(.pc-link-face, .pc-link-split):hover,
+  .pc-link-split:hover .pc-link-name {
+    text-decoration: underline solid currentColor;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
 }
 
 button.pc-link:focus-visible {

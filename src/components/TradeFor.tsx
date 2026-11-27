@@ -424,7 +424,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
               {data && <OwnerFacts data={data} />}
               {data?.owner.target_is_star && (
                 <p className="tf-note">
-                  <PlayerLink player={him} /> is one of their two most valued players, so expect to overpay on paper.
+                  <PlayerInline player={him} /> is one of their two most valued players, so expect to overpay on paper.
                 </p>
               )}
             </div>
@@ -453,7 +453,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
                     <PaperPlaneTilt size={20} aria-hidden="true" />
                     <b>No offer to send</b>
                     <p>
-                      No package for <PlayerLink player={him} /> helps you and looks like a win for {ownerName}.
+                      No package for <PlayerInline player={him} /> helps you and looks like a win for {ownerName}.
                     </p>
                     <div className="tt-actions">
                       <button type="button" className="tt-btn" onClick={() => check([], [him.id])}>
