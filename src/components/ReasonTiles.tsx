@@ -57,7 +57,12 @@ export function ReasonTiles({ facts, reasons, title, valueGet, valueGive, myCats
           title="Categories a week"
           sr={`You ${signed(myCats)}, they ${signed(theirCats)} categories a week`}
         >
-          <Diverging rows={[['You', myCats], ['They', theirCats]]} />
+          <Diverging
+            rows={[
+              ['You', myCats, true],
+              ['They', theirCats, false],
+            ]}
+          />
         </Tile>
       </ul>
       {notes.map((f) => (
@@ -240,20 +245,21 @@ function Pair({ rows }: { rows: [string, number, string, boolean][] }) {
 }
 
 /** Signed values around a center line: right and green for gains, left and red for losses. */
-function Diverging({ rows }: { rows: [string, number][] }) {
+/** Signed bars from a centre tick. Only your row speaks blue/orange; theirs is a neutral bar. */
+function Diverging({ rows }: { rows: [label: string, value: number, mine: boolean][] }) {
   const max = Math.max(...rows.map((r) => Math.abs(r[1])), 0.5)
   return (
     <div className="rt-pair">
-      {rows.map(([label, v]) => (
+      {rows.map(([label, v, mine]) => (
         <div key={label} className="rt-pair-row">
           <span className="small muted">{label}</span>
           <span className="rt-track rt-div">
             <span
-              className={v >= 0 ? 'rt-fill rt-pos' : 'rt-fill rt-neg'}
+              className={`rt-fill ${!mine ? 'rt-theirs' : v >= 0 ? 'rt-pos' : 'rt-neg'}`}
               style={{ width: `${(50 * Math.abs(v)) / max}%`, [v >= 0 ? 'left' : 'right']: '50%' }}
             />
           </span>
-          <span className={`num rt-val ${v >= 0 ? 'good' : 'bad'}`}>{signed(v)}</span>
+          <span className="num rt-val">{signed(v)}</span>
         </div>
       ))}
     </div>

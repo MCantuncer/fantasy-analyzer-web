@@ -3,7 +3,7 @@ import { Target } from '@phosphor-icons/react'
 import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSide } from '../lib/catStrip'
 import { formatStat } from '../lib/league'
 import { CATEGORY_ORDER } from '../lib/statOrder'
-import { YourCrest } from './YourCrest'
+import { TeamCrest } from './TeamCrest'
 import './CatStrip.css'
 
 export interface CatStripProps {
@@ -93,11 +93,11 @@ function PairBar({ cell, mine }: { cell: PairCell; mine: 'a' | null }) {
   return <i className={`${dir} ${tone}`} style={{ '--share': barShare(cell).toFixed(3) } as CSSProperties} />
 }
 
-function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boolean }) {
+function KeySide({ side, sub }: { side: StripSide; sub: boolean }) {
   return (
     <>
       <span className="cs-who">
-        <YourCrest name={side.name} colour={side.colour} size={18} mine={isMe} />
+        <TeamCrest name={side.name} colour={side.colour} size={18} />
         <span className="cs-nm">{side.short}</span>
       </span>
       {sub && (
@@ -130,9 +130,9 @@ export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', labe
       {keyed && (
         <div className="cs-key" aria-hidden="true">
           <span />
-          <KeySide side={a} isMe={mine === 'a'} sub={hasSub} />
+          <KeySide side={a} sub={hasSub} />
           <span />
-          <KeySide side={b} isMe={false} sub={hasSub} />
+          <KeySide side={b} sub={hasSub} />
         </div>
       )}
       {cells.map((cell) => (
