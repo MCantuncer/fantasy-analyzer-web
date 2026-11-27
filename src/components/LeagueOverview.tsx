@@ -16,6 +16,7 @@ import { TeamCrest } from './TeamCrest'
 import { VerifyBanner } from './VerifyBanner'
 import { todayMatters, useTodayMatchup } from '../lib/todayData'
 import { TodayLoading, TodayMatchup, type TodaySide } from './TodayMatchup'
+import { MatchupSheet, TodayWeekSwitch, type SheetSide } from './MatchupSheet'
 import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
 import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
@@ -53,18 +54,6 @@ function key(m: OverviewMatchup) {
 /** A matchup card in the week's grid, by its place in the list. */
 const cardOf = (i: number) => document.getElementById(`mu-card-${i}`)
 const topbarHeight = () => document.querySelector<HTMLElement>('.topbar')?.offsetHeight ?? 0
-
-function TodayWeekSwitch({ view, onPick }: { view: 'today' | 'week'; onPick: (v: 'today' | 'week') => void }) {
-  return (
-    <div className="segmented lo-view" role="group" aria-label="Today or the whole week">
-      {(['today', 'week'] as const).map((v) => (
-        <button key={v} type="button" aria-pressed={view === v} onClick={() => onPick(v)}>
-          {v === 'today' ? 'Today' : 'Week'}
-        </button>
-      ))}
-    </div>
-  )
-}
 
 const ICONS: Record<string, ReactNode> = {
   money: <path d="M12 3v18M16.5 7H10a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H7" />,
@@ -187,6 +176,11 @@ export function LeagueOverview({
 
   const pulse = o.pulse
   const week = [shortDate(o.week_start), shortDate(o.week_end)].filter(Boolean).join(' – ')
+  // Phones: "Nov 23 – 29" when the week sits in one month.
+  const weekShort =
+    o.week_start && o.week_end && o.week_start.slice(0, 7) === o.week_end.slice(0, 7)
+      ? `${shortDate(o.week_start)} – ${Number(o.week_end.slice(8, 10))}`
+      : week
   const finished = Array.from({ length: Math.max(0, o.matchup_period - 1) }, (_, i) => i + 1)
   // The week before this one ended the day before this one started.
   const lastEnd = o.week_start
@@ -369,8 +363,16 @@ export function LeagueOverview({
       <div className="league-head">
         <span className="lo-week">
           <CalendarDots size={16} aria-hidden="true" />
-          Week {o.matchup_period}
-          {week ? ` · ${week}` : ''}
+          <span>
+            Week {o.matchup_period}
+            {week && (
+              <>
+                {' · '}
+                <span className="lo-wk-long">{week}</span>
+                <span className="lo-wk-short">{weekShort}</span>
+              </>
+            )}
+          </span>
         </span>
         {leagueRef && onFilm && <FilmRoomPicker weeks={finished} unseen={unseen} onPick={openFilm} />}
       </div>
@@ -386,76 +388,72 @@ export function LeagueOverview({
         />
       )}
 
-      {featured && hasBox(featured) && (
-        <section
-          className={`card featured${mine ? ' mine' : ''}`}
-          aria-labelledby="featured-title"
-          style={mine ? ({ '--rival': colours.get(sides(mine)[1].team_id) } as CSSProperties) : undefined}
-        >
-          <div className="featured-head">
-            <h2 id="featured-title" className="lo-title">
-              {mine ? 'Your matchup' : 'Matchup of the week'}
-            </h2>
-            {mine &&
-              matchupView === 'week' &&
-              (() => {
-                const [me, them] = sides(mine)
-                const hint = flipHint(me, them)
-                return hint ? (
-                  <span className="lo-hint">
-                    <Target size={16} aria-hidden="true" />
-                    {hint}
-                  </span>
-                ) : null
-              })()}
-            {mine && onCheckTrade && matchupView === 'week' && (
-              <button type="button" className="secondary lo-check" onClick={() => onCheckTrade(sides(mine)[1].team_id)}>
-                <MaybeHandshake size={20} /> Check a Trade With Them
-              </button>
-            )}
-            {canToday && <TodayWeekSwitch view={matchupView} onPick={pickView} />}
-          </div>
-          {matchupView === 'today' &&
-            mine &&
-            (() => {
-              const [me, them] = sides(mine)
-              return today.data ? (
-                <TodayMatchup data={today.data} me={side(me)} them={side(them)} myId={o.my_team_id ?? null} />
-              ) : (
-                <TodayLoading />
-              )
-            })()}
-          {matchupView === 'week' &&
-            (() => {
-              const [a, b] = sides(featured)
-              return (
-                <BoxScore
-                  home={boxTeam(a)}
-                  away={boxTeam(b)}
-                  caption={`${nameOf(a.team_id)} against ${nameOf(b.team_id)}, week ${o.matchup_period}`}
-                />
-              )
-            })()}
-          {mine &&
-            leagueRef &&
-            matchupView === 'week' &&
-            (() => {
-              const [me, them] = sides(mine)
-              return (
-                <MatchupProjection
-                  leagueRef={leagueRef}
-                  creds={creds ?? null}
-                  teamId={o.my_team_id ?? null}
-                  me={{ name: nameOf(me.team_id), colour: colours.get(me.team_id) }}
-                  them={{ name: nameOf(them.team_id), colour: colours.get(them.team_id) }}
-                />
-              )
-            })()}
-        </section>
-      )}
+      {featured &&
+        hasBox(featured) &&
+        (() => {
+          const [a, b] = sides(featured)
+          const sheetSide = (s: MatchupSide): SheetSide => ({
+            id: s.team_id,
+            name: nameOf(s.team_id),
+            colour: colours.get(s.team_id),
+            week: s.categories ?? [],
+            left: s.games?.left ?? null,
+          })
+          const hint = mine ? flipHint(a, b) : null
+          const check = mine && onCheckTrade
+          return (
+            <MatchupSheet
+              title={mine ? 'Your matchup' : 'Matchup of the week'}
+              a={sheetSide(a)}
+              b={sheetSide(b)}
+              mine={!!mine}
+              week={{ wins: a.wins, losses: a.losses, ties: a.ties }}
+              view={mine ? matchupView : 'week'}
+              canToday={canToday}
+              onView={pickView}
+              today={mine ? today.data : null}
+              myId={o.my_team_id ?? null}
+              weekExtras={
+                mine && (
+                  <>
+                    {(hint || check) && (
+                      <div className="lms-flip">
+                        {hint && (
+                          <p className="lms-hint">
+                            <Target size={18} aria-hidden="true" />
+                            {hint}
+                          </p>
+                        )}
+                        {check && (
+                          <button type="button" className="lms-check" onClick={() => onCheckTrade(b.team_id)}>
+                            <MaybeHandshake size={20} /> Check a Trade With Them
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {leagueRef && (
+                      <MatchupProjection
+                        leagueRef={leagueRef}
+                        creds={creds ?? null}
+                        teamId={o.my_team_id ?? null}
+                        me={{ name: nameOf(a.team_id), colour: colours.get(a.team_id) }}
+                        them={{ name: nameOf(b.team_id), colour: colours.get(b.team_id) }}
+                      />
+                    )}
+                  </>
+                )
+              }
+            />
+          )
+        })()}
 
       {mine && leagueRef && (
-        <MatchupScout leagueRef={leagueRef} creds={creds ?? null} opponentId={sides(mine)[1].team_id} />
+        <MatchupScout
+          leagueRef={leagueRef}
+          creds={creds ?? null}
+          opponentId={sides(mine)[1].team_id}
+          colour={colours.get(sides(mine)[1].team_id)}
+        />
       )}
 
       <div className="pulse-tiles">
