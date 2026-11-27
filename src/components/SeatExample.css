@@ -174,16 +174,21 @@
   .lx-panel .cs-pair.cs-one {
     --bw: 10px;
     --reach: 22px;
-    --rows: 22px 24px auto 24px;
+    --lab: 22px;
+    --rows: var(--lab) 24px auto 24px;
     column-gap: 2px;
+  }
+
+  .lx-panel .cs-pair.cs-hasclose {
+    --lab: 36px;
+  }
+
+  .lx-panel .cs-close-word {
+    font-size: 10px;
   }
 
   .lx-panel .cs-pl {
     font-size: 11.5px;
-  }
-
-  .lx-panel .cs-ic {
-    display: none;
   }
 
   .lx-panel .cs-pv {

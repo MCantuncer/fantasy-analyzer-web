@@ -67,7 +67,7 @@ describe('projected final', () => {
     expect(items[1].querySelector('.cs-km')).toHaveClass('cs-km-them')
     expect(items[0].querySelector('.cs-w')!.textContent).toBe('.500')
     // No close mark here: that one belongs to the strip above.
-    expect(strip.querySelector('.cs-close, .cs-ic')).toBeNull()
+    expect(strip.querySelector('.cs-close, .cs-close-word')).toBeNull()
     expect(items[7].querySelector('.cs-pl')!.textContent).toBe('TO↓')
   })
 

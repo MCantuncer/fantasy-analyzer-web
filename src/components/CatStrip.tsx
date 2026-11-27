@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Target } from '@phosphor-icons/react'
 import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSide } from '../lib/catStrip'
 import { formatStat } from '../lib/league'
 import { CATEGORY_ORDER } from '../lib/statOrder'
@@ -81,7 +80,7 @@ export interface CatStripPairProps {
   keyed?: 'name' | 'crest' | false
   /** The list's accessible name, e.g. "Today's categories, with the week so far". */
   label: string
-  /** Flag categories that are close this week (ink label with a Target, underlined on phones). Off for a strip without a week. */
+  /** Flag categories that are close this week (ink label with the word Close over it). Off for a strip without a week. */
   close?: boolean
 }
 
@@ -114,14 +113,21 @@ function KeySide({ side, sub }: { side: StripSide; sub: boolean }) {
  * Two teams' categories as a line score: per category, the top team's figure, a bar from a short
  * zero tick toward whoever leads (its length is the margin, from leadReach), and the other team's
  * figure, each with an optional small week figure under it. Close categories (isClose on the
- * week) get an ink label with a Target (an underline on phones). Screen readers hear one item per category with the
+ * week) get an ink label with the word Close over it. Screen readers hear one item per category with the
  * whole reading.
  */
 export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label, close = true }: CatStripPairProps) {
   const cells = pairCells(a, b, { top, sub, closeFrom: close ? 'week' : null })
   const hasSub = sub != null
   const names = { a: mine === 'a' ? 'you' : a.short, b: b.short }
-  const cls = ['cs-pair', hasSub ? '' : 'cs-one', keyed === 'crest' ? 'cs-crestkey' : '', keyed ? '' : 'cs-nokey']
+  const anyClose = cells.some((cell) => cell.close)
+  const cls = [
+    'cs-pair',
+    hasSub ? '' : 'cs-one',
+    keyed === 'crest' ? 'cs-crestkey' : '',
+    keyed ? '' : 'cs-nokey',
+    anyClose ? 'cs-hasclose' : '',
+  ]
     .filter(Boolean)
     .join(' ')
   const weight = (cellLeader: string, side: 'a' | 'b') => (cellLeader === side ? ' cs-w' : '')
@@ -142,7 +148,7 @@ export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', labe
             title={cell.close ? 'Close this week, can flip' : undefined}
             aria-hidden="true"
           >
-            {cell.close && <Target className="cs-ic" aria-hidden="true" />}
+            {cell.close && <span className="cs-close-word">Close</span>}
             {statLabel(cell.stat)}
           </span>
           <span className={`cs-pv num${weight(cell.leader, 'a')}`} aria-hidden="true">

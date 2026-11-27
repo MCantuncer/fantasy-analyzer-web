@@ -74,7 +74,8 @@ describe('CatStripPair', () => {
     expect(items).toHaveLength(9)
     expect(items[0]).toHaveAccessibleName('FG%: you .500, Bastards .429, you lead. Week .509 to .476')
     expect(list.querySelector('.cs-key')?.textContent).toBe('KAYouthis weekwkÇBBastardsthis weekwk')
-    expect([...list.querySelectorAll('.cs-pl')].map((l) => l.textContent)).toContain('TO↓')
+    const labels = [...list.querySelectorAll('.cs-pl')].map((l) => l.lastChild?.textContent)
+    expect(labels).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO↓', 'PTS'])
   })
 
   it('points the bar at the leader: green for you, coral for them, a dash for a tie', () => {
@@ -91,8 +92,12 @@ describe('CatStripPair', () => {
       'cs-pup cs-help',
       'cs-pdn cs-hurt',
     ])
+    // A close category says so in a word over its label, not with an icon.
     const close = [...container.querySelectorAll('.cs-pl.cs-close')].map((l) => l.textContent)
-    expect(close).toEqual(['FT%', 'AST', 'STL', 'TO↓'])
+    expect(close).toEqual(['CloseFT%', 'CloseAST', 'CloseSTL', 'CloseTO↓'])
+    expect(container.querySelectorAll('.cs-close-word')).toHaveLength(4)
+    expect(container.querySelector('.cs-pl:not(.cs-close) .cs-close-word, .cs-pl svg')).toBeNull()
+    expect(container.querySelector('.cs-pair')).toHaveClass('cs-hasclose')
     expect(container.querySelectorAll('.cs-pv.cs-w')).toHaveLength(7)
   })
 
