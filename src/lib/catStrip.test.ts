@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barShare, pairCells, pairFigure, pairLabel, stripCategories, type StripSide } from './catStrip'
+import { barShare, pairCells, pairFigure, pairLabel, rankBar, stripCategories, type StripSide } from './catStrip'
 
 const CATS = ['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS']
 const vals = (xs: number[]) => CATS.map((stat, i) => ({ stat, value: xs[i] }))
@@ -95,5 +95,27 @@ describe('pairLabel', () => {
   it('says nothing yet before the first figures', () => {
     const cells = pairCells({ ...ka, today: null }, { ...cb, today: null }, { top: 'today' })
     expect(pairLabel(cells[0], names)).toBe('FG%: nothing yet')
+  })
+})
+
+describe('rankBar', () => {
+  it('points up for the top half and down for the bottom, longest at 1st and last', () => {
+    expect(rankBar(1, 10)).toEqual({ dir: 'up', share: 1, tone: 'good' })
+    expect(rankBar(10, 10)).toEqual({ dir: 'down', share: 1, tone: 'neu' })
+    expect(rankBar(5, 10).dir).toBe('up')
+    expect(rankBar(6, 10).dir).toBe('down')
+    expect(rankBar(3, 10).share).toBeCloseTo(2.5 / 4.5)
+  })
+
+  it('keeps the middle ranks a visible stub', () => {
+    expect(rankBar(5, 10).share).toBe(0.18)
+    expect(rankBar(6, 10).share).toBe(0.18)
+  })
+
+  it('a likely punt is bad whatever its rank; 1st and 2nd are good', () => {
+    expect(rankBar(2, 10).tone).toBe('good')
+    expect(rankBar(3, 10).tone).toBe('neu')
+    expect(rankBar(9, 10, true).tone).toBe('bad')
+    expect(rankBar(4, 12, true)).toMatchObject({ dir: 'up', tone: 'bad' })
   })
 })
