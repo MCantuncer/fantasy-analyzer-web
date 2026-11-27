@@ -44,7 +44,7 @@ function StatusTag({ status }: { status: string }) {
 
 /**
  * One player: lock · face and name (one target that opens his card) · trade value · cat value · Shop.
- * Status shows only when it isn't the default: the injury tag, and "Droppable" on line 2.
+ * Status shows only when it isn't the default: the injury tag, and "Droppable" and the badge chips on line 2.
  */
 function RosterRow({
   p,
@@ -79,10 +79,8 @@ function RosterRow({
         <span className="sr-only">Keep {p.name}</span>
       </button>
       <div className="ro-who">
-        {/* The badges (Jewel, Hot, …) sit on the face's corner, on the player they mark. */}
         <span className="ro-face">
           <PlayerHead player={p} size={30} team={p.pro_team} />
-          {badges && <span className="pb-quiet ro-face-bdg">{badges}</span>}
         </span>
         <span className="ro-txt">
           <span className="ro-l1">
@@ -102,6 +100,8 @@ function RosterRow({
                 </b>
               )}
             </span>
+            {/* The badges (Jewel, Keystone REB, Hot, …) as chips on line 2, so they never cost the name. */}
+            {badges}
           </span>
         </span>
       </div>

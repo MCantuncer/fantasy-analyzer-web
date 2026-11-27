@@ -163,12 +163,14 @@ describe('MatchupSheet', () => {
     expect(close.map((li) => li.getAttribute('aria-label')!.split(':')[0])).toEqual(['FT%', 'AST', 'STL', 'TO'])
   })
 
-  it('marks your team with the badge on your crest, never an icon beside the name', () => {
+  it('marks your team with a "You" tag after your full name, not a badge on the crest', () => {
     sheet()
-    // On the scoreboard crest and the strip's key crest, and nowhere loose.
-    const badges = document.querySelectorAll('.yourcrest > .yourcrest-me')
-    expect(badges).toHaveLength(2)
-    expect(document.querySelectorAll('.cs-me, .yourcrest-me').length).toBe(2)
+    const full = document.querySelector('.lsb-full')!
+    expect(full.querySelector('.youtag')?.textContent).toBe('You')
+    // The short name already says You, so it carries no tag; the scoreboard crest carries no badge.
+    expect(document.querySelector('.lsb-short')?.textContent).toBe('You')
+    expect(document.querySelectorAll('.youtag')).toHaveLength(1)
+    expect(document.querySelector('.lsb-crest .yourcrest-me')).toBeNull()
   })
 
   it('Week: the week score on top, today under it, and the week extras instead of the lineup', () => {
@@ -182,9 +184,10 @@ describe('MatchupSheet', () => {
   it("someone else's matchup: week only, neutral bars, no badge", () => {
     sheet({ title: 'Matchup of the week', mine: false, view: 'week', canToday: false, today: null, myId: null })
     expect(screen.queryByRole('group', { name: 'Today or the whole week' })).toBeNull()
-    expect(document.querySelector('.cs-good, .cs-bad')).toBeNull()
+    expect(document.querySelector('.cs-help, .cs-hurt')).toBeNull()
     expect(document.querySelectorAll('.cs-neu').length).toBeGreaterThan(0)
     expect(screen.queryByRole('img', { name: 'your team' })).toBeNull()
+    expect(document.querySelector('.youtag')).toBeNull()
   })
 })
 

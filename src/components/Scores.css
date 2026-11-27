@@ -434,9 +434,34 @@
   }
 }
 
-/* A linked name and its comma stay on one line. */
-.sc-keep {
+/* Your players in the foot, names only: whole names on one line, a "+N" for the ones that don't fit. */
+.game-foot .sc-names {
+  /* It takes the room the foot leaves, so what fits depends on the card, not on the names shown. */
+  flex: 1 1 0;
+  display: flex;
+  align-items: baseline;
+  column-gap: 0.3em;
+}
+.sc-names > .sc-name {
+  flex: none;
   white-space: nowrap;
+}
+/* One name too long for the card on its own: it shortens with an ellipsis rather than spill. */
+.sc-names > .sc-name:first-child {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-names .sc-comma.is-quiet {
+  display: none;
+}
+.sc-names > .sc-more {
+  flex: none;
+  color: var(--muted);
+}
+.sc-names > .sc-more::before {
+  content: '+' attr(data-more);
 }
 
 /* ---------- The summary row: games and players left, our calls' tally right ---------- */

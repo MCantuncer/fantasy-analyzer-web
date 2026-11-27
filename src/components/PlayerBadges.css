@@ -1,40 +1,40 @@
-/* Owner badges as small icons after a player's name (Jewel, Keystone · CAT, Hot, Fresh signing,
-   Not for sale, On the block). The bubble says the word and the reason. */
-.pb-marks {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 4px;
-  vertical-align: middle;
-}
-
-.pb-mark {
+/* Owner badges as small chips that spell themselves out (Jewel, Keystone REB, Hot, Fresh signing,
+   Not for sale, On the block). The bubble gives the reason. Neutral on purpose: the word says it. */
+.pb-chips {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 2px;
-  /* A 16px icon with a bigger hit area for taps, pulled back so it doesn't push the text around. */
-  padding: 6px 4px;
-  margin: -6px 0;
-  border-radius: var(--radius-sm);
+  gap: 4px;
+}
+
+.pb-chip {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   cursor: help;
   -webkit-tap-highlight-color: transparent;
 }
 
-.pb-mark:hover {
-  background: var(--raised);
+.pb-chip:hover {
+  background: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
-/* A 44px-tall tap area around the 16px icon, without moving the text. Neighbouring icons share
-   the overlap, and either one opens a bubble that names itself. */
-.pb-mark {
-  position: relative;
-}
-
-.pb-mark::before {
+/* A bigger tap area around the 16px chip, without moving the text. It grows down and to the
+   sides only, so it never covers the player's name on the line above. */
+.pb-chip::before {
   content: '';
   position: absolute;
-  inset: -8px -4px;
+  inset: -2px -2px -12px;
 }
 
 .pb-icon {
@@ -52,26 +52,19 @@
   stroke: none;
 }
 
-.pb-cat {
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-/* Colours: indigo for prized players, green for a hot streak, muted for the rest. */
-.pb-jewel,
-.pb-keystone {
+/* Trade-detail notes' colours: indigo for prized players, green for a hot streak, muted for the rest. */
+.pb-note.pb-jewel,
+.pb-note.pb-keystone {
   color: var(--accent-text);
 }
 
-.pb-hot {
+.pb-note.pb-hot {
   color: var(--good);
 }
 
-.pb-fresh_signing,
-.pb-not_for_sale,
-.pb-on_the_block {
+.pb-note.pb-fresh_signing,
+.pb-note.pb-not_for_sale,
+.pb-note.pb-on_the_block {
   color: var(--muted);
 }
 
@@ -95,10 +88,6 @@
   pointer-events: none;
   box-shadow: var(--shadow);
   animation: pb-tip-in 0.12s ease-out;
-}
-
-.pb-tip strong {
-  font-weight: 700;
 }
 
 @keyframes pb-tip-in {
@@ -130,18 +119,4 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   vertical-align: middle;
-}
-
-/* Quiet marks (My Team > Your roster): every badge a 15px muted line icon; the bubble still names it. */
-.pb-quiet .pb-marks {
-  margin-left: 0;
-}
-
-.pb-quiet .pb-mark {
-  color: var(--muted);
-}
-
-.pb-quiet .pb-icon {
-  width: 15px;
-  height: 15px;
 }

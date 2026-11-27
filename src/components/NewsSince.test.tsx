@@ -76,14 +76,15 @@ describe('NewsSince', () => {
     }
   })
 
-  it('marks your roster news with your crest and its badge, not a loose icon', () => {
+  it('marks your roster news with your crest and a "You" tag, not a loose icon', () => {
     const { container } = render(
       <NewsSince changes={CHANGES} before={BEFORE} after={AFTER} running={false} progress={1} onDismiss={() => {}} />,
     )
     const roster = container.querySelector('.ns-roster')!
     expect(roster).not.toBeNull()
     expect(roster.querySelector('.ns-crest .crest')).not.toBeNull()
-    expect(roster.querySelector('.ns-crest [aria-label="your team"]')).not.toBeNull()
+    expect(roster.querySelector('.ns-crest .crest + .youtag')?.textContent).toBe('You')
+    expect(roster.querySelector('[aria-label="your team"]')).toBeNull()
     expect(roster.querySelector(':scope > svg')).toBeNull()
   })
 

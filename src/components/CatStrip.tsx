@@ -4,7 +4,6 @@ import { barShare, pairCells, pairFigure, pairLabel, type PairCell, type StripSi
 import { formatStat } from '../lib/league'
 import { CATEGORY_ORDER } from '../lib/statOrder'
 import { TeamCrest } from './TeamCrest'
-import { YourCrest } from './YourCrest'
 import './CatStrip.css'
 
 export interface CatStripProps {
@@ -23,15 +22,18 @@ export interface CatStripProps {
 const BAR = 28
 const MIN_BAR = 3
 
+/** TO is drawn flipped (fewer turnovers is the win), so its label says which way is good. */
+const statLabel = (stat: string) => (stat === 'TO' ? 'TO↓' : stat)
+
 function ordered(cats: readonly string[]): string[] {
   const known = CATEGORY_ORDER.filter((c) => cats.includes(c))
   return [...known, ...cats.filter((c) => !(CATEGORY_ORDER as readonly string[]).includes(c))]
 }
 
 /**
- * Change in weekly win chance per category as nine short columns: a 12px bar up or down from a
- * zero line, and the signed number of points under it (0 is muted). Screen readers hear one item
- * per category, "AST +9 points".
+ * Change in weekly win chance per category as nine short columns: a 12px bar up (blue, helps you)
+ * or down (orange, hurts you) from a zero line, and the signed number of points under it in ink
+ * (0 is muted). Screen readers hear one item per category, "AST +9 points".
  */
 export function CatStrip({ changes, title, summary, categories, full = 0.15 }: CatStripProps) {
   const cats = ordered(categories ?? Object.keys(changes))
@@ -49,12 +51,12 @@ export function CatStrip({ changes, title, summary, categories, full = 0.15 }: C
           return (
             <li key={c} aria-label={v === 0 ? `${c} no change` : `${c} ${sign}${Math.abs(v)} points`}>
               <span className="cs-c" aria-hidden="true">
-                {c}
+                {statLabel(c)}
               </span>
               <span className="cs-bar" aria-hidden="true">
                 {v !== 0 && <i className={v > 0 ? 'cs-up' : 'cs-down'} style={{ height: h }} />}
               </span>
-              <span className={`cs-v num ${v > 0 ? 'good' : v < 0 ? 'bad' : 'cs-zero'}`} aria-hidden="true">
+              <span className={v === 0 ? 'cs-v num cs-zero' : 'cs-v num'} aria-hidden="true">
                 {v === 0 ? '0' : `${sign}${Math.abs(v)}`}
               </span>
             </li>
@@ -73,31 +75,29 @@ export interface CatStripPairProps {
   top: 'today' | 'week'
   /** The small figures under each side: the week so far, or none. */
   sub?: 'week' | null
-  /** Which row is you. Bars are green/coral (good or bad for you) only when set; neutral otherwise. */
+  /** Which row is you. Bars are blue/orange (helps or hurts you) only when set; neutral otherwise. */
   mine: 'a' | null
   /** The key column: crest + name (default), crest only, or none. */
   keyed?: 'name' | 'crest' | false
   /** The list's accessible name, e.g. "Today's categories, with the week so far". */
   label: string
-  /** Flag categories that are close this week (amber label + Target). Off for a strip without a week. */
+  /** Flag categories that are close this week (ink label with a Target, underlined on phones). Off for a strip without a week. */
   close?: boolean
 }
-
-const statLabel = (stat: string) => (stat === 'TO' ? 'TO↓' : stat)
 
 function PairBar({ cell, mine }: { cell: PairCell; mine: 'a' | null }) {
   if (cell.leader === 'none') return null
   if (cell.leader === 'tie') return <i className="cs-tie" />
   const dir = cell.leader === 'a' ? 'cs-pup' : 'cs-pdn'
-  const tone = mine == null ? 'cs-neu' : cell.leader === mine ? 'cs-good' : 'cs-bad'
+  const tone = mine == null ? 'cs-neu' : cell.leader === mine ? 'cs-help' : 'cs-hurt'
   return <i className={`${dir} ${tone}`} style={{ '--share': barShare(cell).toFixed(3) } as CSSProperties} />
 }
 
-function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boolean }) {
+function KeySide({ side, sub }: { side: StripSide; sub: boolean }) {
   return (
     <>
       <span className="cs-who">
-        <YourCrest name={side.name} colour={side.colour} size={18} mine={isMe} />
+        <TeamCrest name={side.name} colour={side.colour} size={18} />
         <span className="cs-nm">{side.short}</span>
       </span>
       {sub && (
@@ -114,7 +114,7 @@ function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boo
  * Two teams' categories as a line score: per category, the top team's figure, a bar from a short
  * zero tick toward whoever leads (its length is the margin, from leadReach), and the other team's
  * figure, each with an optional small week figure under it. Close categories (isClose on the
- * week) get an amber label and a Target. Screen readers hear one item per category with the
+ * week) get an ink label with a Target (an underline on phones). Screen readers hear one item per category with the
  * whole reading.
  */
 export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label, close = true }: CatStripPairProps) {
@@ -130,9 +130,9 @@ export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', labe
       {keyed && (
         <div className="cs-key" aria-hidden="true">
           <span />
-          <KeySide side={a} isMe={mine === 'a'} sub={hasSub} />
+          <KeySide side={a} sub={hasSub} />
           <span />
-          <KeySide side={b} isMe={false} sub={hasSub} />
+          <KeySide side={b} sub={hasSub} />
         </div>
       )}
       {cells.map((cell) => (
@@ -182,32 +182,21 @@ export interface PickRow {
 
 export interface PickSide {
   name: string
-  colour: string | undefined
 }
 
 /**
- * CatStrip's `pick` variant (the Projected final): per category, the crest of the team projected
- * to take it and both projected figures under it, the winner's in ink. The same nine columns (and
- * key gutter) as the pair strip above it, so the categories line up. Plain labels: the amber close
+ * CatStrip's `pick` variant (the Projected final): per category, one bar from the same zero tick
+ * as the strip above, up and blue when you're projected to take it, down and orange when they
+ * are, and both projected figures under it, the winner's in ink. The same nine columns (and
+ * key gutter) as the pair strip above it, so the categories line up. Plain labels: the close
  * mark belongs to the strip above, and the two projected figures already show how close it is.
  */
-export function CatStripPick({
-  rows,
-  me,
-  them,
-  label,
-}: {
-  rows: readonly PickRow[]
-  me: PickSide
-  them: PickSide
-  label: string
-}) {
+export function CatStripPick({ rows, them, label }: { rows: readonly PickRow[]; them: PickSide; label: string }) {
   const order = stripCategoriesOf(rows)
   return (
     <div className="cs-pair cs-pick" role="list" aria-label={label} style={{ '--n': order.length } as CSSProperties}>
       <span className="cs-pkey" aria-hidden="true" />
       {order.map((r) => {
-        const side = r.winner === 'me' ? me : them
         const said = `${r.stat}: you ${formatStat(r.stat, r.mine)}, ${them.name} ${formatStat(r.stat, r.theirs)}, ${
           r.winner === 'me' ? 'you take it' : `${them.name} take it`
         }`
@@ -217,7 +206,7 @@ export function CatStripPick({
               {statLabel(r.stat)}
             </span>
             <span className="cs-kc" aria-hidden="true">
-              <TeamCrest name={side.name} colour={side.colour} size={26} />
+              <i className={r.winner === 'me' ? 'cs-km cs-km-me' : 'cs-km cs-km-them'} />
             </span>
             <span className="cs-kv num" aria-hidden="true">
               <span className={r.winner === 'me' ? 'cs-w' : undefined}>{formatStat(r.stat, r.mine)}</span>

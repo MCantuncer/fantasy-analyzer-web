@@ -19,14 +19,15 @@ const BUILDS = [
 ]
 
 describe('Builds', () => {
-  it('ranks teams by cats a week, yours lit with the badge on its crest', () => {
+  it('ranks teams by cats a week, yours lit with the You tag after its name', () => {
     render(<Builds builds={BUILDS} categories={ESPN} myTeamId={3} />)
     const names = [...document.querySelectorAll('.bd-r .bd-nm')].map((n) => n.textContent)
     expect(names).toEqual(["Jze's Scary Team", 'Kucukesat Aspavas', 'Antalya Apaches'])
     const mine = document.querySelector('.bd-r.mine')!
     expect(mine.querySelector('.bd-nm')!.textContent).toBe('Kucukesat Aspavas')
-    expect(mine.querySelector('.yourcrest > .yourcrest-me')).toBeTruthy()
-    expect(document.querySelectorAll('.yourcrest-me')).toHaveLength(1)
+    expect(mine.querySelector('.bd-nm + .youtag')!.textContent).toBe('You')
+    expect(document.querySelectorAll('.youtag')).toHaveLength(1)
+    expect(document.querySelector('.yourcrest-me')).toBeNull()
   })
 
   it("draws each team's nine ranks in the site's category order, punts and top two called out", () => {
@@ -44,10 +45,20 @@ describe('Builds', () => {
       'TO rank 1, top two',
       'PTS rank 9, likely punt',
     ])
-    expect(strip.querySelectorAll('.cs-good')).toHaveLength(2)
-    expect(strip.querySelectorAll('.cs-bad')).toHaveLength(4)
+    // Your row: top two in blue, punts in orange, every top-two and punt rank in bold ink.
+    expect(strip.querySelectorAll('.cs-help')).toHaveLength(2)
+    expect(strip.querySelectorAll('.cs-hurt')).toHaveLength(4)
+    expect(strip.querySelectorAll('.cs-rn-w')).toHaveLength(6)
     expect(strip.querySelector('.cs-rup')).toBeTruthy()
     expect(document.querySelector('.heat')).toBeNull()
+  })
+
+  it("keeps other teams' strengths and punts neutral: no blue or orange off your row", () => {
+    render(<Builds builds={BUILDS} categories={ESPN} myTeamId={3} />)
+    const others = [...document.querySelectorAll('.bd-r:not(.mine)')]
+    expect(others.length).toBeGreaterThan(0)
+    for (const row of others) expect(row.querySelector('.cs-help, .cs-hurt')).toBeNull()
+    expect(document.querySelectorAll('.bd-r:not(.mine) .cs-rank-hi').length).toBeGreaterThan(0)
   })
 
   it('says the likely punts in words, and nothing for a team without one', () => {

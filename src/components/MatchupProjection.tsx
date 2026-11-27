@@ -108,7 +108,6 @@ export function ProjectionView({ data, me, them }: { data: Projection; me: Side;
       </div>
       <CatStripPick
         rows={data.categories}
-        me={me}
         them={them}
         label={`Projected final: ${iWin ? 'you win' : `${winner.name} win`} ${score}, by category`}
       />

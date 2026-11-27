@@ -60,7 +60,7 @@ import { teamColours } from '../lib/league'
 import './LeagueChat.css'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
-import { YourCrest } from './YourCrest'
+import { YouTag } from './YouTag'
 import { PlayerLink } from './PlayerCard'
 import { FilmPostCard } from './FilmShare'
 import { filmPostNote, filmPostPeriod } from '../lib/filmRoom'
@@ -335,9 +335,10 @@ function FaabList({ teams, budget, myTeamId, colours }: FaabProps) {
           const spent = t.faab_spent ?? 0
           return (
             <li key={t.id} className={t.id === myTeamId ? 'feed-faab-row is-me' : 'feed-faab-row'}>
-              <YourCrest name={t.name} colour={colours.get(t.id)} size={20} mine={t.id === myTeamId} />
+              <TeamCrest name={t.name} colour={colours.get(t.id)} size={20} />
               <span className="feed-faab-name">
                 <span className="feed-faab-team">{t.name}</span>
+                {t.id === myTeamId && <YouTag />}
                 {t.id === leader && <span className="feed-faab-most">Most</span>}
               </span>
               <span className="feed-faab-amt num">${spent}</span>
@@ -422,12 +423,11 @@ function Entry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: boolean 
       <li className={`feed-entry feed-moment feed-moment-${item.kind}`}>
         <span className={teamIds.length > 1 ? 'feed-node feed-node-pair' : 'feed-node'} aria-hidden="true">
           {teamIds.slice(0, 2).map((id) => (
-            <YourCrest
+            <TeamCrest
               key={id}
               name={teamName(ctx.teams, id)}
               colour={ctx.colours.get(id)}
               size={item.kind === 'post' ? 28 : 24}
-              mine={ctx.link?.teamId === id}
             />
           ))}
         </span>
@@ -483,12 +483,7 @@ function MoveEntry({ item, ctx, start }: { item: FeedItem; ctx: Ctx; start: bool
       )}
       <li className={cls} style={big && bigLight ? ({ '--feed-big': bigLight } as CSSProperties) : undefined}>
         <span className="feed-node" aria-hidden="true">
-          <YourCrest
-            name={teamName(ctx.teams, item.team_id)}
-            colour={ctx.colours.get(item.team_id)}
-            size={24}
-            mine={ctx.link?.teamId === item.team_id}
-          />
+          <TeamCrest name={teamName(ctx.teams, item.team_id)} colour={ctx.colours.get(item.team_id)} size={24} />
         </span>
         <FeedLine
           item={item}
@@ -682,10 +677,6 @@ function ReactTray({
 }
 
 /** Says "(you)" to screen readers where the crest beside the line is decorative; the eye reads the crest's badge. */
-function You() {
-  return <span className="sr-only">(you)</span>
-}
-
 function FeedPlayerCell({
   move,
   face,
@@ -726,7 +717,7 @@ function FeedLine({ item, ctx, act }: { item: FeedItem; ctx: Ctx; act?: ReactNod
     <div className={ctx.link ? 'feed-row has-act' : 'feed-row'}>
       <span className="feed-team">
         <span className="feed-team-name">{teamName(ctx.teams, item.team_id)}</span>
-        {ctx.link?.teamId === item.team_id && <You />}
+        {ctx.link?.teamId === item.team_id && <YouTag />}
       </span>
       <span className="feed-players">
         {adds.length > 0 && (
@@ -811,14 +802,10 @@ function Trade({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
         {sides.map((s) => (
           <div key={s.teamId} className="feed-side">
             <span className="feed-side-head">
-              <YourCrest
-                name={teamName(ctx.teams, s.teamId)}
-                colour={ctx.colours.get(s.teamId)}
-                size={20}
-                mine={ctx.link?.teamId === s.teamId}
-              />
+              <TeamCrest name={teamName(ctx.teams, s.teamId)} colour={ctx.colours.get(s.teamId)} size={20} />
               <span className="feed-side-team">
-                <b>{teamName(ctx.teams, s.teamId)}</b> get
+                <b>{teamName(ctx.teams, s.teamId)}</b>
+                {ctx.link?.teamId === s.teamId && <YouTag />} get
               </span>
             </span>
             <ul className="feed-side-list">
@@ -906,7 +893,7 @@ function Post({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
       <header className="chat-msg-head">
         <span className="chat-msg-team">
           <span className="feed-team-name">{teamName(ctx.teams, item.team_id)}</span>
-          {mine && <You />}
+          {mine && <YouTag />}
         </span>
         <span className="chat-kind">
           {period == null ? <ChatCircle size={14} aria-hidden="true" /> : <FilmSlate size={14} aria-hidden="true" />}
@@ -1055,10 +1042,11 @@ function Reply({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
   }
   return (
     <li className={tray ? 'chat-reply is-open' : 'chat-reply'}>
-      <YourCrest name={name} colour={ctx.colours.get(item.team_id)} size={20} mine={mine} />
+      <TeamCrest name={name} colour={ctx.colours.get(item.team_id)} size={20} />
       <div className="chat-reply-body">
         <div className="chat-reply-who">
           <span className="feed-team-name">{name}</span>
+          {mine && <YouTag />}
           <time className="num" dateTime={item.at}>
             {timeLabel(item.at)}
           </time>

@@ -1,4 +1,6 @@
-/* Category strip (cs-): change in weekly win chance per category, one short column each. */
+/* Category strip (cs-): change in weekly win chance per category, one short column each.
+   Colour language: blue (--help) helps you, orange (--hurt) hurts you, only where the number is
+   measured from your seat; every coloured mark also has a sign or a side of the zero line. */
 .cs-head {
   display: flex;
   align-items: baseline;
@@ -11,6 +13,15 @@
 
 .cs-title {
   font-weight: 600;
+}
+
+/* The caller's summary figure ("+0.13 categories won a week") is yours, so it speaks help/hurt. */
+.cs-sum .good {
+  color: var(--help);
+}
+
+.cs-sum .bad {
+  color: var(--hurt);
 }
 
 .cs {
@@ -63,12 +74,12 @@
 
 .cs-up {
   bottom: 50%;
-  background: var(--good);
+  background: var(--help);
 }
 
 .cs-down {
   top: 50%;
-  background: var(--bad);
+  background: var(--hurt);
 }
 
 .cs-v {
@@ -190,8 +201,12 @@
   white-space: nowrap;
 }
 
+/* Close this week, can flip: ink (amber sat too near the "hurts" orange). Phones underline the label,
+   wider screens show the Target instead. */
 .cs-pl.cs-close {
-  color: var(--warn);
+  color: var(--text);
+  text-decoration: underline 1.5px;
+  text-underline-offset: 3px;
 }
 
 .cs-ic {
@@ -264,13 +279,13 @@
   border-radius: 2px 2px 6px 6px;
 }
 
-/* The light reaching the leader: 55% at the tick, full by 70% of the length. */
-.cs-good {
-  background: linear-gradient(var(--dir), color-mix(in srgb, var(--good) 55%, transparent), var(--good) 70%);
+/* Your matchup: solid blue toward you when you lead, solid orange toward them when they do. */
+.cs-help {
+  background: var(--help);
 }
 
-.cs-bad {
-  background: linear-gradient(var(--dir), color-mix(in srgb, var(--bad) 55%, transparent), var(--bad) 70%);
+.cs-hurt {
+  background: var(--hurt);
 }
 
 /* Neither side is you: no good or bad, just the lead. */
@@ -306,6 +321,10 @@
 
   .cs-ic {
     display: inline;
+  }
+
+  .cs-pl.cs-close {
+    text-decoration: none;
   }
 
   .cs-pv {
@@ -444,13 +463,14 @@
   color: var(--muted);
 }
 
-.cs-rn.cs-rn-good {
-  color: var(--good);
-  font-weight: 650;
+/* Another team's top two and punts: a solid neutral bar, theirs and not good or bad for you. */
+.cs-rank-hi {
+  background: var(--cs-neutral);
 }
 
-.cs-rn.cs-rn-bad {
-  color: var(--bad);
+/* Top two and punts: the rank in ink and bold, on every row; colour lives on the bar. */
+.cs-rn.cs-rn-w {
+  color: var(--text);
   font-weight: 650;
 }
 
@@ -485,7 +505,8 @@
 }
 
 /* ---------- pick: the team projected to take each category (Projected final) ----------
-   Rides on .cs-pair's grid (the same key gutter and nine columns as the strip above it). */
+   Rides on .cs-pair's grid (the same key gutter and nine columns as the strip above it). One bar
+   from a short zero tick per category: up and blue for you, down and orange for them. */
 .cs-pick .cs-ki {
   display: grid;
   grid-template-rows: 22px auto auto;
@@ -495,8 +516,41 @@
   min-width: 0;
 }
 
-.cs-pick .cs-kc .crest {
-  --crest: 22px !important;
+.cs-km {
+  position: relative;
+  display: block;
+  width: var(--bw);
+  height: 22px;
+}
+
+.cs-km::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  right: -6px;
+  height: 1px;
+  background: var(--seam);
+}
+
+.cs-km::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.cs-km-me::after {
+  bottom: calc(50% + 1px);
+  border-radius: 6px 6px 2px 2px;
+  background: var(--help);
+}
+
+.cs-km-them::after {
+  top: calc(50% + 1px);
+  border-radius: 2px 2px 6px 6px;
+  background: var(--hurt);
 }
 
 /* Phones: the two figures stack, the winner's in ink. */
@@ -527,8 +581,12 @@
     row-gap: 8px;
   }
 
-  .cs-pick .cs-kc .crest {
-    --crest: 26px !important;
+  .cs-km {
+    height: 30px;
+  }
+
+  .cs-km::after {
+    height: 13px;
   }
 
   .cs-kv {

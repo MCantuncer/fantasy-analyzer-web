@@ -1,9 +1,10 @@
-import { Handshake, ListNumbers, User } from '@phosphor-icons/react'
+import { Handshake, ListNumbers } from '@phosphor-icons/react'
 import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
 import type { ManagerStyles, OverviewTeam, SeasonRow } from '../api/client'
 import { pct } from '../lib/format'
 import { StyleRows } from './StyleRows'
 import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './Standings.css'
 
 interface Props {
@@ -31,21 +32,15 @@ function winPct(t: OverviewTeam) {
 
 const back = (t: OverviewTeam) => (t.games_back ? t.games_back.toFixed(1).replace(/\.0$/, '') : '–')
 
-/** Rank, crest and name (two lines at most, never cut short); your crest carries a small person badge on its top-right corner. */
+/** Rank, crest and name (two lines at most, never cut short); your name is followed by a gold "You" tag. */
 function TeamCell({ rank, name, colour, mine }: { rank: number; name: string; colour?: string; mine: boolean }) {
   return (
     <>
       <span className="st-rk num">{rank}</span>
       <span className="st-tm">
-        <span className="st-cr">
-          <TeamCrest name={name} colour={colour} size={22} />
-          {mine && (
-            <span className="st-me" role="img" aria-label="your team">
-              <User weight="fill" aria-hidden="true" />
-            </span>
-          )}
-        </span>
+        <TeamCrest name={name} colour={colour} size={22} />
         <span className="st-nm">{name}</span>
+        {mine && <YouTag />}
       </span>
     </>
   )

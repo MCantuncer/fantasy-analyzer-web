@@ -7,7 +7,8 @@ import type { TodayData } from '../lib/todayData'
 import { CatStripPair } from './CatStrip'
 import { TodayLoading, TodayMatchup } from './TodayMatchup'
 import { MaybeHandshake } from './MaybeHandshake'
-import { YourCrest } from './YourCrest'
+import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './MatchupSheet.css'
 
 /** One team on the sheet: who it is and its week so far (the overview's live score). */
@@ -40,7 +41,7 @@ function hintWords(hint: string) {
 }
 
 /**
- * The Week view's first line: what you can still flip (amber target, the shipped flipHint) and a soft
+ * The Week view's first line: what you can still flip (ink Target, the shipped flipHint) and a soft
  * Check a Trade With Them on the right. Renders nothing when there's neither.
  */
 export function FlipLine({ hint, onCheckTrade }: { hint: string | null; onCheckTrade?: () => void }) {
@@ -89,10 +90,13 @@ function Side({
   return (
     <div className={`lsb-side${theirs ? ' theirs' : ''}`}>
       <span className="lsb-crest">
-        <YourCrest name={side.name} colour={side.colour} size={56} mine={mine} />
+        <TeamCrest name={side.name} colour={side.colour} size={56} />
       </span>
       <span className="lsb-text">
-        <b className="lsb-full">{side.name}</b>
+        <b className="lsb-full">
+          {side.name}
+          {mine && <YouTag />}
+        </b>
         <b className="lsb-short">{mine ? 'You' : shortTeam(side.name)}</b>
         {sub && <span className="lsb-sub">{sub}</span>}
       </span>

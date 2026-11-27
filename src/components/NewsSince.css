@@ -94,6 +94,8 @@
 .ns-crest {
   display: inline-flex;
   flex: none;
+  align-items: center;
+  gap: 6px;
 }
 
 .ns-roster-list {

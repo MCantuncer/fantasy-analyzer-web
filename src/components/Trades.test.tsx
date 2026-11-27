@@ -38,11 +38,11 @@ const show = (ui: ReactElement) => render(<QueryClientProvider client={new Query
 describe('Trades', () => {
   afterEach(cleanup)
 
-  it('folds to the Bold list, with no switch, when no trade helps both teams', () => {
+  it('folds to the Bold list, with no switch, when no trade is fair', () => {
     const { container } = show(<Trades fair={[]} edge={[idea]} />)
     const view = within(container)
     expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
-    expect(view.getByText("No deal lifts both teams' playoff odds today.")).toBeInTheDocument()
+    expect(view.getByText('No fair trade raises your playoff odds today.')).toBeInTheDocument()
     expect(view.queryByText(/they win on paper/)).toBeNull()
     expect(container.querySelectorAll('.mvt-list > li')).toHaveLength(1)
   })
@@ -71,7 +71,7 @@ describe('Trades', () => {
     expect(container.textContent).not.toContain('Change in My Team')
   })
 
-  it('opens on Fair when a trade helps both teams', () => {
+  it('opens on Fair when there is a fair trade', () => {
     const { container } = show(<Trades fair={[idea]} edge={[idea]} />)
     const view = within(container)
     expect(view.getByRole('button', { name: 'Fair 1' })).toHaveAttribute('aria-pressed', 'true')

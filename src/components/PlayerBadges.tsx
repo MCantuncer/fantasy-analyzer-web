@@ -63,14 +63,19 @@ function BadgeIcon({ kind }: { kind: PlayerBadge['kind'] }) {
   )
 }
 
+/** A chip's word: the badge spelled out, with a keystone's category ("Keystone REB"). */
+function chipLabel(b: PlayerBadge): string {
+  return b.kind === 'keystone' && b.category ? `${LABELS.keystone} ${b.category}` : LABELS[b.kind]
+}
+
 /**
- * A badge as a small icon after the name. Hover (or a tap on phones) shows its name and reason in a bubble;
- * a tap never reaches the row it sits in. Screen readers hear the name and reason.
+ * A badge as a small chip that spells it out ("Jewel", "Keystone REB", "Hot"). Hover (or a tap on
+ * phones) shows the reason in a bubble; a tap never reaches the row it sits in. Screen readers hear
+ * the word and the reason.
  */
-function BadgeMark({ badge }: { badge: PlayerBadge }) {
+function BadgeChip({ badge }: { badge: PlayerBadge }) {
   const ref = useRef<HTMLSpanElement>(null)
   const [tip, setTip] = useState<{ x: number; y: number } | null>(null)
-  const label = badgeLabel(badge)
 
   const show = () => {
     const r = ref.current?.getBoundingClientRect()
@@ -105,21 +110,18 @@ function BadgeMark({ badge }: { badge: PlayerBadge }) {
     <>
       <span
         ref={ref}
-        className={`pb-mark pb-${badge.kind}`}
-        role="img"
-        aria-label={`${label}: ${badge.reason}`}
+        className={`pb-chip pb-${badge.kind}`}
         onClick={onTap}
-        onMouseEnter={show}
-        onMouseLeave={hide}
+        onPointerEnter={(e) => e.pointerType === 'mouse' && show()}
+        onPointerLeave={(e) => e.pointerType === 'mouse' && hide()}
       >
-        <BadgeIcon kind={badge.kind} />
-        {badge.kind === 'keystone' && badge.category && <span className="pb-cat">{badge.category}</span>}
+        {chipLabel(badge)}
+        <span className="sr-only">: {badge.reason}</span>
       </span>
       {tip &&
         createPortal(
           <span className="pb-tip" role="tooltip" style={{ left, top: tip.y }}>
-            <strong>{label}</strong>
-            <span>{badge.reason}</span>
+            {badge.reason}
           </span>,
           document.body,
         )}
@@ -127,13 +129,13 @@ function BadgeMark({ badge }: { badge: PlayerBadge }) {
   )
 }
 
-/** Why an owner holds on to a player, as icons after his name. */
+/** Why an owner holds on to a player, as small spelled-out chips. */
 export function PlayerBadges({ badges }: { badges: PlayerBadge[] | undefined }) {
   if (!badges?.length) return null
   return (
-    <span className="pb-marks">
+    <span className="pb-chips">
       {badges.map((b) => (
-        <BadgeMark key={b.kind} badge={b} />
+        <BadgeChip key={b.kind} badge={b} />
       ))}
     </span>
   )

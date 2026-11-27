@@ -171,12 +171,10 @@ th.tck-tb-who.them {
   font-weight: 700;
 }
 
-.tck-tb-delta.up {
-  color: var(--good);
-}
-
+/* Your change: ink with its sign; the dot beside it carries blue or orange. */
+.tck-tb-delta.up,
 .tck-tb-delta.down {
-  color: var(--bad);
+  color: var(--text);
 }
 
 .tck-tb-delta.flat {

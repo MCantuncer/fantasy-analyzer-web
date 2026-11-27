@@ -4,7 +4,6 @@
 .lms-sheet {
   --lms-py: 16px;
   --lms-px: 12px;
-  --yc-ring: var(--surface);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -136,10 +135,6 @@ button.lms-retry {
   --crest: 40px !important;
 }
 
-.lsb-crest .yourcrest {
-  --yc: 14px !important;
-}
-
 .lsb-text {
   display: flex;
   flex-direction: column;
@@ -157,6 +152,12 @@ button.lms-retry {
 
 .lsb-full {
   display: none;
+}
+
+/* Your full name (wide screens) ends in a "You" tag; on phones the short name already says You. */
+.lsb-full .youtag {
+  margin-left: 8px;
+  vertical-align: 0.2em;
 }
 
 .lsb-sub {
@@ -244,9 +245,10 @@ button.lms-retry {
   color: var(--text-2);
 }
 
+/* The same ink Target as the close labels in the strip above (amber sat too near the "hurts" orange). */
 .lms-hint svg {
   flex: none;
-  color: var(--warn);
+  color: var(--text);
 }
 
 .lms-hint b {
@@ -320,10 +322,6 @@ button.lms-check:hover {
 
   .lsb-crest .crest {
     --crest: 52px !important;
-  }
-
-  .lsb-crest .yourcrest {
-    --yc: 17px !important;
   }
 
   .lsb-text b {

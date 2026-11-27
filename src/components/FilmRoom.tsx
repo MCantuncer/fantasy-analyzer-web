@@ -48,6 +48,7 @@ import { PlayerHead } from './PlayerHead'
 import { ShotSplit } from './ShotSplit'
 import { Bone } from './Skeleton'
 import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './FilmRoom.css'
 
 interface Team {
@@ -67,16 +68,6 @@ interface Props {
   onPeriod: (period: number) => void
   onBack: () => void
 }
-
-/** Your crest carries a small gold person badge on its top-right corner. */
-const MINE_BADGE = (
-  <span className="fr-me" aria-hidden="true">
-    <svg viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21a8 8 0 0 1 16 0z" />
-    </svg>
-  </span>
-)
 
 export function FilmRoom({ leagueRef, creds, teams, colours, myTeamId, period, onPeriod, onBack }: Props) {
   const recap = useQuery({
@@ -177,16 +168,12 @@ export function FilmRoomPage({
   useEffect(() => markWeekSeen(leagueRef.leagueId, leagueRef.season, r.period), [leagueRef.leagueId, leagueRef.season, r.period])
   const name = (id: number) =>
     teams.find((t) => t.id === id)?.name ?? r.teams.find((t) => t.team_id === id)?.name ?? 'Unknown team'
-  const team = (id: number, size = 22) => (
+  // Your team ends in a "You" tag; in the narrow tiles your name just says "You" instead.
+  const team = (id: number, size = 22, tile = false) => (
     <span className="fr-tn">
-      <span className={size < 20 ? 'fr-crest sm' : 'fr-crest'}>
-        <TeamCrest name={name(id)} colour={colours.get(id)} size={size} />
-        {id === myTeamId && MINE_BADGE}
-      </span>
-      <span className="fr-tn-name">
-        {id === myTeamId && <span className="sr-only">Your team: </span>}
-        {name(id)}
-      </span>
+      <TeamCrest name={name(id)} colour={colours.get(id)} size={size} />
+      <span className="fr-tn-name">{tile && id === myTeamId ? 'You' : name(id)}</span>
+      {!tile && id === myTeamId && <YouTag />}
     </span>
   )
   const espnAdd = `https://fantasy.espn.com/basketball/players/add?leagueId=${leagueRef.leagueId}`
@@ -232,7 +219,7 @@ export function FilmRoomPage({
   )
 }
 
-type TeamFn = (id: number, size?: number) => ReactNode
+type TeamFn = (id: number, size?: number, tile?: boolean) => ReactNode
 type NameFn = (id: number) => string
 
 function Face({ p, size }: { p: Pick<RecapPlayer, 'player_id' | 'name' | 'pro_team_id'>; size: number }) {
@@ -339,7 +326,7 @@ function GameBalls({
             <Name p={p} className="fr-tile-name" />
             <span className="fr-tile-sub">
               <span className="num">{bestTotal(p)}</span>
-              {p.owner_team_id != null ? team(p.owner_team_id, 16) : <span>Free agent</span>}
+              {p.owner_team_id != null ? team(p.owner_team_id, 16, true) : <span>Free agent</span>}
             </span>
           </li>
         )}
@@ -355,7 +342,7 @@ function GameBalls({
             <span className="fr-tile-name">{name(tw.sides[0].team_id)}</span>
             <span className="fr-tile-sub">
               <span>{tw.sides[0].wins === 9 || tw.sides[1].wins === 0 ? 'Swept' : 'Beat'}</span>
-              {team(tw.sides[1].team_id, 16)}
+              {team(tw.sides[1].team_id, 16, true)}
             </span>
           </li>
         )}
@@ -371,7 +358,7 @@ function GameBalls({
               <span>
                 <span className="num">{tp.after.games}</span> G for them
               </span>
-              {team(tp.by, 16)}
+              {team(tp.by, 16, true)}
             </span>
           </li>
         )}
@@ -775,11 +762,17 @@ function BoxScoreTable({
                               <span className="fr-fa-mark">FA</span>
                             ) : (
                               <span className="fr-owner" title={name(p.owner_team_id)}>
-                                <span className="fr-crest sm">
-                                  <TeamCrest name={name(p.owner_team_id)} colour={colours.get(p.owner_team_id)} size={15} />
-                                  {p.owner_team_id === myTeamId && MINE_BADGE}
-                                </span>
-                                <span className="sr-only">Owner: {name(p.owner_team_id)}</span>
+                                {p.owner_team_id === myTeamId ? (
+                                  <>
+                                    <span className="sr-only">Owner: </span>
+                                    <YouTag />
+                                  </>
+                                ) : (
+                                  <>
+                                    <TeamCrest name={name(p.owner_team_id)} colour={colours.get(p.owner_team_id)} size={15} />
+                                    <span className="sr-only">Owner: {name(p.owner_team_id)}</span>
+                                  </>
+                                )}
                               </span>
                             )}
                           </span>
