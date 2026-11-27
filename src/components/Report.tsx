@@ -32,6 +32,7 @@ import { useUntouchableAsked } from '../lib/untouchable'
 import { useManagerStyles } from '../lib/useManagerStyles'
 import { partnerLine } from '../lib/managerStyles'
 import '../styles/moves.css'
+import '../styles/team-sheet.css'
 
 export const TABS = [
   { id: 'moves', label: 'Moves' },
@@ -265,7 +266,8 @@ export function Report({
         {tab === 'trade-for' && <TradeFor report={report} keep={keep} creds={creds} onCheck={openCheck} />}
 
         {tab === 'team' && (
-          <>
+          // One sheet for the whole tab: no cards, sections parted by air (team-sheet.css).
+          <div className="team-sheet">
             <WinPath leagueRef={{ leagueId: report.league.id, season: report.league.season }} creds={creds} />
             <MyPlayers
               leagueId={report.league.id}
@@ -273,15 +275,11 @@ export function Report({
               teamId={report.team_id}
               creds={creds}
             />
-            <div className="split">
-              <div className="narrow">
-                <CategoryOutlook categories={report.categories} />
-              </div>
-              <div className="wide">
-                <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} onShop={shopPlayer} />
-              </div>
+            <div className="ts-split">
+              <CategoryOutlook categories={report.categories} />
+              <Roster roster={report.roster} keep={keep} onToggleKeep={onToggleKeep} onShop={shopPlayer} />
             </div>
-          </>
+          </div>
         )}
 
         {tab === 'league' && (

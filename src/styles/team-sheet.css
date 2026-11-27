@@ -1,0 +1,53 @@
+/* My Team: one sheet for the whole tab. The sections (win path, My Players, your categories, your roster)
+   lose their cards and sit on one --surface sheet, parted by air rather than boxes. Prefix ts-. */
+
+.team-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+  min-width: 0;
+  /* phones: 8px from the screen edge (the page keeps 16px), so the lineup gets the room */
+  margin-inline: -8px;
+  padding: 18px 8px 24px;
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+/* The sections were cards; on the sheet they carry no box, padding or fill of their own. */
+.team-sheet > .wp,
+.team-sheet > .mp,
+.team-sheet .co,
+.team-sheet .ro {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* Your categories, then your roster: stacked until there's room for both side by side. */
+.ts-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 52px;
+  align-items: start;
+}
+
+@media (min-width: 760px) {
+  .team-sheet {
+    margin-inline: 0;
+    padding: 26px 24px 32px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .ts-split {
+    grid-template-columns: minmax(330px, 370px) minmax(0, 1fr);
+    gap: 56px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .team-sheet {
+    padding-inline: 28px;
+  }
+}

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { Path } from '@phosphor-icons/react'
 import {
   type LeagueRef,
   type ManagerStyleRow,
@@ -37,60 +38,13 @@ const BANDS = [
   { key: 'let_go', label: 'Let go', hint: "don't pay for it" },
 ]
 
+/**
+ * The read on us: only what the board, the headline and the adds panel don't already show (how often we
+ * add, how we set lineups, what never came home).
+ */
 function notesFor(data: ManagerStyles, me: ManagerStyleRow, board: BoardCell[]): ScoutNote[] {
-  const lock = board.filter((c) => c.band === 'lock')
-  const swing = board.filter((c) => c.band === 'swing')
-  const path = data.win_path!
   const med = data.medians
   const notes: ScoutNote[] = []
-  if (lock.length) {
-    const every = lock.every((c) => c.won === c.weeks)
-    notes.push({
-      key: 'lock',
-      text: (
-        <>
-          <b>
-            {listCats(lock.map((c) => c.cat))} {lock.length > 1 ? 'are' : 'is'} ours {every ? 'every week' : 'most weeks'}.
-          </b>{' '}
-          Adds don't need to go there.
-        </>
-      ),
-      number: every ? `${lock[0].weeks} of ${lock[0].weeks}` : pct(Math.min(...lock.map((c) => c.share))),
-      caption: every ? 'weeks won' : 'of weeks, at least',
-      tone: 'good',
-    })
-  }
-  if (swing.length) {
-    notes.push({
-      key: 'swing',
-      text: (
-        <>
-          <b>{listCats(swing.map((c) => c.cat))} are the coin flips.</b> Push them to {pct(SWING_TARGET)} of weeks.
-        </>
-      ),
-      number: `+${swingGain(board).toFixed(1)}`,
-      caption: 'cat wins a week',
-    })
-  }
-  if (path.adds_bring.length) {
-    const need = inOrder(path.adds_should_bring)
-    const bring = inOrder(path.adds_bring)
-    notes.push({
-      key: 'adds',
-      text: need.length ? (
-        <>
-          <b>Our adds bring {listCats(bring)}.</b> The path needs {listCats(need)}.
-        </>
-      ) : (
-        <>
-          <b>Our adds bring {listCats(bring)}</b>, right where the path needs them.
-        </>
-      ),
-      number: bring.join(' · '),
-      caption: 'what pickups brought',
-      words: true,
-    })
-  }
   notes.push({
     key: 'activity',
     text: (
@@ -140,19 +94,15 @@ export function WinPathView({ data }: { data: ManagerStyles }) {
   const path = data.win_path
   const lock = board.filter((c) => c.band === 'lock').map((c) => c.cat)
   const swing = board.filter((c) => c.band === 'swing')
-  const majority = Math.floor(board.length / 2) + 1
   const gain = swingGain(board)
   const need = inOrder(path.adds_should_bring.length ? path.adds_should_bring : swing.map((c) => c.cat))
   return (
-    <section className="card wp" aria-labelledby="wp-title">
-      <span className="wp-mark" aria-hidden="true">
-        {me.abbrev}
-      </span>
+    <section className="wp" aria-labelledby="wp-title">
       <div className="wp-head">
-        <p className="eyebrow">
-          Self-scout · {data.weeks} week{data.weeks === 1 ? '' : 's'} on file
-        </p>
-        <h2 id="wp-title">Your win path</h2>
+        <h2 id="wp-title" className="wp-title">
+          <Path size={22} aria-hidden="true" />
+          Your win path
+        </h2>
         <div className="sb-labels">
           <ScoutLabel word={ACTIVITY_LABEL[me.activity]}>
             {me.adds_per_week.toFixed(1)}/wk · median {data.medians.adds_per_week.toFixed(1)}
@@ -168,17 +118,21 @@ export function WinPathView({ data }: { data: ManagerStyles }) {
         {swing.length > 0 && <>swing {listCats(swing.map((c) => c.cat))}, </>}
         <span className="wp-quiet">let the rest go.</span>
       </p>
-      <p className="wp-sub">
-        {majority} of {board.length} categories wins the week.{' '}
-        {lock.length > 0 && `We own ${lock.length} most weeks; `}the {swing.length} swings are the ones adds can tilt. Read
-        from {data.weeks} finished week{data.weeks === 1 ? '' : 's'}.
-      </p>
 
       <ScoutBoard
         label="Your nine categories, by how often you win them"
         cats={CATEGORY_ORDER}
         bands={BANDS}
-        catHint={(cat) => (cat === 'TO' ? 'lower wins' : undefined)}
+        catLabel={(cat) =>
+          cat === 'TO' ? (
+            <>
+              <span aria-hidden="true">TO↓</span>
+              <span className="sr-only">turnovers, lower wins</span>
+            </>
+          ) : (
+            cat
+          )
+        }
         magnets={board.map((c) => ({
           cat: c.cat,
           band: c.band,

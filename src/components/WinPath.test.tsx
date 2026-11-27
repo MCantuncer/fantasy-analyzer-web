@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { ManagerStyles } from '../api/client'
 import fixture from '../lib/managerStyles.fixture.json'
@@ -29,18 +29,25 @@ describe('WinPathView', () => {
     render(<WinPathView data={data} />)
     const board = screen.getByRole('table', { name: /nine categories/ })
     const heads = within(board).getAllByRole('columnheader').map((h) => h.firstChild?.textContent)
-    expect(heads).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
+    expect(heads).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO↓', 'PTS'])
+    // TO↓ as everywhere on the site, no "lower wins" sub-label; screen readers still hear it
+    const to = within(board).getAllByRole('columnheader')[7]
+    expect(to.querySelector('small')).toBeNull()
+    expect(to.querySelector('.sr-only')?.textContent).toBe('turnovers, lower wins')
     expect(within(board).getByLabelText(/^FG%: Lock, 100%/)).toBeTruthy()
     expect(within(board).getByLabelText(/^PTS: Let go, 0%/)).toBeTruthy()
   })
 
-  it('shows three notes and folds the rest behind More', () => {
+  it('keeps only the notes the board, headline and adds panel do not already say', () => {
     render(<WinPathView data={data} />)
-    const more = screen.getByRole('button', { name: /More/ })
-    expect(more.getAttribute('aria-expanded')).toBe('false')
-    fireEvent.click(more)
-    expect(screen.getByRole('button', { name: /Less/ }).getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByText(/adds this season/)).toBeTruthy()
+    const notes = screen.getByRole('list', { name: 'The read on us' }).textContent
+    expect(notes).toContain('adds this season')
+    expect(notes).toContain('never came home')
+    expect(notes).not.toContain('are the coin flips')
+    expect(notes).not.toContain('Our adds bring')
+    expect(screen.queryByRole('button', { name: /More/ })).toBeNull()
+    expect(document.querySelector('.wp-sub')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Your win path' })).toBeTruthy()
   })
 
   it('renders nothing before any week is finished', () => {
