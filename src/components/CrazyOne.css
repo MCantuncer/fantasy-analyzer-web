@@ -42,6 +42,12 @@
   .cz-face .o2 {
     animation: cz-spin 40s linear infinite;
   }
+  .cz-face .o1,
+  .cz-face .disc {
+    transition:
+      stroke 200ms ease,
+      fill 200ms ease;
+  }
 }
 @keyframes cz-open {
   from {
@@ -144,6 +150,22 @@
 }
 .cz-face .eye {
   fill: var(--cz-room);
+}
+/* hover lights it like the door: the outer ring takes the ink, the disc goes dark as the room */
+.cz-face:hover .o1 {
+  stroke: var(--cz-ink);
+}
+.cz-face:hover .disc {
+  fill: var(--cz-room);
+}
+.cz-role {
+  margin: 0 0 8px;
+  color: var(--cz-ink);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .cz-name {
   margin: 0;

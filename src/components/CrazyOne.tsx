@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { fetchCrazyOne } from '../api/client'
+import { useMoonLook } from '../lib/useMoonLook'
 import type { CrazyBoom, CrazyBoomRecord, CrazyGame, CrazyOne as CrazyData, CrazyRecord } from '../api/client'
 import {
   BOOM_BELIEFS,
@@ -189,6 +190,7 @@ function World({ data, onDay }: { data: CrazyData; onDay: (d: number) => void })
         <div className="cz-who cz-rise">
           <Face />
           <div className="cz-who-t">
+            <p className="cz-role">Heat Check</p>
             <h1 className="cz-name" id="cz-name">
               Crazy <em>1</em>
             </h1>
@@ -312,13 +314,17 @@ function nameOf(key: string): string {
 
 /** Its portrait: a disc with an off-centre moon and a slow dotted orbit. */
 function Face() {
+  // the same moon as the door, bigger: it orbits inside the disc and turns to look at a hovering pointer
+  const { moon, onPointerEnter, start } = useMoonLook(66)
   return (
-    <svg className="cz-face" viewBox="0 0 132 132" aria-hidden="true">
+    <svg className="cz-face" viewBox="0 0 132 132" aria-hidden="true" onPointerEnter={onPointerEnter}>
       <circle className="o1" cx="66" cy="66" r="62" />
       <circle className="o2" cx="66" cy="66" r="54" />
       <circle className="disc" cx="66" cy="66" r="42" />
-      <circle className="moon" cx="82" cy="52" r="16" />
-      <circle className="eye" cx="88" cy="47" r="4" />
+      <g ref={moon} transform={start}>
+        <circle className="moon" cx="87" cy="66" r="16" />
+        <circle className="eye" cx="95" cy="66" r="4" />
+      </g>
     </svg>
   )
 }

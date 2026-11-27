@@ -164,6 +164,23 @@ describe('CrazyDoor', () => {
 })
 
 describe('CrazyOne', () => {
+  it('the face’s moon looks at a hovering pointer too, round the face’s own centre', async () => {
+    const mm = window.matchMedia
+    window.matchMedia = ((q: string) => ({ matches: q.includes('reduce'), media: q })) as typeof window.matchMedia
+    try {
+      fetchMock.mockResolvedValue(data())
+      show()
+      await screen.findByText('Two players I think blow past their line tonight.')
+      const face = document.querySelector('.cz-face')!
+      const moon = face.querySelector('g')!
+      expect(moon.getAttribute('transform')).toBe('rotate(-42.00 66 66)')
+      fireEvent.pointerEnter(face, { clientX: 0, clientY: 20, pointerType: 'mouse' })
+      expect(moon.getAttribute('transform')).toBe('rotate(90.00 66 66)')
+    } finally {
+      window.matchMedia = mm
+    }
+  })
+
   it('opens on tonight’s sky with the likeliest boom in the card, in its own voice', async () => {
     fetchMock.mockResolvedValue(data())
     show()
