@@ -6,22 +6,22 @@ import { TeamCrest } from './TeamCrest'
 import { YourCrest } from './YourCrest'
 import './SeatExample.css'
 
-// Fixed sample data: Kucukesat Aspavas against Çayyolu Bastards, 2–5–2 today, from the Line Score shots.
+// Fixed sample data with no real team or player in it: "You" against a grey "Them", 2–5–2 today.
 const STATS = ['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS']
 const figures = (values: number[]): StatValue[] => STATS.map((stat, i) => ({ stat, value: values[i] }))
 const YOU = {
   id: -1,
-  name: 'Kucukesat Aspavas',
+  name: 'You',
   short: 'You',
-  colour: '#f5b53d',
+  colour: 'var(--gold)',
   today: figures([0.5, 1, 1, 6, 5, 1, 0, 3, 21]),
   week: figures([0.509, 0.744, 60, 225, 134, 37, 25, 62, 539]),
 }
 const THEM = {
   id: -2,
-  name: 'Çayyolu Bastards',
-  short: 'Bastards',
-  colour: '#a3e35a',
+  name: 'Them',
+  short: 'Them',
+  colour: 'var(--muted)',
   today: figures([0.429, 1, 5, 30, 16, 5, 0, 5, 53]),
   week: figures([0.476, 0.746, 82, 181, 144, 37, 11, 69, 669]),
 }
@@ -37,12 +37,16 @@ const YOUR_RUNG = 6
 export function SeatExample() {
   return (
     <section className="lx-seat" aria-labelledby="lx-title">
-      <h2 id="lx-title" className="lx-h">
+      <h2 className="lx-h">
         <IdentificationBadge className="lx-h-ic" aria-hidden="true" />
-        Once you pick your team
+        <span id="lx-title">Once you pick your team</span>
+        <span className="lx-tag" aria-hidden="true">
+          Example
+        </span>
       </h2>
-      <p className="lx-sub">Example: how this page reads for Kucukesat Aspavas</p>
-      <p className="sr-only">It shows your matchup live, your playoff odds, and your best trade every morning.</p>
+      <p className="sr-only">
+        An example: it shows your matchup live, your playoff odds, and your best trade every morning.
+      </p>
       <div className="lx-panel" inert aria-hidden="true">
         <div className="lx-piece lx-mu">
           <h3 className="lx-ph">Your matchup, live</h3>
@@ -82,15 +86,9 @@ export function SeatExample() {
         <div className="lx-piece lx-trade">
           <h3 className="lx-ph">Your best trade, every morning</h3>
           <p className="lx-swap">
-            <PlayerHead player={{ id: 0, name: 'Jarrett Allen' }} size={26} />
-            <span>J. Allen</span>
+            <PlayerHead player={{ id: 0, name: '' }} size={30} />
             <ArrowRight className="lx-arrow" />
-            <PlayerHead player={{ id: 0, name: 'Amen Thompson' }} size={26} />
-            <span>A. Thompson</span>
-          </p>
-          <p className="lx-with">
-            <TeamCrest name="Aachen ShowManners" colour="#f97b3d" size={18} />
-            with Aachen ShowManners
+            <PlayerHead player={{ id: 0, name: '' }} size={30} />
           </p>
           <p className="lx-big">
             <b className="num">56%</b>

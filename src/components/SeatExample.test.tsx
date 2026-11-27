@@ -11,7 +11,17 @@ describe('SeatExample', () => {
     const panel = container.querySelector('.lx-panel') as HTMLElement
     expect(panel.hasAttribute('inert')).toBe(true)
     expect(panel.getAttribute('aria-hidden')).toBe('true')
-    expect(screen.getByText(/your matchup live, your playoff odds, and your best trade every morning/)).toBeTruthy()
+    expect(screen.getByText('Example')).toBeTruthy()
+    expect(
+      screen.getByText(/^An example: it shows your matchup live, your playoff odds, and your best trade every morning/),
+    ).toBeTruthy()
+  })
+
+  it('uses no real team or player: You against Them, faces without names', () => {
+    const { container } = render(<SeatExample />)
+    expect(container.querySelector('.lx-score')?.textContent).toBe('YOYou2–5–2ThemTH')
+    expect(container.querySelector('.lx-swap')?.textContent).toBe('')
+    expect(container.textContent).not.toMatch(/Kucukesat|Bastards|Aachen|Allen|Thompson/)
   })
 
   it('offers nothing to press: no buttons, links or a second Pick my team', () => {
