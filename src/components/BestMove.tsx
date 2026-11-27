@@ -406,7 +406,6 @@ function BestPickup({
               <CalendarBlank size={15} aria-hidden="true" />
               {waitLabel(wait)}
             </span>
-            <span>· No one has to agree</span>
             {games && (
               <span className="sr-only">
                 . Waiting lets {pickup.drop.name} play {kept.map((d) => longDay(d.date)).join(' and ')} first:{' '}
@@ -414,9 +413,7 @@ function BestPickup({
               </span>
             )}
           </p>
-        ) : (
-          <span className="bm-sub muted">No one has to agree</span>
-        )}
+        ) : null}
       </header>
       <PickupClimb
         add={pickup.add}

@@ -76,7 +76,6 @@ export function RulesBar({ skipped, showSkipped, onShowSkipped, categories, team
   if (rules.length === 0) {
     return (
       <div className="rules-bar">
-        <span className="small muted">No trade rules yet. Mark an idea in its Feedback tab, or</span>
         <button type="button" className="ghost" aria-expanded={false} onClick={() => setEditing(true)}>
           Add a rule
         </button>
@@ -149,15 +148,13 @@ function RulesEditor({
     if (on) remove.mutate(on.id)
     else add.mutate({ kind: o.kind, value: o.value, team_name: o.teamName, why: 'Added by hand.' })
   }
-  const groups: { title: string; hint: string; options: Option[] }[] = [
+  const groups: { title: string; options: Option[] }[] = [
     {
       title: 'Protect a category',
-      hint: 'Skip ideas that make you weaker here.',
       options: categories.map((c) => ({ key: `c:${c}`, label: c, kind: 'protect_category', value: c })),
     },
     {
       title: 'Skip a team',
-      hint: 'No ideas with these owners.',
       options: teams.map((t) => ({
         key: `t:${t.id}`,
         label: t.name,
@@ -167,8 +164,7 @@ function RulesEditor({
       })),
     },
     {
-      title: 'Players',
-      hint: 'Skip ideas that bring in these players.',
+      title: 'Skip players',
       options: [{ key: 'i', label: 'Injury-prone players', kind: 'no_injury_prone', value: '' }],
     },
   ]
@@ -181,9 +177,6 @@ function RulesEditor({
           <h3 id={`${id}-title`} className="rules-editor-title">
             Your rules
           </h3>
-          <p className="small muted rules-editor-sub">
-            Trade ideas that break a rule are skipped. Tap to add or remove.
-          </p>
         </div>
         <button type="button" className="secondary rules-done" onClick={onDone}>
           Done
@@ -193,7 +186,7 @@ function RulesEditor({
         g.options.length === 0 ? null : (
           <fieldset key={g.title} className="rules-group">
             <legend className="rules-group-title">
-              {g.title} <span className="rules-group-hint">{g.hint}</span>
+              {g.title}
             </legend>
             <div className="rules-options">
               {g.options.map((o) => {
@@ -221,8 +214,7 @@ function RulesEditor({
       )}
       {kept.length > 0 && (
         <p className="small muted rules-keep">
-          <strong>Always kept:</strong> <PlayerList players={kept} tail="." /> Never suggested as trades or drops; change the list
-          in My Team.
+          <strong>Always kept:</strong> <PlayerList players={kept} tail="." />
         </p>
       )}
       {err && (
@@ -243,7 +235,7 @@ export function SuggestRule({ saved, verdicts }: { saved: TradeFeedback; verdict
   if (added)
     return (
       <p className="rule-suggest small" role="status">
-        Added “{added}”. Ideas that break it are skipped; remove it any time above the trade list.
+        Added “{added}”.
       </p>
     )
   if (!s || dismissed) return null
@@ -251,7 +243,7 @@ export function SuggestRule({ saved, verdicts }: { saved: TradeFeedback; verdict
     <div className="rule-suggest">
       <strong>Make this a rule?</strong>
       <div className="small muted">
-        {s.label}: {s.detail} You can remove it any time.
+        {s.label}: {s.detail}
       </div>
       {add.isError && (
         <p className="error small" role="alert">

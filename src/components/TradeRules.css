@@ -87,10 +87,6 @@
   font-weight: 700;
 }
 
-.rules-editor-sub {
-  margin: 2px 0 0;
-}
-
 .rules-done {
   flex: none;
   min-height: 40px;
@@ -110,14 +106,6 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
-}
-
-.rules-group-hint {
-  margin-left: 6px;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--muted);
 }
 
 .rules-options {

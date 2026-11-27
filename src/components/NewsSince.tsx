@@ -416,7 +416,7 @@ export function NewsSince({
                     </h3>
                     <p className="ns-games">
                       <span className="num ns-games-n">{league.games}</span>
-                      <span className="small muted">player games of new stats, already in your odds</span>
+                      <span className="small muted">new player games</span>
                     </p>
                   </section>
                 )}

@@ -30,7 +30,6 @@ export function Untouchable({ roster, keep, onToggleKeep, onEveryone, onMyTeam }
           <LockSimpleOpen size={18} aria-hidden="true" />
           Anyone untouchable?
         </h2>
-        <p className="small muted">Tap anyone you would never trade. Moves will leave them out.</p>
       </div>
       <div className="unt-strip" role="group" aria-label="Your roster, best players first">
         <div className="unt-track">
