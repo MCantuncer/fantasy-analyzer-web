@@ -150,6 +150,12 @@ button.ro-lock[aria-pressed='true'] {
   height: 11px;
 }
 
+/* The 16px corner disc only fits the icon: a keystone's category ("REB") spilled over the name.
+   The bubble and the screen-reader label still name it. */
+.ro-face-bdg .pb-cat {
+  display: none;
+}
+
 .ro-txt {
   display: flex;
   flex-direction: column;
