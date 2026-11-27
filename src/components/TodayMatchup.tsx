@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { CaretRight } from '@phosphor-icons/react'
 import type { CategoryScore } from '../api/client'
 import { buildRows, isBench, isIR, starterTotals } from '../lib/myPlayers'
@@ -48,6 +48,16 @@ export function TodayMatchup({
   // The bench flag's player, to bring into view once his team is on screen.
   const [seek, setSeek] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
+  // The team switch pins just under the site's top bar, not behind it.
+  useEffect(() => {
+    const el = root.current
+    const bar = document.querySelector<HTMLElement>('.topbar')
+    if (!el || !bar) return
+    const measure = () => el.style.setProperty('--tm-top', `${bar.offsetHeight}px`)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
   useEffect(() => {
     if (seek == null) return
     // Looked up inside this view: the same player can be on screen twice (your card and an open matchup).
@@ -100,13 +110,7 @@ export function TodayMatchup({
       <div className="tm-bar">
         <div className="segmented tm-seg" role="group" aria-label="Team">
           {sides.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              aria-pressed={view === i}
-              onClick={() => setView(i as 0 | 1)}
-              style={{ '--tl': s.colour ?? 'var(--accent)' } as CSSProperties}
-            >
+            <button key={s.id} type="button" aria-pressed={view === i} onClick={() => setView(i as 0 | 1)}>
               <TeamCrest name={s.name} colour={s.colour} size={20} />
               <span className="tm-seg-name">{s.name}</span>
             </button>
@@ -181,7 +185,7 @@ function TeamColumn({ side }: { side: Side }) {
       className={`tm-col${side.mine ? ' mine' : ' theirs'}${pretip ? ' tm-pretip' : ''}`}
       aria-label={side.mine ? 'Your players' : `${side.name} players`}
     >
-      <Slide starters={side.starters} pager={!pretip}>
+      <Slide pager={!pretip}>
         <>
           {!pretip && <ColumnHead />}
           {/* The starters and their total share one soft field; the bench sits on the bare page. */}

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Game, GameLine, LineupSpot } from '../api/client'
 import { setPlayerCardHost } from '../lib/playerCard'
 import { buildRows } from '../lib/myPlayers'
-import { Row } from './QuietField'
+import { ColumnHead, Row, Slide } from './QuietField'
 
 afterEach(() => {
   cleanup()
@@ -88,5 +88,39 @@ describe('Quiet Field row', () => {
     const playedRow = played.container.querySelector('.tm-row')!
     expect(playedRow.classList.contains('tm-q')).toBe(false)
     expect(playedRow.querySelector('.tm-stats')).not.toBeNull()
+  })
+
+  it("puts a finished night's grade on the face's corner, read before the name, and leaves the slot alone", () => {
+    act(() => setPlayerCardHost({ open: vi.fn(), prefetch: () => {} }))
+    const final: Game = { ...game(1, [line(7)]), status: 'final', clock: null }
+    const { container } = renderRow(spot(7, 'Jayson Tatum', 1), [final])
+    const grade = container.querySelector('.tm-who > .tm-grade')!
+    expect(grade).not.toBeNull()
+    expect(grade.getAttribute('role')).toBe('img')
+    expect(grade.getAttribute('aria-label')).toMatch(/^grade [ABCDF]/)
+    // before the card button, so it's heard first
+    expect(grade.nextElementSibling?.classList.contains('tm-pick')).toBe(true)
+    expect(container.querySelector('.tm-spine .tm-grade')).toBeNull()
+    expect(container.querySelector('.tm-spine')?.textContent).toBe('PG')
+  })
+})
+
+describe('Quiet Field slide', () => {
+  it('draws no counts line of its own; a caller can still put one above (My Players)', () => {
+    const bare = render(
+      <Slide pager>
+        <ColumnHead />
+      </Slide>,
+    )
+    expect(bare.container.querySelector('.tm-slide-head')).toBeNull()
+    expect(bare.container.querySelector('.tm-colhead .tm-ch-pin')).not.toBeNull()
+    bare.unmount()
+
+    const withHead = render(
+      <Slide pager head={<span>9 to come</span>}>
+        <ColumnHead />
+      </Slide>,
+    )
+    expect(withHead.container.querySelector('.tm-slide-head')?.textContent).toBe('9 to come')
   })
 })

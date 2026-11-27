@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { CaretDown, CaretLeft, CaretRight, CaretUp } from '@phosphor-icons/react'
 import type { Game, GameLine } from '../api/client'
 import { nbaAbbrev } from '../lib/filmRoom'
@@ -31,20 +31,21 @@ export function Field({ children }: { children: ReactNode }) {
   )
 }
 
+/** The scroller's ‹ › pager, drawn by ColumnHead in its pinned corner. */
+const PagerContext = createContext<ReactNode>(null)
+
 /**
- * One team's full stat lines on a phone: the names stay pinned on the left and PTS on the right, the
- * columns between slide sideways, and ‹ › page them for anyone who doesn't swipe.
+ * One team's full stat lines in whatever width the lineup has: the names stay pinned on the left and
+ * PTS on the right, the columns between slide sideways with the next one peeking under a fade, and a
+ * mouse gets ‹ › in the column head. Once all ten columns fit, nothing slides or pins.
  */
 export function Slide({
-  starters,
   pager,
   head,
   children,
 }: {
-  /** The field's starters: the counts above the scroller come from them. */
-  starters: PlayerRow[]
   pager: boolean
-  /** The line above the scroller, in place of the plain counts (My Players' status line). */
+  /** A line above the scroller (My Players' status line). Today has none: each row says W/L or live. */
   head?: ReactNode
   children: ReactNode
 }) {
@@ -55,10 +56,21 @@ export function Slide({
     if (!el) return
     setAt({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 })
   }, [])
+  // The box can change width without the window doing so (a sheet opening, a column beside it), and
+  // rows arriving change what overflows: both re-read whether the ten fit.
   useEffect(() => {
     read()
     window.addEventListener('resize', read)
-    return () => window.removeEventListener('resize', read)
+    const el = ref.current
+    const ro = el && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(read) : null
+    if (el && ro) {
+      ro.observe(el)
+      if (el.firstElementChild) ro.observe(el.firstElementChild)
+    }
+    return () => {
+      window.removeEventListener('resize', read)
+      ro?.disconnect()
+    }
   }, [read])
   const page = (dir: 1 | -1) => {
     const el = ref.current
@@ -66,51 +78,48 @@ export function Slide({
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     el.scrollBy({ left: dir * el.clientWidth * 0.5, behavior: reduce ? 'auto' : 'smooth' })
   }
-  const playing = starters.filter((r) => r.state === 'live' && r.line).length
-  const later = starters.filter((r) => r.state === 'later').length
-  const done = starters.filter((r) => r.state === 'final').length
-  const counts = [playing && `${playing} live`, later && `${later} to come`, done && `${done} final`].filter(Boolean)
-  // The box is the size container the phone name measure reads (100cqw), for the rows and the snap alike.
+  // Mouse only (CSS): touch swipes, and sees the next column peek under the fade instead.
+  const pagerNode =
+    pager && !(at.start && at.end) ? (
+      <span className="tm-pager">
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Earlier stats"
+          disabled={at.start}
+          onClick={() => page(-1)}
+        >
+          <CaretLeft size={16} aria-hidden="true" />
+        </button>
+        <button type="button" className="icon-button" aria-label="More stats" disabled={at.end} onClick={() => page(1)}>
+          <CaretRight size={16} aria-hidden="true" />
+        </button>
+      </span>
+    ) : null
+  // The box is the size container the layout reads (tm-box): the name measure, the snap and which
+  // columns pin all follow the lineup's own width, not the window's.
   return (
     <div className="tm-slidebox">
-      <div className="tm-slide-head">
-        <span className="tm-slide-counts">{head ?? counts.join(' · ')}</span>
-        {pager && !(at.start && at.end) && (
-          <span className="tm-pager">
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Earlier stats"
-              disabled={at.start}
-              onClick={() => page(-1)}
-            >
-              <CaretLeft size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="More stats"
-              disabled={at.end}
-              onClick={() => page(1)}
-            >
-              <CaretRight size={18} aria-hidden="true" />
-            </button>
-          </span>
-        )}
-      </div>
+      {head && (
+        <div className="tm-slide-head">
+          <span className="tm-slide-counts">{head}</span>
+        </div>
+      )}
       <div className={`tm-slide${at.start ? '' : ' tm-slid'}${at.end ? '' : ' tm-more'}`} ref={ref} onScroll={read}>
-        {children}
+        <PagerContext.Provider value={pagerNode}>{children}</PagerContext.Provider>
       </div>
     </div>
   )
 }
 
 export function ColumnHead() {
+  const pager = useContext(PagerContext)
+  // The labels are decorative (each figure carries its column for screen readers); the pager isn't.
   return (
-    <div className="tm-colhead" aria-hidden="true">
-      <span className="tm-ch-pin" />
+    <div className="tm-colhead">
+      <span className="tm-ch-pin">{pager}</span>
       {STAT_COLUMNS.map((c) => (
-        <span key={c} className={c === 'PTS' ? 'tm-pts' : undefined}>
+        <span key={c} className={c === 'PTS' ? 'tm-pts' : undefined} aria-hidden="true">
           {c === 'TO' ? 'TO↓' : c}
         </span>
       ))}
@@ -351,11 +360,12 @@ export function Row({
               <span className="sr-only">{why.label}</span>
             </button>
           )}
-          <span className="tm-spine" aria-hidden={!grade}>
+          <span className="tm-spine" aria-hidden="true">
             {!quiet && !bench && <span className="tm-slot">{r.spot.slot}</span>}
-            {grade && <Grade g={grade} />}
           </span>
           <span className="tm-who">
+            {/* The night's grade: a chip on the face's top-right corner, read before the name. */}
+            {grade && <Grade g={grade} />}
             {/* Face, name and game line are one button (44px+) that opens the player card. */}
             <PlayerLink player={player} className="tm-pick">
               <PlayerHead player={player} size={26} team={nbaAbbrev(r.spot.pro_team_id)} />
@@ -405,7 +415,7 @@ const MARK_WORD: Record<Mark, string> = {
 
 export function Grade({ g }: { g: NightGrade }) {
   return (
-    <span className={`tm-grade ${g.tier}`} aria-label={`grade ${g.grade}`}>
+    <span className={`tm-grade ${g.tier}`} role="img" aria-label={`grade ${g.grade}`}>
       {g.letter}
       {g.mod && <sup>{g.mod}</sup>}
     </span>
