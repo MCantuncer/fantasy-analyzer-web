@@ -361,6 +361,15 @@
     padding-left: 2px;
   }
 
+  /* A crest-only key is 28px wide: "this week" ran into the first figures, so it keeps "wk". */
+  .cs-pair.cs-crestkey .cs-wk .cs-lg {
+    display: none;
+  }
+
+  .cs-pair.cs-crestkey .cs-wk .cs-sm {
+    display: inline;
+  }
+
   .cs-wk .cs-lg {
     display: inline;
   }

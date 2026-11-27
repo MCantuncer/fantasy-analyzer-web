@@ -1,16 +1,23 @@
 /* Quiet Field: a lineup's rows (Today, and My Players next). No row has a box, a fill or an outline. The
    starters and their total sit on one soft field, the bench on the bare page; rows part by air, hold by
    alignment, and say their state through weight and tone. Names pinned left, PTS pinned right, the stats
-   between slide. The rows sit in a `.tm` wrapper, which carries the tokens below. tm- prefix. */
+   between slide. The rows sit in a `.tm` wrapper, which carries the tokens below. tm- prefix.
+   Layout follows the lineup's own width (the tm-box container on .tm-slidebox), not the window's:
+   under 640px the phone columns, where the name and PTS pin, the next column peeks under a fade at the
+   right edge, and a mouse gets ‹ › in the column head; from 640 all ten columns fit and nothing pins. */
 
 .tm {
   --tm-pl: 6px; /* row inset, left */
   --tm-pr: 8px; /* row inset, right */
-  --tm-slot-w: 30px;
-  /* Phones: the name takes what MIN, FG, FT and PTS leave, so those sit whole beside it. The 114px floor
-     keeps a final score ("W 116–104") or a live clock whole under a short name on the narrowest phones.
-     100cqw is the .tm-slidebox (Slide), so the rows and the snap read one width. */
-  --tm-name: clamp(114px, 100cqw - 228px, 170px);
+  --tm-slot-w: 26px;
+  --tm-face: 30px;
+  /* how much of the next column shows at the right edge, under the fade: "there's more" */
+  --tm-peek: 24px;
+  /* Phones: the name takes what MIN, FG, FT and PTS leave (224px with the insets and gaps), less the
+     peek. The 118px floor keeps a final score ("W 116–104") or a live clock whole beside the face on
+     the narrowest phones. 100cqw is the scroller, so the rows and the snap read one width. Wider boxes
+     show more columns whole (the steps after the narrow rules below), so the cut always lands as a peek. */
+  --tm-name: clamp(118px, 100cqw - 224px - var(--tm-peek), 210px);
   /* where the sliding columns start: slot + name */
   --tm-pin: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + var(--tm-name) + 4px);
   --g-good: var(--good);
@@ -42,10 +49,25 @@
   flex: none;
 }
 
-/* Two bare carets, not two outlined boxes (44px targets kept). */
+/* ‹ › for a mouse, in the column head's pinned corner right before the columns they move. Touch
+   swipes instead, cued by the peeking column, so it never sees them. */
+.tm-pager {
+  display: none;
+  gap: 2px;
+  margin-left: auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tm-ch-pin > .tm-pager {
+    display: flex;
+  }
+}
+
 .tm-pager button {
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  padding: 0;
   border-color: transparent;
   border-radius: 50%;
   color: var(--text-2);
@@ -65,7 +87,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  container-type: inline-size;
+  container: tm-box / inline-size;
 }
 
 /* One column track at least as wide as the rows, so the field's backdrop can span the scroller. */
@@ -113,6 +135,7 @@
   position: sticky;
   left: 0;
   z-index: 0;
+  display: none;
   width: 100cqw;
   border-radius: var(--field-r);
   background: var(--field);
@@ -177,6 +200,8 @@
   grid-column: 1 / 3;
   grid-row: 1;
   align-self: stretch;
+  display: flex;
+  align-items: center;
   background: var(--surface);
   box-shadow: calc(-1 * var(--tm-pl)) 0 0 var(--surface);
 }
@@ -190,10 +215,6 @@
   padding: 6px var(--tm-pr) 6px var(--tm-pl);
 }
 
-.tm-field .tm-row,
-.tm-field .tm-tot {
-  --tm-bg: var(--field);
-}
 
 .tm-row:focus-visible {
   outline: 2px solid var(--focus);
@@ -221,6 +242,10 @@
   box-shadow:
     calc(-1 * var(--tm-pl)) 0 0 var(--tm-bg),
     4px 0 0 var(--tm-bg);
+}
+
+.tm-who {
+  position: relative;
 }
 
 .tm-row > .tm-who {
@@ -266,12 +291,15 @@ button.pc-link.tm-pick:focus-visible {
 
 .tm-who .head {
   flex: none;
+  /* PlayerHead sets its size inline; the lineup's face size wins */
+  width: var(--tm-face) !important;
+  height: var(--tm-face) !important;
 }
 
 .tm-head-hole {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: var(--tm-face);
+  height: var(--tm-face);
   border-radius: 50%;
   background: color-mix(in srgb, var(--text) 8%, transparent);
 }
@@ -307,7 +335,6 @@ button.pc-link.tm-pick:focus-visible {
 
 .tm-pts::before {
   right: 100%;
-  width: 8px;
   background: linear-gradient(to left, var(--tm-bg), transparent);
 }
 
@@ -326,36 +353,63 @@ button.pc-link.tm-pick:focus-visible {
 }
 
 .tm-slot {
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
   font-weight: 650;
   line-height: 1;
   color: var(--muted);
 }
 
-.tm-grade {
-  font-size: 15px;
+/* The night's grade: a small filled chip on the face's top-right corner, in its tier's colour (the A
+   range, B–C, D–F). It's about his night, not about you, so not the help/hurt pair. A 1.5px ring in
+   the row's colour parts it from the face; the team-colour edge along the bottom stays clear. */
+.tm-who > .tm-grade {
+  position: absolute;
+  top: calc(50% - var(--tm-face) / 2 - 5px);
+  left: calc(var(--tm-face) - 13px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 2.5px;
+  border-radius: 8px;
+  background: var(--tm-chip);
+  box-shadow: 0 0 0 1.5px var(--tm-bg);
+  color: var(--tm-chip-ink);
+  font-size: 10.5px;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--text);
+  line-height: 15px;
+  letter-spacing: -0.01em;
+  pointer-events: none;
 }
 
 .tm-grade sup {
   position: relative;
-  top: -3px;
+  top: -1px;
   margin-left: 0.5px;
-  font-size: 9px;
-  font-weight: 750;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
   vertical-align: 0;
 }
 
-.tm-g-top .tm-grade {
-  color: var(--g-good);
+.tm-grade {
+  --tm-chip: var(--text-2);
+  --tm-chip-ink: var(--bg);
 }
 
-.tm-g-low .tm-grade {
-  color: var(--g-bad);
+.tm-grade.top {
+  --tm-chip: var(--g-good);
+}
+
+.tm-grade.low {
+  --tm-chip: var(--g-bad);
+}
+
+:root[data-theme='light'] .tm-grade {
+  --tm-chip-ink: #fff;
 }
 
 /* Live: filled gold while he's on the floor, hollow gold while he sits. The only gold in a row. */
@@ -411,9 +465,10 @@ button.pc-link.tm-pick:focus-visible {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  /* a step under the name and muted, so the name leads */
+  font-size: 12px;
   line-height: 16px;
-  color: var(--text-2);
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
 }
@@ -513,7 +568,7 @@ button.tm-why-hit:focus-visible {
   position: sticky;
   left: 0;
   width: 100cqw;
-  padding: 0 var(--tm-pr) 10px calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 36px);
+  padding: 0 var(--tm-pr) 10px calc(var(--tm-pl) + var(--tm-slot-w) + 4px + var(--tm-face) + 10px);
   font-size: 12.5px;
   line-height: 18px;
   color: var(--text-2);
@@ -633,6 +688,36 @@ button.tm-why-hit:focus-visible {
   overflow: visible;
 }
 
+/* No figures and no note (DNP, no game, OUT): one compact line, the state muted after the name. */
+.tm-row.tm-q:not(.tm-usual) {
+  min-height: 44px;
+  padding-block: 0;
+}
+
+.tm-row.tm-q:not(.tm-usual) .tm-txt {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 1px 8px;
+}
+
+/* the words run on over the empty stat area, as above */
+.tm-row.tm-q:not(.tm-usual) .tm-l1,
+.tm-row.tm-q:not(.tm-usual) .tm-l2 {
+  flex: none;
+}
+
+/* With a note beside it (My Players' bench: "1 left this week"), a long second line ("next Sat @ MIL
+   1:00 AM") goes under the name instead of over the note. */
+.tm-row.tm-q:not(.tm-usual):has(> .tm-note:not(:empty)) .tm-txt {
+  flex-wrap: wrap;
+}
+
+.tm-row.tm-q:not(.tm-usual):has(> .tm-note:not(:empty)) .tm-l2 {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
 /* "usually 15 PTS · 7 REB · 3 AST": quiet, a step smaller than the game line. */
 .tm-note {
   grid-column: 3 / -1;
@@ -645,6 +730,7 @@ button.tm-why-hit:focus-visible {
 
 /* ---------- Starters so far: the foot of the field. Air above it, no rule. ---------- */
 .tm-tot {
+  --tm-bg: var(--surface);
   min-height: 56px;
   margin-top: 6px;
   padding: 12px var(--tm-pr) 14px var(--tm-pl);
@@ -707,8 +793,8 @@ button.tm-why-hit:focus-visible {
 }
 
 .tm-row.tm-benchrow {
-  min-height: 48px;
-  padding-block: 4px;
+  min-height: 44px;
+  padding-block: 2px;
 }
 
 .tm-row.tm-benchrow .tm-nm,
@@ -740,8 +826,61 @@ button.tm-why-hit:focus-visible {
   }
 }
 
-/* ---------- Phones: a to-come row reads in three short lines, the note pinned under the tip time ---------- */
-@media (max-width: 759px) {
+/* ---------- Phone widths: a to-come row reads in three short lines, the note pinned under the tip time ---------- */
+/* Narrow boxes (the 118px name floor would push FT under the PTS fade): MIN and FG show whole and FT is
+   the column that peeks, so the name gets the room back. */
+@container tm-box (width < 366px) {
+  .tm-slide {
+    --tm-name: clamp(108px, 100cqw - 198px, 200px);
+  }
+}
+
+/* and under 306px (a 320px phone in a padded box) FG is the one that peeks */
+@container tm-box (width < 306px) {
+  .tm-slide {
+    --tm-name: clamp(108px, 100cqw - 144px, 200px);
+  }
+}
+
+/* Wider boxes, up to the 640 layout: each step shows one more column whole once the name would pass
+   about 206px, and the name takes the rest, so the next column always peeks by the same amount. */
+@container tm-box (width >= 454px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 260px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width >= 490px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 296px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width >= 526px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 332px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width >= 560px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 366px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width >= 594px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 400px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width >= 628px) {
+  .tm-slide {
+    --tm-name: calc(100cqw - 434px - var(--tm-peek));
+  }
+}
+
+@container tm-box (width < 640px) {
   .tm-row.tm-usual {
     grid-template-rows: auto auto;
     padding-block: 5px 6px;
@@ -758,15 +897,15 @@ button.tm-why-hit:focus-visible {
 
   .tm-row.tm-usual > .tm-note {
     position: sticky;
-    left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 26px + 10px);
+    left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + var(--tm-face) + 10px);
     z-index: 2;
     grid-row: 2;
     grid-column: 2 / -1;
     justify-self: start;
     width: max-content;
     /* never past the screen: the line ends in an ellipsis */
-    max-width: calc(100cqw - var(--tm-pl) - var(--tm-slot-w) - 4px - 36px - var(--tm-pr));
-    margin: 1px 0 0 36px;
+    max-width: calc(100cqw - var(--tm-pl) - var(--tm-slot-w) - 4px - var(--tm-face) - 10px - var(--tm-pr));
+    margin: 1px 0 0 calc(var(--tm-face) + 10px);
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -787,31 +926,23 @@ button.tm-why-hit:focus-visible {
   }
 }
 
-/* ---------- 760 and up: wider columns, the game score on line 2 ---------- */
-@media (min-width: 760px) {
-  .tm {
+/* ---------- 640 up: all ten columns at once, and the starters' soft field. ---------- */
+@container tm-box (width >= 640px) {
+  .tm-slide {
     --tm-pl: 12px;
     --tm-pr: 16px;
-    --tm-slot-w: 40px;
-    --tm-name: 196px;
-    --tm-pin: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + var(--tm-name) + 4px);
+    --tm-slot-w: 34px;
+    --tm-face: 34px;
   }
 
-  /* A fixed name measure, so the figures and notes start on one edge right after the name, and the ten
-     figures capped so they read as one block. 196px keeps all ten whole from 760 up. */
-  .tm-colhead,
-  .tm-row,
-  .tm-tot {
-    grid-template-columns:
-      var(--tm-slot-w) var(--tm-name)
-      minmax(36px, 60px) minmax(48px, 78px) minmax(46px, 78px)
-      repeat(6, minmax(34px, 60px)) minmax(40px, 68px);
-    min-width: 0;
+  /* The starters and their total on one soft field, once there's room for it to read as a block. */
+  .tm-field > .tm-field-bg {
+    display: block;
   }
 
-  /* the columns fit from 760 up, so nothing needs to snap */
-  .tm-slide {
-    scroll-snap-type: none;
+  .tm-field .tm-row,
+  .tm-field .tm-tot {
+    --tm-bg: var(--field);
   }
 
   .tm-row {
@@ -843,17 +974,6 @@ button.tm-why-hit:focus-visible {
     padding-bottom: 0;
   }
 
-  .tm-why {
-    padding-left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 46px);
-  }
-
-  /* Bigger faces once the line has room (PlayerHead sets its phone size inline). */
-  .tm-who .head,
-  .tm-head-hole {
-    width: 34px !important;
-    height: 34px !important;
-  }
-
   .tm-wmid {
     display: inline;
   }
@@ -861,18 +981,23 @@ button.tm-why-hit:focus-visible {
   .tm-nmid {
     display: none;
   }
-}
 
-/* ---------- 1200 and up: everything fits, so nothing is pinned. A faint tint follows the pointer or the
-   keyboard so the eye keeps its place across the line: feedback, never a resting style. ---------- */
-@media (min-width: 1200px) {
+  /* All ten fit (their floors come to 636px with the insets), so nothing is pinned. The name takes the room
+     first, up to 220px (510px is the slot, the ten at their floors, the gaps and the insets); the figures
+     share what's left, each to its cap. A faint tint follows the pointer or the keyboard so the eye keeps
+     its place across the line: feedback, never a resting style. */
   .tm-colhead,
   .tm-row,
   .tm-tot {
     grid-template-columns:
-      var(--tm-slot-w) minmax(200px, 250px)
-      minmax(40px, 64px) minmax(56px, 84px) minmax(52px, 84px)
-      repeat(6, minmax(40px, 64px)) minmax(48px, 72px);
+      var(--tm-slot-w) clamp(126px, 100cqw - 510px, 220px)
+      minmax(40px, 64px) minmax(52px, 84px) minmax(48px, 84px)
+      repeat(6, minmax(36px, 64px)) minmax(48px, 72px);
+    min-width: 0;
+  }
+
+  .tm-slide {
+    scroll-snap-type: none;
   }
 
   .tm-short {
@@ -885,11 +1010,15 @@ button.tm-why-hit:focus-visible {
   }
 
   .tm .tm-spine,
-  .tm .tm-who,
   .tm .tm-tot-lab,
   .tm .tm-colhead > .tm-pts,
   .tm .tm-stats > .tm-pts {
     position: static;
+  }
+
+  .tm .tm-who {
+    position: relative;
+    left: auto;
   }
 
   .tm-row > .tm-who::after,
@@ -922,10 +1051,6 @@ button.tm-why-hit:focus-visible {
     .tm-row:hover {
       background: var(--field-hover);
     }
-  }
-
-  .tm-pager {
-    display: none;
   }
 }
 

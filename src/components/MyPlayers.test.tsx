@@ -190,7 +190,7 @@ describe('MyPlayers', () => {
     renderIt()
     const tatum = await rowOf('Tatum')
     expect(tatum).toHaveClass('tm-final', 'tm-g-mid', 'tm-card')
-    expect(tatum.querySelector('.tm-spine .tm-grade')).toHaveAttribute('aria-label', 'grade B−')
+    expect(tatum.querySelector('.tm-who > .tm-grade')).toHaveAttribute('aria-label', 'grade B−')
     // The carets carry their meaning for screen readers.
     const up = tatum.querySelector('.tm-drv-up')!
     expect(up).toHaveTextContent(/^FG 15\/20, helped most/)

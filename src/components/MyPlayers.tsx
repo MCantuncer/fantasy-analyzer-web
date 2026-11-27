@@ -225,7 +225,7 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
       {/* Quiet Field, as on Today: the starters and their total on one soft field, the bench and IR on
           the bare page. Slot, face and name stay pinned on phones while the figures slide. */}
       <div className="tm mp-lineup">
-        <Slide starters={starters} pager={!pretip} head={<StatusLine c={status} past={past} now={now} />}>
+        <Slide pager={!pretip} head={<StatusLine c={status} past={past} now={now} />}>
           <>
             {!pretip && <ColumnHead />}
             <Field>
