@@ -1,5 +1,5 @@
-import { useId, useState, type CSSProperties } from 'react'
-import { ChartBar, Question } from '@phosphor-icons/react'
+import type { CSSProperties } from 'react'
+import { ChartBar } from '@phosphor-icons/react'
 import type { CategoryOutlook as Outlook } from '../api/client'
 import { ordinal, pct, projection } from '../lib/format'
 import './CategoryOutlook.css'
@@ -15,8 +15,6 @@ const GROUPS = [
 ] as const
 
 export function CategoryOutlook({ categories }: { categories: Outlook[] }) {
-  const [help, setHelp] = useState(false)
-  const helpId = useId()
   const sorted = [...categories].sort((a, b) => b.win_pct - a.win_pct)
   const groups = GROUPS.map((g) => ({ ...g, cats: sorted.filter((c) => c.tag === g.tag) })).filter(
     (g) => g.cats.length > 0,
@@ -29,23 +27,7 @@ export function CategoryOutlook({ categories }: { categories: Outlook[] }) {
           <ChartBar size={22} aria-hidden="true" />
           Your categories
         </h2>
-        <button
-          type="button"
-          className="co-help"
-          aria-expanded={help}
-          aria-controls={helpId}
-          aria-label="What this shows"
-          onClick={() => setHelp(!help)}
-        >
-          <Question size={20} aria-hidden="true" />
-        </button>
       </div>
-      {help && (
-        <p className="co-helptext" id={helpId}>
-          How often you win each category in an average week. The line marks 50%. Upgrades in categories you already
-          win are wasted, so moves target the swing categories.
-        </p>
-      )}
       <div className="co-ch" aria-hidden="true">
         <span>Rank</span>
         <span className="co-ch-bar">Win chance</span>

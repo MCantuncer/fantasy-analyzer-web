@@ -579,7 +579,6 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, 
               <Section
                 id="pc-form-title"
                 title={`Form · last ${recent.length} games`}
-                aside={line && !lastSeason ? '▲▼ vs his season average' : undefined}
               >
                 <FormTiles
                   tiles={formTiles(
@@ -833,7 +832,16 @@ function FormTiles({ tiles }: { tiles: FormTile[] }) {
               {t.value}
               {t.value !== '–' && (t.key === 'fg' || t.key === 'ft') && <small>%</small>}
             </span>
-            <span className="pc-tile-delta tnum">
+            <span
+              className="pc-tile-delta tnum"
+              title={
+                t.delta == null
+                  ? undefined
+                  : moved
+                    ? `${t.delta > 0 ? 'Up' : 'Down'} ${Math.abs(t.delta).toFixed(1)} vs his season average`
+                    : 'Same as his season average'
+              }
+            >
               {t.delta == null ? (
                 (t.note ?? '')
               ) : moved ? (
@@ -842,9 +850,12 @@ function FormTiles({ tiles }: { tiles: FormTile[] }) {
                     {t.delta > 0 ? '▲' : '▼'}
                   </span>
                   <span className="sr-only">{t.delta > 0 ? 'up' : 'down'}</span> {Math.abs(t.delta).toFixed(1)}
+                  <span className="sr-only"> vs his season average</span>
                 </>
               ) : (
-                'same'
+                <>
+                  same<span className="sr-only"> as his season average</span>
+                </>
               )}
             </span>
           </li>

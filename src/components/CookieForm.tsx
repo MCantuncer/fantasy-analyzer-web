@@ -105,10 +105,7 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
         <span className="pl-private-icon">
           <LockIcon />
         </span>
-        <div className="pl-stack-sm">
-          <h2 id="private-title">This league is private</h2>
-          <p className="muted">ESPN keeps private leagues behind a velvet rope. Here are two ways past it.</p>
-        </div>
+        <h2 id="private-title">This league is private</h2>
       </header>
 
       <div className="pl-way-picker" role="radiogroup" aria-label="How to open this league">
@@ -149,9 +146,6 @@ export function CookieForm({ onSubmit, onCancel, onRetry }: Props) {
                 <span className={i === PUBLIC_PATH.length - 1 ? 'pl-espn-path-end' : undefined}>{step}</span>
               </span>
             ))}
-          </p>
-          <p className="small muted">
-            Commissioners answer faster after a win. Picking your moment is half the trade game anyway.
           </p>
           {onRetry && (
             <div className="pl-check-again">

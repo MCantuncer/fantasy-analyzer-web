@@ -86,7 +86,7 @@ function Status({ player, kept }: { player: PlayerRef; kept: boolean }) {
     <>
       {o && <span className="tt-tag tt-out">{o}</span>}
       {kept && (
-        <span className="tt-status">
+        <span className="tt-status" title="Never goes in an offer">
           <Lock size={14} aria-hidden="true" />
           Keeper
         </span>
@@ -267,7 +267,6 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
                   </li>
                 ))}
               </ul>
-              <p className="tt-label">Keepers never go in an offer. Change them in My Team.</p>
             </>
           }
         />
