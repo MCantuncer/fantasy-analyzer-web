@@ -338,8 +338,8 @@
 }
 
 /* ---------- Game Night: game cards ----------
-   A game you or your rival have players in lifts off the page; faces carry a ring (gold yours, rival
-   colour theirs). Logos sit plain: the club-colour halo behind them read as nightclub light (Can,
+   A game you or your rival have players in lifts off the page and carries the owner mark (your crest
+   and count, theirs). Logos sit plain: the club-colour halo behind them read as nightclub light (Can,
    2026-11-15). A started game with neither sits
    back: flat, grey logos, "Not in your matchup". The winning score gets a small caret. */
 .game-grid .game-card.stake {
@@ -361,27 +361,24 @@
   font-size: 12px;
 }
 
-.game-faces {
+/* The owner mark: your crest and your count, then your rival's crest and theirs. */
+.sc-own-marks {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
+  white-space: nowrap;
 }
 
-.game-faces .face-ring {
+.sc-own-side {
   display: inline-flex;
-  border-radius: 34%;
-  box-shadow:
-    0 0 0 1.5px var(--surface),
-    0 0 0 3px var(--gold);
+  align-items: center;
+  gap: 4px;
 }
 
-.game-faces .face-ring.rival {
-  box-shadow:
-    0 0 0 1.5px var(--surface),
-    0 0 0 3px var(--rival);
-}
-
-.game-faces .face-ring + .face-ring {
-  margin-left: 2px;
+.sc-own-side b {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .team-row .score .win-caret {
