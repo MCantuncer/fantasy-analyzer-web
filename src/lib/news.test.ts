@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { NewsStory } from '../api/client'
-import { ago, dayHeading, inFilter, inScope, minutesChange, ownership, statusText, topGains } from './news'
+import { ago, dayHeading, inFilter, inScope, kindsIn, minutesChange, ownership, statusText, topGains } from './news'
 
 const base: NewsStory = {
   id: 'a',
@@ -49,6 +49,15 @@ describe('news helpers', () => {
     expect(inFilter({ ...base, kind: 'return' }, 'injuries')).toBe(true)
     expect(inFilter({ ...base, kind: 'waive' }, 'moves')).toBe(true)
     expect(inFilter(base, 'rumors')).toBe(false)
+  })
+
+  it('offers only the kinds that have stories, with their counts', () => {
+    const stories = [base, { ...base, kind: 'return' as const }, { ...base, kind: 'trade' as const }]
+    expect(kindsIn(stories)).toEqual([
+      { id: 'injuries', label: 'Injuries', count: 2 },
+      { id: 'moves', label: 'Trades & Signings', count: 1 },
+    ])
+    expect(kindsIn([])).toEqual([])
   })
 
   it('scopes to rostered players and my roster', () => {

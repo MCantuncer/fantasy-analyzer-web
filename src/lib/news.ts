@@ -53,6 +53,13 @@ export function countBy(stories: NewsStory[], filter: NewsFilter): number {
   return stories.filter((s) => inFilter(s, filter)).length
 }
 
+/** The kind chips for the stories in scope: only kinds that have a story, each with its count. */
+export function kindsIn(stories: NewsStory[]): { id: NewsFilter; label: string; count: number }[] {
+  return FILTERS.filter((f) => f.id !== 'all')
+    .map((f) => ({ ...f, count: countBy(stories, f.id) }))
+    .filter((f) => f.count > 0)
+}
+
 /** How many independent places said it: outlets and ESPN's data, not social sites. */
 export function sourceCount(story: Pick<NewsStory, 'sources'>): number {
   return new Set(story.sources.filter((s) => s.kind !== 'tip').map((s) => s.source_id)).size
