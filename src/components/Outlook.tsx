@@ -1,4 +1,5 @@
 import { Binoculars, ChartLineUp } from '@phosphor-icons/react'
+import type { CSSProperties } from 'react'
 import type { AnalysisReport } from '../api/client'
 import { ordinal, pct } from '../lib/format'
 import './Outlook.css'
@@ -67,11 +68,11 @@ export function SeasonBand({
             </li>
           ))}
         </ol>
-        <div className="mvl-ladder-k" aria-hidden="true">
-          <span>1st</span>
-          <span>top {spots} make it</span>
-          <span>{ordinal(teams)}</span>
-        </div>
+        {spots < teams && (
+          <div className="mvl-ladder-k" aria-hidden="true" style={{ '--in': spots / teams } as CSSProperties}>
+            <span>top {spots} make it</span>
+          </div>
+        )}
       </div>
       <p className="mvl-season-say">
         Projected <b className="num">{ordinal(rank + 1)}</b> of {teams}

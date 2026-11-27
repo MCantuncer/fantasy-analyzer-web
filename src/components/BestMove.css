@@ -374,11 +374,6 @@
   color: var(--text);
 }
 
-.mvl-hold-say {
-  margin: -6px 0 0;
-  font-size: 14px;
-}
-
 /* "Make this Sunday": one line under the title, the instruction in ink and the subtitle after it. */
 .bm-when {
   grid-column: 1 / -1;
@@ -502,11 +497,6 @@
   .mvl-chart {
     order: 4;
     padding: 0 24px 16px;
-  }
-
-  .mvl-hold-say {
-    order: 6;
-    margin-top: -6px;
   }
 
   .bm-actions {

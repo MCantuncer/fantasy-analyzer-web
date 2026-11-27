@@ -85,13 +85,17 @@
   background: var(--text-2);
 }
 
+/* "top 6 make it", ending under the playoff line (--in: the share of seats inside it). */
 .mvl-ladder-k {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
   font-size: 11.5px;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.mvl-ladder-k span {
+  width: calc(var(--in) * 100%);
+  text-align: right;
 }
 
 .mvl-season-say {

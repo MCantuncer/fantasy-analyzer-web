@@ -269,7 +269,6 @@ export function BestMove({
             No move raises {whose} odds today
           </p>
         </div>
-        <p className="mvl-hold-say muted">{scout ? 'Scout another team below.' : 'Check back after the next games.'}</p>
       </Lead>
     )
   }
@@ -325,7 +324,6 @@ export function BestMove({
                 )}
                 {signedInt(theyDiff)}
               </span>
-              {theyAfter > theyBefore && <span className="muted">· they win too</span>}
             </p>
           )}
         </>
@@ -465,7 +463,6 @@ function BestPickup({
               <CalendarBlank size={15} aria-hidden="true" />
               {waitLabel(wait)}
             </span>
-            <span>· No one has to agree</span>
             {games && (
               <span className="sr-only">
                 . Waiting lets {pickup.drop.name} play {kept.map((d) => longDay(d.date)).join(' and ')} first:{' '}
@@ -473,9 +470,7 @@ function BestPickup({
               </span>
             )}
           </p>
-        ) : (
-          <span className="mvl-sub">No one has to agree</span>
-        )}
+        ) : null}
       </Head>
       <Lane
         label="Add"

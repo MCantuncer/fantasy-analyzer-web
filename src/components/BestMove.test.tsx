@@ -34,7 +34,7 @@ describe('BestMove for a scouted team', () => {
   it('names the team on a hold card', () => {
     const { container } = render(<BestMove report={report({})} scout="Horns" />)
     expect(container.textContent).toContain("No move raises Horns' odds today")
-    expect(container.textContent).toContain('Scout another team below.')
+    expect(container.textContent).not.toContain('Scout another team below.')
   })
 
   it('keeps "Your" on your own team', () => {
@@ -63,7 +63,7 @@ describe('SeasonBand', () => {
     expect(rungs[3].classList.contains('me')).toBe(true)
     expect(container.querySelectorAll('.mvl-rung.in')).toHaveLength(3)
     expect(rungs[2].classList.contains('last-in')).toBe(true)
-    expect(container.querySelector('.mvl-ladder-k')?.textContent).toBe('1sttop 3 make it5th')
+    expect(container.querySelector('.mvl-ladder-k')?.textContent).toBe('top 3 make it')
     expect(container.querySelector('.mvl-season-say')?.textContent).toBe(
       'Projected 4th of 5 · 3 wins short of the line',
     )
@@ -115,7 +115,7 @@ describe('BestMove as the lead', () => {
     expect(container.querySelector('.mvl-small .mvl-name')?.textContent).toContain(P.mitchell.name)
     expect(container.querySelector('.pclimb-strand')).toBeNull()
     expect(container.querySelector('.pclimb .sr-only')?.textContent).toContain(`with ${P.morant.name} for`)
-    expect(container.querySelector('.mvl-them')?.textContent).toContain('Gergin Atamans50% → 53%▲+3· they win too')
+    expect(container.querySelector('.mvl-them')?.textContent).toContain('Gergin Atamans50% → 53%▲+3')
     expect(container.querySelector('.big-odds')).toBeNull()
   })
 
@@ -123,7 +123,7 @@ describe('BestMove as the lead', () => {
     const { container } = render(<BestMove report={report({})} foot={<p data-part="season" />} />)
     expect(container.querySelector('.mvl-sub')?.textContent).toBe('Hold for now')
     expect(container.querySelector('.mvl-flat-say')?.textContent).toBe('38% today · No move raises your odds today')
-    expect(container.querySelector('.mvl-hold-say')?.textContent).toBe('Check back after the next games.')
+    expect(container.querySelector('.mvl-hold-say')).toBeNull()
     expect(container.querySelector('[data-part="season"]')).not.toBeNull()
   })
 
