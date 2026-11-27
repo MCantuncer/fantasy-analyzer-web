@@ -253,6 +253,8 @@ export function Report({
                     keep={keep}
                     partnerStyles={partnerStyles}
                     onToggleKeep={onToggleKeep}
+                    pickups={report.pickups}
+                    onCheck={openCheck}
                   />
                 )}
               </div>
