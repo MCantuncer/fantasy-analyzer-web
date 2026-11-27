@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CaretDown, CaretLeft, CaretRight, CaretUp } from '@phosphor-icons/react'
 import type { Game, GameLine } from '../api/client'
 import { nbaAbbrev } from '../lib/filmRoom'
 import { isIR } from '../lib/myPlayers'
 import type { PlayerRow, Totals } from '../lib/myPlayers'
-import { nightGrade } from '../lib/nightGrade'
-import type { NightGrade } from '../lib/nightGrade'
+import { minutesDelta, nightGrade, signed } from '../lib/nightGrade'
+import type { Category, NightGrade } from '../lib/nightGrade'
 import { ratio, tipOff } from '../lib/scores'
 import { STAT_COLUMNS } from '../lib/statOrder'
 import { initialName } from '../lib/todayMatchup'
@@ -38,11 +38,14 @@ export function Field({ children }: { children: ReactNode }) {
 export function Slide({
   starters,
   pager,
+  head,
   children,
 }: {
   /** The field's starters: the counts above the scroller come from them. */
   starters: PlayerRow[]
   pager: boolean
+  /** The line above the scroller, in place of the plain counts (My Players' status line). */
+  head?: ReactNode
   children: ReactNode
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -71,7 +74,7 @@ export function Slide({
   return (
     <div className="tm-slidebox">
       <div className="tm-slide-head">
-        <span className="tm-slide-counts">{counts.join(' · ')}</span>
+        <span className="tm-slide-counts">{head ?? counts.join(' · ')}</span>
         {pager && !(at.start && at.end) && (
           <span className="tm-pager">
             <button
@@ -118,10 +121,24 @@ export function ColumnHead() {
 const OUT = new Set(['OUT', 'INJURY_RESERVE', 'SUSPENSION'])
 
 /** "Q4 3:41", "FINAL", "12:00 AM", "Tips in 15 min", "No game", "OUT": what his game is doing. */
-function stateOf(r: PlayerRow, now: number): { node: ReactNode; words: string } {
+function stateOf(r: PlayerRow, now: number, tagged = false): { node: ReactNode; words: string } {
   const g = r.game
   if (!g) return { node: 'No game', words: 'no game today' }
   if (r.state === 'later' || (r.state === 'live' && !r.line)) {
+    // The OUT tag already sits after his name: line 2 says his team plays without him.
+    if (OUT.has(r.spot.injury_status) && tagged)
+      return {
+        node: (
+          <>
+            Not playing
+            <span className="tm-wmid">
+              {' '}
+              · {r.state === 'live' ? gameScore(r, g) : `${myAbbrev(r, g)} ${tipOff(g.start)}`}
+            </span>
+          </>
+        ),
+        words: 'not playing',
+      }
     if (OUT.has(r.spot.injury_status))
       return {
         node: (
@@ -203,23 +220,63 @@ function result(r: PlayerRow, g: Game) {
   return `${a.score > b.score ? 'W' : 'L'} ${a.score}–${b.score}`
 }
 
+/** A rated row's why: a tap anywhere off the face and name opens it under the row. */
+export interface RowWhy {
+  id: string
+  open: boolean
+  toggle: () => void
+  /** The tap's spoken name ("What 55% means for Tatum"). */
+  label: string
+  body: ReactNode
+}
+
+/** What My Players adds to a row; Today passes none of it. */
+export interface RowExtras {
+  /** After the name on line 1: the injury-report tag (Q, D, DTD, OUT). */
+  tag?: ReactNode
+  /** Line 2 in place of the game's state ("Swap now · ruled out tonight", "Missed 11 · 10% next game"). */
+  status?: ReactNode
+  /** After the game's state on line 2 ("covers Tatum"). */
+  also?: ReactNode
+  /** A row without figures: line 3 on phones, the note on the MIN edge from 760. Replaces "usually …". */
+  note?: ReactNode
+  /** The note only from 760 (phones say it on line 2). */
+  noteWide?: boolean
+  /** "usually 8 PTS · 3 REB · 2 AST" before tip-off (on by default). */
+  usual?: boolean
+  /** Final rows: a caret on the stats that moved the grade, and minutes against his average under MIN. */
+  detail?: boolean
+  /** Ruled out tonight: his face at half. */
+  dim?: boolean
+  why?: RowWhy
+}
+
 export function Row({
   row: r,
   names,
   bench = false,
   left = false,
   quiet = false,
+  tag,
+  status,
+  also,
+  note,
+  noteWide = false,
+  usual: showUsual = true,
+  detail = false,
+  dim = false,
+  why,
 }: {
   row: PlayerRow
   names: Map<string, string>
   bench?: boolean
   left?: boolean
   quiet?: boolean
-}) {
+} & RowExtras) {
   const now = Date.now()
   const l = r.line
   const grade = r.state === 'final' ? nightGrade(l) : null
-  const st = stateOf(r, now)
+  const st = stateOf(r, now, !!tag)
   // Out with his team playing: the game is on, but he isn't.
   const out = !l && OUT.has(r.spot.injury_status)
   const live = r.state === 'live' && !out
@@ -227,81 +284,118 @@ export function Row({
   const mark: Mark | null = live ? (l?.on_court === false ? 'sitting' : 'oncourt') : null
   const avg = r.spot.season_avg
   const card = !!l && l.minutes > 0
-  const usual = !card && r.state === 'later' && !!avg && !quiet
+  const usual = !card && showUsual && r.state === 'later' && !!avg && !quiet
+  const noteNode = card
+    ? null
+    : (note ??
+      (usual ? (
+        <>
+          usually {Math.round(avg!.pts)} PTS · {Math.round(avg!.reb)} REB · {Math.round(avg!.ast)} AST
+        </>
+      ) : null))
+  // Phones: a row with a note reads in three short lines, the note under the game line.
+  const three = !!noteNode && !noteWide
+  const drivers =
+    detail && grade
+      ? new Map<Category, Drive>(grade.drivers.map((d) => [d.cat, d.z > 0 ? 'up' : 'down']))
+      : undefined
+  const minD = detail && r.state === 'final' && l ? minutesDelta(l.minutes, r.spot.season_avg?.min) : null
   const cls = [
     'tm-row',
     card ? 'tm-card' : '',
     live ? 'tm-livex' : '',
     !r.game ? 'tm-nogame' : '',
     r.state === 'final' || r.state === 'dnp' ? 'tm-final' : '',
-    usual ? 'tm-usual' : '',
+    three ? 'tm-usual' : '',
     // no figures: the words may run on over the empty stat area instead of clipping under the pin
     card ? '' : 'tm-q',
     grade ? `tm-g-${grade.tier}` : '',
     bench ? 'tm-benchrow' : '',
+    bench && !quiet && r.state === 'later' ? 'tm-plays' : '',
     left ? 'tm-left' : '',
     quiet ? 'tm-quietrow' : '',
+    dim ? 'tm-dim' : '',
+    why ? 'tm-whyable' : '',
   ]
     .filter(Boolean)
     .join(' ')
   const short = names.get(r.spot.name) ?? r.spot.name
   const player = { id: r.spot.player_id, name: r.spot.name }
-  return (
-    <li>
-      <div className={cls} data-tm-p={left ? r.spot.player_id : undefined} tabIndex={left ? -1 : undefined}>
-        <span className="tm-spine" aria-hidden={!grade}>
-          {!quiet && <span className="tm-slot">{r.spot.slot}</span>}
-          {grade && <Grade g={grade} />}
-        </span>
-        <span className="tm-who">
-          {/* Face, name and game line are one button (44px+) that opens the player card. */}
-          <PlayerLink player={player} className="tm-pick">
-            <PlayerHead player={player} size={26} team={nbaAbbrev(r.spot.pro_team_id)} />
-            <span className="tm-txt">
-              <span className="tm-l1">
-                <span className="tm-nm">
-                  <span className="tm-short">{short}</span>
-                  <span className="tm-init">{initialName(r.spot.name)}</span>
-                </span>
-              </span>
-              {!quiet ? (
-                <span className="tm-l2">
-                  <span className="tm-st">
-                    {left ? (
-                      <span className="tm-tag tm-bench-tag">Left on bench</span>
-                    ) : (
-                      <>
-                        {mark && (
-                          <span className={`tm-mk ${mark}`} title={MARK_WORD[mark]}>
-                            <span className="sr-only">{MARK_WORD[mark]}</span>
-                          </span>
-                        )}
-                        {st.node}
-                      </>
-                    )}
-                  </span>
-                </span>
-              ) : isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
-                <span className="tm-l2">
-                  <span className="tm-tag tm-out">OUT</span>
-                </span>
-              ) : null}
-            </span>
-          </PlayerLink>
-        </span>
-        {card ? (
-          <StatCells line={l!} />
-        ) : usual ? (
-          <span className="tm-note">
-            usually {Math.round(avg!.pts)} PTS · {Math.round(avg!.reb)} REB · {Math.round(avg!.ast)} AST
+  const line2 =
+    status ??
+    (quiet ? null : left ? (
+      <span className="tm-tag tm-bench-tag">Left on bench</span>
+    ) : (
+      <>
+        {mark && (
+          <span className={`tm-mk ${mark}`} title={MARK_WORD[mark]}>
+            <span className="sr-only">{MARK_WORD[mark]}</span>
           </span>
-        ) : (
-          <span className="tm-note" />
         )}
-      </div>
-    </li>
+        {st.node}
+        {also}
+      </>
+    ))
+  return (
+    <>
+      <li>
+        <div className={cls} data-tm-p={left ? r.spot.player_id : undefined} tabIndex={left ? -1 : undefined}>
+          {why && (
+            <button
+              type="button"
+              className="tm-why-hit"
+              aria-expanded={why.open}
+              aria-controls={why.id}
+              onClick={why.toggle}
+            >
+              <span className="sr-only">{why.label}</span>
+            </button>
+          )}
+          <span className="tm-spine" aria-hidden={!grade}>
+            {!quiet && !bench && <span className="tm-slot">{r.spot.slot}</span>}
+            {grade && <Grade g={grade} />}
+          </span>
+          <span className="tm-who">
+            {/* Face, name and game line are one button (44px+) that opens the player card. */}
+            <PlayerLink player={player} className="tm-pick">
+              <PlayerHead player={player} size={26} team={nbaAbbrev(r.spot.pro_team_id)} />
+              <span className="tm-txt">
+                <span className="tm-l1">
+                  <span className="tm-nm">
+                    <span className="tm-short">{short}</span>
+                    <span className="tm-init">{initialName(r.spot.name)}</span>
+                  </span>
+                  {tag}
+                </span>
+                {line2 ? (
+                  <span className="tm-l2">
+                    <span className="tm-st">{line2}</span>
+                  </span>
+                ) : !tag && isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
+                  <span className="tm-l2">
+                    <span className="tm-tag tm-out">OUT</span>
+                  </span>
+                ) : null}
+              </span>
+            </PlayerLink>
+          </span>
+          {card ? (
+            <StatCells line={l!} drivers={drivers} minDelta={minD} />
+          ) : (
+            <span className={`tm-note${noteWide ? ' tm-note-wide' : ''}`}>{noteNode}</span>
+          )}
+        </div>
+      </li>
+      {why && (
+        <li id={why.id} className="tm-why" hidden={!why.open}>
+          {why.body}
+        </li>
+      )}
+    </>
   )
 }
+
+type Drive = 'up' | 'down'
 
 type Mark = 'oncourt' | 'sitting'
 const MARK_WORD: Record<Mark, string> = {
@@ -318,45 +412,80 @@ export function Grade({ g }: { g: NightGrade }) {
   )
 }
 
-export function StatCells({ line: l }: { line: GameLine | Totals }) {
-  const z = (v: number) => (v === 0 ? 'tm-z' : undefined)
+const DRIVE_WORD: Record<Drive, string> = { up: ', helped most', down: ', hurt most' }
+
+/**
+ * One line's ten figures. Each carries its column for screen readers (the column head is decorative).
+ * Final rows on My Players add a 7px caret on what moved the grade and the minutes against his average.
+ */
+export function StatCells({
+  line: l,
+  drivers,
+  minDelta = null,
+}: {
+  line: GameLine | Totals
+  drivers?: Map<Category, Drive>
+  minDelta?: number | null
+}) {
   const min = 'minutes' in l ? l.minutes : l.min
+  const cell = (label: string, cat: Category | null, v: number, main: ReactNode = v, under?: ReactNode, cls = '') => {
+    const d = cat ? drivers?.get(cat) : undefined
+    const c = [cls, v === 0 && !under && !d ? 'tm-z' : '', d ? `tm-drv tm-drv-${d}` : ''].filter(Boolean).join(' ')
+    return (
+      <span key={label} className={c || undefined}>
+        <span className="sr-only">{label} </span>
+        {main}
+        {d && (
+          <>
+            <i aria-hidden="true">{d === 'up' ? <CaretUp weight="fill" /> : <CaretDown weight="fill" />}</i>
+            <span className="sr-only">{DRIVE_WORD[d]}</span>
+          </>
+        )}
+        {under}
+      </span>
+    )
+  }
   return (
     <span className="num tm-stats">
-      <span className={z(min)}>{min}</span>
-      <span>
-        {l.fgm}/{l.fga}
-        <small>{ratio(l.fgm, l.fga)}</small>
-      </span>
-      <span>
-        {l.ftm}/{l.fta}
-        <small>{ratio(l.ftm, l.fta)}</small>
-      </span>
-      <span className={z(l.tpm)}>{l.tpm}</span>
-      <span className={z(l.reb)}>{l.reb}</span>
-      <span className={z(l.ast)}>{l.ast}</span>
-      <span className={z(l.stl)}>{l.stl}</span>
-      <span className={z(l.blk)}>{l.blk}</span>
-      <span className={z(l.to)}>{l.to}</span>
-      <span className="tm-pts">{l.pts}</span>
+      {cell(
+        'MIN',
+        null,
+        min,
+        min,
+        minDelta !== null ? (
+          <small className="tm-md">
+            {signed(minDelta)}
+            <span className="sr-only"> minutes against his average</span>
+          </small>
+        ) : undefined,
+      )}
+      {cell('FG', 'FG', l.fga, `${l.fgm}/${l.fga}`, <small>{ratio(l.fgm, l.fga)}</small>)}
+      {cell('FT', 'FT', l.fta, `${l.ftm}/${l.fta}`, <small>{ratio(l.ftm, l.fta)}</small>)}
+      {cell('3PM', '3PM', l.tpm)}
+      {cell('REB', 'REB', l.reb)}
+      {cell('AST', 'AST', l.ast)}
+      {cell('STL', 'STL', l.stl)}
+      {cell('BLK', 'BLK', l.blk)}
+      {cell('TO', 'TO', l.to)}
+      {cell('PTS', 'PTS', l.pts, l.pts, undefined, 'tm-pts')}
     </span>
   )
 }
 
-export function Totals({ totals }: { totals: Totals }) {
+export function Totals({ totals, label = 'Starters so far' }: { totals: Totals; label?: string }) {
   return (
     <div className="tm-tot">
-      <span className="tm-tot-lab">Starters so far</span>
+      <span className="tm-tot-lab">{label}</span>
       <StatCells line={totals} />
     </div>
   )
 }
 
 /** The field's foot before anyone has played: words, not a row of zeros. */
-export function TotalsBeforeTip({ firstTip }: { firstTip: string | null }) {
+export function TotalsBeforeTip({ firstTip, label = 'Starters so far' }: { firstTip: string | null; label?: string }) {
   return (
     <div className="tm-tot tm-tot-empty">
-      <span className="tm-tot-lab">Starters so far</span>
+      <span className="tm-tot-lab">{label}</span>
       <span className="tm-tot-note">
         {firstTip ? `Nothing yet · first tip ${tipOff(firstTip)}` : 'No starters play today'}
       </span>

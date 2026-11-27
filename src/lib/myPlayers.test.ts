@@ -14,6 +14,7 @@ import {
   nextLabel,
   rowCall,
   starterTotals,
+  statusCounts,
   swapToMake,
   wordLate,
 } from './myPlayers'
@@ -133,6 +134,40 @@ describe('My Players rows', () => {
     expect(nextLabel(nx)).toBe('Wed @ IND')
     expect(nextLabel({ ...nx, home: true })).toBe('Wed vs IND')
     expect(gamesLeft(spot(14, 'F', null, { week_games: [21, 23, 24, 27] }), 22)).toBe(3)
+  })
+})
+
+describe('statusCounts', () => {
+  it('counts every starter exactly once, ten of ten', () => {
+    const late = { ...game(4, 'scheduled'), start: '2026-11-11T03:30:00Z' }
+    const games = [
+      game(1, 'live', [line(1, 10), line(2, 4)]),
+      game(2, 'final', [line(3, 20), { ...line(4, 0), minutes: 0 }]),
+      game(3, 'scheduled'),
+      late,
+    ]
+    const spots = [
+      spot(1, 'PG', 1),
+      spot(2, 'SG', 1),
+      spot(3, 'SF', 2),
+      spot(4, 'PF', 2),
+      spot(5, 'C', 4),
+      spot(6, 'G', 3),
+      spot(7, 'F', 3, { injury_status: 'OUT' }),
+      spot(8, 'UTIL', null),
+      spot(9, 'UTIL', null),
+      spot(10, 'UTIL', 4),
+      spot(11, 'BE', 1),
+      spot(12, 'IR', null),
+    ]
+    const c = statusCounts(buildRows(spots, games), 0)
+    expect(c).toEqual({ live: 2, final: 1, dnp: 1, later: 3, out: 1, idle: 2, empty: 0, nextTip: '2026-11-11T01:00:00Z' })
+    expect(c.live + c.final + c.dnp + c.later + c.out + c.idle + c.empty).toBe(10)
+  })
+
+  it('counts open slots and leaves the tip empty when nobody is still to come', () => {
+    const c = statusCounts(buildRows([spot(1, 'PG', 1)], [game(1, 'final', [line(1, 12)])]), 2)
+    expect(c).toMatchObject({ final: 1, empty: 2, nextTip: null })
   })
 })
 
