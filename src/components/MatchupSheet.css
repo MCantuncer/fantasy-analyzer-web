@@ -136,10 +136,6 @@ button.lms-retry {
   --crest: 40px !important;
 }
 
-.lsb-crest .yourcrest {
-  --yc: 14px !important;
-}
-
 .lsb-text {
   display: flex;
   flex-direction: column;
@@ -157,6 +153,12 @@ button.lms-retry {
 
 .lsb-full {
   display: none;
+}
+
+/* Your full name (wide screens) ends in a "You" tag; on phones the short name already says You. */
+.lsb-full .youtag {
+  margin-left: 8px;
+  vertical-align: 0.2em;
 }
 
 .lsb-sub {
@@ -320,10 +322,6 @@ button.lms-check:hover {
 
   .lsb-crest .crest {
     --crest: 52px !important;
-  }
-
-  .lsb-crest .yourcrest {
-    --yc: 17px !important;
   }
 
   .lsb-text b {

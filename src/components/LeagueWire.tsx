@@ -1,5 +1,6 @@
 import type { LeagueOverview } from '../api/client'
-import { YourCrest } from './YourCrest'
+import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './LeagueWire.css'
 
 /** League → "On the wire": the week's three league facts as bare lines (FAAB, waiver claims, trades). */
@@ -27,8 +28,9 @@ export function LeagueWire({
               <b className="num">${pulse.faab_leader_spent ?? 0}</b>
               <span>top FAAB spend</span>
               <span className="lwr-team">
-                <YourCrest name={nameOf(leader)} colour={colours.get(leader)} size={18} mine={leader === myTeamId} />
+                <TeamCrest name={nameOf(leader)} colour={colours.get(leader)} size={18} />
                 {nameOf(leader)}
+                {leader === myTeamId && <YouTag />}
               </span>
             </>
           ) : (

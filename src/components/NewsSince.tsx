@@ -32,7 +32,7 @@ import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { Spinner } from './Spinner'
 import { TeamCrest } from './TeamCrest'
-import { YourCrest } from './YourCrest'
+import { YouTag } from './YouTag'
 import './NewsSince.css'
 
 export interface NewsSinceProps {
@@ -294,7 +294,8 @@ export function NewsSince({
           <div className="ns-roster">
             {ref && (
               <span className="ns-crest" aria-hidden="true">
-                <YourCrest name={ref.team_name} colour={colours.get(ref.team_id)} size={22} mine />
+                <TeamCrest name={ref.team_name} colour={colours.get(ref.team_id)} size={22} />
+                <YouTag />
               </span>
             )}
             <span className="sr-only">Your team: </span>

@@ -320,9 +320,11 @@ describe('LeagueChat FAAB and composer', () => {
     expect(top.querySelector('input')?.getAttribute('placeholder')).toBe('Talk to the league…')
     expect(top.querySelector('.chat-as')?.textContent).toBe('Posting as Kucukesat Aspavas')
     expect(container.querySelector('.chat-me, .feed-avatar, .card.composer')).toBeNull()
-    // Your row is marked by the badge on your crest, not an icon loose beside the name.
+    // Your row is marked by a "You" tag after your name, not an icon or a badge on the crest.
     const me = container.querySelector('.feed-faab-row.is-me')!
-    expect(me.querySelector('[role="img"][aria-label="your team"]')).not.toBeNull()
+    expect(me.querySelector('.feed-faab-team + .youtag')?.textContent).toBe('You')
+    expect(me.parentElement!.querySelectorAll('.youtag')).toHaveLength(1)
+    expect(container.querySelector('[role="img"][aria-label="your team"]')).toBeNull()
     expect(me.querySelector('.feed-faab-name svg')).toBeNull()
     expect(container.querySelectorAll('.feed-filters .feed-filter')).toHaveLength(6)
   })
@@ -543,12 +545,12 @@ describe('LeagueChat trade moment', () => {
     expect(trade.querySelector('.feed-pill')).toBeNull()
     const sides = [...trade.querySelectorAll('.feed-trade-sides .feed-side')]
     expect(sides.map((s) => s.querySelector('.feed-side-team')?.textContent)).toEqual([
-      'Kucukesat Aspavas get',
+      'Kucukesat AspavasYou get',
       'Cayyolu Bastards get',
     ])
-    // Your side's crest wears the badge, in the side head and on the pair of crests up front.
-    expect(sides.map((s) => s.querySelectorAll('[aria-label="your team"]').length)).toEqual([1, 0])
-    expect(trade.querySelectorAll('.feed-node-pair [aria-label="your team"]')).toHaveLength(1)
+    // Your side's name ends in the "You" tag; no crest wears a badge, here or on the pair up front.
+    expect(sides.map((s) => s.querySelectorAll('.feed-side-team b + .youtag').length)).toEqual([1, 0])
+    expect(trade.querySelector('[aria-label="your team"]')).toBeNull()
     expect(trade.querySelector('.feed-side-team svg')).toBeNull()
     expect(sides.map((s) => s.querySelectorAll('.feed-side-list img').length)).toEqual([1, 1])
     expect(sides[0].textContent).toContain('Mikal Bridges')
