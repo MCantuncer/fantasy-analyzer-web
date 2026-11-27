@@ -2,7 +2,8 @@ import { ArrowDown, ArrowsLeftRight, ArrowUp, Scales, ThumbsDown, ThumbsUp } fro
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { OfferCheck, PlayerRef } from '../api/client'
 import { injuryShort } from '../lib/injury'
-import { ACCEPTANCE_WORD, CALL, PARTNER_CALL, checkSummary, pointChange, reasonTail, surname } from '../lib/tradeCheck'
+import { oneIn } from '../lib/chance'
+import { CALL, PARTNER_CALL, checkSummary, pointChange, reasonTail, surname } from '../lib/tradeCheck'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
@@ -13,7 +14,6 @@ const CALL_ICON = { take: ThumbsUp, close: Scales, pass: ThumbsDown } as const
 
 const CATEGORY = /\b(FG%|FT%|3PM|REB|AST|STL|BLK|TO|PTS)(?![A-Za-z0-9])/g
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const pct = (x: number) => Math.round(x * 100)
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '±0')
 
@@ -173,7 +173,7 @@ export function TradeCheckHero({
           {settled.direction === 'sending' && (
             <p className="tck-hero-yes">
               <small>They say yes</small>
-              <b>{capital(ACCEPTANCE_WORD[settled.idea.acceptance_label])}</b>
+              <b className="num">{oneIn(settled.idea.acceptance)}</b>
             </p>
           )}
         </div>

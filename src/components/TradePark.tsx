@@ -18,7 +18,7 @@ import type { Credentials } from '../lib/credentials'
 import { ordinal, pct, ptsDiff, signed, signedInt, tradeKey } from '../lib/format'
 import { injuryShort } from '../lib/injury'
 import { HeadStack, PlayerHead } from './PlayerHead'
-import { ACCEPTANCE } from './Trades'
+import { AcceptChance } from './AcceptChance'
 import { teamColours } from '../lib/league'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
 import { EMPTY_DEAL, type CheckDeal } from '../lib/tradeCheck'
@@ -307,7 +307,6 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
     </div>
   )
 
-  const acc = deal ? ACCEPTANCE[deal.acceptance_label] : null
   const announce =
     data && current
       ? deal
@@ -472,13 +471,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
     get = deal ? (
       <>
         <EndLabel end="get">
-          <span className="park-accept">
-            <span className={`park-accept-w ${acc!.tone}`}>
-              <MaybeHandshake size={18} />
-              {acc!.label}
-            </span>
-            <span className="park-accept-k">Chance they say yes</span>
-          </span>
+          <AcceptChance p={deal.acceptance} className="park-accept" />
         </EndLabel>
         {working}
         <div className="park-get tt-fade" key={tradeKey(deal)}>
@@ -811,9 +804,8 @@ function TeamLine({ team: t, colour }: { team: ShopTeam; colour: string | undefi
   )
 }
 
-/** One deal under the table: give | odds after | get, their team and the accept word. A button. */
+/** One deal under the table: give | odds after | get, their team and the accept chance. A button. */
 function DealRow({ deal: d, on, onPick }: { deal: ShopDeal; on: boolean; onPick: () => void }) {
-  const acc = ACCEPTANCE[d.acceptance_label]
   return (
     <button type="button" className="park-drow" aria-current={on || undefined} onClick={onPick}>
       <span className="park-dg">
@@ -848,10 +840,8 @@ function DealRow({ deal: d, on, onPick }: { deal: ShopDeal; on: boolean; onPick:
             </span>
           </span>
         </span>
-        <span className={`park-dacc ${acc.tone}`}>
-          <span className="sr-only">, chance they say yes: </span>
-          {acc.label}
-        </span>
+        <span className="sr-only">, </span>
+        <AcceptChance p={d.acceptance} className="park-dacc" icon={14} />
       </span>
     </button>
   )

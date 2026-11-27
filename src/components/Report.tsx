@@ -97,7 +97,7 @@ function howParts(report: AnalysisReport, moves: boolean): HowPart[] {
       title: 'Expected gain',
       body: 'Your odds gain times the chance they say yes. Trades are ranked by it.',
     },
-    { title: 'Chance they say yes', body: 'How offers like this one went in real leagues: Likely, Possible or Long shot.' },
+    { title: 'Chance they say yes', body: 'How offers like this one went in real leagues. 1 in 9: about one such offer in nine was accepted.' },
     {
       title: 'Fair and Bold',
       body: 'Fair: they win on paper and their odds dip a point at most, or both rise. Bold: they win on paper, you win on what you know.',
