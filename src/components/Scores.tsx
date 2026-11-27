@@ -37,9 +37,10 @@ import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { useEscapeLayer } from '../lib/escapeStack'
-import { CallBand, CallCell, CallLabel, CallNight, CallPlate, CallSentence, CallTotal, CallVerdict } from './OurCall'
+import { CallBand, CallCell, CallLabel, CallPlate, CallTally, CallSentence, CallTotal, CallVerdict } from './OurCall'
 import { shortNick } from '../lib/ourCall'
 import { PreGameBox } from './PreGameBox'
+import { ScoresHow } from './ScoresHow'
 import { LiveLine } from './LiveLine'
 import { ProCall } from './Pro'
 import { useFeature } from '../lib/pro'
@@ -188,6 +189,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
     mineByGame.get(g.id)!.length === 0 &&
     !g.lines.some((l) => rivalId != null && l.owner_team_id === rivalId)
   const games = [...shown.filter((g) => !cold(g)), ...shown.filter(cold)]
+  const callTally = !pending && data.games.some((g) => g.call && g.status === 'final')
 
   return (
     <div
@@ -219,13 +221,21 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
           </p>
         </div>
       </div>
-      <p className={`sl-summary sl-long${boxOpen ? ' sl-away' : ''}`} aria-hidden={boxOpen || undefined}>
-        {pending ? (
-          'Counting your players'
-        ) : (
-          <GamesSummary lens={lens} all={data.games.length} mine={mineGames.length} players={players} />
-        )}
-      </p>
+      {/* One row under the bar: the day's games and players on the left, our calls' tally on the right
+          (on phones the tally is its own line under the lens). */}
+      <div
+        className={`sl-summary sc-sum${boxOpen ? ' sl-away' : ''}${callTally ? '' : ' sc-sum-bare'}`}
+        aria-hidden={boxOpen || undefined}
+      >
+        <p className="sl-long">
+          {pending ? (
+            'Counting your players'
+          ) : (
+            <GamesSummary lens={lens} all={data.games.length} mine={mineGames.length} players={players} />
+          )}
+        </p>
+        {callTally && <CallTally games={data.games} today={data.date === usToday()} />}
+      </div>
 
       {pending ? (
         <ScoresFilling failed={failed} onRetry={() => scores.refetch()} />
@@ -255,9 +265,6 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
         </div>
       ) : (
         <>
-          {!pending && (
-            <CallNight key={`night-${data.day}`} games={data.games} date={data.date} today={data.date === usToday()} />
-          )}
           <GameBoard
             key={data.day}
             leagueId={leagueId}
@@ -282,11 +289,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
       {/* The rest of the week sits below tonight's games and box score, not between them. */}
       {data.week && data.week.length > 0 && <ScoresWeek week={data.week} onPick={pickDay} />}
 
-      <p className="small muted">
-        Scores are added up from ESPN's fantasy stats
-        {data.live ? ' and refresh every minute' : ''}; the game clock comes from ESPN's scoreboard. In a box score,
-        Owner is the fantasy team in this league.
-      </p>
+      <ScoresHow />
     </div>
   )
 }

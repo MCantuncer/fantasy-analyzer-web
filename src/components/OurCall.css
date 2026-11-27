@@ -255,26 +255,19 @@
   }
 }
 
-/* ---------- Above the games: the key, then the day's tally ---------- */
-.call-night {
-  display: grid;
-  gap: 3px;
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--text-2);
-}
-.call-night .lbl,
-.call-night .dot {
+/* ---------- The summary row's tally: "Our calls tonight 1 of 1 right · 15 pts off a team" ---------- */
+.call-tally {
   color: var(--muted);
 }
-.call-night .num {
+.call-tally .num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-weight: 650;
   color: var(--text);
 }
-.call-night .kw {
+
+/* The % colours, named in words in How this works. */
+.kw {
   font-weight: 600;
 }
 .kw[data-band='sure'] {

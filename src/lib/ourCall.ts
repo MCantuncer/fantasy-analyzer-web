@@ -88,11 +88,9 @@ export function shortNick(nick: string): string {
   return SHORT[nick] ?? nick
 }
 
-/* Two small memories in this browser, both best effort (private windows can refuse storage):
-   finals already seen, so the tick or cross draws once; and the nights the key line was shown. */
+/* A small memory in this browser, best effort (private windows can refuse storage): finals already
+   seen, so the tick or cross draws once. */
 const SEEN = 'court.calls.seen'
-const NIGHTS = 'court.calls.nights'
-const KEY_NIGHTS = 3
 
 function readList(key: string): string[] {
   try {
@@ -116,14 +114,5 @@ export function firstFinal(gameId: number): boolean {
   const seen = readList(SEEN)
   if (seen.includes(String(gameId))) return false
   writeList(SEEN, [...seen, String(gameId)], 400)
-  return true
-}
-
-/** The key line shows on the first few nights with calls (then only when a final lands). */
-export function showKey(date: string): boolean {
-  const nights = readList(NIGHTS)
-  if (nights.includes(date)) return nights.indexOf(date) < KEY_NIGHTS
-  if (nights.length >= KEY_NIGHTS) return false
-  writeList(NIGHTS, [...nights, date], KEY_NIGHTS)
   return true
 }
