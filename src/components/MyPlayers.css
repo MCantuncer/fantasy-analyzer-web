@@ -1394,19 +1394,6 @@
   vertical-align: 0;
 }
 
-.mp-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mp-notes .mp-call {
-  margin: 0;
-}
-
 .mp-lineup .tm-slide-head {
   font-size: 12.5px;
 }
@@ -1436,5 +1423,350 @@
   .mp-next-tip {
     display: block;
     color: var(--muted);
+  }
+}
+
+/* ---------- Notes above the lineup: the swap and the game-time call. Bare text, one action. ---------- */
+.mpn-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+
+.mpn-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: 10px;
+  padding: 4px 6px;
+}
+
+.mpn-ic {
+  margin-top: 1px;
+  color: var(--text);
+}
+
+.mpn-body {
+  min-width: 0;
+}
+
+.mpn-t {
+  margin: 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--text-2);
+}
+
+.mpn-t b,
+.mpn-n {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mpn-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: -6px 0 -10px -10px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.mpn-act:hover {
+  text-decoration: underline;
+}
+
+.mpn-act:focus-visible,
+.mpn-strip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* the strip is the phone form; desktop shows the call open */
+.mpn-strip,
+.mpn-narrow {
+  display: none;
+}
+
+.mpn-call-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 12px 40px;
+  max-width: 900px;
+  margin-top: 10px;
+}
+
+/* The night as lanes, to scale: each bar runs from now (the gold rule) to his tip-off. */
+.mpn-lanes {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 22px 0 4px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.mpn-lane {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding-right: 64px;
+}
+
+.mpn-lane-who {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.mpn-lane.sub .mpn-lane-who {
+  color: var(--text-2);
+}
+
+.mpn-track {
+  position: relative;
+  height: 18px;
+}
+
+.mpn-bar {
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: var(--x);
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--text-2) 15%, transparent),
+    color-mix(in srgb, var(--text-2) 70%, transparent)
+  );
+}
+
+/* the tip: a short post at the end of the lane */
+.mpn-bar::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--text-2);
+}
+
+.mpn-tip {
+  position: absolute;
+  left: calc(var(--x) + 6px);
+  top: 0;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+/* the gold "now" rule and the word column share the tracks' x-axis */
+.mpn-art {
+  position: absolute;
+  left: 72px;
+  right: 64px;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.mpn-now {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--gold);
+}
+
+.mpn-now-l,
+.mpn-word-l {
+  position: absolute;
+  top: 0;
+  font-size: 11.5px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.mpn-now-l {
+  left: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mpn-word-l {
+  left: max(44px, var(--c0));
+  color: var(--muted);
+}
+
+.mpn-word-l.end {
+  left: auto;
+  right: calc(100% - var(--c1));
+}
+
+/* The word is an estimate, so its column has feathered ends, never a hard box. */
+.mpn-word {
+  position: absolute;
+  left: var(--c0);
+  top: 16px;
+  bottom: 0;
+  width: max(14px, calc(var(--c1) - var(--c0)));
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--gold) 14%, transparent) 12%,
+    color-mix(in srgb, var(--gold) 14%, transparent) 88%,
+    transparent
+  );
+}
+
+.mpn-ifs {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-2);
+}
+
+.mpn-ifs li {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 6px;
+}
+
+.mpn-if {
+  color: var(--muted);
+}
+
+.mpn-ifs b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mpn-news {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.mpn-news-at {
+  color: var(--muted);
+}
+
+/* Desktop: the ESPN action sits inline after the swap sentence. */
+@media (min-width: 760px) {
+  .mpn-swap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 18px;
+  }
+
+  .mpn-swap .mpn-act {
+    margin: -12px 0 -12px -10px;
+  }
+}
+
+/* Phones: the action on its own line; the call is one 44px strip that opens. */
+@media (max-width: 759px) {
+  .mpn-item {
+    padding-right: 0;
+  }
+
+  .mpn-call-head,
+  .mpn-wide {
+    display: none;
+  }
+
+  .mpn-narrow {
+    display: inline;
+  }
+
+  .mpn-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    margin: -11px 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-2);
+    font: inherit;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mpn-strip-t {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mpn-strip-t b {
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  .mpn-caret {
+    justify-self: center;
+    color: var(--text-2);
+    transition: transform 160ms ease;
+  }
+
+  .mpn-call.open .mpn-caret {
+    transform: rotate(180deg);
+  }
+
+  .mpn-call:not(.open) .mpn-call-body {
+    display: none;
+  }
+
+  .mpn-call-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .mpn-lane {
+    grid-template-columns: 56px minmax(0, 1fr);
+    padding-right: 60px;
+  }
+
+  .mpn-art {
+    left: 64px;
+    right: 60px;
+  }
+
+  .mpn-ifs li {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mpn-caret {
+    transition: none;
   }
 }

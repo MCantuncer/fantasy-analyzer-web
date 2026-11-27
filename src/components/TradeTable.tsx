@@ -238,7 +238,7 @@ export interface TheirSideProps {
   needs?: PitchNeed[] | null
   /** League size, for "7th of 10". */
   teams?: number
-  /** Trade value they get and give, for "On paper they get" and "Trade value". */
+  /** Trade value they get and give: "On paper they get" as a %, or "Trade value" when they give nothing on paper. */
   valueGet: number
   valueGive: number
   /** Their expected categories won a week, change. */
@@ -246,13 +246,26 @@ export interface TheirSideProps {
   rounds: RoundValues
   /** Buttons after Copy pitch, e.g. Check This Trade. */
   actions?: ReactNode
+  /** More rows for the facts list, ahead of the value rows: each a <div> with a <dt> and a <dd>. */
+  facts?: ReactNode
 }
 
 /**
  * The deal from their side, flat: the pitch as columns, "Sends as …", Copy pitch (plus the
  * caller's actions) and a short list of facts.
  */
-export function TheirSide({ partner, pitch, needs, teams, valueGet, valueGive, theirCats, rounds, actions }: TheirSideProps) {
+export function TheirSide({
+  partner,
+  pitch,
+  needs,
+  teams,
+  valueGet,
+  valueGive,
+  theirCats,
+  rounds,
+  actions,
+  facts,
+}: TheirSideProps) {
   const list = needs ?? []
   const paper = valueGive > 0 ? Math.round((valueGet / valueGive) * 100) : null
   return (
@@ -285,6 +298,7 @@ export function TheirSide({ partner, pitch, needs, teams, valueGet, valueGive, t
           Their side of the deal
         </h3>
         <dl className="tt-facts">
+          {facts}
           {paper != null && (
             <div>
               <dt>On paper they get</dt>
@@ -293,12 +307,15 @@ export function TheirSide({ partner, pitch, needs, teams, valueGet, valueGive, t
               </dd>
             </div>
           )}
-          <div>
-            <dt>Trade value</dt>
-            <dd className="num">
-              {shortValue(valueGet, rounds)} for {shortValue(valueGive, rounds)}
-            </dd>
-          </div>
+          {/* The same comparison as the % row, in rounded dollars that can read as a tie: only without it. */}
+          {paper == null && (
+            <div>
+              <dt>Trade value</dt>
+              <dd className="num">
+                {shortValue(valueGet, rounds)} for {shortValue(valueGive, rounds)}
+              </dd>
+            </div>
+          )}
           <div>
             <dt>Their categories a week</dt>
             <dd className={`num ${theirCats > 0 ? 'good' : theirCats < 0 ? 'bad' : ''}`}>{signed(theirCats)}</dd>
