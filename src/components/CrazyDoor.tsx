@@ -9,8 +9,8 @@ const reduced = () => typeof window.matchMedia === 'function' && window.matchMed
 
 /** The door to Crazy One's World on Our Estimates: a 44px circle with a small moon that orbits slowly
  *  (still under reduced motion, where it only turns to look). When a mouse or pen comes in, the moon turns to look at where the hover
- *  started, then keeps orbiting from there. Hover or focus lights it in Crazy One's ink and drops its
- *  label. */
+ *  started, then keeps orbiting from there. Hover or focus lights it in Crazy One's ink and hangs its
+ *  name under it. */
 export function CrazyDoor({ onOpen }: { onOpen: () => void }) {
   const moon = useRef<SVGGElement>(null)
   // the turn under way (or the plain orbit); null under reduced motion, where nothing moves by itself
@@ -66,7 +66,7 @@ export function CrazyDoor({ onOpen }: { onOpen: () => void }) {
         </g>
       </svg>
       <span className="cz-door-tip" aria-hidden="true">
-        Go to Crazy One’s World <span>→</span>
+        Crazy One
       </span>
     </button>
   )
