@@ -131,3 +131,17 @@
   letter-spacing: 0.04em;
   vertical-align: middle;
 }
+
+/* Quiet marks (My Team > Your roster): every badge a 15px muted line icon; the bubble still names it. */
+.pb-quiet .pb-marks {
+  margin-left: 0;
+}
+
+.pb-quiet .pb-mark {
+  color: var(--muted);
+}
+
+.pb-quiet .pb-icon {
+  width: 15px;
+  height: 15px;
+}

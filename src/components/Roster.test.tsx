@@ -1,5 +1,5 @@
 import { fireEvent, render, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { PlayerRef } from '../api/client'
 import { RoundValuesContext } from '../lib/tradeValue'
 import { Roster } from './Roster'
@@ -19,6 +19,27 @@ const player = {
   owner_premium: 0,
 } as PlayerRef
 
+const out = {
+  ...player,
+  id: 2,
+  name: 'Aday Mara',
+  positions: ['C'],
+  injury_status: 'OUT',
+  value: -3.8,
+  perceived_value: 2,
+  tier: 'injured',
+} as PlayerRef
+
+const drop = {
+  ...player,
+  id: 3,
+  name: 'Daniel Gafford',
+  positions: ['C'],
+  value: -2.4,
+  perceived_value: 3,
+  tier: 'droppable',
+} as PlayerRef
+
 describe('Roster trade value', () => {
   it('shows auction dollars by default', () => {
     const { container } = render(<Roster roster={[player]} keep={[]} onToggleKeep={() => {}} />)
@@ -36,23 +57,64 @@ describe('Roster trade value', () => {
   })
 })
 
-describe('Roster on phones', () => {
-  afterEach(() => vi.unstubAllGlobals())
-
-  it('shows a list with a Keep toggle instead of the table', () => {
-    vi.stubGlobal('matchMedia', (query: string) => ({
-      matches: query === '(max-width: 640px)',
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }))
+describe('Roster quiet rows', () => {
+  it('is one list of rows: no table, no checkboxes, a bare lock with aria-pressed', () => {
     const toggled: number[] = []
     const { container } = render(<Roster roster={[player]} keep={[]} onToggleKeep={(id) => toggled.push(id)} />)
-    expect(container.querySelector('table')).toBeNull()
-    expect(within(container).getByText('$25')).toBeInTheDocument()
-    expect(within(container).getByText('+1.2 cat')).toBeInTheDocument()
+    expect(container.querySelector('table, input[type="checkbox"]')).toBeNull()
     const keep = within(container).getByRole('button', { name: 'Keep Jalen Green' })
     expect(keep).toHaveAttribute('aria-pressed', 'false')
     fireEvent.click(keep)
     expect(toggled).toEqual([1])
+  })
+
+  it('shows status only when it is not the default', () => {
+    const { container } = render(<Roster roster={[player, out, drop]} keep={[]} onToggleKeep={() => {}} />)
+    const text = container.textContent ?? ''
+    expect(text).not.toMatch(/Tradeable|Injured/)
+    expect(container.querySelectorAll('.ro-tag')).toHaveLength(1)
+    expect(container.querySelector('.ro-tag')).toHaveTextContent('OUT')
+    expect(within(container).getByText('· Droppable')).toBeInTheDocument()
+  })
+
+  it('signs the cat value with a real minus and colours it by outcome', () => {
+    const { container } = render(<Roster roster={[player, out]} keep={[]} onToggleKeep={() => {}} />)
+    const cats = [...container.querySelectorAll('.ro-cvd')]
+    expect(cats.map((c) => c.textContent)).toEqual([', category value +1.2', ', category value −3.8'])
+    expect(cats[0]).toHaveClass('ro-pos')
+    expect(cats[1]).toHaveClass('ro-neg')
+  })
+
+  it('every row has a face and the name', () => {
+    const { container } = render(<Roster roster={[player, out, drop]} keep={[]} onToggleKeep={() => {}} />)
+    const rows = container.querySelectorAll('.ro-row')
+    expect(rows).toHaveLength(3)
+    rows.forEach((r) => expect(r.querySelector('.head')).not.toBeNull())
+    expect(within(container).getByText('Aday Mara')).toBeInTheDocument()
+  })
+
+  it('names players by last name on phones, unique within the roster', () => {
+    const giannis = { ...player, id: 4, name: 'Giannis Antetokounmpo' } as PlayerRef
+    const { container } = render(<Roster roster={[player, giannis]} keep={[]} onToggleKeep={() => {}} />)
+    expect([...container.querySelectorAll('.ro-short')].map((n) => n.textContent)).toEqual(['Green', 'Giannis'])
+  })
+
+  it('shows the Kept group only when someone is kept', () => {
+    const none = render(<Roster roster={[player, out]} keep={[]} onToggleKeep={() => {}} />)
+    expect(none.container.querySelector('.ro-sub')).toBeNull()
+    none.unmount()
+    const { container } = render(<Roster roster={[player, out]} keep={[2]} onToggleKeep={() => {}} />)
+    const heads = [...container.querySelectorAll('.ro-sub')].map((h) => h.textContent)
+    expect(heads).toEqual(['Kept never offered or dropped', 'Everyone else'])
+    expect(within(container).getByRole('button', { name: 'Keep Aday Mara' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('has a Shop button per player when shopping is on', () => {
+    const shopped: number[] = []
+    const { container } = render(
+      <Roster roster={[player]} keep={[]} onToggleKeep={() => {}} onShop={(id) => shopped.push(id)} />,
+    )
+    fireEvent.click(within(container).getByRole('button', { name: 'Shop Jalen Green' }))
+    expect(shopped).toEqual([1])
   })
 })
