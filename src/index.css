@@ -1521,44 +1521,6 @@ tr.cutline th {
   font-weight: 600;
 }
 
-.your-night {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px 24px;
-  padding: 16px 20px;
-}
-
-.night-lead {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.night-cats {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(44px, auto));
-  gap: 4px 16px;
-  margin: 0;
-}
-
-.night-cats div {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.night-cats dt {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.night-cats dd {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
 .game-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1749,11 +1711,6 @@ tr.box-team th {
 @media (max-width: 640px) {
   :root {
     font-size: 14px;
-  }
-
-  .night-cats {
-    grid-template-columns: repeat(5, minmax(44px, 1fr));
-    width: 100%;
   }
 
   .day-strip {
@@ -3018,8 +2975,7 @@ tr.cutline.playoff th {
   vertical-align: middle;
 }
 
-.box-player,
-.night-lead {
+.box-player {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -3029,28 +2985,8 @@ th .head {
   margin-right: 6px;
 }
 
-.box-player .head,
-.night-lead .head {
+.box-player .head {
   margin-right: 0;
-}
-
-.night-totals {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-
-.night-totals-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-@media (max-width: 640px) {
-  .night-totals {
-    align-items: flex-start;
-  }
 }
 
 /* League switcher: the league / team crumb in the top bar opens a menu of the account's leagues. */
@@ -3185,49 +3121,3 @@ button.switcher-item .check {
   }
 }
 
-/* Tonight in your matchup: your totals over your opponent's, tonight's leader in each category bold. */
-.night-head {
-  gap: 6px;
-  min-width: 0;
-}
-
-.your-night.versus {
-  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
-  background:
-    radial-gradient(80% 140% at 100% 0%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 60%),
-    var(--surface);
-}
-
-.night-cats dd.them {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.night-cats dd.ahead {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.night-cats dd.them.ahead {
-  color: var(--text);
-}
-
-.night-who {
-  align-items: flex-start !important;
-}
-
-.night-who dd {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  color: var(--muted);
-  line-height: 30px;
-}
-
-.night-who dd.them {
-  line-height: 22px;
-}
-
-.night-cats:has(.night-who) {
-  grid-template-columns: auto repeat(9, minmax(44px, auto));
-}

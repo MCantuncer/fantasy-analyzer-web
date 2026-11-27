@@ -110,7 +110,8 @@ describe('Scores', () => {
     renderScores()
     expect(await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)).toBeInTheDocument()
     expect(screen.getByText('Your night')).toBeInTheDocument()
-    expect(screen.getByText('Your 1 player')).toBeInTheDocument()
+    // No rival tonight: your row alone, one figure per category.
+    expect(screen.getByRole('list', { name: 'Your categories tonight' }).children).toHaveLength(9)
     // Nothing is open until you pick a game.
     expect(screen.getAllByRole('table').some((t) => t.classList.contains('box'))).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: /HOU/ }))
@@ -166,19 +167,22 @@ describe('Scores', () => {
       'Tonight in your matchup · vs Los Avokados',
     )
     expect(screen.queryByText(/Flip /)).not.toBeInTheDocument()
-    expect(screen.getByText(/against 2 of theirs/)).toBeInTheDocument()
-    expect(screen.getAllByText(/Los Avokados:/).length).toBe(9)
-    // Game Night: every category says who took it tonight, and the night's count leads the card.
-    const letters = [...document.querySelectorAll('.night-res')].map((n) => n.textContent)
-    expect(letters).toHaveLength(9)
-    const w = letters.filter((x) => x === 'W').length
-    const l = letters.filter((x) => x === 'L').length
-    expect(document.querySelector('.night-score b')?.textContent).toMatch(new RegExp(`^${w}-${l}`))
+    // Line Score's sheet: the night's count and its word, then CatStrip pair with tonight's figures.
+    const strip = screen.getByRole('list', { name: "Tonight's categories" })
+    const items = within(strip).getAllByRole('listitem')
+    expect(items).toHaveLength(9)
+    expect(items.slice(0, 2).map((i) => i.getAttribute('aria-label')?.split(':')[0])).toEqual(['FG%', 'FT%'])
+    const leads = items.map((i) => i.getAttribute('aria-label') ?? '')
+    const w = leads.filter((x) => / you lead$/.test(x)).length
+    const l = leads.filter((x) => / Avokados lead$/.test(x)).length
+    expect(document.querySelector('.sc-tn-big')).toHaveAttribute('aria-label', expect.stringMatching(new RegExp(`^${w} won, ${l} lost`)))
     expect(screen.getByText(/the night|so far/)).toBeInTheDocument()
-    expect([...document.querySelectorAll('.night-cats dt')].slice(1, 3).map((n) => n.firstChild?.textContent)).toEqual([
-      'FG%',
-      'FT%',
-    ])
+    // Tonight only: no week figures and no "close this week" flags.
+    expect(strip.querySelector('.cs-pk')).toBeNull()
+    expect(strip.querySelector('.cs-close')).toBeNull()
+    // The old lines and tiles are gone.
+    expect(screen.queryByText(/of your players combined/)).not.toBeInTheDocument()
+    expect(document.querySelector('.night-res')).toBeNull()
   })
 
   it("lifts games with your or your rival's players and marks them with each crest and its count", async () => {

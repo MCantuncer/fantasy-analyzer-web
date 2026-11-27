@@ -654,7 +654,6 @@ function TeamFoot({ side }: { side: PregameSide }) {
           <p key={w}>{w}</p>
         ))}
       </div>
-      <p className="small muted">An estimate, not a promise. Lines update until tip-off.</p>
     </div>
   )
 }

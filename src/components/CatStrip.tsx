@@ -79,6 +79,8 @@ export interface CatStripPairProps {
   keyed?: 'name' | 'crest' | false
   /** The list's accessible name, e.g. "Today's categories, with the week so far". */
   label: string
+  /** Flag categories that are close this week (amber label + Target). Off for a strip without a week. */
+  close?: boolean
 }
 
 const statLabel = (stat: string) => (stat === 'TO' ? 'TO↓' : stat)
@@ -115,8 +117,8 @@ function KeySide({ side, isMe, sub }: { side: StripSide; isMe: boolean; sub: boo
  * week) get an amber label and a Target. Screen readers hear one item per category with the
  * whole reading.
  */
-export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label }: CatStripPairProps) {
-  const cells = pairCells(a, b, { top, sub, closeFrom: 'week' })
+export function CatStripPair({ a, b, top, sub = null, mine, keyed = 'name', label, close = true }: CatStripPairProps) {
+  const cells = pairCells(a, b, { top, sub, closeFrom: close ? 'week' : null })
   const hasSub = sub != null
   const names = { a: mine === 'a' ? 'you' : a.short, b: b.short }
   const cls = ['cs-pair', hasSub ? '' : 'cs-one', keyed === 'crest' ? 'cs-crestkey' : '', keyed ? '' : 'cs-nokey']

@@ -236,7 +236,6 @@ function World({ data, onDay }: { data: CrazyData; onDay: (d: number) => void })
         <section className="cz-sec" aria-labelledby="cz-calls">
           <div className="cz-sec-h">
             <h2 id="cz-calls">Booms I’m calling</h2>
-            <p>Most likely first. Open one for why; it lights up in the sky.</p>
           </div>
           <ol className="cz-rows">
             {calls.map((b) => (
@@ -251,7 +250,6 @@ function World({ data, onDay }: { data: CrazyData; onDay: (d: number) => void })
       <section className="cz-sec" aria-labelledby="cz-bel">
         <div className="cz-sec-h">
           <h2 id="cz-bel">What I believe</h2>
-          <p>Point at one to see who it touches tonight. Turn it over for its seasons.</p>
         </div>
         <Beliefs booms={booms} games={data.games} ctx={ctx} />
       </section>

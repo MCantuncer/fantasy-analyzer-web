@@ -39,6 +39,10 @@ describe('pairCells', () => {
     expect(close('week')).toEqual(['FT%', 'AST', 'STL', 'TO'])
   })
 
+  it('flags nothing as close without a week (Scores, tonight only)', () => {
+    expect(pairCells(ka, cb, { top: 'today', closeFrom: null }).some((c) => c.close)).toBe(false)
+  })
+
   it('carries the week under today, with its own leader for the weight', () => {
     const fg = pairCells(ka, cb, { top: 'today', sub: 'week' })[0]
     expect(fg).toMatchObject({ a: 0.5, b: 0.429, aSub: 0.509, bSub: 0.476, leader: 'a', subLeader: 'a' })

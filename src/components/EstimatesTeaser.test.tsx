@@ -108,4 +108,11 @@ describe('EstimatesTeaser', () => {
     expect(container.querySelector('.et-k')!.textContent).toBe('Sun 22 Nov')
     expect(container.querySelector('.et-gap')).toBeNull()
   })
+
+  it('is the bare row, with no explainer, when there are no lines yet', async () => {
+    const { container } = mount({ ...night([]), games: [] })
+    await screen.findByText('Our Estimates')
+    expect(screen.queryByText(/our number beside the book/)).toBeNull()
+    expect(container.querySelector('.et-s')).toBeNull()
+  })
 })
