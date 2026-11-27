@@ -231,10 +231,9 @@ export function MatchupSheet({
             me={{ id: a.id, name: a.name, colour: a.colour, week: a.week }}
             them={{ id: b.id, name: b.name, colour: b.colour, week: b.week }}
             myId={myId}
-            head={false}
           />
         ) : (
-          <TodayLoading head={false} />
+          <TodayLoading />
         )
       ) : (
         weekExtras && <div className="lms-week">{weekExtras}</div>

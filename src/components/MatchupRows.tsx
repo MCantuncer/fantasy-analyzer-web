@@ -127,10 +127,9 @@ export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, 
                 week: b.categories ?? [],
               }}
               myId={myTeamId}
-              head={false}
             />
           ) : (
-            <TodayLoading head={false} />
+            <TodayLoading />
           ))}
       </div>
     )
