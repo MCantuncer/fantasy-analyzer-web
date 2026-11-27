@@ -91,21 +91,17 @@ export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
         </span>
         <span className="et-text">
           <span className="et-nm">Our Estimates</span>
-          <span className="et-s">
-            {settled ? (
-              <>
-                We won <b>{t.oursCloser}</b> of <b>{t.judged}</b> · Book won <b>{t.bookCloser}</b>
-              </>
-            ) : gap ? (
-              <>
-                {gap.kind === 'player' ? gap.name : gap.gameLabel} ·{' '}
-                {gap.stat === 'TEAM' ? `${gap.team} points` : STAT_NAME[gap.stat]}: ours <b>{said(gap, 'ours')}</b>, the
-                book <b>{said(gap, 'book')}</b>
-              </>
-            ) : (
-              'Every player and game, our number beside the book’s'
-            )}
-          </span>
+          {settled ? (
+            <span className="et-s">
+              We won <b>{t.oursCloser}</b> of <b>{t.judged}</b> · Book won <b>{t.bookCloser}</b>
+            </span>
+          ) : gap ? (
+            <span className="et-s">
+              {gap.kind === 'player' ? gap.name : gap.gameLabel} ·{' '}
+              {gap.stat === 'TEAM' ? `${gap.team} points` : STAT_NAME[gap.stat]}: ours <b>{said(gap, 'ours')}</b>, the
+              book <b>{said(gap, 'book')}</b>
+            </span>
+          ) : null}
         </span>
         {gap && (
           <span className="et-gap">
