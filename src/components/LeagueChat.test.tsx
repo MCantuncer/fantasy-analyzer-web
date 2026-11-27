@@ -267,7 +267,7 @@ describe('LeagueChat FAAB and composer', () => {
     vi.mocked(fetchFeed).mockResolvedValue(page)
   })
 
-  it('shows FAAB as an unboxed rail with bars and "Most", folded into a summary row for smaller screens', async () => {
+  it('shows FAAB as an unboxed rail with bars, most spent first, folded into a summary row for smaller screens', async () => {
     const { container } = render(
       <QueryClientProvider client={new QueryClient()}>
         <LeagueChat leagueId={1} season={2027} creds={null} />
@@ -279,7 +279,7 @@ describe('LeagueChat FAAB and composer', () => {
     expect(rail.textContent).toContain('Of $100 each')
     const rows = rail.querySelectorAll('.feed-faab-row')
     expect(rows).toHaveLength(1)
-    expect(rows[0].textContent).toBe('KAKucukesat AspavasMost$12')
+    expect(rows[0].textContent).toBe('KAKucukesat Aspavas$12')
     expect((rows[0].querySelector('.feed-faab-bar i') as HTMLElement).style.width).toBe('12%')
     expect(rail.querySelector('.feed-faab-note')?.textContent).toBe('1 team has not spent any yet.')
     expect(container.querySelector('.card, table.faab-table')).toBeNull()
