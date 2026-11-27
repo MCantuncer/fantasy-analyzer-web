@@ -329,7 +329,7 @@ describe('MyPlayers', () => {
     mockApi()
     renderIt()
     const note = await screen.findByRole('note')
-    expect(note).toHaveTextContent('Braun plays from your bench, Bey has no game in UTIL.')
+    expect(note).toHaveTextContent(/^Swap before .+\. Braun plays from your bench and Bey has no game in UTIL\./)
     expect(within(note).getByRole('link', { name: /Open team in ESPN/ })).toHaveAttribute(
       'href',
       'https://fantasy.espn.com/basketball/team?leagueId=1&teamId=3&seasonId=2027',
@@ -357,5 +357,91 @@ describe('MyPlayers', () => {
     renderIt()
     await rowOf('Tatum')
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+
+  describe('the game-time call', () => {
+    const H = 3_600_000
+    // Mara (C) is a toss-up tonight; Braun on the bench can take C. When Braun tips decides the call.
+    function callNight(subTipIn: number) {
+      const t = (h: number) => new Date(Date.now() + h * H).toISOString()
+      const day: ScoreDay = {
+        ...LIVE,
+        games: [
+          LIVE.games[0],
+          game({
+            id: 3,
+            status: 'scheduled',
+            start: t(3),
+            away: { pro_team_id: 25, abbrev: 'OKC', name: 'Oklahoma City Thunder', score: null },
+            home: { pro_team_id: 22, abbrev: 'POR', name: 'Portland Trail Blazers', score: null },
+            lines: [],
+          }),
+          game({
+            id: 4,
+            status: 'scheduled',
+            start: t(subTipIn),
+            away: { pro_team_id: 7, abbrev: 'DEN', name: 'Denver Nuggets', score: null },
+            home: { pro_team_id: 9, abbrev: 'GSW', name: 'Golden State Warriors', score: null },
+            lines: [],
+          }),
+        ],
+      }
+      const lineup: DayLineup = {
+        ...LINEUP,
+        spots: [
+          spot(10, 'Jayson Tatum', 'SF', 1),
+          {
+            ...spot(11, 'Aday Mara', 'C', 3),
+            injury_status: 'QUESTIONABLE',
+            play: {
+              chance: 0.55,
+              tag: 'Questionable',
+              basis: '55% of questionable players like him played.',
+              news: 'Mara (ankle) is questionable for Tuesday.',
+              news_at: t(-3),
+              return_date: null,
+              upgraded: false,
+              missed_in_a_row: null,
+            },
+          },
+          { ...spot(13, 'Christian Braun', 'BE', 4, ['C', 'UTIL']), pro_team_id: 7 },
+        ],
+      }
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+        const path = new URL(String(input), 'http://x').pathname
+        return new Response(JSON.stringify(path === '/api/scores/lineup' ? lineup : day))
+      })
+    }
+
+    it('waits: a bare note, its strip collapsed until tapped', async () => {
+      callNight(5)
+      renderIt()
+      const call = await screen.findByRole('group', { name: 'Game-time call: Mara' })
+      expect(call.querySelector('.mpn-call-head')).toHaveTextContent(
+        'Leave Mara in. Wait for the word. 55% of questionable players like him played.',
+      )
+      const strip = within(call).getByRole('button', { name: /Leave Mara in · free till/ })
+      expect(strip).toHaveAttribute('aria-expanded', 'false')
+      expect(strip).toHaveAttribute('aria-controls', 'mp-call')
+      expect(call).not.toHaveClass('open')
+      fireEvent.click(strip)
+      expect(strip).toHaveAttribute('aria-expanded', 'true')
+      expect(call).toHaveClass('open')
+      // The ifs, the reason to wait, and ESPN's word; one ESPN action on the page's notes at most.
+      expect(call).toHaveTextContent(/Ruled out\s*SitsBraun in at C/)
+      expect(call).toHaveTextContent(/Braun tips 2 hours after Mara: waiting is free until/)
+      expect(call).toHaveTextContent('“Mara (ankle) is questionable for Tuesday.” ESPN · 3h ago')
+      expect(within(call).queryByRole('link', { name: /ESPN/ })).toBeNull()
+    })
+
+    it('decides now: the strip opens itself when Braun locks before the word', async () => {
+      callNight(1)
+      renderIt()
+      const call = await screen.findByRole('group', { name: 'Game-time call: Mara' })
+      const strip = within(call).getByRole('button', { name: /Decide on Mara · Braun locks/ })
+      expect(strip).toHaveAttribute('aria-expanded', 'true')
+      expect(call).toHaveClass('open')
+      expect(call.querySelector('.mpn-call-head')).toHaveTextContent('Decide now. Braun locks first.')
+    })
   })
 })
