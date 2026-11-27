@@ -17,7 +17,6 @@ export function ScoresHow() {
       >
         <Info className="sc-how-ic" aria-hidden="true" />
         <b>How this works</b>
-        <span className="sc-how-sub">Our call and its colours · where scores come from · the Owner column</span>
         <CaretDown className="sc-how-caret" aria-hidden="true" />
       </button>
       <ul id={id} className="sc-how-notes" hidden={!open}>
