@@ -49,7 +49,6 @@ const rows = (props: Partial<Parameters<typeof MatchupRows>[0]> = {}) =>
       colours={colours}
       myTeamId={3}
       mine={MINE}
-      star={CLOSE}
       week={{ start: '2026-11-23', end: '2026-11-29' }}
       creds={null}
       {...props}
@@ -94,19 +93,13 @@ describe('MatchupRows', () => {
     expect(container.querySelectorAll('.lmr-item:not(.mine) .yourcrest-me')).toHaveLength(0)
   })
 
-  it('shows no matchup of the week marker to a manager, not even on their own row', () => {
+  it('has no matchup of the week marker: the sheet above names the featured matchup', () => {
     rows()
     expect(screen.queryByText('Matchup of the week')).toBeNull()
-    expect(screen.queryByRole('button', { name: /matchup of the week/ })).toBeNull()
     cleanup()
-    rows({ star: MINE })
+    rows({ myTeamId: null, mine: undefined })
     expect(screen.queryByText('Matchup of the week')).toBeNull()
-  })
-
-  it("marks the follower's matchup of the week", () => {
-    rows({ myTeamId: null, mine: undefined, star: TIED })
-    expect(rowOf(/Sariyer Wolfpack 3, Eryaman Lakers 5, matchup of the week, 1 tied/)).toBeTruthy()
-    expect(screen.getAllByText('Matchup of the week')).toHaveLength(1)
+    expect(rowOf(/^Sariyer Wolfpack 3, Eryaman Lakers 5, 1 tied$/)).toBeTruthy()
   })
 
   it('opens the box score right under its row and closes it again', () => {

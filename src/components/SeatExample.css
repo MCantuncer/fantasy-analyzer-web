@@ -3,7 +3,7 @@
 .lx-seat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -25,10 +25,13 @@
   color: var(--muted);
 }
 
-.lx-sub {
-  margin: 0 0 8px;
-  padding: 0 4px;
-  font-size: 13px;
+.lx-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--track);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--text-2);
 }
 
@@ -151,8 +154,7 @@
   white-space: nowrap;
 }
 
-.lx-swap,
-.lx-with {
+.lx-swap {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -160,19 +162,10 @@
   font-size: 13.5px;
 }
 
-.lx-swap span {
-  color: var(--text-2);
-  font-weight: 550;
-}
-
 .lx-arrow {
   flex: none;
   width: 14px;
   height: 14px;
-  color: var(--muted);
-}
-
-.lx-with {
   color: var(--muted);
 }
 
