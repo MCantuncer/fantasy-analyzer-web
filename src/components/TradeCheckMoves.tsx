@@ -128,8 +128,7 @@ function CutSheet({
           </button>
         </div>
         <p className="tck-mv-sub">
-          You get more players than you send, so one of yours leaves. The odds are yours after the trade with that cut,
-          from {Math.round(before * 100)}% today.
+          From <b className="num">{Math.round(before * 100)}%</b> today
         </p>
         <fieldset className="tck-mv-list">
           <legend>Best cuts for this deal</legend>
@@ -138,7 +137,6 @@ function CutSheet({
         {(rest.length > 0 || kept.length > 0) && (
           <fieldset className="tck-mv-list">
             <legend>Rest of your bench</legend>
-            <p className="tck-mv-sub">Odds show once you pick, in about a second.</p>
             <ul>
               {(more ? rest : rest.slice(0, REST_SHOWN)).map((o) => row(o.player, null))}
               {more &&

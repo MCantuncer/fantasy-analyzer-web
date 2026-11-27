@@ -135,7 +135,6 @@ export function TradeCheckTables({ check, myName, partnerName, partnerColour }: 
   const rows = inCategoryOrder(idea.category_detail ?? [])
   const myPunts = new Set(check.my_punts ?? [])
   const theirPunts = new Set(check.partner_punts ?? [])
-  const punts = [...myPunts].length || [...theirPunts].length
   const weeks = idea.playoff_weeks ?? []
   const finish =
     idea.finish_before != null && idea.finish_after != null
@@ -204,10 +203,6 @@ export function TradeCheckTables({ check, myName, partnerName, partnerColour }: 
               ))}
             </tbody>
           </table>
-          <p className="tck-tb-note">
-            Changes of 5 pts or more are bold.{' '}
-            {punts ? 'A punted category is faded on that side.' : 'Neither team punts a category here.'}
-          </p>
         </section>
       )}
 

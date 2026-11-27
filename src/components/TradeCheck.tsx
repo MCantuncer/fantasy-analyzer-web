@@ -223,8 +223,7 @@ function Tray({
         <p className="tck-cut-note">
           <Warning size={18} aria-hidden="true" />
           <span>
-            <b>+{cuts} cut.</b> You get {get.length} and send {give.length}, so {cuts === 1 ? 'one' : cuts} of yours{' '}
-            {cuts === 1 ? 'leaves' : 'leave'}. The check picks who; you can change it after.
+            <b>+{cuts} cut.</b> The check picks who; you can change it after.
           </span>
         </p>
       )}
@@ -371,7 +370,7 @@ export function TradeCheck({ report, keep, creds }: Props) {
           ? `${MAX_SIDE} a side is the limit.`
           : opening.moved && deal === opening.deal
             ? movedNote(opening.moved)
-            : `Tap who moves, up to ${MAX_SIDE} a side.`}
+            : `Up to ${MAX_SIDE} a side.`}
       </p>
       <div className="tck-benches">
         <section aria-label="Your roster: who you send">
@@ -400,9 +399,7 @@ export function TradeCheck({ report, keep, creds }: Props) {
         </section>
       </div>
     </>
-  ) : (
-    <p className="tck-empty">Pick the team the trade is with to see both rosters.</p>
-  )
+  ) : null
 
   const result =
     checked && partner ? (
@@ -433,7 +430,6 @@ export function TradeCheck({ report, keep, creds }: Props) {
                 <div className="tck-col-head">
                   <span>
                     <b>Your roster</b>
-                    <small>Pick who you send</small>
                   </span>
                   <small className="num">
                     {deal.give.length} of {MAX_SIDE}
@@ -468,7 +464,6 @@ export function TradeCheck({ report, keep, creds }: Props) {
                   </small>
                   <span>
                     <b>Their roster</b>
-                    <small>Pick who you get</small>
                   </span>
                 </div>
                 <Bench
@@ -482,9 +477,7 @@ export function TradeCheck({ report, keep, creds }: Props) {
                 />
               </section>
             </>
-          ) : (
-            <p className="tck-empty">Pick the team the trade is with to see both rosters.</p>
-          )}
+          ) : null}
         </div>
       </div>
     )
