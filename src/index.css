@@ -86,6 +86,11 @@
      the last-5 edge, never a fill. Not gold (you/live/focus), not green/coral (outcomes). */
   --heat: #ff74d0;
   --ice: #9ccfdf;
+  /* Quiet Field (QuietField.css): the starters' soft field, one step off the page and warm, and the
+     pointer tint on its rows. Pinned cells take this exact colour inside it. */
+  --field: color-mix(in srgb, var(--text) 4%, var(--surface));
+  --field-hover: color-mix(in srgb, var(--text) 4%, transparent);
+  --field-r: 16px;
   /* Front Office corners: a bit round, never pill-shaped. Cards 18, rows 16, tiles 14, buttons 12, tags 7. */
   --radius: 18px;
   --radius-row: 16px;
@@ -171,6 +176,8 @@
   --seam: #d6ccbb;
   --close: #e2dbce;
   --scrim: rgb(26 23 20 / 0.45);
+  --field: color-mix(in srgb, #5a3c1e 5.5%, var(--surface));
+  --field-hover: color-mix(in srgb, #5a3c1e 5%, transparent);
 
   color-scheme: light;
   --heat: #b0177e;
