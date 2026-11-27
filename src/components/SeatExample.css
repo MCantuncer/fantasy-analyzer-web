@@ -1,0 +1,220 @@
+/* League, before you pick your team: "Once you pick your team" and an inert example panel (lx-).
+   The panel's text recedes to --text-2 / --muted and nothing in it has button chrome. */
+.lx-seat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lx-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.lx-h-ic {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+
+.lx-sub {
+  margin: 0 0 8px;
+  padding: 0 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.lx-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding: 16px 12px;
+  border-radius: 18px;
+  background: var(--field);
+  color: var(--text-2);
+  user-select: none;
+}
+
+.lx-piece {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lx-ph {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-2);
+}
+
+.lx-panel p {
+  margin: 0;
+}
+
+.lx-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lx-score b {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.lx-score i {
+  font-style: normal;
+  font-weight: 300;
+  color: var(--muted);
+}
+
+.lx-big {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 13.5px;
+}
+
+.lx-big b {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-2);
+}
+
+.lx-gain {
+  font-weight: 650;
+  color: var(--good);
+}
+
+/* Ten rungs, 1st on the left; yours gold; a 2px seam after the playoff line. */
+.lx-ladder {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lx-rung {
+  flex: 1 1 0;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--cs-quiet);
+}
+
+.lx-rung.lx-you {
+  background: var(--gold);
+}
+
+.lx-rung.lx-cut {
+  position: relative;
+  margin-left: 8px;
+}
+
+.lx-rung.lx-cut::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: -5px;
+  width: 2px;
+  height: 20px;
+  border-radius: 1px;
+  background: var(--seam);
+}
+
+.lx-ends {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.lx-line {
+  position: absolute;
+  left: 60%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.lx-swap,
+.lx-with {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13.5px;
+}
+
+.lx-swap span {
+  color: var(--text-2);
+  font-weight: 550;
+}
+
+.lx-arrow {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.lx-with {
+  color: var(--muted);
+}
+
+/* The example strip keeps its phone size on every width: it is a third of the panel. */
+@media (min-width: 760px) {
+  .lx-panel .cs-pair.cs-one {
+    --bw: 10px;
+    --reach: 22px;
+    --rows: 22px 24px auto 24px;
+    column-gap: 2px;
+  }
+
+  .lx-panel .cs-pl {
+    font-size: 11.5px;
+  }
+
+  .lx-panel .cs-ic {
+    display: none;
+  }
+
+  .lx-panel .cs-pv {
+    font-size: 13.5px;
+  }
+
+  .lx-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+    padding: 22px 24px;
+  }
+
+  .lx-mu {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1100px) {
+  .lx-panel {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .lx-mu {
+    grid-column: auto;
+  }
+}
