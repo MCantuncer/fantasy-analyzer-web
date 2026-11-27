@@ -125,14 +125,21 @@
   --key: 24px;
   --bw: 10px;
   --reach: 24px;
-  --rows: 22px 22px 14px auto 22px 14px;
+  --lab: 22px;
+  --rows: var(--lab) 22px 14px auto 22px 14px;
   display: grid;
   grid-template-columns: var(--key) repeat(var(--n, 9), minmax(0, 1fr));
   column-gap: 2px;
 }
 
 .cs-pair.cs-one {
-  --rows: 22px 24px auto 24px;
+  --rows: var(--lab) 24px auto 24px;
+}
+
+/* A close category stacks the word Close over its label, so the label row grows for the whole strip
+   and the figures stay in line. */
+.cs-pair.cs-hasclose {
+  --lab: 36px;
 }
 
 .cs-pair.cs-crestkey {
@@ -201,19 +208,18 @@
   white-space: nowrap;
 }
 
-/* Close this week, can flip: ink (amber sat too near the "hurts" orange). Phones underline the label,
-   wider screens show the Target instead. */
+/* Close this week, can flip: an ink label (amber sat too near the "hurts" orange) under the word Close. */
 .cs-pl.cs-close {
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.1;
   color: var(--text);
-  text-decoration: underline 1.5px;
-  text-underline-offset: 3px;
 }
 
-.cs-ic {
-  display: none;
-  flex: none;
-  width: 12px;
-  height: 12px;
+.cs-close-word {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-2);
 }
 
 .cs-pv,
@@ -307,24 +313,25 @@
     --key: 112px;
     --bw: 12px;
     --reach: 28px;
-    --rows: 26px 30px 18px auto 30px 18px;
+    --lab: 26px;
+    --rows: var(--lab) 30px 18px auto 30px 18px;
     column-gap: 4px;
   }
 
   .cs-pair.cs-one {
-    --rows: 26px 32px auto 32px;
+    --rows: var(--lab) 32px auto 32px;
+  }
+
+  .cs-pair.cs-hasclose {
+    --lab: 40px;
   }
 
   .cs-pl {
     font-size: 12px;
   }
 
-  .cs-ic {
-    display: inline;
-  }
-
-  .cs-pl.cs-close {
-    text-decoration: none;
+  .cs-close-word {
+    font-size: 11px;
   }
 
   .cs-pv {
