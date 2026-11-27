@@ -19,7 +19,6 @@ import './Trades.css'
 import { PlayerLink } from './PlayerCard'
 import { KeptPlayers, PlayerInline, PlayerList } from './PlayerInline'
 import { ReasonTiles } from './ReasonTiles'
-import { shortListNote } from '../lib/tradeList'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 import { keptNames } from '../lib/untouchable'
 
@@ -167,7 +166,7 @@ export function TradeItem({
             {t.warnings.map((w) => (
               <li key={w}>
                 <WarningMark />
-                <span>{w} Shown because it's one of the best deals of the day.</span>
+                <span>{w}</span>
               </li>
             ))}
           </ul>
@@ -351,8 +350,7 @@ const MODES: Record<Mode, { label: string; hint: string; empty: string; why: str
   fair: {
     label: 'Fair',
     hint: "Both teams' playoff odds go up at least a point",
-    empty:
-      "No trade raises both teams' playoff odds right now. Early in the season, a deal that helps you usually costs the other team, since you become a tougher rival for the same playoff spots. The Bold tab has deals that look like a win for them on paper.",
+    empty: "No trade raises both teams' playoff odds right now.",
     why: 'Why they might say yes',
   },
   edge: {
@@ -364,10 +362,8 @@ const MODES: Record<Mode, { label: string; hint: string; empty: string; why: str
 }
 
 // With no Fair deal there is nothing to switch between, so the panel folds to one list or one line.
-const BOLD_ONLY =
-  "No deal lifts both teams' playoff odds today, so these are Bold ideas: they win on paper, you win on the court, and their odds dip 3 points at most"
-const NOTHING =
-  'No trade worth offering right now. Nothing raises your playoff odds that another team would take. Rosters change fast, so check back after the next games.'
+const BOLD_ONLY = "No deal lifts both teams' playoff odds today."
+const NOTHING = 'No trade worth offering right now. Nothing raises your playoff odds that another team would take.'
 
 interface TradesProps {
   fair: TradeIdea[]
@@ -408,7 +404,6 @@ export function Trades({
   const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
   const skipped = (mode === 'fair' ? fairSplit : edgeSplit).skipped
-  const found = (mode === 'fair' ? allFair : allEdge).length
   const first = (mode === 'fair' ? allFair : allEdge)[0]
   const [open, setOpen] = useState<string | null>(first ? tradeKey(first) : null)
   const keepRow = useKeepRowInView(open)
@@ -470,10 +465,7 @@ export function Trades({
             myTeamId={myTeamId}
             kept={kept}
           />
-          <p className="small muted trades-hint">
-            {noFair ? BOLD_ONLY : MODES[mode].hint}.{shortListNote(found) && ` ${shortListNote(found)}`} Ranked by
-            expected gain: your gain times the chance they say yes.
-          </p>
+          {noFair && <p className="small muted trades-hint">{BOLD_ONLY}</p>}
         </>
       )}
       {trades.length === 0 && !(showSkipped && skipped.length) ? (

@@ -51,8 +51,8 @@
   gap: 12px;
 }
 
-.tp-best-note {
-  margin: 4px 0 12px;
+.tp-best-head + .tp-best-bones {
+  margin-top: 12px;
 }
 
 .tp-best-bones {

@@ -11,9 +11,4 @@
     margin-left: 0;
     flex-basis: 100%;
   }
-
-  .rules-group-hint {
-    display: block;
-    margin: 2px 0 0;
-  }
 }

@@ -64,7 +64,6 @@ export function BestMovePending({ status, onRetry }: { status: TradesStatus; onR
         </h2>
         <Status status={status} onRetry={onRetry} />
       </header>
-      <p className="small muted tp-best-note">Weighing trades against your free agent targets.</p>
       <div className="tp-best-bones" aria-hidden="true">
         <Bone w="58%" h={18} />
         <Bone w="84%" h={10} />

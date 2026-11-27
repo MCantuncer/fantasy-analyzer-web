@@ -38,7 +38,8 @@ describe('Trades', () => {
     const { container } = show(<Trades fair={[]} edge={[idea]} />)
     const view = within(container)
     expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
-    expect(view.getByText(/these are Bold ideas: they win on paper/)).toBeInTheDocument()
+    expect(view.getByText("No deal lifts both teams' playoff odds today.")).toBeInTheDocument()
+    expect(view.queryByText(/they win on paper/)).toBeNull()
     expect(container.querySelectorAll('.move-list > li')).toHaveLength(1)
   })
 
@@ -105,7 +106,7 @@ describe('Trades', () => {
   it('prints the number the list is ranked by on each row', () => {
     const { container } = show(<Trades fair={[idea]} edge={[]} />)
     const view = within(container)
-    expect(view.getByText(/Ranked by expected gain: your gain times the chance they say yes/)).toBeInTheDocument()
+    expect(view.queryByText(/Ranked by expected gain/)).toBeNull()
     // 33% of +4 points.
     expect(container.querySelector('.tr-exp')).toHaveTextContent('Expected gain+1.3, plus 1.3 playoff odds points')
   })
