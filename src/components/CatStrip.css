@@ -288,15 +288,6 @@
   background: var(--hurt);
 }
 
-/* Builds ranks: the light reaching the end, 55% at the tick, full by 70% of the length. */
-.cs-good {
-  background: linear-gradient(var(--dir), color-mix(in srgb, var(--good) 55%, transparent), var(--good) 70%);
-}
-
-.cs-bad {
-  background: linear-gradient(var(--dir), color-mix(in srgb, var(--bad) 55%, transparent), var(--bad) 70%);
-}
-
 /* Neither side is you: no good or bad, just the lead. */
 .cs-neu {
   background: linear-gradient(var(--dir), var(--cs-quiet), var(--cs-neutral) 70%);
@@ -472,13 +463,14 @@
   color: var(--muted);
 }
 
-.cs-rn.cs-rn-good {
-  color: var(--good);
-  font-weight: 650;
+/* Another team's top two and punts: a solid neutral bar, theirs and not good or bad for you. */
+.cs-rank-hi {
+  background: var(--cs-neutral);
 }
 
-.cs-rn.cs-rn-bad {
-  color: var(--bad);
+/* Top two and punts: the rank in ink and bold, on every row; colour lives on the bar. */
+.cs-rn.cs-rn-w {
+  color: var(--text);
   font-weight: 650;
 }
 

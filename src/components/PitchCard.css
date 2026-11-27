@@ -139,7 +139,8 @@
 
 .pp-big {
   margin-top: 4px;
-  color: var(--good);
+  /* Their gain, not yours: ink, not the "helps you" blue. */
+  color: var(--text);
   font-size: 30px;
   font-weight: 750;
   line-height: 1.1;

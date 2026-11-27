@@ -102,7 +102,7 @@ function Gift({ need: n, teams }: { need: Need; teams?: number }) {
     <li className="pp-gift">
       <span className="sr-only">{sr}</span>
       <div className="pp-gift-top" aria-hidden="true">
-        <span className="pp-cat">{n.category}</span>
+        <span className="pp-cat">{turnover ? 'TO↓' : n.category}</span>
         <span className="pp-rank num">
           {ordinal(n.league_rank)}
           {teams ? <span className="pp-of">/{teams}</span> : null}

@@ -185,7 +185,6 @@ function FactRow({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
   const value = (x: number, given?: string | null) => (rounds ? shortValue(x, rounds) : given || shortValue(x, rounds))
   let label: ReactNode
   let figure: ReactNode
-  let tone = ''
   switch (f.kind) {
     case 'sell_high':
     case 'buy_low':
@@ -239,7 +238,6 @@ function FactRow({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
     case 'keystone_lost':
       label = 'Takes their keystone'
       figure = cats
-      tone = 'bad'
       break
     default:
       label = p ? (
@@ -258,7 +256,7 @@ function FactRow({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
   return (
     <div>
       <dt>{label}</dt>
-      <dd className={`num ${tone}`}>{figure}</dd>
+      <dd className="num">{figure}</dd>
     </div>
   )
 }

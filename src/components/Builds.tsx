@@ -3,12 +3,14 @@ import type { TeamBuild } from '../api/client'
 import { stripCategories } from '../lib/catStrip'
 import { teamColours } from '../lib/league'
 import { CatStripRank, CatStripRankHead } from './CatStripRank'
-import { YourCrest } from './YourCrest'
+import { TeamCrest } from './TeamCrest'
+import { YouTag } from './YouTag'
 import './Builds.css'
 
 /**
  * League builds: every team's weekly rank in each category as CatStrip `rank` bars (up is strong,
  * down is weak), its expected categories won a week, and its likely punts in words. Best first.
+ * Only your row is in colour (blue helps you, orange hurts you); other teams' bars are neutral.
  */
 export function Builds({
   builds,
@@ -47,8 +49,9 @@ export function Builds({
           return (
             <li key={b.team_id} className={`bd-g bd-r${mine ? ' mine' : ''}`}>
               <span className="bd-tm">
-                <YourCrest name={b.team_name} colour={colours.get(b.team_id)} size={22} mine={mine} />
+                <TeamCrest name={b.team_name} colour={colours.get(b.team_id)} size={22} />
                 <span className="bd-nm">{b.team_name}</span>
+                {mine && <YouTag />}
               </span>
               <CatStripRank
                 ranks={b.ranks}
@@ -56,6 +59,7 @@ export function Builds({
                 n={n}
                 categories={cats}
                 label={`${b.team_name}: weekly rank in each category`}
+                mine={mine}
               />
               <span className="bd-cw">
                 <b className="num">{b.expected_cats_won.toFixed(2)}</b>
