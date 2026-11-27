@@ -8,7 +8,6 @@ import {
   ChartLineUp,
   Table,
   Target,
-  User,
   UserPlus,
   X,
   type Icon,
@@ -33,6 +32,7 @@ import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { Spinner } from './Spinner'
 import { TeamCrest } from './TeamCrest'
+import { YourCrest } from './YourCrest'
 import './NewsSince.css'
 
 export interface NewsSinceProps {
@@ -292,7 +292,11 @@ export function NewsSince({
       <div id="ns-body" className="ns-body" hidden={folded && !running}>
         {roster.length > 0 && (
           <div className="ns-roster">
-            <User size={16} weight="bold" className="ns-you" aria-hidden="true" />
+            {ref && (
+              <span className="ns-crest" aria-hidden="true">
+                <YourCrest name={ref.team_name} colour={colours.get(ref.team_id)} size={22} mine />
+              </span>
+            )}
             <span className="sr-only">Your team: </span>
             <ul className="ns-roster-list">
               {roster.map((i) => (

@@ -182,12 +182,15 @@ describe("Tonight's Kupons", () => {
     const { container } = show(lostAndSatOut())
     const lost = [...container.querySelectorAll('.ic-ku-tot .out.no')].find((el) => el.textContent === 'Lost on Shooter 20+')
     expect(lost).toBeTruthy()
+    // Each name in a sentence carries a small face that opens the same card.
+    expect(lost!.querySelector('.pin .head')).not.toBeNull()
     fireEvent.click(within(lost as HTMLElement).getByRole('button', { name: 'Shooter' }))
-    expect(open).toHaveBeenCalledWith({ id: 77, name: 'Ann Shooter' })
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 77, name: 'Ann Shooter' }))
     const sat = [...container.querySelectorAll('.ic-ku-note')].find((el) => el.textContent?.startsWith('Scorer sat out'))
     expect(sat!.textContent).toBe('Scorer sat out, so iddaa counts that pick at 1.00.')
+    expect(sat!.querySelector('.pin .head')).not.toBeNull()
     fireEvent.click(within(sat as HTMLElement).getByRole('button', { name: 'Scorer' }))
-    expect(open).toHaveBeenLastCalledWith({ id: 78, name: 'Bo Scorer' })
+    expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ id: 78, name: 'Bo Scorer' }))
   })
 
   it('keeps the lost-on and sat-out names as plain text with no card to open', () => {

@@ -91,9 +91,9 @@
   padding: 0 10px 10px;
 }
 
-.ns-you {
+.ns-crest {
+  display: inline-flex;
   flex: none;
-  color: var(--gold-text);
 }
 
 .ns-roster-list {
