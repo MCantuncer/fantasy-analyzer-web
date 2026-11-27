@@ -134,7 +134,6 @@ function Form({
       }}
     >
       <h3 className="feedback-q">Was this a good trade idea?</h3>
-      <p className="small muted">We check what you tell us against the data. The idea stays on your list.</p>
       <div className="feedback-rating" role="group" aria-label="Your rating">
         {(['good', 'bad'] as const).map((r) => (
           <button key={r} type="button" className="secondary" aria-pressed={rating === r} onClick={() => setRating(r)}>

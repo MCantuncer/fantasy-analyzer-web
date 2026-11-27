@@ -559,7 +559,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
               <EndLabel end="give">
                 <span className="tt-label">
                   {shopping.length === 0 ? (
-                    `Pick up to ${MAX_PICKS} · deals load as you pick`
+                    `Pick up to ${MAX_PICKS}`
                   ) : (
                     <>
                       <span className="park-who-label">{whoLinks} · </span>

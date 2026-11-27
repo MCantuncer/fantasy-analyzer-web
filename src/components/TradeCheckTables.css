@@ -200,9 +200,3 @@ th.tck-tb-who.them {
 .tck-tb-finish td {
   padding-top: 12px;
 }
-
-.tck-tb-note {
-  margin: 0;
-  color: var(--text-2);
-  font-size: 0.75rem;
-}
