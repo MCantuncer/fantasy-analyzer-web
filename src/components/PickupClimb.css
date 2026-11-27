@@ -1,16 +1,29 @@
-/* The free-agent climb on Best move ("The field"): today's odds at the dropped player, one lit
-   line rising to the added player's odds, faint strands for the other pickups checked today. */
+/* The free-agent climb on Best move, calm (Quiet Lead): one green line from today's odds to the
+   odds after the pickup with a soft fade under it, faint strands for the other pickups checked
+   today, and the 50% line as the only rule. No grid, no ticks. */
 
 .pclimb {
+  --fade-a: 22%;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+:root[data-theme='light'] .pclimb {
+  --fade-a: 16%;
 }
 
 .pclimb-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 12px;
+}
+
+.pclimb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   gap: 12px;
 }
 
@@ -21,6 +34,12 @@
   flex: none;
 }
 
+.pclimb-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
 .pclimb-zoom {
   font-size: 12px;
   color: var(--muted);
@@ -28,12 +47,20 @@
 
 .pclimb-who {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pclimb-who-text {
+  display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.pclimb-end {
+.pclimb-end,
+.pclimb-end .pclimb-who-text {
   align-items: flex-end;
   text-align: right;
 }
@@ -52,11 +79,12 @@
 }
 
 .pclimb-start {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .pclimb-plot {
   position: relative;
+  margin-top: 4px;
 }
 
 .pclimb-art {
@@ -74,31 +102,34 @@
 
 .pclimb-svg path,
 .pclimb-svg line {
-  fill: none;
   vector-effect: non-scaling-stroke;
 }
 
-.pclimb-grid {
-  stroke: var(--text);
-  stroke-opacity: 0.07;
-  stroke-width: 1;
+.pclimb-even,
+.pclimb-strand,
+.pclimb-line {
+  fill: none;
 }
 
 .pclimb-even {
-  stroke: var(--text-2);
-  stroke-opacity: 0.7;
-  stroke-width: 1.5;
+  stroke: var(--seam);
+  stroke-width: 1;
+}
+
+.pclimb-fade {
+  stroke: none;
+  opacity: var(--fade-a);
 }
 
 .pclimb-strand {
-  stroke: var(--text-2);
-  stroke-opacity: 0.22;
-  stroke-width: 1.4;
+  stroke: var(--muted);
+  stroke-opacity: 0.55;
+  stroke-width: 1.25;
 }
 
 .pclimb-line {
   stroke: var(--good);
-  stroke-width: 3.5;
+  stroke-width: 2.5;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
@@ -120,28 +151,13 @@
   }
 }
 
-.pclimb-tick {
-  position: absolute;
-  left: 0;
-  width: 24px;
-  transform: translateY(-50%);
-  font-size: 11.5px;
-  line-height: 16px;
-  color: var(--muted);
-}
-
-.pclimb-tick.even {
-  font-weight: 650;
-  color: var(--text-2);
-}
-
+/* "50% · even odds" at the right end, just under its line (light pass L0). */
 .pclimb-even-label {
   position: absolute;
-  left: 30px;
+  right: 0;
   font-size: 12px;
   line-height: 16px;
-  font-weight: 600;
-  color: var(--text-2);
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -153,117 +169,100 @@
 }
 
 .pclimb-sdot {
-  width: 4px;
-  height: 4px;
-  background: var(--text-2);
-  opacity: 0.45;
+  width: 5px;
+  height: 5px;
+  background: var(--muted);
+  opacity: 0.7;
 }
 
 .pclimb-dot {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 
 .pclimb-dot.now {
   background: var(--surface);
-  border: 2.5px solid var(--faint);
+  box-shadow: inset 0 0 0 2px var(--muted);
 }
 
 .pclimb-dot.after {
   background: var(--good);
-  border: 2.5px solid var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 22%, transparent);
 }
 
 .pclimb-gain {
   position: absolute;
   right: 0;
   transform: translateY(-50%);
-  padding: 0 4px;
-  border-radius: 4px;
-  background: var(--surface);
-  font-size: 10.5px;
-  line-height: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
   color: var(--muted);
 }
 
+/* Bottom-left corner: empty, because every strand climbs from the now dot. */
 .pclimb-cap {
   position: absolute;
-  right: 0;
-  text-align: right;
+  left: 0;
+  bottom: 0;
+  max-width: 72%;
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 16px;
   color: var(--muted);
 }
 
-.pclimb-after,
 .pclimb-now {
   position: absolute;
   display: flex;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.pclimb-after {
-  align-items: flex-end;
+.pclimb-now b {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--text-2);
 }
 
-.pclimb-after-figs {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.pclimb-now {
-  align-items: center;
-}
-
-.pclimb-now .head {
-  opacity: 0.8;
-}
-
-.pclimb-now-figs {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.pclimb-cap-now {
+.pclimb-now span {
   font-size: 12px;
-  line-height: 1.2;
   color: var(--muted);
+}
+
+.pclimb-end-fig {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.pclimb-end-figs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .pclimb-pct {
-  font-size: 46px;
+  font-size: 40px;
   font-weight: 700;
-  line-height: 0.9;
+  line-height: 40px;
   letter-spacing: -0.02em;
-}
-
-.pclimb-pct.now {
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--muted);
 }
 
 .pclimb-pct small {
   margin-left: 1px;
-  font-size: 0.46em;
-  font-weight: 600;
+  font-size: 0.5em;
+  font-weight: 650;
   color: var(--text-2);
 }
 
-.pclimb-delta {
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.pclimb-delta.good {
-  color: var(--good);
-}
-
-.pclimb-delta.bad {
-  color: var(--bad);
+@media (max-width: 760px) {
+  .pclimb-pct {
+    font-size: 34px;
+    line-height: 34px;
+  }
 }

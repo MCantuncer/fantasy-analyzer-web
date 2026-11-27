@@ -16,7 +16,7 @@ describe('BestMove for a scouted team', () => {
     const view = within(container)
     expect(view.getAllByText("Horns' playoff odds").length).toBeGreaterThan(0)
     expect(container.textContent).not.toMatch(/\byour\b/i)
-    expect(container.querySelector('.sr-only')?.textContent).toContain("Horns' playoff odds 47% to 51%")
+    expect(container.querySelector('.sr-only')?.textContent).toContain("Horns' playoff odds go from 47% today to 51%")
     expect(view.getByRole('button', { name: 'Get my best move' })).toBeInTheDocument()
     expect(view.queryByText('Make the claim on ESPN')).toBeNull()
   })

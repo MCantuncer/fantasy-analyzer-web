@@ -1,17 +1,17 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { Plus, Trash } from '@phosphor-icons/react'
 import type { PlayerRef } from '../api/client'
 import { climb, sCurve } from '../lib/climb'
+import { END_GAP, evenLabelTop } from '../lib/climbLabels'
 import { pct, ptsDiff, signedInt } from '../lib/format'
 import { InjuryBadges } from './InjuryBadges'
-import { Delta } from './OddsChange'
 import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
+import { DeltaChip } from './TradeTable'
 import './PickupClimb.css'
 
-const AFTER_FACE = 64
-const NOW_FACE = 44
-const LABEL_H = 16
+const END_FACE = 48
+const DROP_FACE = 44
 
 function Who({
   label,
@@ -19,36 +19,49 @@ function Who({
   player,
   note,
   align,
+  face,
 }: {
   label: string
   icon: typeof Plus
   player: PlayerRef
   note?: ReactNode
   align: 'start' | 'end'
+  face?: number
 }) {
   return (
     <div className={`pclimb-who pclimb-${align}`}>
-      <span className="bm-lane-label">
-        <LaneIcon size={14} weight="bold" aria-hidden="true" />
-        {label}
-      </span>
-      <span className="bm-name">
-        <PlayerLink player={player} after={<InjuryBadges players={[player]} />} />
-      </span>
-      <span className="pclimb-meta">
-        <span className="code">{[player.pro_team, player.positions.join('/')].filter(Boolean).join(' · ')}</span>
-        {note && <span className="pclimb-note">{note}</span>}
-      </span>
+      {face && <PlayerHead player={player} size={face} team={player.pro_team} />}
+      <div className="pclimb-who-text">
+        <span className="bm-lane-label">
+          <LaneIcon size={14} weight="bold" aria-hidden="true" />
+          {label}
+        </span>
+        <span className="bm-name">
+          <PlayerLink player={player} after={<InjuryBadges players={[player]} />} />
+        </span>
+        <span className="pclimb-meta">
+          <span className="code">{[player.pro_team, player.positions.join('/')].filter(Boolean).join(' · ')}</span>
+          {note && <span className="pclimb-note">{note}</span>}
+        </span>
+      </div>
     </div>
   )
 }
 
+/** "Faint: the 3 other pickups checked today", or what is left of it when fewer are drawn. */
+function caption(drawn: number, scored: number): string {
+  const pickups = scored === 1 ? 'pickup' : 'pickups'
+  if (drawn === 0) return `None of the ${scored} other ${pickups} checked today raises your odds`
+  if (drawn < scored) return `Faint: some of the ${scored} other ${pickups} checked today`
+  return `Faint: the ${scored} other ${pickups} checked today`
+}
+
 /**
- * The free-agent move as a climb ("The field"): you leave the dropped player at today's odds and
- * rise to the added player's. Faint strands are the other straight add/drops the analysis scored,
- * each ending at its own odds and labelled with its own gain, so the lit line shows how far it
- * beats them. The scale is zoomed and says so, with its ticks; 50% is labelled even odds, not
- * the playoff line.
+ * The free-agent move as a calm climb: one green line from today's odds (a hollow dot, "56%
+ * today") to the odds after the pickup (a solid dot under "57%", the ▲ chip and the added player's
+ * face), with a soft green fade under it. Faint strands are the other straight add/drops the
+ * analysis scored, each ending at its own odds and labelled with its own gain. No grid and no
+ * ticks: the zoomed window is stated once in the header, and the 50% line is the only rule.
  */
 export function PickupClimb({
   add,
@@ -60,6 +73,7 @@ export function PickupClimb({
   addNote,
   dropNote,
   owner = 'Your',
+  lanes = true,
 }: {
   add: PlayerRef
   drop: PlayerRef
@@ -71,65 +85,76 @@ export function PickupClimb({
   dropNote?: ReactNode
   /** Whose odds, for the screen-reader sentence ("Your", "Horns'"). */
   owner?: string
+  /** Draws the Add and Drop lanes around the chart; off when the card shows them itself. */
+  lanes?: boolean
 }) {
+  const id = useId()
   const c = climb({ before, after, others, seed: `${add.id}/${drop.id}` })
   const diff = ptsDiff(before, after)
-  const afterTop = c.end.y - 14 - AFTER_FACE
-  const nowTop = c.start.y + 12
-  // The even-odds label goes above its line, else below it, else only the bold 50 tick shows.
-  const clash = (top: number) =>
-    (top < c.end.y - 14 && top + LABEL_H > afterTop) || (top < nowTop + NOW_FACE && top + LABEL_H > nowTop)
-  const evenTop =
-    c.even == null ? null : !clash(c.even - LABEL_H - 2) ? c.even - LABEL_H - 2 : !clash(c.even + 3) ? c.even + 3 : null
+  const evenTop = evenLabelTop(c)
   const scored = others.length
   const beaten = others.filter((o) => ptsDiff(before, o) < diff).length
+  const x0 = c.start.x * 1000
+  const x1 = c.end.x * 1000
+  const line = sCurve(x0, c.start.y, x1, c.end.y)
+  const fade = `${line} L${x1} ${c.height} L${x0} ${c.height} Z`
+
+  const zoom = (
+    <span className="pclimb-zoom">
+      zoomed to{' '}
+      <span className="num">
+        {c.lo}–{c.hi}%
+      </span>
+    </span>
+  )
 
   return (
     <div className="pclimb">
-      <div className="pclimb-top">
-        <div className="pclimb-axis">
-          <span className="kpi-label">{label}</span>
-          <span className="pclimb-zoom">
-            zoomed to{' '}
-            <span className="num">
-              {c.lo}–{c.hi}%
-            </span>
-          </span>
+      {lanes ? (
+        <div className="pclimb-top">
+          <div className="pclimb-axis">
+            <span className="pclimb-label">{label}</span>
+            {zoom}
+          </div>
+          <Who label="Add" icon={Plus} player={add} note={addNote} align="end" />
         </div>
-        <Who label="Add" icon={Plus} player={add} note={addNote} align="end" />
-      </div>
+      ) : (
+        <div className="pclimb-head">
+          <span className="pclimb-label">{label}</span>
+          {zoom}
+        </div>
+      )}
 
       <div className="pclimb-plot" style={{ height: c.height }}>
         <p className="sr-only">
-          Drop {drop.name}, add {add.name}: {owner} playoff odds {pct(before)} to {pct(after)},{' '}
+          {owner} playoff odds go from {pct(before)} today to {pct(after)} with {add.name} for {drop.name},{' '}
           {diff >= 0 ? 'up' : 'down'} {Math.abs(diff)} points.
           {scored > 0 && ` It beats ${beaten} of the ${scored} other pickups checked today.`}
         </p>
         <div className="pclimb-art" aria-hidden="true">
-          {c.ticks.map((t) => (
-            <span
-              key={t.pct}
-              className={t.pct === 50 ? 'pclimb-tick even num' : 'pclimb-tick num'}
-              style={{ top: t.y }}
-            >
-              {t.pct}
-            </span>
-          ))}
           <svg className="pclimb-svg" viewBox={`0 0 1000 ${c.height}`} preserveAspectRatio="none" focusable="false">
-            {c.ticks
-              .filter((t) => t.pct !== 50)
-              .map((t) => (
-                <line key={t.pct} x1={80} x2={1000} y1={t.y} y2={t.y} className="pclimb-grid" />
-              ))}
-            {c.even != null && <line x1={80} x2={1000} y1={c.even} y2={c.even} className="pclimb-even" />}
+            <defs>
+              {/* Green from the line down, gone by 70% of the depth; faded in from the left. */}
+              <linearGradient id={`${id}-down`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="var(--good)" stopOpacity="1" />
+                <stop offset="0.7" stopColor="var(--good)" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id={`${id}-across`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#fff" stopOpacity="0" />
+                <stop offset="0.45" stopColor="#fff" stopOpacity="1" />
+              </linearGradient>
+              <mask id={`${id}-in`} maskContentUnits="objectBoundingBox">
+                <rect x="0" y="0" width="1" height="1" fill={`url(#${id}-across)`} />
+              </mask>
+            </defs>
+            {c.even != null && <line x1={0} x2={1000} y1={c.even} y2={c.even} className="pclimb-even" />}
+            {after > before && (
+              <path d={fade} className="pclimb-fade" fill={`url(#${id}-down)`} mask={`url(#${id}-in)`} />
+            )}
             {c.strands.map((s, k) => (
-              <path key={k} d={sCurve(c.start.x * 1000, c.start.y, s.x * 1000, s.y)} className="pclimb-strand" />
+              <path key={k} d={sCurve(x0, c.start.y, s.x * 1000, s.y)} className="pclimb-strand" />
             ))}
-            <path
-              d={sCurve(c.start.x * 1000, c.start.y, c.end.x * 1000, c.end.y)}
-              className="pclimb-line"
-              pathLength={1}
-            />
+            <path d={line} className="pclimb-line" pathLength={1} />
           </svg>
           {c.strands.map((s, k) => (
             <i key={k} className="pclimb-sdot" style={{ left: `${s.x * 100}%`, top: s.y }} />
@@ -138,7 +163,7 @@ export function PickupClimb({
           <i className="pclimb-dot after" style={{ left: `${c.end.x * 100}%`, top: c.end.y }} />
           {evenTop != null && (
             <span className="pclimb-even-label" style={{ top: evenTop }}>
-              50% · even odds
+              <span className="num">50%</span> · even odds
             </span>
           )}
           {c.groups.map((g) => (
@@ -146,60 +171,28 @@ export function PickupClimb({
               {signedInt(g.gain)}
             </span>
           ))}
-          {scored > 0 && (
-            <span className="pclimb-cap" style={{ top: c.ticks[0].y + 6 }}>
-              {c.strands.length === 0
-                ? `None of the ${scored} other pickups`
-                : c.strands.length < scored
-                  ? `Faint: some of the ${scored}`
-                  : `Faint: the ${scored} other`}
-              <br />
-              {c.strands.length === 0
-                ? 'checked today raises your odds'
-                : c.strands.length < scored
-                  ? 'other pickups checked today'
-                  : 'pickups checked today'}
-            </span>
-          )}
-
+          <span className="pclimb-now" style={{ left: `calc(${c.start.x * 100}% - 6px)`, top: c.start.y + 14 }}>
+            <b className="num">{pct(before)}</b>
+            <span>today</span>
+          </span>
           <span
-            className="pclimb-after"
-            style={{
-              top: afterTop,
-              right: `calc(${(1 - c.end.x) * 100}% - ${AFTER_FACE / 2}px)`,
-            }}
+            className="pclimb-end-fig"
+            style={{ left: `calc(${c.end.x * 100}% + 24px)`, bottom: `calc(100% - ${c.end.y - END_GAP}px)` }}
           >
-            <span className="pclimb-after-figs">
-              <span className={diff >= 0 ? 'pclimb-delta good num' : 'pclimb-delta bad num'}>
-                <Delta value={diff} unit="pts" />
-              </span>
+            <span className="pclimb-end-figs">
               <span className="pclimb-pct num">
                 {Math.round(after * 100)}
                 <small>%</small>
               </span>
+              <DeltaChip before={before} after={after} />
             </span>
-            <PlayerHead player={add} size={AFTER_FACE} team={add.pro_team} />
+            <PlayerHead player={add} size={END_FACE} team={add.pro_team} />
           </span>
-          <span
-            className="pclimb-now"
-            style={{
-              top: nowTop,
-              left: `calc(${c.start.x * 100}% - ${NOW_FACE / 2}px)`,
-            }}
-          >
-            <PlayerHead player={drop} size={NOW_FACE} team={drop.pro_team} />
-            <span className="pclimb-now-figs">
-              <span className="pclimb-cap-now">now</span>
-              <span className="pclimb-pct now num">
-                {Math.round(before * 100)}
-                <small>%</small>
-              </span>
-            </span>
-          </span>
+          {scored > 0 && <span className="pclimb-cap">{caption(c.strands.length, scored)}</span>}
         </div>
       </div>
 
-      <Who label="Drop" icon={Trash} player={drop} note={dropNote} align="start" />
+      {lanes && <Who label="Drop" icon={Trash} player={drop} note={dropNote} align="start" face={DROP_FACE} />}
     </div>
   )
 }
