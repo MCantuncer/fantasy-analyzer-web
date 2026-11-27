@@ -21,7 +21,7 @@ interface Props {
   colours: Map<number, string>
   myTeamId: number | null
   mine: OverviewMatchup | undefined
-  /** The matchup of the week (marked unless it is yours). */
+  /** The matchup of the week, marked only for a follower (no team of their own), where it is the featured matchup. */
   star: OverviewMatchup | undefined
   week: { start: string | null | undefined; end: string | null | undefined }
   leagueRef?: LeagueRef
@@ -30,7 +30,7 @@ interface Props {
 
 /**
  * League → the week's matchups as mirrored rows: crest · name · score – score · name · crest, the
- * leader in ink. A short marker line says what's worth knowing (ties, matchup of the week, within one).
+ * leader in ink. A short marker line says what's worth knowing (ties, within one, and for a follower the featured matchup of the week).
  * A row with a box score opens it in place, right under itself: CatStrip pair for the week, or today's
  * strip and both lineups. Esc closes it.
  */
@@ -144,7 +144,7 @@ export function MatchupRows({ matchups, sides, nameOf, colours, myTeamId, mine, 
         const [a, b] = sides(m)
         const k = key(m)
         const isMine = m === mine
-        const isStar = !isMine && m === star
+        const isStar = myTeamId == null && m === star
         const close1 = withinOne(a, b)
         const marks = [
           isStar ? <span key="star">Matchup of the week</span> : null,

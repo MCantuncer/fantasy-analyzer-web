@@ -82,7 +82,6 @@ describe('MatchupRows', () => {
     expect(within(tied as HTMLElement).queryByText('Within one')).toBeNull()
 
     expect(within(items[1] as HTMLElement).getByText('Within one')).toBeTruthy()
-    expect(within(items[1] as HTMLElement).getByText('Matchup of the week')).toBeTruthy()
   })
 
   it('lights your row and badges your crest, with no words beside the name', () => {
@@ -95,7 +94,11 @@ describe('MatchupRows', () => {
     expect(container.querySelectorAll('.lmr-item:not(.mine) .yourcrest-me')).toHaveLength(0)
   })
 
-  it('never marks your own matchup as the matchup of the week', () => {
+  it('shows no matchup of the week marker to a manager, not even on their own row', () => {
+    rows()
+    expect(screen.queryByText('Matchup of the week')).toBeNull()
+    expect(screen.queryByRole('button', { name: /matchup of the week/ })).toBeNull()
+    cleanup()
     rows({ star: MINE })
     expect(screen.queryByText('Matchup of the week')).toBeNull()
   })
@@ -103,6 +106,7 @@ describe('MatchupRows', () => {
   it("marks the follower's matchup of the week", () => {
     rows({ myTeamId: null, mine: undefined, star: TIED })
     expect(rowOf(/Sariyer Wolfpack 3, Eryaman Lakers 5, matchup of the week, 1 tied/)).toBeTruthy()
+    expect(screen.getAllByText('Matchup of the week')).toHaveLength(1)
   })
 
   it('opens the box score right under its row and closes it again', () => {
