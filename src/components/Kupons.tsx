@@ -1,5 +1,5 @@
 import { Check, Clock, Lightning, LinkSimple, ShieldCheck, Ticket, User, X } from '@phosphor-icons/react'
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { WHY_NOT, couponsOf, fmtOdds, legWhy, whyNot } from '../lib/coupons'
 import type { Coupon, CouponKind, CouponSlot, CouponSpec, Leg } from '../lib/coupons'
@@ -10,7 +10,7 @@ import { usePlayerCard } from '../lib/playerCard'
 import { useMediaQuery } from '../lib/useMediaQuery'
 import { Chance } from './EstimateBits'
 import { KuponStack } from './KuponStack'
-import { PlayerLink } from './PlayerCard'
+import { PlayerInline, PlayerList } from './PlayerInline'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './Kupons.css'
 
@@ -94,13 +94,18 @@ const pctOf = (v: number) => Math.round(v * 100)
 const lastName = (name: string) => name.split(' ').slice(1).join(' ') || name
 
 const whoOf = (l: Leg) => ({ id: l.line.playerId ?? 0, name: l.line.name })
+/** Who, with his club for the face's ring: a name inside a sentence gets a small face too. */
+const faceOf = (l: Leg) => ({ ...whoOf(l), pro_team: l.line.team })
 
-/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short. A player's name opens his card. */
+/** "Brunson 22+", "BOS −8.5", "Under 231.5": a leg named short. A player's face and name open his card. */
 function ShortOf({ leg: l }: { leg: Leg }) {
   if (l.kind !== 'player') return <>{l.bet}</>
   return (
     <>
-      <PlayerLink player={whoOf(l)}>{lastName(l.line.name)}</PlayerLink> {l.bet}
+      <PlayerInline player={faceOf(l)} size={22}>
+        {lastName(l.line.name)}
+      </PlayerInline>{' '}
+      {l.bet}
     </>
   )
 }
@@ -223,12 +228,7 @@ function KuponSlip({
       {c.voided.length > 0 && (
         <p className="ic-ku-note">
           <span>
-            {c.voided.map((v, i) => (
-              <Fragment key={v.id}>
-                {i > 0 && ', '}
-                <PlayerLink player={whoOf(v)}>{lastName(v.line.name)}</PlayerLink>
-              </Fragment>
-            ))}{' '}
+            <PlayerList players={c.voided.map(faceOf)} name={(p) => lastName(p.name)} />{' '}
             sat out, so iddaa counts that pick at <span className="num">1.00</span>.
           </span>
         </p>
