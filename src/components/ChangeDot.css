@@ -88,6 +88,44 @@
   z-index: 2;
 }
 
+/* The Playoffs bar (bar): left to right from 0, filled to the lower value, the change in its colour,
+   a ghost tick at before. Its width comes from the page (--cd-w). */
+.cd-bar {
+  width: var(--cd-w, 72px);
+  min-width: 0;
+  height: 12px;
+}
+.cd-bar .cd-track,
+.cd-bar .cd-fill,
+.cd-bar .cd-seg {
+  top: 3px;
+  height: 6px;
+  border-radius: 3px;
+}
+.cd-bar .cd-fill {
+  position: absolute;
+  left: 0;
+  width: var(--cd-from);
+  border-radius: 3px 0 0 3px;
+  background: color-mix(in srgb, var(--text-2) 70%, transparent);
+}
+.cd-bar .cd-seg {
+  left: var(--cd-from);
+  width: max(2px, calc(var(--cd-to) - var(--cd-from)));
+  border-radius: 0 3px 3px 0;
+}
+.cd-bar .cd-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--cd-before);
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.55;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .cd-dot,
   .cd-seg {

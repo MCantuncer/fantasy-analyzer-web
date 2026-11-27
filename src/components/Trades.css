@@ -268,58 +268,6 @@
   color: var(--text);
 }
 
-/* Your odds on the centre line: the after-odds big, then "from X% ▲ +N pts", then theirs. */
-.mvt-odds {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  text-align: center;
-}
-
-.mvt-odds-k {
-  font-size: 12.5px;
-  line-height: 18px;
-  color: var(--text-2);
-}
-
-.mvt-odds-big {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 32px;
-  letter-spacing: -0.01em;
-}
-
-.mvt-odds-from,
-.mvt-odds-them {
-  font-size: 12.5px;
-  line-height: 18px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.mvt-odds-them {
-  margin-top: 4px;
-  color: var(--text-2);
-}
-
-.mvt-d {
-  font-weight: 650;
-}
-
-.mvt-d.good {
-  color: var(--good);
-}
-
-.mvt-d.bad {
-  color: var(--bad);
-}
-
-.mvt-ar {
-  margin-right: 2px;
-  font-size: 0.7em;
-}
-
 .mvt-foot {
   display: flex;
   align-items: center;
@@ -396,6 +344,8 @@
   --good: var(--muted);
   --bad: var(--muted);
   --warn: var(--muted);
+  --help: var(--muted);
+  --hurt: var(--muted);
   color: var(--muted);
 }
 
@@ -522,26 +472,29 @@
     gap: 12px;
   }
 
-  /* The odds band across the row, between two rules. */
-  .mvt-odds {
+  /* Playoffs across the row, between two rules: the name, then the figure line; theirs under it. */
+  .mvt-deal .plo {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    align-items: baseline;
+    align-items: center;
     justify-items: start;
-    gap: 0 10px;
+    gap: 2px 12px;
     padding: 10px 0;
     border-top: 1px solid var(--divider);
     border-bottom: 1px solid var(--divider);
-    text-align: left;
   }
 
-  .mvt-odds-k,
-  .mvt-odds-them {
+  .mvt-deal .plo-them {
     grid-column: 1 / -1;
+    margin-top: 0;
   }
 
-  .mvt-odds-them {
-    margin-top: 0;
+  .mvt-deal .plo-big {
+    font-size: 22px;
+  }
+
+  .mvt-deal .cd-bar {
+    --cd-w: 80px;
   }
 
   .mvt-body {

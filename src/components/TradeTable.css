@@ -126,6 +126,25 @@
   font-weight: 600;
 }
 
+/* After a deal: the big number on its own line, then the Playoffs bar and ▲N under it. */
+.tt-plate .plo-line {
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 6px;
+}
+
+.tt-plate .plo-big {
+  flex-basis: 100%;
+  font-size: 44px;
+  line-height: 48px;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.tt-plate .plo-d {
+  font-size: 14px;
+}
+
 .tt-chip {
   display: inline-flex;
   align-items: center;
@@ -140,13 +159,13 @@
 }
 
 .tt-chip-up {
-  background: var(--good-soft);
-  color: var(--good);
+  background: var(--help-soft);
+  color: var(--help);
 }
 
 .tt-chip-down {
-  background: var(--bad-soft);
-  color: var(--bad);
+  background: var(--hurt-soft);
+  color: var(--hurt);
 }
 
 .tt-chip-ar {
@@ -537,6 +556,16 @@
   }
 
   .tt-plate-big {
+    font-size: 36px;
+    line-height: 40px;
+  }
+
+  .tt-plate .plo-line {
+    flex-wrap: nowrap;
+  }
+
+  .tt-plate .plo-big {
+    flex-basis: auto;
     font-size: 36px;
     line-height: 40px;
   }

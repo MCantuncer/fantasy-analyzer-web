@@ -15,7 +15,7 @@ import {
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
 import type { FeedbackSource, PickupIdea, PlayerRef, TradeIdea } from '../api/client'
-import { ordinal, pct, ptsDiff, signed, signedInt, tradeKey } from '../lib/format'
+import { ordinal, signed, tradeKey } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
@@ -30,6 +30,7 @@ import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { PlayerLink } from './PlayerCard'
+import { PlayoffsMark } from './PlayoffsMark'
 import { KeptPlayers, PlayerInline } from './PlayerInline'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 import { keptNames } from '../lib/untouchable'
@@ -38,22 +39,6 @@ import { AcceptChance } from './AcceptChance'
 interface Keeper {
   keep: number[]
   onToggleKeep: (id: number) => void
-}
-
-/** "▲ +2 pts": the sign and a small arrow, never colour alone. */
-function Delta({ before, after, unit = true }: { before: number; after: number; unit?: boolean }) {
-  const d = ptsDiff(before, after)
-  return (
-    <span className={`mvt-d num ${d > 0 ? 'good' : d < 0 ? 'bad' : ''}`}>
-      {d !== 0 && (
-        <span className="mvt-ar" aria-hidden="true">
-          {d > 0 ? '▲' : '▼'}
-        </span>
-      )}
-      {signedInt(d)}
-      {unit && ' pts'}
-    </span>
-  )
 }
 
 /**
@@ -479,18 +464,7 @@ export function TradeItem({
         </div>
         <div className="mvt-deal">
           <RowLane end="give" players={t.give} extra={faab > 0 ? `+ $${faab} FAAB` : undefined} keeper={open ? keeper : null} />
-          <div className="mvt-odds">
-            <span className="mvt-odds-k">Your odds</span>
-            <span className="mvt-odds-big num">{pct(t.playoff_pct_after)}</span>
-            <span className="mvt-odds-from num">
-              from {pct(t.playoff_pct_before)} <Delta before={t.playoff_pct_before} after={t.playoff_pct_after} />
-            </span>
-            {them && (
-              <span className="mvt-odds-them num">
-                Them {pct(them.before)} → {pct(them.after)} <Delta before={them.before} after={them.after} unit={false} />
-              </span>
-            )}
-          </div>
+          <PlayoffsMark before={t.playoff_pct_before} after={t.playoff_pct_after} them={them} />
           <RowLane end="get" players={t.get} />
         </div>
         <div className="mvt-foot">

@@ -165,7 +165,7 @@ describe('TradePark, nothing picked', () => {
   it('lays the whole roster in the give end, today on the centre line, and every team low in', () => {
     const { container } = setup({ keep: [2] })
     expect(container.querySelectorAll('.park-row')).toHaveLength(roster.length)
-    expect(container.querySelector('.tt-plate')?.textContent).toBe('Your playoff odds54%today · 3rd best of 3')
+    expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs54%today · 3rd best of 3')
     expect(screen.getByText('Pick up to 4')).toBeInTheDocument()
     expect(screen.queryByText(/deals load as you pick/)).toBeNull()
     expect([...container.querySelectorAll('.tt-want-c')].map((c) => c.textContent)).toEqual(['ASTClose'])
@@ -284,7 +284,7 @@ describe('TradePark, the deal on the table', () => {
 
   it('puts the best deal on the table: odds on the centre line, your side marked, theirs in the get end', async () => {
     const { container } = await picked()
-    expect(container.querySelector('.tt-plate')?.textContent).toBe('Your playoff odds56%from 54%▲+2 ptsThem 47% → 46%')
+    expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs56%, from 54%, up 2 points.56%▲2Their playoff odds 47% to 46%, down 1.Them 47% → 46% ▼1')
     expect(container.querySelector('.park-accept')?.textContent).toBe('chance they accept: 1 in 2Accept·1 in 2')
     expect(container.querySelectorAll('.park-dacc .acn-chance-v')[1]?.textContent).toBe('1 in 14')
     expect(container.querySelector('.park-partner')?.textContent).toBe('SWSariyer Wolfpack15–21–0 · best deal, 1 of 2')
@@ -386,7 +386,7 @@ describe('TradePark, no deal and errors', () => {
   it('says so plainly, with Add a Player and Check a Trade', async () => {
     const { container } = setup({ start: [4] })
     await screen.findByText('No deal for Mitchell', { selector: '.park-block-h2' })
-    expect(container.querySelector('.tt-plate')?.textContent).toBe('Your playoff odds54%no deal yet')
+    expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs54%no deal yet')
     expect(screen.getByText('All 0 rosters checked. None looks like a win for them and helps you.')).toBeInTheDocument()
     expect(screen.getByRole('status').textContent).toBe('No deal for Mitchell')
     fireEvent.click(screen.getByRole('button', { name: 'Check a Trade' }))
@@ -400,7 +400,7 @@ describe('TradePark, no deal and errors', () => {
     const { container } = setup({ start: [3] })
     expect(await screen.findByText("Couldn't search trades")).toBeInTheDocument()
     expect(screen.getByText('The server took too long to answer.')).toBeInTheDocument()
-    expect(container.querySelector('.tt-plate')?.textContent).toBe('Your playoff odds54%today')
+    expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs54%today')
     fireEvent.click(screen.getByRole('button', { name: 'Try Again' }))
     expect(await screen.findByText('No deal for Allen', { selector: '.park-block-h2' })).toBeInTheDocument()
   })

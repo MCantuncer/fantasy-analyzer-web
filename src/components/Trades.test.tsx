@@ -195,12 +195,17 @@ describe('TradeItem', () => {
     expect(screen.getAllByRole('button', { name: /^Show details/ })[0]).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('puts your odds on the centre line: the after-odds big, from today, and theirs', () => {
+  it('puts Playoffs on the centre line: the after-odds, the bar with a tick at today, ▲N and theirs in ink', () => {
     const { container } = show(<Trades fair={[idea]} edge={[]} />)
-    const odds = container.querySelector('.mvt-odds') as HTMLElement
-    expect(odds.querySelector('.mvt-odds-big')).toHaveTextContent('55%')
-    expect(odds.querySelector('.mvt-odds-from')).toHaveTextContent('from 51% ▲+4 pts')
-    expect(odds.querySelector('.mvt-odds-them')).toHaveTextContent('Them 89% → 88% ▼−1')
+    const odds = container.querySelector('.mvt-deal .plo') as HTMLElement
+    expect(odds.querySelector('.plo-k')).toHaveTextContent('Playoffs')
+    expect(odds.querySelector('.plo-big')).toHaveTextContent('55%')
+    expect(odds.querySelector('.plo-line .sr-only')).toHaveTextContent('55%, from 51%, up 4 points.')
+    expect(odds.querySelector('.cd-bar')).toHaveClass('cd-up')
+    expect(odds.querySelector('.plo-d')).toHaveClass('plo-help')
+    expect(odds.querySelector('.plo-d')?.textContent).toBe('▲4')
+    expect(odds.querySelector('.plo-them [aria-hidden]')?.textContent).toBe('Them 89% → 88% ▼1')
+    expect(odds.querySelector('.plo-them .sr-only')).toHaveTextContent('Their playoff odds 89% to 88%, down 1.')
   })
 
   it('opens to their side of the deal, the weekly strip and the notes, and checks the trade as one you send', () => {

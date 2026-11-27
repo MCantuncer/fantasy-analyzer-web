@@ -5,6 +5,7 @@ import { ordinal, pct, ptsDiff, signed, signedInt } from '../lib/format'
 import { shortValue, type RoundValues } from '../lib/tradeValue'
 import type { Want } from '../lib/tradeTable'
 import { Spinner } from './Spinner'
+import { PlayoffsLine, TheirOdds } from './PlayoffsMark'
 import { TeamCrest } from './TeamCrest'
 import './TradeTable.css'
 
@@ -82,15 +83,15 @@ export function TradeTable({ label, lit, odds, give, get, get2, foot, oddsFirst 
 }
 
 export interface OddsPlateProps {
-  /** What the number is, e.g. "Your playoff odds" or "Your odds with him". */
+  /** What the number is: "Playoffs". */
   label: string
   /** The big number, as a fraction: the odds after the deal, or today's odds before one. */
   value: number
-  /** Today's odds, when value is an after-number: adds "from X%" and the delta chip. */
+  /** Today's odds, when value is an after-number: adds the Playoffs bar and ▲N. */
   from?: number | null
   /** The line under the number when there is no from, e.g. "today · 6th best of 10". */
   sub?: ReactNode
-  /** The other team's odds before and after the deal: "Them 47% → 46%". */
+  /** The other team's odds before and after the deal: "Them 47% → 46% ▼1". */
   them?: { before: number; after: number } | null
   /** A short note in small type, e.g. "Ceiling: he comes free, Neemias Queta goes". */
   note?: ReactNode
@@ -99,26 +100,21 @@ export interface OddsPlateProps {
 }
 
 /**
- * The odds on the centre line: a label, the big number, "from X%" with a delta chip (a sign and
- * a small arrow, never colour alone), and optional lines for the other team, a note and a status.
+ * The odds on the centre line: a label ("Playoffs"), the big number and, after a deal, the Playoffs
+ * bar with its ghost tick at today's odds and ▲N; then optional lines for the other team (ink), a
+ * note and a status.
  */
 export function OddsPlate({ label, value, from, sub, them, note, status }: OddsPlateProps) {
   return (
     <div className="tt-plate">
       <span className="tt-plate-k">{label}</span>
-      <span className="tt-plate-big num">{pct(value)}</span>
-      {from != null && (
-        <span className="tt-plate-from num">
-          from <b>{pct(from)}</b>
-        </span>
+      {from != null ? (
+        <PlayoffsLine before={from} after={value} big="tt-plate-big" />
+      ) : (
+        <span className="tt-plate-big num">{pct(value)}</span>
       )}
-      {from != null && <DeltaChip before={from} after={value} />}
       {from == null && sub && <span className="tt-plate-from">{sub}</span>}
-      {them && (
-        <span className="tt-plate-them num">
-          Them {pct(them.before)} → {pct(them.after)}
-        </span>
-      )}
+      {them && <TheirOdds before={them.before} after={them.after} className="tt-plate-them" />}
       {note && <span className="tt-plate-note">{note}</span>}
       {status && (
         <span className="tt-plate-status">
