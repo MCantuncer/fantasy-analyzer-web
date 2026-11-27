@@ -388,7 +388,8 @@ describe('Scores', () => {
       await screen.findByRole('radio', { name: 'Mine 1 game' })
       const card = container.querySelector<HTMLElement>('.game-card[data-game="9"]')!
       expect(card.tagName).toBe('DIV')
-      expect(card).toHaveTextContent('3 of yours: G. Antetokounmpo, D. Mitchell, K. Dunn')
+      expect(card).toHaveTextContent('G. Antetokounmpo, D. Mitchell, K. Dunn')
+      expect(card).not.toHaveTextContent('of yours')
       fireEvent.click(within(card).getByRole('button', { name: 'K. Dunn' }))
       expect(open).toHaveBeenCalledWith({ id: 13, name: 'Kris Dunn' })
     } finally {
