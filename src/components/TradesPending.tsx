@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+import { Target } from '@phosphor-icons/react'
 import { Bone } from './Skeleton'
 import { percent } from '../lib/progress'
 import { Spinner } from './Spinner'
@@ -54,20 +56,37 @@ export function TradesPending({ status, onRetry }: { status: TradesStatus; onRet
   )
 }
 
-/** Best Move weighs trades against free agents, so it waits for the trades. */
-export function BestMovePending({ status, onRetry }: { status: TradesStatus; onRetry: () => void }) {
+/**
+ * Best Move weighs trades against free agents, so it waits for the trades: the lead's shell with
+ * where the run is, three bones, and the season band (``foot``) already in place.
+ */
+export function BestMovePending({
+  status,
+  onRetry,
+  foot,
+}: {
+  status: TradesStatus
+  onRetry: () => void
+  foot?: ReactNode
+}) {
   return (
-    <section className="card best tp-best" aria-labelledby="tp-best-title" aria-busy={status.running}>
-      <header className="bm-head tp-best-head">
-        <h2 className="bm-title" id="tp-best-title">
-          Best move
-        </h2>
-        <Status status={status} onRetry={onRetry} />
-      </header>
-      <div className="tp-best-bones" aria-hidden="true">
-        <Bone w="58%" h={18} />
-        <Bone w="84%" h={10} />
-        <Bone w="70%" h={10} />
+    <section className="card best mvl mvl-wait" aria-labelledby="tp-best-title" aria-busy={status.running}>
+      <div className="mvl-grid">
+        <div className="mvl-move">
+          <header className="mvl-h">
+            <h2 className="mvl-title" id="tp-best-title">
+              <Target size={20} aria-hidden="true" />
+              Best move
+            </h2>
+            <Status status={status} onRetry={onRetry} />
+          </header>
+          <div className="tp-best-bones" aria-hidden="true">
+            <Bone w="58%" h={18} />
+            <Bone w="84%" h={10} />
+            <Bone w="70%" h={10} />
+          </div>
+        </div>
+        {foot}
       </div>
     </section>
   )

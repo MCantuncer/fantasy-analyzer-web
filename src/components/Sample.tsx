@@ -9,7 +9,7 @@ import { PRODUCT_NAME, sampleDay } from '../lib/sample'
 import { BestMove } from './BestMove'
 import { CategoryTiles } from './CategoryTiles'
 import { OpenCrest } from './OpenCrest'
-import { Outlook } from './Outlook'
+import { SeasonBand } from './Outlook'
 import { Bone } from './Skeleton'
 import { TeamCrest } from './TeamCrest'
 import './Sample.css'
@@ -204,7 +204,12 @@ export function SamplePage({
       <div className="split">
         <div className="wide smp-best" id="moves-best" style={{ '--scout': scoutColour } as CSSProperties}>
           {shown ? (
-            <BestMove report={shown} scout={scout.name} actions={<Door onJoin={onJoin} />} />
+            <BestMove
+              report={shown}
+              scout={scout.name}
+              actions={<Door onJoin={onJoin} />}
+              foot={<SeasonBand report={shown} scout={scout.name} />}
+            />
           ) : report.isError ? (
             <section className="card best">
               <p className="muted">{scout.name}'s moves didn't load. Pick the team again in a moment.</p>
@@ -221,7 +226,6 @@ export function SamplePage({
           )}
         </div>
         <div className="narrow stack" style={{ gap: 16 }}>
-          {shown && <Outlook report={shown} scout={scout.name} />}
           <ScoutList index={index} scout={scout} onScout={pick} onJoin={onJoin} />
         </div>
       </div>

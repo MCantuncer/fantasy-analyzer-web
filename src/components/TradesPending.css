@@ -44,19 +44,9 @@
   min-width: 0;
 }
 
-.tp-best-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.tp-best-head + .tp-best-bones {
-  margin-top: 12px;
-}
-
 .tp-best-bones {
   display: flex;
+  max-width: 560px;
   flex-direction: column;
   gap: 8px;
 }

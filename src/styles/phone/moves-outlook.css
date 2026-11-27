@@ -1,28 +1,5 @@
-/* Phones: Season outlook and category tiles on Moves get tighter. */
-@media (max-width: 640px) {
-  .card.outlook {
-    gap: 12px;
-    padding: 18px 16px;
-  }
-
-  .ol-top {
-    align-items: center;
-  }
-
-  .ol-big {
-    font-size: 44px;
-  }
-
-  .ol-rung {
-    height: 28px;
-    font-size: 11px;
-  }
-
-  .ol-stat .num {
-    font-size: 20px;
-  }
-}
-
+/* Phones: the category tiles on Moves get tighter. (The season outlook is the lead's foot band now,
+   sized by the lead itself in Outlook.css.) */
 @media (max-width: 640px) {
   .ct {
     gap: 10px;
