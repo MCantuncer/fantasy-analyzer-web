@@ -1,262 +1,520 @@
-/* While the league scan runs: the title with where the scan is, like the Best move card. */
-.totd-load-head {
+/* Trade of the day, Quiet Lead (totd- prefix): a full-width band after your own moves. One flat
+   surface, two sides with a seam and ⇄, each side faintly lit by its crest from its outer top
+   corner; the gains always show, the foot carries the note and the actions. The old card rules in
+   index.css (.totd, .totd-side, …) no longer match anything here and go in the cleanup PR. */
+
+.totd-band {
+  --crest-a: 10%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 4px 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.totd-load-status {
+:root[data-theme='light'] .totd-band {
+  --crest-a: 9%;
+}
+
+.totd-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.totd-h2 {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.totd-h2 svg {
+  flex: none;
+  align-self: center;
+  color: var(--muted);
+}
+
+.totd-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.totd-line {
+  margin: -8px 0 14px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--text-2);
+}
+
+.totd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
   white-space: nowrap;
 }
 
-.totd-load-pct {
+.totd-pct {
   min-width: 3ch;
   text-align: right;
 }
 
-.totd-load-note {
-  margin: 0 0 4px;
+.totd-none-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-2);
 }
 
-/* Trade of the Day: a face beside each player who moves. Kept next to the component so page
-   changes don't collide in the shared stylesheet. */
-.totd-players {
+.totd-none-line svg {
+  flex: none;
+  color: var(--muted);
+}
+
+/* ---------- The board ---------- */
+.totd-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: clip;
+}
+
+.totd-half {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px 24px;
 }
 
-.totd-player {
+.totd-l {
+  background: radial-gradient(
+    70% 70% at 0% 0%,
+    color-mix(in srgb, var(--hue) var(--crest-a), transparent),
+    transparent 70%
+  );
+}
+
+.totd-r {
+  background: radial-gradient(
+    70% 70% at 100% 0%,
+    color-mix(in srgb, var(--hue) var(--crest-a), transparent),
+    transparent 70%
+  );
+}
+
+.totd-seam {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.totd-seam::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 50%;
+  width: 1px;
+  background: var(--seam);
+}
+
+.totd-seam span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--seam);
+  color: var(--muted);
+}
+
+/* Crest, team, then the after odds over "from 61% ▲ +3 pts". */
+.totd-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.totd-tn {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+/* Your side: the gold person mark, the one gold on the band. */
+.totd-me {
+  display: inline-flex;
+  margin-left: 6px;
+  color: var(--gold-text);
+  vertical-align: -1px;
+}
+
+.totd-od {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.totd-a {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.totd-f {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.totd-dl {
+  font-weight: 650;
+}
+
+.totd-dl.good {
+  color: var(--good);
+}
+
+.totd-dl.bad {
+  color: var(--bad);
+}
+
+.totd-ar {
+  margin-right: 2px;
+  font-size: 0.6em;
+}
+
+/* "Gets" and the players coming in. */
+.totd-gets {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.totd-drop {
+.totd-k {
+  flex: none;
+  width: 32px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.totd-list {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-/* What each side gains, as data: one tile per category, punt chips, standings.
-   136px is the narrowest tile where "FG%  now 10th of 12" and "+3.2 rebounds a game" each stay on one
-   line; phones keep two tiles a row (they shrink below that and stack, see the container rule below). */
-.totd-why {
-  container-type: inline-size;
-}
-
-.tw-needs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(136px, calc(50% - 4px)), 1fr));
-  gap: 8px;
-  margin: 6px 0 0;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.tw-needs > li {
+.totd-pl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
+}
+
+.totd-pl-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--good);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  min-width: 0;
 }
 
-/* The rank sits right after the category it ranks, centred on its height. */
-.tw-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 8px;
-}
-
-.tw-cat {
+.totd-pl-name {
   font-size: 15px;
-  font-weight: 700;
-}
-
-/* The rank is one phrase: it moves as a whole, never leaving "10" on a line of its own. */
-.tw-rank {
-  color: var(--muted);
-  font-size: 11px;
   font-weight: 600;
-  white-space: nowrap;
+  line-height: 20px;
 }
 
-.tw-pts {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.tw-unit {
-  margin-left: 3px;
+.totd-pl-meta {
+  font-size: 12.5px;
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
 }
 
-.tw-facts {
+.totd-cut {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
-  margin-top: 8px;
-}
-
-.tw-punts {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.tw-punt {
-  padding: 2px 8px;
-  border: 1px dashed var(--border);
-  border-radius: 6px;
-  color: var(--faint);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.tw-chasing {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin: -4px 0 0 44px;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
-.tw-chasing svg {
-  color: var(--warn);
-}
-
-/* Fireside: a warm light in the corner of the card, and each side on its team's colour
-   (a soft tint with a 6px edge in the team hue, crest beside the name). */
-.card.totd {
-  border-color: var(--border);
-  background:
-    radial-gradient(60% 120% at 100% 0%, var(--glow, rgb(255 190 130 / 0.07)), transparent 65%),
-    var(--surface);
-}
-
-.card.totd.involved {
-  border-color: var(--accent);
-}
-
-.totd .totd-side {
-  border: none;
-  border-left: 6px solid var(--team);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--team) 13%, var(--surface));
-}
-
-.totd .totd-side.me {
-  box-shadow: inset 0 0 0 1px var(--gold);
-}
-
-.totd .totd-team {
+/* Better odds in: each gain on three short lines, two to a row. */
+.totd-why-box {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-/* The swap between the sides: a plain round button-like disc with a soft shadow. */
-.totd .totd-swap {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow);
-}
-
-/* Deltas as plain coloured numbers with a small triangle, no pills. */
-.totd-delta {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-/* Poll buttons sit on the tinted side, so give them the card surface. */
-.totd .totd-side .totd-poll-buttons button:not([aria-pressed='true']) {
-  background: var(--surface);
-}
-
-.totd .totd-poll {
-  border-top-color: color-mix(in srgb, var(--team) 25%, var(--divider));
-}
-
-@media (max-width: 720px) {
-  .totd .totd-swap {
-    justify-self: center;
-  }
-}
-
-/* Gain tiles: the weekly win-chance gain with its plain-words key under it. */
-.tw-key {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.tw-needs .tw-per {
-  margin-top: 4px;
+.totd-bo {
+  margin: 0;
   font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
 }
 
-/* Tiles narrower than the 136px above (two a row in under 280px, as on a 360px phone): the rank goes
-   under the category in every tile alike, and the lines get 4px of the side padding back. */
-@container (max-width: 279px) {
-  .tw-needs > li {
-    padding-inline: 8px;
-  }
-
-  .tw-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .tw-needs .tw-per {
-    font-size: 11px;
-  }
+.totd-gains {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* Under 250px even that doesn't fit "−0.6 turnovers a game" (a tablet just past the phone layout, with
-   two sides side by side): one tile a row, wide enough for the first layout again. */
-@container (max-width: 249px) {
-  .tw-needs {
+.totd-gain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.totd-g1 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.totd-gc {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.totd-gp {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--good);
+}
+
+.totd-g2 {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.totd-g2 .num {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.totd-g3 {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.totd-pitch {
+  margin: 0;
+  font-size: 14px;
+}
+
+.totd-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.totd-punts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.totd-punt {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background: var(--raised);
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.totd-fact {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+.totd-fact.bad {
+  color: var(--bad);
+}
+
+/* The poll: the question, then (after you vote) the tally, Yes and No. */
+.totd-poll-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: auto;
+}
+
+.totd-q {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.totd-vote-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.totd-count {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.totd-votes {
+  display: flex;
+  gap: 8px;
+}
+
+button.totd-vote,
+button.totd-quiet {
+  gap: 6px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--text);
+  font-weight: 600;
+}
+
+button.totd-vote {
+  min-width: 64px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+button.totd-vote[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
+}
+
+button.totd-quiet {
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* ---------- Foot: the note, then Propose (yours only) and Share ---------- */
+.totd-foot {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 24px;
+  background: var(--surface-2);
+}
+
+.totd-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.totd-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.totd-acts .button {
+  gap: 8px;
+}
+
+/* Loading: bones at the final height, so nothing below jumps when the deal arrives. */
+.totd-bones .totd-half {
+  min-height: 300px;
+}
+
+.totd-bones .totd-gains {
+  margin-top: 4px;
+}
+
+.totd-bones .totd-foot {
+  min-height: 60px;
+}
+
+/* ---------- Phones: one column, the seam runs across ---------- */
+@media (max-width: 760px) {
+  .totd-bar {
+    margin-bottom: 12px;
+  }
+
+  .totd-h2 {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .totd-board {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .tw-needs > li {
-    padding-inline: 10px;
+  .totd-half {
+    padding: 16px;
   }
 
-  .tw-top {
-    flex-direction: row;
-    align-items: center;
+  .totd-r {
+    background: radial-gradient(
+      80% 60% at 0% 0%,
+      color-mix(in srgb, var(--hue) var(--crest-a), transparent),
+      transparent 70%
+    );
   }
 
-  .tw-needs .tw-per {
-    font-size: 12px;
+  .totd-seam {
+    height: 20px;
+  }
+
+  .totd-seam::before {
+    top: 50%;
+    right: 16px;
+    bottom: auto;
+    left: 16px;
+    width: auto;
+    height: 1px;
+  }
+
+  .totd-foot {
+    padding: 12px 16px;
+  }
+
+  .totd-acts,
+  .totd-acts > * {
+    flex: 1 1 100%;
+  }
+
+  .totd-bones .totd-half {
+    min-height: 280px;
   }
 }
 
-/* A day with no pick: one line, no card. */
-.totd-none {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 10px;
-  padding: 0 4px;
+/* In light, raised and the foot band are a shade apart: the quiet button lifts to the surface. */
+:root[data-theme='light'] .totd-foot button.totd-quiet {
+  background: var(--surface);
 }
