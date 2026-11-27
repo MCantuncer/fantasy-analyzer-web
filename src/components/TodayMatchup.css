@@ -20,133 +20,8 @@
 }
 
 /* ---------- Status line ---------- */
-.tm-status {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  margin: 12px 4px 0;
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.tm-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tm-live b {
-  color: var(--gold-text);
-  font-weight: 600;
-}
-
-.tm-final-word {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.tm-dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--gold);
-}
-
-.tm-live .tm-dot {
-  animation: tm-breathe 2.4s ease-in-out infinite;
-}
-
-@keyframes tm-breathe {
-  50% {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 20%, transparent);
-  }
-}
-
-button.tm-retry {
-  min-height: 44px;
-  margin: -14px 0;
-  padding: 0 8px;
-  background: none;
-  border: 0;
-  color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: underline;
-}
 
 /* ---------- Day score: crest · You · 3–6–0 · Lakers · crest ---------- */
-.tm-score {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  margin: 8px 4px 0;
-}
-
-.tm-side {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tm-side.theirs {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.tm-side-text {
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.tm-side-text b {
-  display: block;
-  font-size: 15px;
-  font-weight: 650;
-  line-height: 1.15;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tm-side-text span {
-  display: block;
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.tm-rec {
-  text-align: center;
-}
-
-.tm-big {
-  display: block;
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.tm-big i {
-  margin: 0 2px;
-  font-style: normal;
-  font-weight: 400;
-  color: var(--muted);
-}
-
-.tm-big.tm-quiet {
-  color: var(--muted);
-}
-
-.tm-rec small {
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  color: var(--text-2);
-  white-space: nowrap;
-}
 
 /* ---------- Left on the bench: one --warn edge and a label. No glow, no fill, not gold. ---------- */
 button.tm-flag {
@@ -188,96 +63,6 @@ button.tm-flag svg {
 }
 
 /* ---------- The 9 categories: 3×3 on phones, one row from 760 ---------- */
-.tm-tiles {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tm-tile {
-  display: grid;
-  grid-template-rows: 20px 20px 14px;
-  align-content: center;
-  gap: 1px;
-  min-width: 0;
-  min-height: 64px;
-  padding: 5px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--tm-outline);
-  overflow: hidden;
-}
-
-.tm-tile.W {
-  background:
-    linear-gradient(to right, color-mix(in srgb, var(--good) var(--lead-good, 22%), transparent), transparent 85%),
-    var(--surface-2);
-  box-shadow:
-    inset 3px 0 0 var(--good),
-    inset 0 0 0 1px var(--tm-outline);
-}
-
-.tm-tile.L {
-  background:
-    linear-gradient(to left, color-mix(in srgb, var(--bad) var(--lead-bad, 22%), transparent), transparent 85%),
-    var(--surface-2);
-  box-shadow:
-    inset -3px 0 0 var(--bad),
-    inset 0 0 0 1px var(--tm-outline);
-}
-
-.tm-t1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.tm-lab {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-2);
-}
-
-.tm-tie {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-2);
-}
-
-.tm-v {
-  font-size: 16px;
-  line-height: 20px;
-  white-space: nowrap;
-  color: var(--text-2);
-}
-
-.tm-v .tm-win {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.tm-v i {
-  margin: 0 3px;
-  font-style: normal;
-  color: var(--muted);
-}
-
-.tm-wk {
-  font-size: 11px;
-  line-height: 14px;
-  white-space: nowrap;
-  color: var(--text-2);
-}
-
-.tm-wk em {
-  margin: 0 3px;
-  font-style: normal;
-  color: var(--muted);
-}
 
 /* ---------- The team switch: one team at a time, as in the Scores box score ---------- */
 .tm-bar {
@@ -335,10 +120,6 @@ button.tm-flag svg {
   margin-top: 12px;
 }
 
-.tm-loading .tm-tiles {
-  margin: 0;
-}
-
 .tm-loading .tm-cols {
   display: grid;
   grid-template-columns: 1fr;
@@ -350,36 +131,8 @@ button.tm-flag svg {
   margin: 0;
 }
 
-@media (max-width: 399px) {
-  .tm-score {
-    gap: 4px;
-    margin-inline: 0;
-  }
-
-  .tm-side {
-    gap: 6px;
-  }
-
-  .tm-side-text span,
-  .tm-rec small {
-    font-size: 11.5px;
-  }
-}
-
 /* ---------- 760 and up: the 9 tiles in one row, the score bigger ---------- */
 @media (min-width: 760px) {
-  .tm-tiles {
-    grid-template-columns: repeat(9, minmax(0, 1fr));
-  }
-
-  .tm-big {
-    font-size: 48px;
-  }
-
-  .tm-side-text b {
-    font-size: 17px;
-  }
-
   button.tm-flag {
     width: auto;
     max-width: 640px;
@@ -398,17 +151,5 @@ button.tm-flag svg {
 
   .tm-col {
     margin: 0;
-  }
-}
-
-@media (min-width: 1200px) {
-  .tm-big {
-    font-size: 52px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tm-live .tm-dot {
-    animation: none;
   }
 }

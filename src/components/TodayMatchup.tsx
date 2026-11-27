@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react'
 import { CaretRight } from '@phosphor-icons/react'
 import type { CategoryScore } from '../api/client'
 import { buildRows, isBench, isIR, starterTotals } from '../lib/myPlayers'
 import type { PlayerRow, Totals as LineTotals } from '../lib/myPlayers'
-import { tipOff } from '../lib/scores'
 import type { TodayData } from '../lib/todayData'
-import { chipFor, dayCategories, dayRecord, leftOnBench, shortNames } from '../lib/todayMatchup'
-import type { DayCategory, LeftOnBench } from '../lib/todayMatchup'
+import { chipFor, leftOnBench, shortNames } from '../lib/todayMatchup'
+import type { LeftOnBench } from '../lib/todayMatchup'
 import { ColumnHead, EmptyRow, Field, Row, Slide, Totals, TotalsBeforeTip } from './QuietField'
 import { Bone } from './Skeleton'
 import { TeamCrest } from './TeamCrest'
@@ -38,15 +37,15 @@ export function TodayMatchup({
   me,
   them,
   myId,
-  head = true,
 }: {
   data: TodayData
   /** The first side: you, in your own matchup. */
   me: TodaySide
   them: TodaySide
   myId: number | null
-  /** False inside League's matchup sheet, which draws the status, score and categories itself. */
-  head?: boolean
+  /** Always false now: the sheet and the matchup rows draw the status, score and categories themselves.
+   * Kept so their callers still type-check; it draws nothing. */
+  head?: false
 }) {
   const [view, setView] = useState<0 | 1>(0)
   // The bench flag's player, to bring into view once his team is on screen.
@@ -79,17 +78,7 @@ export function TodayMatchup({
       mine: t.id === myId,
     }
   }) as [Side, Side]
-  const cats = dayCategories(sides[0].totals, sides[1].totals)
-  const rec = dayRecord(cats)
   const names = shortNames(sides.flatMap((s) => s.rows.map((r) => r.spot.name)))
-  const live = scores.games.some((g) => g.status === 'live')
-  const started = scores.games.some((g) => g.status !== 'scheduled')
-  const allFinal = scores.games.length > 0 && scores.games.every((g) => g.status === 'final')
-  const toCome = (s: Side) => s.starters.filter((r) => r.state === 'later').length
-  const weekRec = (s: TodaySide) => {
-    const n = (r: string) => s.week.filter((c) => c.result === r).length
-    return `${n('W')}–${n('L')}–${n('T')}`
-  }
   const flag = sides[1].lob
     ? { side: sides[1], lob: sides[1].lob }
     : sides[0].lob
@@ -99,49 +88,6 @@ export function TodayMatchup({
 
   return (
     <div className="tm" ref={root}>
-      {head && (
-        <p className="tm-status">
-          {live ? (
-            <span className="tm-live">
-              <span className="tm-dot" aria-hidden="true" />
-              <b>Live</b>
-            </span>
-          ) : allFinal ? (
-            <b className="tm-final-word">Final</b>
-          ) : !started && scores.games.length ? (
-            <span>First tip {tipOff(scores.games.map((g) => g.start).sort()[0])}</span>
-          ) : null}
-          <span>
-            {data.stale ? 'Updated' : 'updated'} {tipOff(scores.updated_at)}
-          </span>
-          {data.stale && (
-            <button type="button" className="tm-retry" onClick={data.refetch}>
-              Retry
-            </button>
-          )}
-        </p>
-      )}
-
-      {head && (
-        <div className="tm-score">
-          <ScoreSide side={sides[0]} sub={started ? `${toCome(sides[0])} to come` : null} />
-          <div className="tm-rec">
-            <span
-              className={`num tm-big${started ? '' : ' tm-quiet'}`}
-              aria-label={`${rec.wins} wins, ${rec.losses} losses, ${rec.ties} ties today`}
-            >
-              {rec.wins}
-              <i>–</i>
-              {rec.losses}
-              <i>–</i>
-              {rec.ties}
-            </span>
-            <small>today · week {weekRec(me)}</small>
-          </div>
-          <ScoreSide side={sides[1]} sub={started ? `${toCome(sides[1])} to come` : null} theirs />
-        </div>
-      )}
-
       {flag && (
         <BenchFlag
           side={flag.side}
@@ -152,14 +98,6 @@ export function TodayMatchup({
             setSeek(flag.lob.row.spot.player_id)
           }}
         />
-      )}
-
-      {head && (
-        <ul className="tm-tiles" aria-label="Today's categories">
-          {cats.map((c) => (
-            <Tile key={c.stat} cat={c} week={[me.week, them.week]} sides={sides} />
-          ))}
-        </ul>
       )}
 
       <div className="tm-bar">
@@ -188,68 +126,6 @@ export function TodayMatchup({
 function shortTeam(name: string): string {
   const w = name.trim().split(/\s+/)
   return w[w.length - 1]
-}
-
-function ScoreSide({ side, sub, theirs = false }: { side: Side; sub: string | null; theirs?: boolean }) {
-  return (
-    <div className={`tm-side${theirs ? ' theirs' : ''}`}>
-      <TeamCrest name={side.name} colour={side.colour} size={32} />
-      <span className="tm-side-text">
-        <b>{side.mine ? 'You' : shortTeam(side.name)}</b>
-        {sub && <span>{sub}</span>}
-      </span>
-    </div>
-  )
-}
-
-function fmt(stat: string, v: number | null): string {
-  if (v === null) return '–'
-  if (stat === 'FG%' || stat === 'FT%') return v.toFixed(3).replace(/^0/, '')
-  return String(Math.round(v))
-}
-
-function Tile({
-  cat,
-  week,
-  sides,
-}: {
-  cat: DayCategory
-  week: [CategoryScore[], CategoryScore[]]
-  sides: [Side, Side]
-}) {
-  const w = week.map((cs) => cs.find((c) => c.stat === cat.stat)?.value ?? null)
-  const winner = cat.result === 'W' ? sides[0] : cat.result === 'L' ? sides[1] : null
-  const label = cat.stat === 'TO' ? 'TO↓' : cat.stat
-  const said =
-    cat.result === null
-      ? `${cat.stat}: nothing yet`
-      : `${cat.stat}: you ${fmt(cat.stat, cat.mine)}, them ${fmt(cat.stat, cat.theirs)}, ${
-          cat.result === 'W' ? 'you lead' : cat.result === 'L' ? 'they lead' : 'tied'
-        }`
-  return (
-    <li className={`tm-tile${cat.result ? ` ${cat.result}` : ''}`} aria-label={said}>
-      <span className="tm-t1" aria-hidden="true">
-        <span className="tm-lab">{label}</span>
-        {winner ? (
-          <TeamCrest name={winner.name} colour={winner.colour} size={18} />
-        ) : cat.result === 'T' ? (
-          <span className="tm-tie">Tie</span>
-        ) : null}
-      </span>
-      <span className="num tm-v" aria-hidden="true">
-        <span className={cat.result === 'W' ? 'tm-win' : undefined}>{fmt(cat.stat, cat.mine)}</span>
-        <i>·</i>
-        <span className={cat.result === 'L' ? 'tm-win' : undefined}>{fmt(cat.stat, cat.theirs)}</span>
-      </span>
-      {w[0] !== null && w[1] !== null && (
-        <span className="num tm-wk" aria-hidden="true">
-          {fmt(cat.stat, w[0])}
-          <em>wk</em>
-          {fmt(cat.stat, w[1])}
-        </span>
-      )}
-    </li>
-  )
 }
 
 function BenchFlag({
@@ -354,26 +230,17 @@ function TeamColumn({ side }: { side: Side }) {
 }
 
 /** The shape of the Today view while the day's games and both lineups load. */
-export function TodayLoading({ head = true }: { head?: boolean }) {
-  return (
-    <div className="tm tm-loading" aria-busy="true" aria-label="Loading today's matchup">
-      {head && <Bone h={64} className="tm-bone-score" />}
-      {head && (
-        <div className="tm-tiles">
-          {Array.from({ length: 9 }, (_, i) => (
-            <Bone key={i} h={64} className="tm-bone-tile" />
+// `head` is always false now (see TodayMatchup); the prop stays so callers still type-check.
+export const TodayLoading: (props: { head?: false }) => ReactElement = () => (
+  <div className="tm tm-loading" aria-busy="true" aria-label="Loading today's matchup">
+    <div className="tm-cols">
+      {[0, 1].map((c) => (
+        <div key={c} className="tm-col">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Bone key={i} h={52} className="tm-bone-row" />
           ))}
         </div>
-      )}
-      <div className="tm-cols">
-        {[0, 1].map((c) => (
-          <div key={c} className="tm-col">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Bone key={i} h={52} className="tm-bone-row" />
-            ))}
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
-  )
-}
+  </div>
+)
