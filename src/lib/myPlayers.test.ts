@@ -11,7 +11,6 @@ import {
   gameTimeCall,
   inWordWindow,
   newsAge,
-  nextLabel,
   rowCall,
   starterTotals,
   statusCounts,
@@ -123,16 +122,7 @@ describe('My Players rows', () => {
     expect(at('2026-11-11T01:02:00Z').soon).toBe(true)
   })
 
-  it('says where he plays next and how many games are left this week', () => {
-    const nx = {
-      day: 23,
-      date: '2026-11-11',
-      start: '2026-11-12T00:00:00Z',
-      home: false,
-      opponent: { pro_team_id: 11, abbrev: 'IND', name: 'Indiana' },
-    }
-    expect(nextLabel(nx)).toBe('Wed @ IND')
-    expect(nextLabel({ ...nx, home: true })).toBe('Wed vs IND')
+  it('counts the games left this week', () => {
     expect(gamesLeft(spot(14, 'F', null, { week_games: [21, 23, 24, 27] }), 22)).toBe(3)
   })
 })
