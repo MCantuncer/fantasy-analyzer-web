@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { NewsSkeleton } from './Skeleton'
 import { useEffect, useState } from 'react'
-import type { CSSProperties } from 'react'
 import { fetchInjuryImpact, fetchNews } from '../api/client'
 import type {
   Beneficiary,
@@ -15,13 +14,12 @@ import type {
 import type { Credentials } from '../lib/credentials'
 import {
   CONFIDENCE_LABEL,
-  FILTERS,
   KIND_LABEL,
   ago,
-  countBy,
   groupByDay,
   inFilter,
   inScope,
+  kindsIn,
   minutesChange,
   ownership,
   shortStatus,
@@ -84,7 +82,12 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
   const now = new Date()
   const abbrev = new Map(teams.map((t) => [t.id, t.abbrev]))
   const scoped = data.stories.filter((s) => inScope(s, scope, myTeamId))
-  const shown = scoped.filter((s) => inFilter(s, filter))
+  // Kinds with no story in this scope are hidden, and the whole kind group when only one is left.
+  const kinds = kindsIn(scoped)
+  const kindChips = kinds.length > 1 ? kinds : []
+  // A kind that has nothing in the new scope (or whose chips are gone) falls back to every kind.
+  const kind = kindChips.some((k) => k.id === filter) ? filter : 'all'
+  const shown = scoped.filter((s) => inFilter(s, kind))
   const scopes: { id: NewsScope; label: string }[] = [
     { id: 'nba', label: 'All NBA' },
     { id: 'league', label: 'In My League' },
@@ -106,32 +109,39 @@ export function News({ leagueId, season, myTeamId, teams, creds }: Props) {
         )}
       </header>
 
-      <div className="news-toolbar">
-        <div
-          className="news-scope"
-          role="group"
-          aria-label="Which players"
-          style={{ '--news-scope-count': scopes.length } as CSSProperties}
-        >
+      <div className="news-toolbar" role="toolbar" aria-label="Filter stories">
+        <div className="news-chips" role="group" aria-label="Which players">
           {scopes.map((s) => (
-            <button key={s.id} type="button" aria-pressed={scope === s.id} onClick={() => setScope(s.id)}>
+            <button
+              key={s.id}
+              type="button"
+              className="news-chip"
+              aria-pressed={scope === s.id}
+              onClick={() => setScope(s.id)}
+            >
               {s.label}
             </button>
           ))}
         </div>
-        <div className="news-filters" role="group" aria-label="Kind of news">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className="news-filter"
-              aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
-            >
-              {f.label} <span className="num">{countBy(scoped, f.id)}</span>
-            </button>
-          ))}
-        </div>
+        {kindChips.length > 0 && (
+          <>
+            <span className="news-chip-seam" aria-hidden="true" />
+            <div className="news-chips" role="group" aria-label="Kind of news">
+              {kindChips.map((k) => (
+                <button
+                  key={k.id}
+                  type="button"
+                  className="news-chip"
+                  aria-pressed={kind === k.id}
+                  // Pressed again, a kind chip lets every kind back in.
+                  onClick={() => setFilter(kind === k.id ? 'all' : k.id)}
+                >
+                  {k.label} <span className="num">{k.count}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="split">

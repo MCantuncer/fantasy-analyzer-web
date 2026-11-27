@@ -220,13 +220,41 @@ describe('News', () => {
   it('filters by kind and by my roster', async () => {
     renderNews()
     await screen.findByText('Kris Dunn moves into the starting lineup')
-    fireEvent.click(screen.getByRole('button', { name: /Injuries/ }))
+    const injuries = screen.getByRole('button', { name: /Injuries/ })
+    fireEvent.click(injuries)
+    expect(injuries).toHaveAttribute('aria-pressed', 'true')
     expect(screen.queryByText('Kris Dunn moves into the starting lineup')).not.toBeInTheDocument()
     expect(screen.getByText('Jalen Williams fractures ankle, out indefinitely')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /^All \d/ }))
+    // Pressed again, the kind chip lets every kind back in; there is no "All" kind chip.
+    fireEvent.click(injuries)
+    expect(injuries).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Kris Dunn moves into the starting lineup')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^All \d/ })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'My Roster' }))
     expect(screen.getByText('Davion Mitchell drawing trade interest')).toBeInTheDocument()
     expect(screen.queryByText('Kris Dunn moves into the starting lineup')).not.toBeInTheDocument()
+  })
+
+  it('shows one toolbar of chips, hiding kinds with no stories in scope', async () => {
+    renderNews()
+    await screen.findByText('Kris Dunn moves into the starting lineup')
+    const bar = screen.getByRole('toolbar', { name: 'Filter stories' })
+    expect(within(bar).getByRole('group', { name: 'Which players' })).toBeInTheDocument()
+    const kinds = within(bar).getByRole('group', { name: 'Kind of news' })
+    const labels = within(kinds)
+      .getAllByRole('button')
+      .map((b) => b.textContent)
+    // Every kind chip has at least one story; zero counts never show.
+    expect(labels.length).toBeGreaterThan(1)
+    for (const l of labels) expect(l).not.toMatch(/ 0$/)
+  })
+
+  it('hides the kind group when only one kind is left in scope', async () => {
+    renderNews()
+    await screen.findByText('Kris Dunn moves into the starting lineup')
+    fireEvent.click(screen.getByRole('button', { name: 'My Roster' }))
+    expect(screen.getByText('Davion Mitchell drawing trade interest')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Kind of news' })).not.toBeInTheDocument()
   })
 
   it('has no "My Roster" before the team is verified', async () => {

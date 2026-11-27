@@ -72,84 +72,66 @@
   color: var(--bad);
 }
 
-/* One toolbar: whose players, then what kind of news. Never wraps into a block. */
+/* One row of chips: whose players, a seam, then the kinds of news that have stories. On phones the
+   row scrolls inside its strip with an edge fade (styles/phone/news.css). */
 .news-toolbar {
+  --news-chip-on: color-mix(in srgb, var(--text) 12%, var(--surface));
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
-.news-scope {
-  display: grid;
-  grid-template-columns: repeat(var(--news-scope-count, 3), auto);
-  flex: none;
-  padding: 3px;
-  border-radius: 10px;
-  background: var(--track);
+:root[data-theme='light'] .news-toolbar {
+  --news-chip-on: var(--surface);
 }
 
-.news-scope button {
-  min-height: 34px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-2);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.news-scope button[aria-pressed='true'] {
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
-}
-
-.news-filters {
+.news-chips {
   display: flex;
-  gap: 6px;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+  flex: none;
+  gap: 8px;
 }
 
-.news-filters::-webkit-scrollbar {
-  display: none;
-}
-
-.news-filter {
+.news-chip {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 6px;
-  min-height: 34px;
+  gap: 7px;
+  min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border: 0;
+  border-radius: 12px;
   background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border);
   color: var(--text-2);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 550;
   white-space: nowrap;
 }
 
-.news-filter .num {
+.news-chip .num {
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--muted);
-  font-weight: 600;
 }
 
-.news-filter[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.news-chip[aria-pressed='true'] {
+  background: var(--news-chip-on);
+  box-shadow: inset 0 0 0 1.5px var(--text-2);
   color: var(--text);
-  font-weight: 600;
+  font-weight: 650;
 }
 
-.news-filter[aria-pressed='true'] .num {
-  color: var(--accent-text);
+.news-chip[aria-pressed='true'] .num {
+  color: var(--text-2);
+}
+
+.news-chip-seam {
+  flex: none;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--border);
 }
 
 /* Feed */
