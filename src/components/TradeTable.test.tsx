@@ -33,26 +33,30 @@ describe('TradeTable', () => {
 
 describe('OddsPlate', () => {
   it('shows today with its rank before a deal', () => {
-    const { container } = render(<OddsPlate label="Your playoff odds" value={0.54} sub="today · 6th best of 10" />)
-    expect(container.textContent).toBe('Your playoff odds54%today · 6th best of 10')
-    expect(container.querySelector('.tt-chip')).toBeNull()
+    const { container } = render(<OddsPlate label="Playoffs" value={0.54} sub="today · 6th best of 10" />)
+    expect(container.textContent).toBe('Playoffs54%today · 6th best of 10')
+    expect(container.querySelector('.cd-bar')).toBeNull()
   })
 
-  it('shows the odds after a deal with where they came from and a signed chip', () => {
+  it('shows the odds after a deal on the Playoffs bar, with ▲N and their line in ink', () => {
     const { container } = render(
-      <OddsPlate label="Your playoff odds" value={0.56} from={0.54} them={{ before: 0.47, after: 0.46 }} status="Updating" />,
+      <OddsPlate label="Playoffs" value={0.56} from={0.54} them={{ before: 0.47, after: 0.46 }} status="Updating" />,
     )
-    expect(container.querySelector('.tt-plate-from')?.textContent).toBe('from 54%')
-    expect(container.querySelector('.tt-chip')).toHaveClass('tt-chip-up')
-    expect(container.querySelector('.tt-chip')?.textContent).toBe('▲+2 pts')
-    expect(container.querySelector('.tt-plate-them')?.textContent).toBe('Them 47% → 46%')
+    expect(container.querySelector('.tt-plate-big')?.textContent).toBe('56%')
+    expect(container.querySelector('.cd-bar')).toHaveClass('cd-up')
+    expect(container.querySelector('.cd-tick')).not.toBeNull()
+    expect(container.querySelector('.plo-d')).toHaveClass('plo-help')
+    expect(container.querySelector('.plo-d')?.textContent).toBe('▲2')
+    expect(container.querySelector('.tt-plate-them [aria-hidden]')?.textContent).toBe('Them 47% → 46% ▼1')
     expect(container.querySelector('.tt-plate-status')?.textContent).toBe('Updating')
   })
 
-  it('marks a drop with a down arrow and a minus sign', () => {
-    const { container } = render(<OddsPlate label="Your odds with him" value={0.534} from={0.542} />)
-    expect(container.querySelector('.tt-chip')).toHaveClass('tt-chip-down')
-    expect(container.querySelector('.tt-chip')?.textContent).toBe('▼−1 pts')
+  it('marks a drop with a down arrow, the orange on the arrow only', () => {
+    const { container } = render(<OddsPlate label="Playoffs" value={0.534} from={0.542} />)
+    expect(container.querySelector('.cd-bar')).toHaveClass('cd-down')
+    expect(container.querySelector('.plo-d')).toHaveClass('plo-hurt')
+    expect(container.querySelector('.plo-d')?.textContent).toBe('▼1')
+    expect(container.querySelector('.plo-line .sr-only')?.textContent).toBe('53%, from 54%, down 1 point.')
   })
 })
 

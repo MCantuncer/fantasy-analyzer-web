@@ -229,7 +229,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
           label="Trade For"
           lit="get"
           oddsFirst
-          odds={today && <OddsPlate label="Your playoff odds" value={today.pct} sub={rankLine(today)} />}
+          odds={today && <OddsPlate label="Playoffs" value={today.pct} sub={rankLine(today)} />}
           get={
             <>
               <EndLabel end="get" />
@@ -294,7 +294,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
   if (offer) {
     odds = (
       <OddsPlate
-        label="Your playoff odds"
+        label="Playoffs"
         value={offer.playoff_pct_after}
         from={offer.playoff_pct_before}
         them={
@@ -307,7 +307,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
   } else if (data) {
     odds = (
       <OddsPlate
-        label="Your odds with him"
+        label="Playoffs"
         value={data.fit.playoff_pct_after}
         from={data.fit.playoff_pct_before}
         note={
@@ -324,7 +324,7 @@ export function TradeFor({ report, keep, creds, onCheck }: Props) {
     )
   } else if (today) {
     odds = (
-      <OddsPlate label="Your playoff odds" value={today.pct} sub="today" status={target.isError ? null : 'Building offers'} />
+      <OddsPlate label="Playoffs" value={today.pct} sub="today" status={target.isError ? null : 'Building offers'} />
     )
   }
 

@@ -146,7 +146,7 @@ afterEach(() => {
 describe('TradeFor, nothing picked', () => {
   it('shows today on the centre line, the best fits with labelled columns, and what your build wants', () => {
     const { container } = setup([3])
-    expect(container.querySelector('.tt-plate')?.textContent).toBe('Your playoff odds54%today · 2nd best of 3')
+    expect(container.querySelector('.tt-plate')?.textContent).toBe('Playoffs54%today · 2nd best of 3')
     expect(screen.getByText('Cats a week')).toBeInTheDocument()
     const fits = [...container.querySelectorAll('button.tf-fit .tf-nm')].map((n) => n.textContent)
     expect(fits).toEqual(['Nikola Jokic', 'Shai Gilgeous-Alexander', 'Jamal Murray', 'Evan Mobley'])
@@ -187,7 +187,7 @@ describe('TradeFor, a player picked', () => {
 
     await screen.findByText('No offer to send')
     expect(container.querySelector('.tt-plate')?.textContent).toBe(
-      'Your odds with him53%from 54%▼−1 ptsCeiling: he comes free, Neemias Queta goes',
+      'Playoffs53%, from 54%, down 1 point.53%▼1Ceiling: he comes free, Neemias Queta goes',
     )
     expect(container.querySelector('.tf-partner-mt')?.textContent).toBe(
       '15–21–0 · 62% playoff odds · outside the playoff spots',
@@ -215,7 +215,7 @@ describe('TradeFor, a player picked', () => {
     fireEvent.click(screen.getByRole('button', { name: /Evan Mobley/ }))
     await screen.findByText('Your pitch to Sariyer Wolfpack')
     expect(container.querySelector('button.tf-offer')).toHaveAttribute('aria-current', 'true')
-    expect(container.querySelector('.tt-plate-them')?.textContent).toBe('Them 62% → 61%')
+    expect(container.querySelector('.tt-plate-them [aria-hidden]')?.textContent).toBe('Them 62% → 61% ▼1')
     expect(within(container).getByRole('status').textContent).toBe('Best offer: Tatum for Mobley, odds 54 to 56')
     fireEvent.click(screen.getByRole('button', { name: 'Check This Trade' }))
     expect(onCheck).toHaveBeenLastCalledWith({ partner: 1, give: [1], get: [21], mode: 'sending', cut: 4 })

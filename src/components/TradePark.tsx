@@ -321,7 +321,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
   if (deal)
     odds = (
       <OddsPlate
-        label="Your playoff odds"
+        label="Playoffs"
         value={deal.playoff_pct_after}
         from={deal.playoff_pct_before}
         them={
@@ -332,11 +332,11 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
         status={status}
       />
     )
-  else if (data) odds = <OddsPlate label="Your playoff odds" value={data.playoff_pct_before} sub="no deal yet" status={status} />
+  else if (data) odds = <OddsPlate label="Playoffs" value={data.playoff_pct_before} sub="no deal yet" status={status} />
   else if (today)
     odds = (
       <OddsPlate
-        label="Your playoff odds"
+        label="Playoffs"
         value={today.pct}
         sub={shopping.length ? 'today' : `today · ${ordinal(today.rank)} best of ${today.teams}`}
         status={status}
@@ -682,11 +682,12 @@ function DealNotes({ deal: d }: { deal: ShopDeal }) {
   )
 }
 
-/** "▲ +2 pts" as plain text: a sign and an arrow, never colour alone. */
+/** "▲ +2 pts": a sign and an arrow, never colour alone. Up is the helps-you blue; down is an orange
+ * arrow beside an ink figure. */
 function Delta({ before, after }: { before: number; after: number }) {
   const diff = ptsDiff(before, after)
   return (
-    <span className={`park-delta num ${diff > 0 ? 'good' : diff < 0 ? 'bad' : ''}`}>
+    <span className={`park-delta num ${diff > 0 ? 'park-delta-up' : diff < 0 ? 'park-delta-down' : ''}`}>
       {diff !== 0 && (
         <span className="park-delta-ar" aria-hidden="true">
           {diff > 0 ? '▲' : '▼'}

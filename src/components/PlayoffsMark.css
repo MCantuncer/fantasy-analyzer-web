@@ -1,0 +1,59 @@
+/* Playoffs (plo-): the after-odds, a short bar with a ghost tick at before, and ▲N; the other team's
+   line under it in ink. On a Moves row it sits on the centre line, and across the row on phones. */
+.plo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.plo-k {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.plo-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plo-big {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.plo-d {
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.plo-help {
+  color: var(--help);
+}
+
+.plo-hurt .plo-ar {
+  color: var(--hurt);
+}
+
+.plo-ar {
+  margin-right: 1px;
+  font-size: 0.75em;
+}
+
+.plo-them {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.plo-them-d {
+  font-weight: 650;
+  color: var(--text);
+}

@@ -289,6 +289,176 @@
   color: var(--text);
 }
 
+.mvt-foot {
+  grid-column: 2;
+}
+
+.mvt-head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.mvt-team {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mvt-team-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 32px;
+}
+
+.mvt-partner {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.mvt-style {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.mvt-kept-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* Accept chance: a word beside the handshake, never a percentage. */
+.mvt-accept {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--text-2);
+}
+
+.mvt-accept-w {
+  font-size: 16px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mvt-accept-w.good {
+  color: var(--good);
+}
+
+.mvt-accept-w.warn {
+  color: var(--warn);
+}
+
+.mvt-accept-w.bad {
+  color: var(--bad);
+}
+
+.mvt-deal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.mvt-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mvt-lane-k {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.mvt-lane-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mvt-lane-l svg {
+  color: var(--muted);
+}
+
+.mvt-keep-k {
+  width: 44px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+}
+
+.mvt-player {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mvt-face {
+  display: grid;
+}
+
+.mvt-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mvt-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.mvt-meta {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.mvt-extra {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* Keep: a bare 44px lock under the "Keep" label, only in an opened row. */
+.mvt-row .mvt-keep {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-2);
+}
+
+.mvt-row .mvt-keep:hover {
+  background: var(--field-hover);
+}
+
+.mvt-row .mvt-keep[aria-pressed='true'] {
+  color: var(--text);
+}
+
 /* Your odds on the centre line: the after-odds big, then "from X% ▲ +N pts", then theirs. */
 .mvt-odds {
   display: flex;
@@ -417,6 +587,8 @@
   --good: var(--muted);
   --bad: var(--muted);
   --warn: var(--muted);
+  --help: var(--muted);
+  --hurt: var(--muted);
   color: var(--muted);
 }
 
@@ -543,26 +715,29 @@
     gap: 12px;
   }
 
-  /* The odds band across the row, between two rules. */
-  .mvt-odds {
+  /* Playoffs across the row, between two rules: the name, then the figure line; theirs under it. */
+  .mvt-deal .plo {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    align-items: baseline;
+    align-items: center;
     justify-items: start;
-    gap: 0 10px;
+    gap: 2px 12px;
     padding: 10px 0;
     border-top: 1px solid var(--divider);
     border-bottom: 1px solid var(--divider);
-    text-align: left;
   }
 
-  .mvt-odds-k,
-  .mvt-odds-them {
+  .mvt-deal .plo-them {
     grid-column: 1 / -1;
+    margin-top: 0;
   }
 
-  .mvt-odds-them {
-    margin-top: 0;
+  .mvt-deal .plo-big {
+    font-size: 22px;
+  }
+
+  .mvt-deal .cd-bar {
+    --cd-w: 80px;
   }
 
   .mvt-body {

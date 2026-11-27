@@ -596,12 +596,16 @@ button.park-drow[aria-current='true'] {
   color: var(--text-2);
 }
 
-.park-delta.good {
-  color: var(--good);
+.park-delta-up {
+  color: var(--help);
 }
 
-.park-delta.bad {
-  color: var(--bad);
+.park-delta-down {
+  color: var(--text);
+}
+
+.park-delta-down .park-delta-ar {
+  color: var(--hurt);
 }
 
 .park-delta-ar {
