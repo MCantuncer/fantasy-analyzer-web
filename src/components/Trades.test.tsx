@@ -241,7 +241,8 @@ describe('TradeItem', () => {
     // Notes: each player named opens the card, and the measured-against line names the drop too.
     const notes = container.querySelector('.mvt-notes') as HTMLElement
     expect(notes).toHaveTextContent('Pick up Paul Reed for the open spot. The odds include him.')
-    expect(notes).toHaveTextContent('Measured against just adding Paul Reed for Neemias Queta')
+    expect(notes).toHaveTextContent('Odds vs. just adding Paul Reed for Neemias Queta')
+    expect(notes).not.toHaveTextContent('count only what the trade adds')
     expect(notes).toHaveTextContent('They would likely drop Klay Thompson.')
     expect(notes).toHaveTextContent('A roster squeeze deal is accepted about half as often as a 1-for-1.')
     expect(within(notes).getByText('Neemias Queta').closest('.pin')?.querySelector('.head')).not.toBeNull()

@@ -306,14 +306,13 @@ function dealNotes(t: TradeIdea, rounds: RoundValues, pickups: Pick<PickupIdea, 
         icon: <Info {...ICON} />,
         body: (
           <>
-            Measured against just adding <PlayerInline player={p} />
+            Odds vs. just adding <PlayerInline player={p} />
             {drop && (
               <>
                 {' '}
                 for <PlayerInline player={drop} />
               </>
             )}
-            : the odds count only what the trade adds.
           </>
         ),
       })

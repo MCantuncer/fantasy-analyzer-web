@@ -102,8 +102,17 @@ describe('TheirSide', () => {
     expect(view.getByRole('button', { name: 'Check This Trade' })).toBeInTheDocument()
     expect([...container.querySelectorAll('.tt-facts > div')].map((d) => d.textContent)).toEqual([
       'On paper they get107% of what they send',
-      'Trade value$8 for $7',
       'Their categories a week−0.02',
+    ])
+  })
+
+  it('shows the trade value only when there is no on-paper share to show', () => {
+    const { container } = render(
+      <TheirSide partner="Aachen ShowManners" pitch="" valueGet={3} valueGive={0} theirCats={0.01} rounds={null} />,
+    )
+    expect([...container.querySelectorAll('.tt-facts > div')].map((d) => d.textContent)).toEqual([
+      'Trade value$3 for $0',
+      'Their categories a week+0.01',
     ])
   })
 })

@@ -238,7 +238,7 @@ export interface TheirSideProps {
   needs?: PitchNeed[] | null
   /** League size, for "7th of 10". */
   teams?: number
-  /** Trade value they get and give, for "On paper they get" and "Trade value". */
+  /** Trade value they get and give: "On paper they get" as a %, or "Trade value" when they give nothing on paper. */
   valueGet: number
   valueGive: number
   /** Their expected categories won a week, change. */
@@ -307,12 +307,15 @@ export function TheirSide({
               </dd>
             </div>
           )}
-          <div>
-            <dt>Trade value</dt>
-            <dd className="num">
-              {shortValue(valueGet, rounds)} for {shortValue(valueGive, rounds)}
-            </dd>
-          </div>
+          {/* The same comparison as the % row, in rounded dollars that can read as a tie: only without it. */}
+          {paper == null && (
+            <div>
+              <dt>Trade value</dt>
+              <dd className="num">
+                {shortValue(valueGet, rounds)} for {shortValue(valueGive, rounds)}
+              </dd>
+            </div>
+          )}
           <div>
             <dt>Their categories a week</dt>
             <dd className={`num ${theirCats > 0 ? 'good' : theirCats < 0 ? 'bad' : ''}`}>{signed(theirCats)}</dd>
