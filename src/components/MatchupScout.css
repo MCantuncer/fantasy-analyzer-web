@@ -50,12 +50,7 @@
   display: block;
   color: var(--text-2);
 }
-.ms-sub {
-  margin: 0;
-  max-width: 68ch;
-  color: var(--text-2);
-}
-.ms-foot {
+ms-foot {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 20px;

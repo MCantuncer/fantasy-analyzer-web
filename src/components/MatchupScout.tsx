@@ -161,10 +161,6 @@ export function MatchupScoutView({ data, opponentId }: { data: ManagerStyles; op
         {head.go && <span className="ms-gold">{head.go}</span>}
         <span className="ms-quiet">{head.result}</span>
       </p>
-      <p className="ms-sub">
-        The cheapest way to {majority} of {board.length}: keep every lead, then go after the deficits this manager
-        usually loses, until we have a majority{spare > 0 ? ' and one spare' : ''}.
-      </p>
 
       <ScoutBoard
         label={`This week's nine categories against ${them.name}`}

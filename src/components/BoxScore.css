@@ -2,8 +2,7 @@
    quiet, and a tie fills neither. No outcome colour on the cells; your result is the small W/L/T letter
    in the corner of your cell. Close categories carry a target mark and, on phones, a faint gold ring. */
 .box-compact .box-cell,
-.matchup-box .box-cell,
-.lo-legend .box-cell {
+.matchup-box .box-cell {
   position: relative;
   border-radius: 10px;
   color: var(--muted);
@@ -14,8 +13,7 @@
 }
 
 .box-compact .box-cell.lead,
-.matchup-box .box-cell.lead,
-.lo-legend .box-cell.lead {
+.matchup-box .box-cell.lead {
   color: var(--text);
   font-weight: 700;
   background: var(--raised);
@@ -23,8 +21,7 @@
 }
 
 .box-compact .box-cell.tie,
-.matchup-box .box-cell.tie,
-.lo-legend .box-cell.tie {
+.matchup-box .box-cell.tie {
   color: var(--text);
   font-weight: 600;
   box-shadow: inset 0 0 0 1px var(--border);
@@ -115,29 +112,31 @@
   background: var(--text-2);
 }
 
-/* Your team: a small person icon in the accent before the name, instead of a "You ·" prefix
-   (Can, 2026-11-04). Same glyph as the "Your matchup" tag on the matchup cards. */
-.box-team-name.mine .box-mine-icon {
-  display: inline-block;
-  vertical-align: -2px;
-  margin-right: 6px;
-  fill: var(--gold);
-}
-
-/* Phones: the icon sits just left of your crest, outside its box, so the crest stays centred. */
-.box-crest-wrap {
+/* Your team: a small gold person badge on your crest's top-right corner, ringed in the page colour,
+   instead of a loose icon beside the name (Can, 2026-11-27). Same mark as Standings. */
+.box-cr {
   position: relative;
   display: inline-flex;
+  flex: none;
 }
 
-.box-crest-wrap .box-mine-icon {
+.box-me {
   position: absolute;
-  right: calc(100% + 6px);
-  top: 50%;
-  translate: 0 -50%;
-  width: 16px;
-  height: 16px;
-  fill: var(--gold);
+  top: -4px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+.box-me svg {
+  width: 9px;
+  height: 9px;
+  fill: var(--bg);
 }
 
 /* ---------- Game Night: your matchup lights up from the leader's side ----------

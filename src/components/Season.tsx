@@ -7,7 +7,6 @@ export function Season({ rows, myTeamId, playoffTeams }: { rows: SeasonRow[]; my
     <section className="card flush" aria-labelledby="season-title">
       <div className="card-head">
         <h2 id="season-title">Projected standings</h2>
-        <span className="small muted">Thousands of simulated seasons. The top {playoffTeams} make the playoffs.</span>
       </div>
       <div className="table-wrap">
         <table>

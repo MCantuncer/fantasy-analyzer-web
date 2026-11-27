@@ -145,43 +145,6 @@
   fill: currentColor;
 }
 
-/* Box score key: drawn with the real cell styles instead of a sentence. */
-.lo-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 20px;
-  padding: 0;
-  list-style: none;
-}
-
-.lo-legend > li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lo-legend .box-cell {
-  min-width: 34px;
-  height: 24px;
-  font-size: 13px;
-}
-
-.lo-legend-close {
-  color: var(--gold);
-}
-
-.lo-res {
-  position: relative;
-  display: inline-flex;
-  gap: 4px;
-}
-
-.lo-res .box-res {
-  position: static;
-  translate: none;
-}
-
 /* Front Office: the featured matchup is a flat card with a plain border; your team is marked by the
    person icon, not a gold frame. */
 .card.featured,
@@ -256,21 +219,6 @@
     ),
     radial-gradient(ellipse 520px 260px at 0% 0%, var(--house), transparent 70%), var(--surface);
   box-shadow: var(--lift);
-}
-
-/* Legend swatches: a short run of the same light as the rows. */
-.lo-lit {
-  display: inline-block;
-  width: 26px;
-  height: 14px;
-  border-radius: 4px;
-  background: linear-gradient(to right, color-mix(in srgb, var(--good) 45%, transparent), transparent);
-  box-shadow: inset 2px 0 0 var(--good);
-}
-
-.lo-lit.bad {
-  background: linear-gradient(to left, color-mix(in srgb, var(--bad) 45%, transparent), transparent);
-  box-shadow: inset -2px 0 0 var(--bad);
 }
 
 /* Check a Trade With Them: your opponent's trade check, from your matchup card. */
