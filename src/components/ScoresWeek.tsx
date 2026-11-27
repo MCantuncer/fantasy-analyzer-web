@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
+import { CalendarDots, CaretDown } from '@phosphor-icons/react'
 import type { FixtureDay } from '../api/client'
-import { dayLabel, isOut } from '../lib/scores'
+import { dayLabel, isOut, usToday } from '../lib/scores'
 import { PlayerLink } from './PlayerCard'
 import { PlayerHead, TeamLogo } from './PlayerHead'
 import './ScoresWeek.css'
@@ -10,6 +11,8 @@ type Side = FixtureDay['games'][number]['home']
 interface Cell {
   kind: 'play' | 'sit' | 'out' | 'none'
   opp?: Side
+  /** He plays at home ("vs IND"); otherwise away ("@GS"). */
+  home?: boolean
 }
 
 interface Row {
@@ -42,7 +45,7 @@ function buildRows(week: FixtureDay[]): Row[] {
         }
         const opp = p.pro_team_id === g.home.pro_team_id ? g.away : g.home
         const kind = isOut(p.injury_status) ? 'out' : sits.has(p.player_id) ? 'sit' : 'play'
-        row.cells[i] = { kind, opp }
+        row.cells[i] = { kind, opp, home: p.pro_team_id === g.home.pro_team_id }
         if (kind === 'play') row.starts += 1
       }
     }
@@ -58,89 +61,97 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
   const sitsByDay = week.map((_, i) => rows.filter((r) => r.cells[i].kind === 'sit').length)
   const sitTotal = sitsByDay.reduce((n, x) => n + x, 0)
   const nbaGames = week.reduce((n, d) => n + d.games.length, 0)
-  const cols = { gridTemplateColumns: `minmax(92px, 200px) repeat(${week.length}, minmax(0, 88px)) 40px` }
+  const today = usToday()
+  // Sized to its content: the name, one 76px column per day left and the starts (ScoresWeek.css).
+  const cols = { '--sw-days': week.length } as CSSProperties
+  // Phones squeeze the day columns: fewer days keep the logo, more days keep only the letters.
+  const fit = week.length <= 3 ? 'roomy' : week.length <= 5 ? 'snug' : 'tight'
   return (
-    <section className="card sw" aria-labelledby="week-title">
+    <section className="sw" aria-labelledby="week-title" data-fit={fit}>
       <div className="sw-head">
-        <h2 id="week-title">Still to play this week</h2>
-        <p className="small muted sw-sum">
-          <span className="num sw-sum-n">{starts}</span> {starts === 1 ? 'start' : 'starts'} left
+        <h2 id="week-title">
+          <CalendarDots className="sw-head-ic" aria-hidden="true" />
+          Still to play this week
+        </h2>
+        <p className="sw-sum">
+          <b className="num">{starts}</b> {starts === 1 ? 'start' : 'starts'} left
           {sitTotal > 0 && (
             <>
               {' · '}
-              <span className="num sw-sum-n sw-warn">{sitTotal}</span> {sitTotal === 1 ? 'player sits' : 'players sit'}{' '}
-              on full days
+              <b className="num sw-warn">{sitTotal}</b> {sitTotal === 1 ? 'player sits' : 'players sit'} on full days
             </>
           )}
         </p>
       </div>
       {rows.length === 0 ? (
-        <p className="empty">None of your players has a game left this week.</p>
+        <p className="sw-empty">None of your players has a game left this week.</p>
       ) : (
-        <div className="sw-grid" role="table" aria-label="Your players' games left this week">
-          <div className="sw-row sw-days" role="row" style={cols}>
-            <span role="columnheader">
+        <div className="sw-grid" role="table" aria-label="Your players' games left this week" style={cols}>
+          <div className="sw-row" role="row">
+            <span role="columnheader" className="sw-h">
               <span className="sr-only">Player</span>
             </span>
             {week.map((d, i) => {
               const n = sitsByDay[i]
+              const isToday = d.date === today
               return (
-                <button
-                  key={d.day}
-                  type="button"
-                  role="columnheader"
-                  className="link sw-day"
-                  onClick={() => onPick(d.day)}
-                  title={`Games on ${dayLabel(d.date)}`}
-                  aria-label={n > 0 ? `${dayLabel(d.date)}, ${n} sit` : dayLabel(d.date)}
-                >
-                  <span className="sw-day-name">
-                    {dayLabel(d.date)
-                      .split(' ')
-                      .map((part) => (
-                        <span key={part}>{part}</span>
-                      ))}
-                  </span>
-                  <span className="sw-day-mark">
+                <span key={d.day} role="columnheader" className="sw-h sw-h-day">
+                  <button
+                    type="button"
+                    className="sw-day"
+                    onClick={() => onPick(d.day)}
+                    title={`Games on ${dayLabel(d.date)}`}
+                    aria-label={`${dayLabel(d.date)}${isToday ? ', today' : ''}${n > 0 ? `, ${n} sit` : ''}`}
+                  >
+                    {isToday && <i className="sw-today" aria-hidden="true" />}
+                    <span className="sw-day-name">
+                      {dayLabel(d.date)
+                        .split(' ')
+                        .map((part) => (
+                          <span key={part}>{part}</span>
+                        ))}
+                    </span>
                     {n > 0 && (
-                      <span className="sw-day-sit">
+                      <span className="sw-day-sit" aria-hidden="true">
                         <BenchBadge />
                         {n}
-                        <span className="sw-sit-word"> sit</span>
                       </span>
                     )}
-                  </span>
-                </button>
+                  </button>
+                </span>
               )
             })}
-            <span role="columnheader" className="small muted sw-starts-h">
+            <span role="columnheader" className="sw-h sw-h-starts">
               Starts
             </span>
           </div>
           {rows.map((r) => (
-            <div key={r.id} className="sw-row" role="row" style={cols}>
+            <div key={r.id} className="sw-row" role="row">
               <span role="rowheader" className="sw-name">
                 <PlayerLink player={{ id: r.id, name: r.name }} decorative>
                   <PlayerHead player={{ id: r.id, name: r.name }} size={22} team={r.team} />
                 </PlayerLink>
                 <span className="sw-name-text">
-                  <PlayerLink player={{ id: r.id, name: r.name }}>{shortName(r.name)}</PlayerLink>
+                  <PlayerLink player={{ id: r.id, name: r.name }}>
+                    <ShortName name={r.name} />
+                  </PlayerLink>
                 </span>
               </span>
               {r.cells.map((c, i) => (
                 <span key={i} role="cell" className={`sw-cell sw-${c.kind}`} title={cellTitle(c)}>
                   {c.kind === 'out' ? (
-                    <span className="sw-out-text">OUT</span>
+                    <span className="sw-op" aria-hidden="true">
+                      OUT
+                    </span>
                   ) : c.opp ? (
-                    <>
+                    <span className="sw-op" aria-hidden="true">
                       <span className="sw-logo">
-                        <TeamLogo abbrev={c.opp.abbrev} size={22} />
-                        <span className="sw-abbrev" aria-hidden="true">
-                          {c.opp.abbrev}
-                        </span>
+                        <TeamLogo abbrev={c.opp.abbrev} size={16} />
                       </span>
+                      <span className="sw-at">{c.home ? 'vs\u00a0' : '@'}</span>
+                      {c.opp.abbrev}
                       {c.kind === 'sit' && <BenchBadge />}
-                    </>
+                    </span>
                   ) : null}
                   <span className="sr-only">{cellTitle(c)}</span>
                 </span>
@@ -153,15 +164,16 @@ export function ScoresWeek({ week, onPick }: { week: FixtureDay[]; onPick: (day:
         </div>
       )}
       <div className="sw-foot">
-        <span className="small muted sw-legend">
-          <span className="sw-key">
-            <BenchBadge />
-          </span>
-          sits: more games that day than your lineup spots
-        </span>
-        <button type="button" className="link small" aria-expanded={all} onClick={() => setAll(!all)}>
+        <button type="button" className="sw-all-btn" aria-expanded={all} onClick={() => setAll(!all)}>
           {all ? 'Hide NBA games' : `All ${nbaGames} NBA games`}
+          <CaretDown className="sw-all-caret" aria-hidden="true" />
         </button>
+        {sitTotal > 0 && (
+          <span className="sw-legend">
+            <BenchBadge />
+            sits: more games that day than your lineup spots
+          </span>
+        )}
       </div>
       {all && <AllGames week={week} onPick={onPick} />}
     </section>
@@ -177,7 +189,15 @@ function cellTitle(c: Cell): string {
 function BenchBadge() {
   return (
     <span className="sw-bench" aria-hidden="true">
-      <svg width="7" height="7" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <svg
+        width="7"
+        height="7"
+        viewBox="0 0 8 8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      >
         <path d="M4 1v5M1.8 4.2 4 6.4l2.2-2.2" />
       </svg>
     </span>
@@ -210,7 +230,13 @@ function AllGames({ week, onPick }: { week: FixtureDay[]; onPick: (day: number) 
   )
 }
 
-function shortName(name: string): string {
+/** "C. Spencer"; a crowded phone week drops the initial ("Spencer"). */
+function ShortName({ name }: { name: string }) {
   const parts = name.split(' ')
-  return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(' ')}` : name
+  if (parts.length < 2) return <>{name}</>
+  return (
+    <>
+      <span className="sw-initial">{parts[0][0]}.</span> {parts.slice(1).join(' ')}
+    </>
+  )
 }

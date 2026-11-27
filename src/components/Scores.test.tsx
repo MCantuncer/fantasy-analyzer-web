@@ -416,9 +416,15 @@ describe('Scores', () => {
     renderScores()
     const week = await screen.findByRole('region', { name: 'Still to play this week' })
     expect(week).toHaveTextContent('1 start left · 1 player sits on full days')
-    expect(within(week).getByRole('columnheader', { name: 'Sat 24, 1 sit' })).toBeInTheDocument()
+    expect(within(week).getByRole('button', { name: 'Sat 24, 1 sit' })).toBeInTheDocument()
+    expect(within(week).getByRole('columnheader', { name: 'Starts' })).toBeInTheDocument()
+    // Someone sits, so the legend says what that means.
+    expect(week).toHaveTextContent('sits: more games that day than your lineup spots')
     const row = (name: string) => within(week).getByRole('rowheader', { name }).parentElement as HTMLElement
     expect(within(row('G. Antetokounmpo')).getByText('Plays CHA')).toBeInTheDocument()
+    // The opponent in words: "@CHA" away, "vs MIA" at home.
+    expect(row('G. Antetokounmpo').querySelector('.sw-op')).toHaveTextContent('@CHA')
+    expect(row('K. Dunn').querySelector('.sw-op')).toHaveTextContent('vs MIA')
     expect(within(row('D. Mitchell')).getByText('Out, vs MIA')).toBeInTheDocument()
     expect(within(row('K. Dunn')).getByText('Sits, vs MIA')).toBeInTheDocument()
     // The full list of NBA games is one tap away.
