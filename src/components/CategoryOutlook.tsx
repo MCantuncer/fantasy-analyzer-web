@@ -6,7 +6,8 @@ import './CategoryOutlook.css'
 
 /**
  * Winning, Swing, Losing: plain win-chance order, top to bottom. Colour is light on outcomes only: the
- * Winning and Losing words and their bars. Swing is neutral, so it gets ink and weight instead.
+ * Winning (blue, helps you) and Losing (orange, hurts you) words and their bars, which end past or
+ * short of the 50% tick. Swing is neutral, so it gets ink and weight instead.
  */
 const GROUPS = [
   { tag: 'locked', label: 'Winning', tone: 'won', hint: 'upgrades wasted' },
@@ -49,7 +50,16 @@ export function CategoryOutlook({ categories }: { categories: Outlook[] }) {
                   {ordinal(c.league_rank)}
                   <span className="sr-only">, </span>
                 </span>
-                <span className="co-cat">{c.category}</span>
+                <span className="co-cat">
+                  {c.category === 'TO' ? (
+                    <>
+                      <span aria-hidden="true">TO↓</span>
+                      <span className="sr-only">turnovers, lower wins</span>
+                    </>
+                  ) : (
+                    c.category
+                  )}
+                </span>
                 <span className="co-bar" aria-hidden="true">
                   <i style={{ '--w': pct(c.win_pct) } as CSSProperties} />
                   <b />

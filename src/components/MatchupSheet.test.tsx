@@ -184,7 +184,7 @@ describe('MatchupSheet', () => {
   it("someone else's matchup: week only, neutral bars, no badge", () => {
     sheet({ title: 'Matchup of the week', mine: false, view: 'week', canToday: false, today: null, myId: null })
     expect(screen.queryByRole('group', { name: 'Today or the whole week' })).toBeNull()
-    expect(document.querySelector('.cs-good, .cs-bad')).toBeNull()
+    expect(document.querySelector('.cs-help, .cs-hurt')).toBeNull()
     expect(document.querySelectorAll('.cs-neu').length).toBeGreaterThan(0)
     expect(screen.queryByRole('img', { name: 'your team' })).toBeNull()
     expect(document.querySelector('.youtag')).toBeNull()
