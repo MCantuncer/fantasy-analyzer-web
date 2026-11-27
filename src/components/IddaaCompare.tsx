@@ -1301,11 +1301,6 @@ function HowDivided({
   const fin = (l: Line) => l.game.status === 'final' && l.closer != null
   return (
     <div className="ic-hd">
-      <p className="ic-hd-hint">
-        Each line is one mark at its gap, in bands.{' '}
-        <span className="ic-hover-hint">Hover a mark to see whose line it is, click to keep the card open.</span>
-        <span className="ic-tap-hint">Tap a mark to see whose line it is.</span>
-      </p>
       <div className="ic-hd-top">
         <div className="ic-legend">
           {stage.size > 0 && (
@@ -2003,10 +1998,7 @@ function Empty({ data, onDay }: { data: BookCompare; onDay: (d: number) => void 
     <div className="ic-empty">
       <div className="inner">
         <h2>{data.day == null ? 'No sportsbook lines saved yet' : "The sportsbook wasn't saved before this night's games"}</h2>
-        <p>
-          Lines are read at the last look before each tip-off.
-          {data.look.ok === false && ` The last read failed: ${data.look.error ?? 'no answer'}.`}
-        </p>
+        {data.look.ok === false && <p>The last read failed: {data.look.error ?? 'no answer'}.</p>}
         {nearest != null && (
           <button type="button" className="secondary" onClick={() => onDay(nearest)}>
             Go to the nearest night with lines

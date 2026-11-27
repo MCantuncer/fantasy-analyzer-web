@@ -1280,17 +1280,6 @@
     0 0 0 2px var(--surface),
     0 0 0 3.5px var(--gold);
 }
-.ic-tap-hint {
-  display: none;
-}
-@media (hover: none) {
-  .ic-hover-hint {
-    display: none;
-  }
-  .ic-tap-hint {
-    display: inline;
-  }
-}
 
 /* The mark card */
 .ic-mc {

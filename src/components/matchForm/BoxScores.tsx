@@ -37,7 +37,6 @@ export function BoxScores({
     <section className="mf-log" aria-labelledby={`${tabsId}-h`}>
       <div className="mf-blk-h">
         <h3 id={`${tabsId}-h`}>Last {LAST_GAMES}</h3>
-        <p>Newest first. Tap a game for its Game Ball.</p>
       </div>
       <div
         className="mf-tabs"
