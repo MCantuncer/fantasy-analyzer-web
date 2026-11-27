@@ -1,0 +1,294 @@
+/* Standings (st-): bare rows on the page, no card and no rules. Your row takes the house light,
+   the playoff line is labelled on the line itself, and the trade check is a muted 44px handshake. */
+.st {
+  min-width: 0;
+}
+
+.st-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 44px;
+  padding: 0 4px;
+}
+
+.st-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.st-h-ic {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+
+.st-top .st-switch {
+  width: auto;
+  min-width: 220px;
+}
+
+.st-top .st-switch button {
+  min-height: 44px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.st-list {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phones: # · team · W–L–T · Back · trade (Win % from 760px). The number columns are as tight as
+   the figures allow so a two-word name gets its own two lines instead of being cut. */
+.st-g {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 58px 30px 44px;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.st-g.st-nt {
+  grid-template-columns: 18px minmax(0, 1fr) 58px 30px;
+}
+
+.st-g.st-pj {
+  grid-template-columns: 18px minmax(0, 1fr) 56px 60px 32px;
+}
+
+.st-lg {
+  display: none;
+}
+
+.st-pc {
+  display: none;
+}
+
+.st-hd {
+  padding: 0 6px 4px 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.st-hd span:nth-child(n + 3) {
+  text-align: right;
+}
+
+.st-r {
+  min-height: 50px;
+  padding: 3px 6px 3px 8px;
+  border-radius: 12px;
+}
+
+.st-r.mine {
+  background: linear-gradient(90deg, var(--house), transparent 80%);
+}
+
+.st-rk {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.st-tm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 550;
+}
+
+.st-nm {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.st-r.mine .st-tm {
+  font-weight: 700;
+}
+
+/* Your crest: a small gold person badge sits on its top-right corner, ringed in the page colour. */
+.st-cr {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.st-me {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--bg);
+}
+
+.st-me svg {
+  width: 8px;
+  height: 8px;
+}
+
+.st-n {
+  text-align: right;
+  font-size: 14px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.st-n.st-rec {
+  color: var(--text);
+  font-weight: 650;
+}
+
+/* The trade check: muted, no outline, lights up on hover. */
+.st-tr {
+  justify-self: end;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.st-tr:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  color: var(--text);
+}
+
+/* Playoff odds: a short bar on the track (yours gold), then the figure. */
+.st-od {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.st-od i {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--track);
+}
+
+.st-od i::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--p);
+  border-radius: 3px;
+  background: var(--text-2);
+}
+
+.st-r.mine .st-od i::after {
+  background: var(--gold);
+}
+
+.st-od b {
+  min-width: 30px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* "Playoff line · top 6", on the line itself: a 2px seam that fades out to the right. */
+.st-cut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.st-cut::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--seam), transparent);
+}
+
+.st-pending {
+  margin: 12px 4px 0;
+  color: var(--muted);
+}
+
+@media (max-width: 759px) {
+  /* Three views don't fit beside the heading on a phone: the switch takes its own line. */
+  .st-top .st-switch.three {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .st-tm {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 760px) {
+  .st-g {
+    grid-template-columns: 26px minmax(0, 1fr) 76px 56px 48px 44px;
+    column-gap: 8px;
+  }
+
+  .st-tm {
+    gap: 10px;
+  }
+
+  .st-od {
+    gap: 8px;
+  }
+
+  .st-od b {
+    min-width: 34px;
+  }
+
+  .st-lg {
+    display: inline;
+  }
+
+  .st-sm {
+    display: none;
+  }
+
+  .st-g.st-nt {
+    grid-template-columns: 26px minmax(0, 1fr) 76px 56px 48px;
+  }
+
+  .st-g.st-pj {
+    grid-template-columns: 26px minmax(0, 1fr) 76px 112px 64px;
+  }
+
+  .st-pc {
+    display: block;
+  }
+
+  .st-od i {
+    width: 56px;
+  }
+}

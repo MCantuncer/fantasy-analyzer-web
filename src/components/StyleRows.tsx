@@ -192,7 +192,7 @@ export function StyleRows({
           >
             <div className="sr-team">
               <span className="sr-rank num">{i + 1}</span>
-              <TeamCrest name={t.name} colour={colours.get(t.team_id)} size={28} />
+              <TeamCrest name={t.name} colour={colours.get(t.team_id)} size={22} />
               <span className="sr-name">
                 <b>{t.name}</b>
                 <span className="sr-rec num">
