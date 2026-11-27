@@ -8,7 +8,6 @@ import {
   Pulse,
   Scales,
   Target,
-  Ticket,
   X,
 } from '@phosphor-icons/react'
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -44,7 +43,6 @@ import { useSwipeToClose } from '../lib/swipeToClose'
 import { teamLight } from '../lib/nbaTeams'
 import { usePlayerCard } from '../lib/playerCard'
 import { MatchCard } from './MatchCard'
-import { ProMark } from './Pro'
 import { ProInside } from './ProInside'
 import { upgradeRequired } from '../lib/plans'
 import { useFeature } from '../lib/pro'
@@ -67,6 +65,9 @@ import { SelectMenu } from './SelectMenu'
 import { bringKupon } from '../lib/kuponFront'
 import { CrazyDoor } from './CrazyDoor'
 import './IddaaCompare.css'
+
+// The way in from My leagues lives in its own file; MyLeagues still imports it from here.
+export { EstimatesTeaser } from './EstimatesTeaser'
 
 interface Props {
   onBack: () => void
@@ -175,78 +176,6 @@ export function IddaaCompare({ onBack, onHealth, onCrazy, searchLeague = null }:
       )}
       {data && <LookLine data={data} />}
     </div>
-  )
-}
-
-/** The way in from My leagues: tonight's biggest gap above the book, or last night's tally once
- *  it is settled, on a card that opens the page. */
-export function EstimatesTeaser({ onOpen }: { onOpen: () => void }) {
-  const allowed = useFeature('estimates')
-  const q = useQuery({
-    queryKey: ['book-compare', null],
-    queryFn: () => fetchBookCompare(null),
-    retry: false,
-    enabled: allowed,
-  })
-  const data = q.data
-  const lines = useMemo(() => (data ? linesOf(data, new Date()) : []), [data])
-  const settled = !!data && data.games.length > 0 && data.games.every((g) => g.status === 'final')
-  const top = ranked(lines.filter((l) => !l.tipped || settled), true).above[0]
-  const t = tallyOf(lines)
-  if (!allowed)
-    return (
-      <button type="button" className="ic-teaser" aria-label="Our Estimates, Pro feature. Picks and Sportsbook vs" onClick={onOpen}>
-        <span className="ic-teaser-h">
-          <span className="ic-teaser-t pro-teaser-t">
-            <Ticket size={18} aria-hidden="true" />
-            Our Estimates
-            <ProMark label={false} />
-          </span>
-          <span className="ic-teaser-go">
-            <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m9 6 6 6-6 6" />
-            </svg>
-          </span>
-        </span>
-        <span className="ic-teaser-sub">Picks and Sportsbook vs</span>
-      </button>
-    )
-  return (
-    <button type="button" className="ic-teaser" onClick={onOpen}>
-      <span className="ic-teaser-h">
-        <span className="ic-teaser-t">
-          {data && !settled && data.games.length > 0 && <span className="ic-live" aria-hidden="true" />}
-          Our Estimates vs the Sportsbook
-        </span>
-        <span className="ic-teaser-go">
-          See all
-          <svg className="ic-i" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-        </span>
-      </span>
-      <span className="ic-teaser-sub">
-        {settled
-          ? `${nightLabel(data.date)}: we won ${t.oursCloser} of ${t.judged} · Book won ${t.bookCloser}`
-          : 'Every player and game, our number beside the book’s, judged against the result once the games end.'}
-      </span>
-      {top && !settled && (
-        <span className="ic-teaser-row">
-          <span className="ic-teaser-pl">
-            {top.kind === 'player' && (
-              <PlayerHead player={{ id: top.playerId ?? 0, name: top.name }} team={top.team} size={32} />
-            )}
-            <span className="ic-teaser-who">
-              <b>{top.kind === 'player' ? top.name : top.gameLabel}</b>
-              <span>
-                Biggest gap tonight · {top.stat === 'TEAM' ? `${top.team} points` : STAT_NAME[top.stat]}
-              </span>
-            </span>
-          </span>
-          <Lane line={top} i={0} />
-        </span>
-      )}
-    </button>
   )
 }
 
@@ -1116,52 +1045,6 @@ function Pair({ away, home, size = 24 }: { away: string; home: string; size?: nu
 
 const settledOf = (l: Line) => l.game.status === 'final'
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
-
-function Lane({ line: l, i }: { line: Line; i: number }) {
-  const gap = l.gap ?? 0
-  const share = Math.abs(l.score) / FULL_AT
-  const style = { '--w': Math.min(share, 1).toFixed(3), '--i': i } as CSSProperties
-  const clamp = share > 1 ? ' clamp' : ''
-  const res = l.game.status === 'final' ? resultValue(l) : null
-  return (
-    <div className={`ic-lane${gap < 0 ? ' dn' : gap > 0 ? ' up' : ''}`} style={style}>
-      <span className="pg pg-l" aria-hidden="true">
-        Book
-      </span>
-      <div className="l">
-        <Hit line={l} side="book" />
-        <span className="ic-bk">
-          <span className="ic-v ic-v-i">{value(l, 'book')}</span>
-          <Px line={l} />
-        </span>
-        {gap < 0 && <span className={`ic-band bl${clamp}`} style={style} />}
-      </div>
-      <span className={`ic-pill${gap === 0 ? ' zero' : ''}${res != null ? ' has-r' : ''}`}>
-        <span className="g">
-          <span className="t">Gap</span>
-          <span className="v">{signed(gap, l.stat)}</span>
-        </span>
-        {res != null && (
-          <span className="r">
-            <span className="t">Result</span>
-            <span className="v">{res}</span>
-          </span>
-        )}
-      </span>
-      <div className="r">
-        {gap > 0 && <span className={`ic-band br${clamp}`} style={style} />}
-        <span className="ic-v ic-v-o">
-          {value(l, 'ours')}
-          <Caret />
-        </span>
-        <Hit line={l} side="ours" />
-      </div>
-      <span className="pg pg-r" aria-hidden="true">
-        Ours
-      </span>
-    </div>
-  )
-}
 
 /** The book's odds under its number: "20+ · 1.95", "Over · 1.93", or "Top 8+ · 2.10" when our
  *  number is past the highest rung the book prices. */
@@ -2171,14 +2054,6 @@ function XIcon() {
     <svg viewBox="0 0 16 16" aria-hidden="true">
       <path d="M4.2 4.2 11.8 11.8" />
       <path d="M11.8 4.2 4.2 11.8" />
-    </svg>
-  )
-}
-
-function Caret() {
-  return (
-    <svg className="caret" viewBox="0 0 7 10" aria-hidden="true">
-      <path d="M6.2 1 1 5l5.2 4z" />
     </svg>
   )
 }
