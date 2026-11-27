@@ -120,14 +120,19 @@ describe('Roster quiet rows', () => {
 })
 
 describe('Roster on the team sheet', () => {
-  it('puts the badges on the face corner, not loose after the name', () => {
-    const hot = { ...player, badges: [{ kind: 'hot', reason: 'Hot streak' }] } as PlayerRef
-    const { container } = render(<Roster roster={[hot]} keep={[]} onToggleKeep={() => {}} />)
-    const corner = container.querySelector('.ro-face .ro-face-bdg')
-    expect(corner).not.toBeNull()
-    expect(within(corner as HTMLElement).getByRole('img', { name: /Hot/ })).toBeInTheDocument()
-    expect(container.querySelector('.ro-l1 .pb-marks')).toBeNull()
-    expect(container.querySelectorAll('.pb-mark')).toHaveLength(1)
+  it('spells the badges out as chips on line 2, never on the face or beside the name', () => {
+    const badged = {
+      ...player,
+      badges: [
+        { kind: 'jewel', reason: 'A top pick' },
+        { kind: 'keystone', category: 'REB', reason: 'His owner leans on him for boards' },
+      ],
+    } as PlayerRef
+    const { container } = render(<Roster roster={[badged]} keep={[]} onToggleKeep={() => {}} />)
+    const chips = [...container.querySelectorAll('.ro-l2 .pb-chip')]
+    expect(chips.map((c) => c.firstChild?.textContent)).toEqual(['Jewel', 'Keystone REB'])
+    expect(container.querySelector('.ro-face .pb-chip, .ro-l1 .pb-chip')).toBeNull()
+    expect(container.querySelector('.ro-face svg:not(.head svg)')).toBeNull()
   })
 
   it('has no card box and no hint sentence: the Keep column head carries the locks', () => {

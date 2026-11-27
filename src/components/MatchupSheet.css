@@ -4,7 +4,6 @@
 .lms-sheet {
   --lms-py: 16px;
   --lms-px: 12px;
-  --yc-ring: var(--surface);
   display: flex;
   flex-direction: column;
   min-width: 0;
