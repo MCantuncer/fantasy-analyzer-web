@@ -110,7 +110,7 @@ describe('BestMove as the lead', () => {
       partner_playoff_pct_after: 0.53,
     }
     const { container } = render(<BestMove report={report({ trades: [idea] })} />)
-    expect(container.querySelector('.mvl-accept')?.textContent).toContain('Possible')
+    expect(container.querySelector('.mvl-accept .acn-chance-v')?.textContent).toBe('1 in 2')
     expect(container.querySelector('.mvl-big .mvl-name')?.textContent).toContain(P.morant.name)
     expect(container.querySelector('.mvl-small .mvl-name')?.textContent).toContain(P.mitchell.name)
     expect(container.querySelector('.pclimb-strand')).toBeNull()
