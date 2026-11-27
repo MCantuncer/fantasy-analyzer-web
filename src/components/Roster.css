@@ -272,12 +272,13 @@ button.ro-lock[aria-pressed='true'] {
   color: var(--muted);
 }
 
+/* Only you: what a player adds to your team is blue, what he costs it is orange (the sign says it too). */
 .ro-pos {
-  color: var(--good);
+  color: var(--help);
 }
 
 .ro-neg {
-  color: var(--bad);
+  color: var(--hurt);
 }
 
 /* Shop: a bare text button, 44px tall. */
