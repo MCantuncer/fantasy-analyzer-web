@@ -100,7 +100,7 @@ function howParts(report: AnalysisReport, moves: boolean): HowPart[] {
     { title: 'Chance they say yes', body: 'How offers like this one went in real leagues: Likely, Possible or Long shot.' },
     {
       title: 'Fair and Bold',
-      body: "Fair: both teams' odds rise at least a point. Bold: they win on paper, you win on the court.",
+      body: 'Fair: they win on paper and their odds dip a point at most, or both rise. Bold: they win on paper, you win on what you know.',
     },
   ]
 }

@@ -588,18 +588,18 @@ type Mode = 'fair' | 'edge'
 const MODES: Record<Mode, { label: string; hint: string; empty: string }> = {
   fair: {
     label: 'Fair',
-    hint: "Both teams' playoff odds go up at least a point",
-    empty: "No trade raises both teams' playoff odds right now.",
+    hint: "They win on paper and their odds dip a point at most, or both teams' odds rise",
+    empty: 'No fair trade raises your playoff odds right now.',
   },
   edge: {
     label: 'Bold',
-    hint: 'They win on paper, you win on the court, and their odds dip 3 points at most',
+    hint: 'They win on paper, you win on what you know. Their odds dip 3 points at most, 5 on a sell-high or buy-low',
     empty: 'No deal gives them the paper win while raising your playoff odds right now.',
   },
 }
 
 // With no Fair deal there is nothing to switch between, so the panel folds to one list or one line.
-const BOLD_ONLY = "No deal lifts both teams' playoff odds today."
+const BOLD_ONLY = 'No fair trade raises your playoff odds today.'
 const NOTHING = 'No trade worth offering right now. Nothing raises your playoff odds that another team would take.'
 
 interface TradesProps {
@@ -642,7 +642,7 @@ export function Trades({
   const edgeSplit = useMemo(() => applyRules(rules, allEdge), [rules, allEdge])
   const fair = fairSplit.kept
   const edge = edgeSplit.kept
-  // Open on Fair when there's a deal that helps both teams, else on the Bold deals.
+  // Open on Fair when there's a fair deal, else on the Bold deals.
   const [mode, setMode] = useState<Mode>(allFair.length || !allEdge.length ? 'fair' : 'edge')
   const [showSkipped, setShowSkipped] = useState(false)
   const trades = mode === 'fair' ? fair : edge
