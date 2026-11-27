@@ -248,9 +248,8 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
                 {shortValue(p.perceived_value, rounds)}
               </span>
               {keeper ? (
-                <span className="park-tog park-lock" title="Kept: change in My Team">
-                  <Lock size={18} aria-hidden="true" />
-                </span>
+                // The meta line already says Keeper: nothing to shop here.
+                <span className="park-tog" />
               ) : (
                 <button
                   type="button"
@@ -264,7 +263,7 @@ export function TradePark({ report, keep, creds, picks, onPicks, onCheck }: Prop
                     if (!off) toggle(p.id)
                   }}
                 >
-                  <span className="park-ring num">{on ? n + 1 : <Plus size={18} aria-hidden="true" />}</span>
+                  {on ? <span className="park-ring num">{n + 1}</span> : <span className="park-shop">Shop</span>}
                 </button>
               )}
             </li>

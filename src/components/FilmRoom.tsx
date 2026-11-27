@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowSquareOut,
+  ArrowUpRight,
   ArrowsInLineHorizontal,
   Broom,
   CaretDown,
@@ -484,7 +485,8 @@ function MissedAssignments({
                       rel="noreferrer"
                       aria-label={`Add ${p.name} on ESPN (opens ESPN)`}
                     >
-                      <ArrowSquareOut size={18} aria-hidden="true" />
+                      Add
+                      <ArrowUpRight size={14} weight="bold" aria-hidden="true" />
                     </a>
                   </li>
                 ))}

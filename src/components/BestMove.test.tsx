@@ -71,9 +71,10 @@ describe('SeasonBand', () => {
     expect(container.textContent).not.toMatch(/\d+%/) // the odds live in the lead's chart
   })
 
-  it('marks a scouted team with binoculars and its name, never as you', () => {
+  it('labels a scouted team\'s seat "Scouting" with its name for screen readers, never as you', () => {
     const { container } = render(<SeasonBand report={ranked()} scout="Horns" />)
-    expect(container.querySelector('.mvl-rung.me.scout svg')?.getAttribute('aria-label')).toBe('Horns')
+    expect(container.querySelector('.mvl-rung.me.scout .mvl-scout-k')?.textContent).toBe('Scouting: Horns')
+    expect(container.querySelector('.mvl-rung svg')).toBeNull()
     expect(container.textContent).not.toContain('You')
   })
 })

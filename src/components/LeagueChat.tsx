@@ -532,8 +532,8 @@ function usedReactions(item: FeedItem) {
 }
 
 /**
- * One 44px button at the end of a line in Chat. Empty, it's a smiley that hides until hover on a
- * fine pointer (opacity, so it stays in the tab order); with reactions it shows up to two of them
+ * One 44px button at the end of a line in Chat. Empty, it's one word ("Reply", or "React" on a reply)
+ * that hides until hover on a fine pointer (opacity, so it stays in the tab order); with reactions it shows up to two of them
  * and the total, always visible.
  */
 function ChatAct({
@@ -542,6 +542,7 @@ function ChatAct({
   open,
   controls,
   name = 'React or reply',
+  word = 'Reply',
   onToggle,
   onClose,
 }: {
@@ -551,6 +552,8 @@ function ChatAct({
   controls: string
   /** What the button does: "React or reply" on a move, "React" on a reply. */
   name?: string
+  /** The one word it shows while empty: "Reply" on a move, "React" on a reply. */
+  word?: string
   onToggle: () => void
   onClose: () => void
 }) {
@@ -585,7 +588,9 @@ function ChatAct({
           </span>
         </>
       ) : (
-        <Smiley size={20} aria-hidden="true" />
+        <span className="chat-act-word" aria-hidden="true">
+          {word}
+        </span>
       )}
     </button>
   )
@@ -743,8 +748,7 @@ function FeedLine({ item, ctx, act }: { item: FeedItem; ctx: Ctx; act?: ReactNod
           </>
         ) : ctx.budget ? (
           <>
-            <Gavel size={15} aria-hidden="true" />
-            <span className="sr-only">Waiver bid</span>
+            <span className="feed-slot-label">Bid</span>
             <span className="feed-bid num">${item.bid ?? 0}</span>
           </>
         ) : (
@@ -1060,6 +1064,7 @@ function Reply({ item, ctx }: { item: FeedItem; ctx: Ctx }) {
         open={tray}
         controls={trayId}
         name="React"
+        word="React"
         onToggle={() => setTray(!tray)}
         onClose={closeTray}
       />

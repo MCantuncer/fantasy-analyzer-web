@@ -61,11 +61,38 @@
   background: var(--gold);
 }
 
-/* The scouted team in the sample: binoculars over its seat, the seat in the second ink. */
+/* The scouted team in the sample: its seat in the second ink, the word "Scouting" over it (kept
+   inside the ladder at either end). */
 .mvl-rung.scout {
   height: 16px;
   background: var(--text-2);
-  color: var(--surface-2);
+}
+
+.mvl-ladder.has-scout {
+  padding-top: 16px;
+}
+
+.mvl-scout-k {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 14px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.mvl-scout-k.at-start {
+  left: 0;
+  transform: none;
+}
+
+.mvl-scout-k.at-end {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 /* The playoff line: a 2px rule after the last team in. */

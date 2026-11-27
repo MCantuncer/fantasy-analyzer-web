@@ -98,7 +98,8 @@ describe('LeagueChat wire', () => {
     )
     await screen.findByText('Tristan da Silva')
     const [claim, fa] = container.querySelectorAll('.feed-line')
-    expect(claim.querySelector('.feed-slot')?.textContent).toBe('Waiver bid$12')
+    expect(claim.querySelector('.feed-slot')?.textContent).toBe('Bid$12')
+    expect(claim.querySelector('.feed-slot svg')).toBeNull()
     expect(claim.querySelector('.feed-meta')?.textContent).toContain('Biggest bid this week')
     expect(claim.querySelector('.feed-meta-big svg')?.getAttribute('aria-hidden')).toBe('true')
     expect(claim.classList.contains('is-big')).toBe(true)
@@ -344,20 +345,22 @@ describe('LeagueChat react and reply', () => {
     )
   }
 
-  it('gives each line one trailing React or reply button instead of a React / Reply text row', async () => {
+  it('gives each line one trailing button that says Reply, instead of a React / Reply text row', async () => {
     vi.mocked(fetchFeed).mockResolvedValue(chatPage({ 'tx:big': { reactions: reacted } }))
     const { container } = renderChat()
     await within(container).findByText('Tristan da Silva')
     const lines = [...container.querySelectorAll('.feed-line')]
     expect(lines).toHaveLength(2)
     expect(lines.map((l) => l.querySelectorAll('button.chat-act').length)).toEqual([1, 1])
-    expect(lines.some((l) => /React|Reply/.test(l.textContent ?? ''))).toBe(false)
     const [used, empty] = lines.map((l) => l.querySelector('button.chat-act')!)
+    // The one word sits on the empty button only; no line carries a React / Reply text row.
+    expect(lines.map((l) => (l.textContent ?? '').match(/React|Reply/g)?.length ?? 0)).toEqual([0, 1])
     expect(used.classList.contains('has')).toBe(true)
     expect(used.textContent).toBe('🧠🥷3')
     expect(used.getAttribute('aria-label')).toBe('Smart move, 2; Steal, 1. React or reply')
     expect(empty.getAttribute('aria-label')).toBe('React or reply')
-    expect(empty.querySelector('svg')).not.toBeNull()
+    expect(empty.textContent).toBe('Reply')
+    expect(empty.querySelector('svg')).toBeNull()
   })
 
   it('opens the tray in place with your reaction pressed; Esc closes it and returns focus', async () => {

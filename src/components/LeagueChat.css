@@ -370,6 +370,11 @@
   font-size: 13px;
 }
 
+/* "Bid $1" reads as one phrase: a word space, not the slot's icon gap. */
+.feed-slot-label + .feed-bid {
+  margin-left: -3px;
+}
+
 .feed-meta {
   grid-area: meta;
   display: flex;
@@ -1347,6 +1352,12 @@
   gap: 1px;
   background: var(--feed-chip);
   color: var(--text);
+}
+
+.chat-act-word {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .chat-act .chat-emo {

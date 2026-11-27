@@ -1,4 +1,4 @@
-import { Binoculars, ChartLineUp } from '@phosphor-icons/react'
+import { ChartLineUp } from '@phosphor-icons/react'
 import type { CSSProperties } from 'react'
 import type { AnalysisReport } from '../api/client'
 import { ordinal, pct } from '../lib/format'
@@ -27,7 +27,7 @@ export function SeasonBand({
   scout,
 }: {
   report: AnalysisReport
-  /** The team being scouted in the sample league: its seat carries binoculars and its name, not "you". */
+  /** The team being scouted in the sample league: its seat is labelled "Scouting", never "you". */
   scout?: string
 }) {
   const rank = report.season.findIndex((r) => r.team_id === report.team_id)
@@ -47,7 +47,7 @@ export function SeasonBand({
         <ChartLineUp size={16} aria-hidden="true" />
         Season outlook
       </h3>
-      <div className="mvl-ladder">
+      <div className={scout ? 'mvl-ladder has-scout' : 'mvl-ladder'}>
         <ol
           className="mvl-rungs"
           aria-label={`Projected finish ${ordinal(rank + 1)} of ${teams}. Top ${spots} make the playoffs.`}
@@ -59,7 +59,9 @@ export function SeasonBand({
               title={`${ordinal(i + 1)}: ${r.team_name}, ${pct(r.playoff_pct)} playoff odds`}
             >
               {i === rank && scout ? (
-                <Binoculars size={12} weight="bold" aria-label={scout} />
+                <span className={`mvl-scout-k${i < 2 ? ' at-start' : i > teams - 3 ? ' at-end' : ''}`}>
+                  Scouting<span className="sr-only">: {scout}</span>
+                </span>
               ) : (
                 <span className="sr-only">
                   {ordinal(i + 1)}: {i === rank ? 'You' : r.team_name}

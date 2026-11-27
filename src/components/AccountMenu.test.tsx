@@ -29,6 +29,14 @@ const setup = () => {
 describe('AccountMenu', () => {
   afterEach(cleanup)
 
+  it('shows your initial in a circle, not a person icon', () => {
+    setup()
+    const summary = document.querySelector('details.account-menu > summary')!
+    expect(summary.getAttribute('aria-label')).toBe('Account')
+    expect(summary.querySelector('.account-initial')?.textContent).toBe('M')
+    expect(summary.querySelector('svg')).toBeNull()
+  })
+
   it('closes on a click or tap outside it', () => {
     const { details, openMenu } = setup()
     openMenu()

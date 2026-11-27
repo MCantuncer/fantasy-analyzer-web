@@ -1,4 +1,4 @@
-import { Handshake, ListNumbers } from '@phosphor-icons/react'
+import { ListNumbers } from '@phosphor-icons/react'
 import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
 import type { ManagerStyles, OverviewTeam, SeasonRow } from '../api/client'
 import { pct } from '../lib/format'
@@ -121,7 +121,7 @@ export function Standings({
             <span>W–L–T</span>
             <span className="st-pc">Win %</span>
             <span>Back</span>
-            {trade && <span />}
+            {trade && <span className="st-tr-slot" />}
           </li>
           {current.map((t, i) => {
             const mine = t.id === myTeamId
@@ -143,16 +143,16 @@ export function Standings({
                   </span>
                   {onCheckTrade &&
                     (mine ? (
-                      <span />
+                      <span className="st-tr-slot" />
                     ) : (
                       <button
                         type="button"
-                        className="st-tr"
+                        className="st-tr st-tr-slot"
                         aria-label={`Check a trade with ${t.name}`}
                         title="Check a Trade With Them"
                         onClick={() => onCheckTrade(t.id)}
                       >
-                        <Handshake size={20} aria-hidden="true" />
+                        Trade
                       </button>
                     ))}
                 </li>

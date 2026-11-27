@@ -666,14 +666,33 @@ button.fr-back:hover {
   }
 }
 
+/* Phones: a row with "Add ↗" leaves the name less room, so a long name takes a second line
+   instead of being cut ("Shai Gilgeous-Alexander"). */
+@media (max-width: 759px) {
+  .fr .fr-row.with-act .fr-row-n {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+}
+
+/* "Add ↗": the word, and the arrow that says it opens ESPN. */
 .fr-icon-link {
-  width: 44px;
+  min-width: 44px;
   height: 44px;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .fr-icon-link:hover {
