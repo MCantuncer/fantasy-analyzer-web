@@ -27,7 +27,10 @@ function renderSample(over: Partial<SampleIndex> = {}) {
   const fetchMock = vi
     .spyOn(globalThis, 'fetch')
     .mockImplementation(
-      async () => new Response(JSON.stringify(report({ team_name: 'Hammer', categories: [], pickups: [pickup(P.lopez, 0.47, 0.51)] }))),
+      async () =>
+        new Response(
+          JSON.stringify(report({ team_name: 'Hammer', categories: [], pickups: [pickup(P.lopez, 0.47, 0.51)] })),
+        ),
     )
   const onScout = vi.fn()
   const onJoin = vi.fn()
@@ -100,6 +103,31 @@ describe('SamplePage', () => {
     )
     fireEvent.click(view.getByRole('button', { name: 'Scout Floppy, projected 3rd, no move today' }))
     expect(onScout).toHaveBeenCalledWith(7)
+  })
+
+  it('shows the playoff line as a seam after the last team in, with no explainer line', () => {
+    const { container } = renderSample()
+    const scout = container.querySelector('.smp-scout')!
+    expect(scout).not.toHaveClass('card')
+    expect(scout.textContent).not.toMatch(/Every team here|make the playoffs/)
+    // playoff_teams is 2: the seam follows the 2nd team, labelled once.
+    const items = [...container.querySelectorAll('.smp-ladder > li')]
+    expect(
+      items.map((li) => (li.classList.contains('smp-seam') ? '|' : li.querySelector('.smp-team-name')?.textContent)),
+    ).toEqual(['Spain', 'Zipper', '|', 'Floppy', 'Hammer', 'Stagger'])
+    expect(container.querySelector('.smp-seam')).toHaveTextContent('Playoff line')
+    expect(
+      within(container).getByRole('button', { name: /^Scout Zipper, projected 2nd, last playoff spot/ }),
+    ).toBeInTheDocument()
+    // No green dot on "Has a move".
+    expect(container.querySelector('.smp-move-dot')).toBeNull()
+  })
+
+  it('puts the best move full width, then the categories, then the scout list', () => {
+    const { container } = renderSample()
+    expect(container.querySelector('.smp .split')).toBeNull()
+    const order = [...container.querySelectorAll('.smp > *')].map((n) => n.className)
+    expect(order.findIndex((c) => c.includes('smp-best'))).toBeLessThan(order.findIndex((c) => c.includes('smp-scout')))
   })
 
   it('opens sign-up from the card and from Your team', async () => {

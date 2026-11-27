@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Binoculars, CaretDown, CaretRight, Info, ListNumbers, Target } from '@phosphor-icons/react'
 import { fetchSampleTeam } from '../api/client'
 import type { SampleIndex, SampleTeam } from '../api/client'
@@ -76,7 +76,10 @@ function SampleHead({ index }: { index: SampleIndex }) {
   )
 }
 
-/** Every team in the sample by projected finish, with the playoff line: pick one to scout its best move. */
+/**
+ * Every team in the sample by projected finish, with the playoff line as a seam after the last team
+ * in: pick one to scout its best move. Wide screens: a rail of all the teams across. Phones: rows.
+ */
 function ScoutList({
   index,
   scout,
@@ -94,54 +97,61 @@ function ScoutList({
   )
   const spots = index.league.playoff_teams
   const ladder = [...index.teams].sort((a, b) => a.projected_rank - b.projected_rank)
+  const seam = spots > 0 && spots < ladder.length
+  // Wide screens lay the teams out across, with a 2px column for the seam after the last team in.
+  const rail = seam
+    ? `repeat(${spots}, minmax(0, 1fr)) 2px repeat(${ladder.length - spots}, minmax(0, 1fr))`
+    : `repeat(${ladder.length}, minmax(0, 1fr))`
   return (
-    <section className="card smp-scout" aria-labelledby="smp-scout-title">
+    <section className="smp-scout" aria-labelledby="smp-scout-title">
       <h2 className="smp-scout-title" id="smp-scout-title">
         <ListNumbers size={20} aria-hidden="true" />
         Scout another team
       </h2>
-      <p className="small muted">
-        Every team here gets its own best move. Projected finish; the top {spots} make the playoffs.
-      </p>
-      <ol className="smp-ladder">
+      <ol className="smp-ladder" style={{ '--smp-rail': rail } as CSSProperties}>
         {ladder.map((t) => {
           const here = t.id === scout.id
           const rank = ordinal(t.projected_rank)
           return (
-            <li key={t.id} className={t.projected_rank === spots ? 'smp-rung smp-line' : 'smp-rung'}>
-              <button
-                type="button"
-                className="smp-team"
-                aria-current={here ? 'true' : undefined}
-                aria-label={`Scout ${t.name}, projected ${rank}${here ? ', scouting now' : ''}${t.has_move ? '' : ', no move today'}`}
-                onClick={() => onScout(t.id)}
-              >
-                <span className="smp-rank num">{t.projected_rank}</span>
-                <TeamCrest name={t.name} colour={colours.get(t.id)} size={24} />
-                <span className="smp-team-name">{t.name}</span>
-                <span className="smp-team-note small">
-                  {here ? (
-                    <>
-                      <Binoculars size={14} weight="bold" aria-hidden="true" /> Scouting
-                    </>
-                  ) : t.has_move ? (
-                    <>
-                      <span className="smp-move-dot" aria-hidden="true" /> Has a move
-                    </>
-                  ) : (
-                    'Hold'
-                  )}
-                </span>
-              </button>
-            </li>
+            <Fragment key={t.id}>
+              <li className="smp-rung">
+                <button
+                  type="button"
+                  className="smp-team"
+                  aria-current={here ? 'true' : undefined}
+                  aria-label={`Scout ${t.name}, projected ${rank}${t.projected_rank === spots ? ', last playoff spot' : ''}${here ? ', scouting now' : ''}${t.has_move ? '' : ', no move today'}`}
+                  onClick={() => onScout(t.id)}
+                >
+                  <span className="smp-rank num">{t.projected_rank}</span>
+                  <TeamCrest name={t.name} colour={colours.get(t.id)} size={28} />
+                  <span className="smp-team-name">{t.name}</span>
+                  <span className="smp-team-note">
+                    {here ? (
+                      <>
+                        <Binoculars size={14} weight="bold" aria-hidden="true" /> Scouting
+                      </>
+                    ) : t.has_move ? (
+                      'Has a move'
+                    ) : (
+                      'Hold'
+                    )}
+                  </span>
+                </button>
+              </li>
+              {seam && t.projected_rank === spots && (
+                <li className="smp-seam" aria-hidden="true">
+                  <span>Playoff line</span>
+                </li>
+              )}
+            </Fragment>
           )
         })}
       </ol>
-      <button type="button" className="smp-team smp-yours" onClick={onJoin}>
+      <button type="button" className="smp-yours" onClick={onJoin}>
         <OpenCrest size={24} />
         <span className="smp-yours-text">
-          <span className="smp-team-name">Your team</span>
-          <span className="small muted">Not in this sample. Get its own best move.</span>
+          <span className="smp-yours-name">Your team</span>
+          <span className="smp-yours-sub">Not in this sample · get its own best move</span>
         </span>
         <CaretRight size={16} weight="bold" aria-hidden="true" />
       </button>
@@ -186,7 +196,10 @@ export function SamplePage({
     picked.current = false
     setAnnounce(`Now scouting ${scout.name}. Best move updated.`)
     const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    document.getElementById('moves-best')?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+    document.getElementById('moves-best')?.scrollIntoView?.({
+      behavior: still ? 'auto' : 'smooth',
+      block: 'start',
+    })
   }, [shown, scout.name])
 
   const pick = (id: number) => {
@@ -201,35 +214,31 @@ export function SamplePage({
       <p className="sr-only" aria-live="polite">
         {announce}
       </p>
-      <div className="split">
-        <div className="wide smp-best" id="moves-best" style={{ '--scout': scoutColour } as CSSProperties}>
-          {shown ? (
-            <BestMove
-              report={shown}
-              scout={scout.name}
-              actions={<Door onJoin={onJoin} />}
-              foot={<SeasonBand report={shown} scout={scout.name} />}
-            />
-          ) : report.isError ? (
-            <section className="card best">
-              <p className="muted">{scout.name}'s moves didn't load. Pick the team again in a moment.</p>
-            </section>
-          ) : (
-            <section className="card best" aria-busy="true" aria-label={`Loading ${scout.name}'s best move`}>
-              <div className="stack" style={{ gap: 10 }} aria-hidden="true">
-                <Bone w="40%" h={18} />
-                <Bone w="84%" h={10} />
-                <Bone w="70%" h={10} />
-                <Bone w="100%" h={120} />
-              </div>
-            </section>
-          )}
-        </div>
-        <div className="narrow stack" style={{ gap: 16 }}>
-          <ScoutList index={index} scout={scout} onScout={pick} onJoin={onJoin} />
-        </div>
+      <div className="smp-best" id="moves-best" style={{ '--scout': scoutColour } as CSSProperties}>
+        {shown ? (
+          <BestMove
+            report={shown}
+            scout={scout.name}
+            actions={<Door onJoin={onJoin} />}
+            foot={<SeasonBand report={shown} scout={scout.name} />}
+          />
+        ) : report.isError ? (
+          <section className="card best">
+            <p className="muted">{scout.name}'s moves didn't load. Pick the team again in a moment.</p>
+          </section>
+        ) : (
+          <section className="card best" aria-busy="true" aria-label={`Loading ${scout.name}'s best move`}>
+            <div className="stack" style={{ gap: 10 }} aria-hidden="true">
+              <Bone w="40%" h={18} />
+              <Bone w="84%" h={10} />
+              <Bone w="70%" h={10} />
+              <Bone w="100%" h={120} />
+            </div>
+          </section>
+        )}
       </div>
       {shown && <CategoryTiles categories={shown.categories} scout={scout.name} />}
+      <ScoutList index={index} scout={scout} onScout={pick} onJoin={onJoin} />
       <Dock onJoin={onJoin} />
     </div>
   )
@@ -239,7 +248,10 @@ export function SamplePage({
 function Dock({ onJoin }: { onJoin: () => void }) {
   const go = (id: string) => () => {
     const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    document.getElementById(id)?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+    document.getElementById(id)?.scrollIntoView?.({
+      behavior: still ? 'auto' : 'smooth',
+      block: 'start',
+    })
   }
   return (
     <nav className="smp-dock" aria-label="Sample league">
