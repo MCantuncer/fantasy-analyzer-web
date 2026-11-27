@@ -1,5 +1,5 @@
-/* The sample league for visitors who haven't signed in: the intro sentence, the dated data line,
-   the door to your own league, and the Scout another team list. */
+/* The sample league for visitors who haven't signed in: the page head, the best move (full width),
+   the categories, then the Scout another team rail. */
 
 /* The page head: "Sample league", the dated meta line, and a bare "How it works" on the right. */
 .smp-head {
@@ -119,21 +119,13 @@
   font-weight: 700;
 }
 
-.smp-door-sub {
-  font-size: 12.5px;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* Scout another team: every team by projected finish, the playoff line under the last team in. */
+/* Scout another team: a bare section, every team by projected finish. Phones: rows, the playoff
+   line a 2px seam with its label across the list. Wide screens (900px+): a rail of all the teams
+   across, the seam a 2px column after the last team in, labelled at its top. */
 .smp-scout {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.smp-scout p {
-  margin: 0;
 }
 
 .smp-scout-title {
@@ -152,26 +144,6 @@
   list-style: none;
 }
 
-.smp-rung.smp-line {
-  position: relative;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-}
-
-.smp-rung.smp-line::after {
-  content: 'Playoff line';
-  position: absolute;
-  right: 0;
-  bottom: -8px;
-  left: 0;
-  border-top: 2px solid var(--text);
-  padding-top: 2px;
-  font-size: 11px;
-  font-weight: 650;
-  color: var(--text-2);
-  text-align: right;
-}
-
 .smp-team {
   display: flex;
   align-items: center;
@@ -180,7 +152,7 @@
   min-height: 44px;
   padding: 6px 8px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   background: transparent;
   color: var(--text);
   font: inherit;
@@ -189,12 +161,14 @@
 }
 
 .smp-team:hover {
-  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
 }
 
+/* The team being scouted: lit by the house light, no rim. */
 .smp-team[aria-current='true'] {
-  background: var(--raised);
-  box-shadow: inset 0 0 0 1.5px var(--text);
+  background:
+    radial-gradient(ellipse 90% 160% at 0% 0%, var(--house), transparent 75%),
+    color-mix(in srgb, var(--text) 5%, transparent);
 }
 
 .smp-rank {
@@ -207,7 +181,10 @@
 .smp-team-name {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .smp-team-note {
@@ -215,7 +192,8 @@
   align-items: center;
   gap: 5px;
   flex: none;
-  color: var(--muted);
+  font-size: 13px;
+  color: var(--text-2);
 }
 
 .smp-team[aria-current='true'] .smp-team-note {
@@ -223,16 +201,61 @@
   font-weight: 600;
 }
 
-.smp-move-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--good);
+/* The playoff line between the last team in and the first one out. */
+.smp-seam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-2);
+  white-space: nowrap;
 }
 
+.smp-seam::before,
+.smp-seam::after {
+  content: '';
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text-2);
+}
+
+.smp-seam::before {
+  flex: none;
+  width: 16px;
+}
+
+.smp-seam::after {
+  flex: 1;
+}
+
+/* Your team: a plain row with the gold shield, no outline. */
 .smp-yours {
-  margin-top: 6px;
-  border: 1.5px dashed color-mix(in oklab, var(--text) 30%, transparent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 0;
+  border-top: 1px solid var(--divider);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.smp-yours:hover {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.smp-yours svg:last-child {
+  flex: none;
+  color: var(--gold-text);
 }
 
 .smp-yours-text {
@@ -240,6 +263,79 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
+}
+
+.smp-yours-name {
+  font-weight: 600;
+}
+
+@media (min-width: 900px) {
+  .smp-ladder {
+    display: grid;
+    grid-template-columns: var(--smp-rail);
+    column-gap: 6px;
+    margin-top: 4px;
+    padding-top: 22px;
+  }
+
+  .smp-team {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    min-height: 112px;
+    padding: 10px 4px;
+    text-align: center;
+  }
+
+  .smp-team[aria-current='true'] {
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 0%, var(--house), transparent 80%),
+      color-mix(in srgb, var(--text) 5%, transparent);
+  }
+
+  .smp-rank {
+    width: auto;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .smp-team-name {
+    flex: none;
+    max-width: 100%;
+  }
+
+  .smp-team-note {
+    font-size: 12.5px;
+  }
+
+  /* The seam: a 2px column the height of the tiles, its label above it. */
+  .smp-seam {
+    position: relative;
+    display: block;
+    margin: 0;
+    border-radius: 1px;
+    background: var(--text-2);
+  }
+
+  .smp-seam::before,
+  .smp-seam::after {
+    content: none;
+  }
+
+  .smp-seam span {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .smp-yours {
+    align-self: flex-end;
+    width: auto;
+    min-width: 340px;
+    border-top: 0;
+    border-radius: 12px;
+  }
 }
 
 /* Top bar: "Sample league / Scouting Horns" (two lines on phones, see styles/phone/sample.css) */
