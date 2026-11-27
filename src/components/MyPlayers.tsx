@@ -148,7 +148,6 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
   const bench = rows.filter((r) => isBench(r.spot))
   const ir = rows.filter((r) => isIR(r.spot))
   const leftOut = past ? benchLeftOut(rows) : null
-  const when = past ? 'that day' : 'tonight'
   const i = data.days.findIndex((d) => d.day === data.day)
   const prev = data.days[i - 1]
   const next = data.days[i + 1]
@@ -236,9 +235,8 @@ export function MyPlayers({ leagueId, season, teamId, creds }: Props) {
                   <span className="mp-slot">{slot}</span>
                 </span>
                 <span className="mp-who muted">Empty</span>
-                <span className="mp-game muted">Nobody in this slot</span>
-                <span className="mp-note">
-                  <b>Slot empty</b> · counts for nothing {when}
+                <span className="mp-game muted" aria-hidden="true">
+                  –
                 </span>
               </li>
             ))}
@@ -975,7 +973,7 @@ function WhyBox({ play, now }: { play: PlayChance; now: number }) {
       <p className="mp-why-basis">
         <Info size={14} weight="bold" aria-hidden="true" />
         <span>
-          {play.basis} <span className="muted">The number gets sharper closer to tip-off; it is not a promise.</span>
+          {play.basis}
         </span>
       </p>
       <p className="mp-why-news">
