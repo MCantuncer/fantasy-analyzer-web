@@ -252,7 +252,6 @@ export function LeagueOverview({
                 colours={colours}
                 myTeamId={o.my_team_id ?? null}
                 mine={mine}
-                star={mvpKey}
                 week={{ start: o.week_start, end: o.week_end }}
                 leagueRef={leagueRef}
                 creds={creds ?? null}
