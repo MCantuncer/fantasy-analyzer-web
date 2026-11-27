@@ -190,8 +190,12 @@
   white-space: nowrap;
 }
 
+/* Close this week, can flip: ink (amber sat too near the "hurts" orange). Phones underline the label,
+   wider screens show the Target instead. */
 .cs-pl.cs-close {
-  color: var(--warn);
+  color: var(--text);
+  text-decoration: underline 1.5px;
+  text-underline-offset: 3px;
 }
 
 .cs-ic {
@@ -306,6 +310,10 @@
 
   .cs-ic {
     display: inline;
+  }
+
+  .cs-pl.cs-close {
+    text-decoration: none;
   }
 
   .cs-pv {
