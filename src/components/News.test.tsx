@@ -208,8 +208,9 @@ describe('News', () => {
     expect(within(jw).getByRole('note')).toHaveTextContent('ESPN status says day-to-day')
     expect(within(jw).getByText('DTD')).toHaveAttribute('title', 'ESPN status: DTD')
     expect(within(jw).getByText('KVK')).toBeInTheDocument()
-    expect(screen.getAllByText('Reported')).toHaveLength(2)
-    for (const r of screen.getAllByText('Reported')) expect(r.querySelector('svg')).toBeNull()
+    const feed = screen.getByRole('region', { name: 'Stories' })
+    expect(within(feed).getAllByText('Reported')).toHaveLength(2)
+    for (const r of within(feed).getAllByText('Reported')) expect(r.querySelector('svg')).toBeNull()
     expect(screen.getAllByText('Free agent').length).toBeGreaterThan(0)
     // Your player keeps the team's abbreviation, marked as yours by the owner dot only (no story bar).
     const dm = screen.getByText('Davion Mitchell drawing trade interest').closest('article') as HTMLElement
@@ -218,7 +219,38 @@ describe('News', () => {
     expect(kea.querySelector('.news-owner-dot')).not.toBeNull()
     expect(dm).not.toHaveAttribute('data-mine')
     expect(screen.getByText('+10.3%')).toBeInTheDocument()
-    expect(screen.getByText(/Not answering/)).toBeInTheDocument()
+  })
+
+  it('folds the sources into one quiet line with word states and no dots', async () => {
+    renderNews()
+    await screen.findByText('Kris Dunn moves into the starting lineup')
+    const row = screen.getByRole('button', { name: /^Sources · 1 of 3 answering$/ })
+    expect(row).toHaveAttribute('aria-expanded', 'false')
+    const list = document.getElementById(row.getAttribute('aria-controls')!)!
+    expect(list).not.toBeVisible()
+    fireEvent.click(row)
+    expect(row).toHaveAttribute('aria-expanded', 'true')
+    expect(list).toBeVisible()
+    expect(within(list).getByText('700 items')).toBeInTheDocument()
+    expect(within(list).getByText(/Not answering/)).toBeInTheDocument()
+    expect(within(list).getByText('Waiting')).toBeInTheDocument()
+    expect(within(list).getByText('· tips only')).toBeInTheDocument()
+    expect(document.querySelector('.news-dot')).toBeNull()
+  })
+
+  it('shows social-only stories from a toggle row, and How this works is the shared row', async () => {
+    renderNews()
+    await screen.findByText('Kris Dunn moves into the starting lineup')
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    const toggle = screen.getByRole('button', { name: 'Show stories seen only on social sites' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    const how = screen.getByRole('button', { name: 'How this works' })
+    expect(how).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(how)
+    expect(screen.getByText(/Items naming the same player and the same kind of news/)).toBeVisible()
+    expect(screen.queryByText('How a story gets published')).not.toBeInTheDocument()
   })
 
   it('puts the stories on the bare page under a plain day head, with no intro line', async () => {
