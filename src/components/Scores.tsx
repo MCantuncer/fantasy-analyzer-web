@@ -25,6 +25,7 @@ import { formatStat } from '../lib/league'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
 import { useFitsWidth } from '../lib/useFitsWidth'
+import { useFitCount } from '../lib/useFitCount'
 import './Scores.css'
 import './ScoresBox.css'
 import { BOX_CATS, nextSort, sortLines, splitStarters } from '../lib/boxSort'
@@ -939,21 +940,8 @@ function GameCard({
             {top.owner_team_id === teamId && <span className="badge badge-you">You</span>}
           </>
         ) : mine.length > 0 ? (
-          <span className="game-foot-text">
-            {mine.length === 1 ? 'Yours' : `${mine.length} of yours`}:{' '}
-            {plain
-              ? mine.map((p, i) => (
-                  <Fragment key={p.player_id}>
-                    {i > 0 && ' '}
-                    {/* The comma stays with the name: a line can break right after the link. */}
-                    <span className="sc-keep">
-                      <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
-                      {i < mine.length - 1 && ','}
-                    </span>
-                  </Fragment>
-                ))
-              : mine.map((p) => shortName(p.name)).join(', ')}
-          </span>
+          // The owner mark up top already counts them, so the foot is just the names (Can, 2026-11-27).
+          <FootNames players={mine} links={plain} />
         ) : rostered > 0 ? (
           <span className="muted">{rostered} rostered in your league</span>
         ) : (
@@ -1001,6 +989,42 @@ function GameCard({
  * Whose players are in a game: your crest with your count, your rival's crest with theirs. The names
  * are in the title and in screen-reader text; the card's one face is its top performer's.
  */
+/**
+ * Your players in a game with no box score yet, by name only. Names that don't fit drop off whole,
+ * last first, and a "+N" stands in for them; the owner mark's label reads them all.
+ */
+function FootNames({ players, links }: { players: { player_id: number; name: string }[]; links: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const fit = useFitCount(ref, players.length)
+  const cut = fit < players.length
+  return (
+    <span ref={ref} className="game-foot-text sc-names" title={cut ? players.map((p) => p.name).join(', ') : undefined}>
+      {players.map((p, i) => (
+        <Fragment key={p.player_id}>
+          {/* A real space for copy and screen readers; the flex gap does the spacing on screen. */}
+          {i > 0 && ' '}
+          <span className="sc-name" data-fit="" hidden={i >= fit}>
+            {links ? (
+              <PlayerLink player={{ id: p.player_id, name: p.name }}>{shortName(p.name)}</PlayerLink>
+            ) : (
+              shortName(p.name)
+            )}
+            {/* The comma stays with its name, and steps out when the "+N" follows it. */}
+            {i < players.length - 1 && <span className={i === fit - 1 ? 'sc-comma is-quiet' : 'sc-comma'}>,</span>}
+          </span>
+        </Fragment>
+      ))}
+      <span
+        className="sc-more num"
+        data-fit-more=""
+        data-more={Math.max(1, players.length - fit)}
+        hidden={!cut}
+        aria-hidden="true"
+      />
+    </span>
+  )
+}
+
 function OwnerMark({
   mine,
   rivals,
