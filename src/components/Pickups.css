@@ -69,6 +69,11 @@
   color: var(--text-2);
 }
 
+.pk-shared-swap {
+  flex: none;
+  color: var(--muted);
+}
+
 .pk-shared strong {
   font-weight: 600;
   color: var(--text);

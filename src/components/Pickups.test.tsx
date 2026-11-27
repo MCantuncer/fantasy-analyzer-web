@@ -50,7 +50,8 @@ describe('Pickups shared drop', () => {
     const other = { ...pickup, add: ref(3, 'Neemias Queta'), playoff_pct_after: 0.18 } as PickupIdea
     const { container } = render(<Pickups pickups={[pickup, other]} faab={50} />)
     const view = within(container)
-    expect(view.getByText(/Each one replaces/)).toBeInTheDocument()
+    expect(view.getByText(/Each one replaces/)).toHaveClass('sr-only')
+    expect(container.querySelector('.pk-shared .pk-shared-swap')).not.toBeNull()
     expect(view.getAllByText('Aaron Wiggins')).toHaveLength(1)
     expect(container.querySelector('.pk-from')?.textContent).toBe(' · from 14%')
   })
