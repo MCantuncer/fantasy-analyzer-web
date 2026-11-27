@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
+import { CaretRight, DotsThree, SealCheck, Trophy } from '@phosphor-icons/react'
 import { ApiError, addLeague, clearNotices, removeLeague } from '../api/client'
 import type { Me, MyLeague } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { parseLeagueInput } from '../lib/espnUrl'
 import { CookieForm } from './CookieForm'
 import { EstimatesTeaser } from './IddaaCompare'
+import './MyLeagues.css'
 
 interface Props {
   me: Me
@@ -48,9 +50,67 @@ export function MyLeagues({ me, creds, onCreds, onOpen, onEstimates, focusAdd = 
   const dismiss = useMutation({ mutationFn: clearNotices, onSuccess: setMe })
   const needsCookies = add.error instanceof ApiError && add.error.code === 'private_league'
 
+  const empty = me.leagues.length === 0
+
+  // The add field: under the list, or first of all on an empty account.
+  const addForm = needsCookies ? (
+    <CookieForm
+      onSubmit={(c, remember) => {
+        onCreds(c, remember)
+        add.mutate(c)
+      }}
+      onCancel={() => add.reset()}
+      onRetry={() => add.mutate(null)}
+    />
+  ) : (
+    <form
+      className="ml-add"
+      onSubmit={(e) => {
+        e.preventDefault()
+        setTried(true)
+        if (parsed.leagueId) add.mutate(creds)
+      }}
+    >
+      <label htmlFor="league-input" className="ml-add-label">
+        {empty ? 'Add your ESPN league' : 'Add a league'}
+      </label>
+      <div className="ml-add-row">
+        <input
+          id="league-input"
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="League ID or fantasy.espn.com link"
+          inputMode="url"
+          autoComplete="off"
+          aria-invalid={tried && !parsed.leagueId}
+          aria-describedby={tried && !parsed.leagueId ? 'league-error league-hint' : 'league-hint'}
+        />
+        <button type="submit" disabled={add.isPending}>
+          {add.isPending ? 'Adding…' : empty ? 'Add league' : 'Add'}
+        </button>
+      </div>
+      {tried && !parsed.leagueId && (
+        <span id="league-error" className="ml-add-msg bad">
+          Enter a league ID (numbers only) or paste a link from ESPN.
+        </span>
+      )}
+      {add.error && !needsCookies && (
+        <span className="ml-add-msg bad" role="alert">
+          {add.error.message}
+        </span>
+      )}
+      <p id="league-hint" className="ml-add-hint">
+        {empty
+          ? 'Public leagues open right away. Private ones ask for two ESPN cookies next.'
+          : 'Private leagues ask for two ESPN cookies next.'}
+      </p>
+    </form>
+  )
+
   return (
-    <div className="my-leagues stack">
-      <h1 className="page-title">My leagues</h1>
+    <div className={`my-leagues ml${empty ? ' ml-new' : ''}`}>
+      <h1 className="page-title ml-title">My leagues</h1>
 
       {me.notices.length > 0 && (
         <section className="card notice stack" role="status">
@@ -65,108 +125,55 @@ export function MyLeagues({ me, creds, onCreds, onOpen, onEstimates, focusAdd = 
         </section>
       )}
 
-      {me.leagues.length === 0 && (
-        <p className="muted">
-          Add the ESPN leagues you play in. You'll see each league right away, and verifying the team you manage unlocks
-          its moves, trades and the league chat.
-        </p>
+      {!empty && (
+        <ul className="ml-list">
+          {me.leagues.map((l) => (
+            <li key={`${l.league_id}-${l.season}`} className="ml-item">
+              <button type="button" className="ml-row" onClick={() => onOpen(l)}>
+                <span className="ml-ic" aria-hidden="true">
+                  <Trophy />
+                </span>
+                <span className="ml-text">
+                  <span className="ml-nm">{l.name}</span>
+                  {l.team_id ? (
+                    <span className="ml-s">
+                      <SealCheck className="ml-seal" aria-hidden="true" />
+                      Verified manager · {seasonLabel(l.season)}
+                    </span>
+                  ) : (
+                    <span className="ml-s ml-q">Following · verify your team to see your moves</span>
+                  )}
+                </span>
+                <CaretRight className="ml-go" aria-hidden="true" />
+              </button>
+              <details className="ml-menu">
+                <summary aria-label={`More for ${l.name}`} title="More">
+                  <DotsThree weight="bold" aria-hidden="true" />
+                </summary>
+                <div className="menu card">
+                  <button
+                    type="button"
+                    className="menu-item danger"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate({ leagueId: l.league_id, season: l.season })}
+                  >
+                    Remove from my leagues
+                  </button>
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
       )}
 
-      <div className="league-list">
-        {me.leagues.map((l) => (
-          <article key={`${l.league_id}-${l.season}`} className="card league-card">
-            <button type="button" className="league-open" onClick={() => onOpen(l)}>
-              <span className="league-card-head">
-                <span className="league-card-name">{l.name}</span>
-                {l.team_id ? (
-                  <span className="tag good">Verified</span>
-                ) : (
-                  <span className="tag warn">Not verified</span>
-                )}
-              </span>
-              <span className="small muted">
-                {l.team_id
-                  ? 'You are a verified manager here'
-                  : 'League view only. Verify your team to see your moves.'}
-              </span>
-            </button>
-            <details className="league-menu">
-              <summary aria-label={`More for ${l.name}`} title="More">
-                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                  <circle cx="4" cy="9" r="1.5" fill="currentColor" />
-                  <circle cx="9" cy="9" r="1.5" fill="currentColor" />
-                  <circle cx="14" cy="9" r="1.5" fill="currentColor" />
-                </svg>
-              </summary>
-              <div className="menu card">
-                <button
-                  type="button"
-                  className="menu-item danger"
-                  disabled={remove.isPending}
-                  onClick={() => remove.mutate({ leagueId: l.league_id, season: l.season })}
-                >
-                  Remove from my leagues
-                </button>
-              </div>
-            </details>
-          </article>
-        ))}
-      </div>
+      {addForm}
 
       {onEstimates && <EstimatesTeaser onOpen={onEstimates} />}
-
-      {needsCookies ? (
-        <CookieForm
-          onSubmit={(c, remember) => {
-            onCreds(c, remember)
-            add.mutate(c)
-          }}
-          onCancel={() => add.reset()}
-          onRetry={() => add.mutate(null)}
-        />
-      ) : (
-        <section className="card stack" aria-labelledby="add-title">
-          <h2 id="add-title">Add a league</h2>
-          <form
-            className="stack"
-            onSubmit={(e) => {
-              e.preventDefault()
-              setTried(true)
-              if (parsed.leagueId) add.mutate(creds)
-            }}
-          >
-            <label htmlFor="league-input" className="small">
-              ESPN league ID or link
-            </label>
-            <div className="input-row">
-              <input
-                id="league-input"
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="744636428 or fantasy.espn.com/…"
-                inputMode="url"
-                autoComplete="off"
-                aria-invalid={tried && !parsed.leagueId}
-                aria-describedby={tried && !parsed.leagueId ? 'league-error' : undefined}
-              />
-              <button type="submit" disabled={add.isPending}>
-                {add.isPending ? 'Adding…' : 'Add league'}
-              </button>
-            </div>
-            {tried && !parsed.leagueId && (
-              <span id="league-error" className="small bad">
-                Enter a league ID (numbers only) or paste a link from ESPN.
-              </span>
-            )}
-            {add.error && !needsCookies && (
-              <span className="small bad" role="alert">
-                {add.error.message}
-              </span>
-            )}
-          </form>
-        </section>
-      )}
     </div>
   )
+}
+
+/** ESPN's 2027 season is "2026–27". */
+function seasonLabel(season: number): string {
+  return `${season - 1}–${String(season).slice(2)}`
 }
