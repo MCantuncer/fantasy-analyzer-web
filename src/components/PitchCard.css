@@ -92,7 +92,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr));
   gap: 8px;
-  margin: 0;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -139,7 +139,8 @@
 
 .pp-big {
   margin-top: 4px;
-  color: var(--good);
+  /* Their gain, not yours: ink, not the "helps you" blue. */
+  color: var(--text);
   font-size: 30px;
   font-weight: 750;
   line-height: 1.1;

@@ -65,10 +65,10 @@
 }
 
 .cd-up {
-  --cd-c: var(--good);
+  --cd-c: var(--help);
 }
 .cd-down {
-  --cd-c: var(--bad);
+  --cd-c: var(--hurt);
 }
 .cd-flat {
   --cd-c: var(--text-2);
