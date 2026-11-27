@@ -1,4 +1,4 @@
-import { fireEvent, render, within } from '@testing-library/react'
+import { render, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { CategoryOutlook as Outlook } from '../api/client'
 import { CategoryOutlook } from './CategoryOutlook'
@@ -30,13 +30,9 @@ describe('CategoryOutlook', () => {
     expect(row.querySelector<HTMLElement>('.co-bar i')!.style.getPropertyValue('--w')).toBe('89%')
   })
 
-  it('opens the help sentence from the bare "?" button', () => {
+  it('says it with the layout: no "?" button and no help sentence', () => {
     const { container } = render(<CategoryOutlook categories={cats} />)
-    const screen = within(container)
-    const help = screen.getByRole('button', { name: 'What this shows' })
-    expect(help).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(help)
-    expect(help).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText(/The line marks 50%/)).toBeInTheDocument()
+    expect(within(container).queryByRole('button')).toBeNull()
+    expect(container.textContent).not.toMatch(/The line marks 50%/)
   })
 })

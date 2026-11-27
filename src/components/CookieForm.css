@@ -15,7 +15,7 @@
 .pl-private-head {
   display: flex;
   gap: 14px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .pl-private-icon {

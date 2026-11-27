@@ -281,6 +281,21 @@ describe('PlayerCard next game', () => {
     expect(within(dialog).queryByText('A usual night, not a promise')).toBeNull()
   })
 
+  it('keys the form arrows in their own titles and screen-reader text, not a line under the head', async () => {
+    serve({ next_game })
+    renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Jaden McDaniels' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Jaden McDaniels' })
+    await within(dialog).findByText('Form · last 3 games')
+    expect(within(dialog).queryByText(/▲▼/)).toBeNull()
+    const deltas = [...dialog.querySelectorAll<HTMLElement>('.pc-tile-delta[title]')]
+    expect(deltas.length).toBeGreaterThan(0)
+    for (const d of deltas) {
+      expect(d.title).toMatch(/(^(Up|Down) \d+\.\d vs|^Same as) his season average$/)
+      expect(d.textContent).toMatch(/his season average$/)
+    }
+  })
+
   it('has no next-game section while he has no line', async () => {
     serve({ next_game: null })
     renderHost(<PlayerLink player={{ id: 7, name: 'Jaden McDaniels' }} />)

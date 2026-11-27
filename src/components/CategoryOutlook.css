@@ -31,41 +31,6 @@
   color: var(--text-2);
 }
 
-/* "?": a bare 44px icon button, no outline. */
-button.co-help {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-right: -10px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-button.co-help:hover,
-button.co-help[aria-expanded='true'] {
-  color: var(--text);
-}
-
-@media (hover: hover) {
-  button.co-help:hover {
-    background: color-mix(in srgb, var(--text) 5%, transparent);
-  }
-}
-
-.co-helptext {
-  max-width: 46ch;
-  margin: 2px 0 4px;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--text-2);
-}
-
 /* rank 34 · category 50 · bar · win chance 50 · a week 46 */
 .co-ch,
 .co-row {

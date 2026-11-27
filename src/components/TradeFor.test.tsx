@@ -164,7 +164,9 @@ describe('TradeFor, nothing picked', () => {
     ])
     expect(rows[1].textContent).toContain('OUT')
     expect(rows[2].textContent).toContain('Keeper')
-    expect(screen.getByText('Keepers never go in an offer. Change them in My Team.')).toBeInTheDocument()
+    // The lock and "Keeper" say it; the sentence under the list is gone, the rule sits in the tag's title.
+    expect(rows[2].querySelector('.tt-status')).toHaveAttribute('title', 'Never goes in an offer')
+    expect(screen.queryByText(/Keepers never go in an offer/)).toBeNull()
   })
 
   it('searches players and teams', () => {
