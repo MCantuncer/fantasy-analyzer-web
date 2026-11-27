@@ -27,8 +27,10 @@ describe('CatStrip', () => {
     const values = [...container.querySelectorAll('.cs-v')]
     expect(values[0]).toHaveClass('cs-zero')
     expect(values[0].textContent).toBe('0')
-    expect(values[3]).toHaveClass('good')
-    expect(values[4]).toHaveClass('bad')
+    // Numbers stay in ink with their sign: the bar carries the colour.
+    expect(values[3].className).toBe('cs-v num')
+    expect(values[3].textContent).toBe('+9')
+    expect(values[4].textContent).toBe('−40')
     const bars = [...container.querySelectorAll('.cs-bar i')] as HTMLElement[]
     expect(bars.map((b) => b.className)).toEqual(['cs-down', 'cs-up', 'cs-down', 'cs-up'])
     expect(bars[2].style.height).toBe('28px')
@@ -38,6 +40,11 @@ describe('CatStrip', () => {
   it('gives a column to every category asked for, even one without a change', () => {
     const { container } = render(<CatStrip changes={{ AST: 0.05 }} categories={['PTS', 'AST', 'BLK']} title="t" />)
     expect([...container.querySelectorAll('.cs-c')].map((c) => c.textContent)).toEqual(['AST', 'BLK', 'PTS'])
+  })
+
+  it('labels turnovers TO↓, the way its bar is drawn', () => {
+    const { container } = render(<CatStrip changes={changes} title="t" />)
+    expect([...container.querySelectorAll('.cs-c')].map((c) => c.textContent)).toContain('TO↓')
   })
 })
 
@@ -74,15 +81,15 @@ describe('CatStripPair', () => {
     const { container } = render(<CatStripPair a={a} b={b} top="today" sub="week" mine="a" label="t" />)
     const bars = [...container.querySelectorAll('.cs-pb i')].map((i) => i.className)
     expect(bars).toEqual([
-      'cs-pup cs-good',
+      'cs-pup cs-help',
       'cs-tie',
-      'cs-pdn cs-bad',
-      'cs-pdn cs-bad',
-      'cs-pdn cs-bad',
-      'cs-pdn cs-bad',
+      'cs-pdn cs-hurt',
+      'cs-pdn cs-hurt',
+      'cs-pdn cs-hurt',
+      'cs-pdn cs-hurt',
       'cs-tie',
-      'cs-pup cs-good',
-      'cs-pdn cs-bad',
+      'cs-pup cs-help',
+      'cs-pdn cs-hurt',
     ])
     const close = [...container.querySelectorAll('.cs-pl.cs-close')].map((l) => l.textContent)
     expect(close).toEqual(['FT%', 'AST', 'STL', 'TO↓'])
