@@ -253,7 +253,8 @@
 
 /* ---------- Buttons ---------- */
 .tt button.tt-btn,
-.tt a.tt-btn {
+.tt a.tt-btn,
+.tt-side button.tt-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +270,8 @@
   text-decoration: none;
 }
 
-.tt button.tt-btn-primary {
+.tt button.tt-btn-primary,
+.tt-side button.tt-btn-primary {
   background: var(--accent);
   color: var(--on-accent);
 }

@@ -1,15 +1,29 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react'
-import { ArrowDownLeft, ArrowUpRight, CaretDown, Handshake, LockSimple, LockSimpleOpen } from '@phosphor-icons/react'
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CaretDown,
+  Coins,
+  Handshake,
+  Info,
+  LockSimple,
+  LockSimpleOpen,
+  UserMinus,
+  UserPlus,
+  Warning,
+} from '@phosphor-icons/react'
 import { teamColours } from '../lib/league'
 import { TeamCrest } from './TeamCrest'
-import { PitchCard } from './PitchCard'
-import type { FeedbackSource, PlayerRef, TradeIdea } from '../api/client'
-import { pct, ptsDiff, signedInt, tradeKey } from '../lib/format'
+import type { FeedbackSource, PickupIdea, PlayerRef, TradeIdea } from '../api/client'
+import { ordinal, pct, ptsDiff, signed, signedInt, tradeKey } from '../lib/format'
 import { PlayerHead } from './PlayerHead'
-import { ImpactBars } from './ImpactBars'
 import { InjuryBadges } from './InjuryBadges'
 import { BadgeNotes } from './PlayerBadges'
-import { premiumValue, useRoundValues } from '../lib/tradeValue'
+import { premiumValue, shortValue, useRoundValues, type RoundValues } from '../lib/tradeValue'
+import type { CheckDeal } from '../lib/tradeCheck'
+import { CatStrip } from './CatStrip'
+import { MaybeHandshake } from './MaybeHandshake'
+import { TheirSide } from './TradeTable'
 import { FeedbackContext, TradeFeedback, ratingLabel, useMyFeedback } from './TradeFeedback'
 import { RulesBar, useTradeRules } from './TradeRules'
 import { applyRules } from '../lib/tradeRules'
@@ -17,7 +31,6 @@ import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { PlayerLink } from './PlayerCard'
 import { KeptPlayers, PlayerInline } from './PlayerInline'
-import { ReasonTiles } from './ReasonTiles'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 import { keptNames } from '../lib/untouchable'
 
@@ -26,17 +39,6 @@ export const ACCEPTANCE = {
   possible: { label: 'Possible', tone: 'warn' },
   long_shot: { label: 'Long shot', tone: 'bad' },
 } as const
-
-/** Small amber mark for a caveat on a deal. Decorative: the text says it. */
-function WarningMark() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M8 6v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="8" cy="11.75" r="0.9" fill="currentColor" />
-    </svg>
-  )
-}
 
 interface Keeper {
   keep: number[]
@@ -134,11 +136,9 @@ interface ItemProps {
   id: string
   open: boolean
   onToggle: () => void
-  why: string
   /** FAAB dollars sent with the players. */
   faab?: number
   tag?: ReactNode
-  extra?: ReactNode
   /** Which list the card is in. With a verified manager's scope, the card gets a Feedback tab. */
   feedbackSource?: FeedbackSource
   /** The partner's league colour, for the crest beside their name. */
@@ -151,24 +151,230 @@ interface ItemProps {
   styleLine?: string
   /** The row's place in the list (1 is the best expected gain). */
   rank?: number
+  /** The league's categories, for the weekly win chance strip. */
+  categories?: string[]
+  /** The free agent moves, to name who a trade is measured against. */
+  pickups?: Pick<PickupIdea, 'add' | 'drop'>[]
+  /** Opens Check a Trade with this deal, as one you send. */
+  onCheck?: (deal: CheckDeal) => void
 }
 
-/** One expandable trade row: the summary line, then the pitch, reasons and category bars. */
+type Fact = NonNullable<TradeIdea['facts']>[number]
+
+/** The player a fact is about, as a card link. */
+const named = (f: Fact): PlayerRef | null =>
+  f.player_name && f.player_id ? ({ id: f.player_id, name: f.player_name } as PlayerRef) : null
+
+// Facts with a number go in "Their side of the deal"; the paper win is already its "On paper" row.
+const FACT_ROWS = new Set<Fact['kind']>([
+  'sell_high',
+  'buy_low',
+  'players_out',
+  'roster_squeeze',
+  'chasing',
+  'punt_cost',
+  'keystone_lost',
+  'punt_theirs',
+])
+const FACT_HIDDEN = new Set<Fact['kind']>(['paper_win', 'consolidate'])
+
+/** One fact as a row of Their side of the deal: what it is on the left, its number on the right. */
+function FactRow({ fact: f, rounds }: { fact: Fact; rounds: RoundValues }) {
+  const p = named(f)
+  const cats = (f.categories ?? []).join(' · ')
+  const value = (x: number, given?: string | null) => (rounds ? shortValue(x, rounds) : given || shortValue(x, rounds))
+  let label: ReactNode
+  let figure: ReactNode
+  let tone = ''
+  switch (f.kind) {
+    case 'sell_high':
+    case 'buy_low':
+      label = (
+        <>
+          {f.kind === 'sell_high' ? 'Sell high on' : 'Buy low on'} {p ? <PlayerInline player={p} /> : 'him'}
+        </>
+      )
+      figure = (
+        <>
+          {value(f.owners_value ?? 0, f.owners_label)} <small>paid</small> · {value(f.our_value ?? 0, f.our_label)}{' '}
+          <small>worth</small>
+        </>
+      )
+      break
+    case 'players_out':
+      label = 'Short-handed'
+      figure = (
+        <>
+          {f.count ?? 0} <small>{f.count === 1 ? 'player out' : 'players out'}</small>
+        </>
+      )
+      break
+    case 'roster_squeeze':
+      label = 'Roster squeeze'
+      figure = (
+        <>
+          {f.count ?? 1} <small>{(f.count ?? 1) === 1 ? 'player they cut' : 'players they cut'}</small>
+        </>
+      )
+      break
+    case 'chasing':
+      label = 'Chasing a playoff spot'
+      figure =
+        f.rank && f.teams ? (
+          <>
+            {ordinal(f.rank)}{' '}
+            <small>
+              of {f.teams}
+              {f.playoff_spots ? ` · top ${f.playoff_spots} make it` : ''}
+            </small>
+          </>
+        ) : (
+          <small>outside the spots</small>
+        )
+      break
+    case 'punt_cost':
+      label = 'Costs them only punts'
+      figure = cats
+      break
+    case 'keystone_lost':
+      label = 'Takes their keystone'
+      figure = cats
+      tone = 'bad'
+      break
+    default:
+      label = p ? (
+        <>
+          <PlayerInline player={p} /> is wasted on them
+        </>
+      ) : (
+        'Wasted on them'
+      )
+      figure = (
+        <>
+          <small>they punt</small> {cats}
+        </>
+      )
+  }
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd className={`num ${tone}`}>{figure}</dd>
+    </div>
+  )
+}
+
+interface Note {
+  key: string
+  icon: ReactNode
+  body: ReactNode
+  warn?: boolean
+}
+
+const ICON = { size: 18, 'aria-hidden': true } as const
+
+/** The deal's notes, each a line with its mark: caveats, the roster moves, then what the odds are measured against. */
+function dealNotes(t: TradeIdea, rounds: RoundValues, pickups: Pick<PickupIdea, 'add' | 'drop'>[]): Note[] {
+  const notes: Note[] = []
+  for (const w of t.warnings ?? []) notes.push({ key: `w-${w}`, icon: <Warning {...ICON} />, body: w, warn: true })
+  if (t.my_drop)
+    notes.push({
+      key: 'my-drop',
+      icon: <UserMinus {...ICON} />,
+      body: (
+        <>
+          You drop <PlayerInline player={t.my_drop} /> to make room.
+        </>
+      ),
+    })
+  if (t.my_add)
+    notes.push({
+      key: 'my-add',
+      icon: <UserPlus {...ICON} />,
+      body: (
+        <>
+          Pick up <PlayerInline player={t.my_add} /> for the open spot. The odds include him.
+        </>
+      ),
+    })
+  const facts = (t.facts ?? []).filter((f) => !FACT_HIDDEN.has(f.kind) && !FACT_ROWS.has(f.kind))
+  for (const f of facts) {
+    const p = named(f)
+    if (f.kind === 'vs_pickup' && p) {
+      const drop = pickups.find((x) => x.add.id === p.id)?.drop
+      notes.push({
+        key: `f-${f.kind}`,
+        icon: <Info {...ICON} />,
+        body: (
+          <>
+            Measured against just adding <PlayerInline player={p} />
+            {drop && (
+              <>
+                {' '}
+                for <PlayerInline player={drop} />
+              </>
+            )}
+            : the odds count only what the trade adds.
+          </>
+        ),
+      })
+    } else if (f.kind === 'punt_mine' && p) {
+      notes.push({
+        key: `f-${f.kind}-${p.id}`,
+        icon: <Info {...ICON} />,
+        body: (
+          <>
+            <PlayerInline player={p} tail="'s" /> value is mostly {(f.categories ?? []).join(', ')}, which you punt.
+          </>
+        ),
+      })
+    } else {
+      notes.push({ key: `f-${f.kind}-${f.text}`, icon: f.kind === 'faab' ? <Coins {...ICON} /> : <Info {...ICON} />, body: f.text })
+    }
+  }
+  if (t.their_drop)
+    notes.push({
+      key: 'their-drop',
+      icon: <UserMinus {...ICON} />,
+      body: (
+        <>
+          They would likely drop <PlayerInline player={t.their_drop} tail="." />
+        </>
+      ),
+    })
+  if (t.facts?.some((f) => f.kind === 'roster_squeeze'))
+    notes.push({
+      key: 'squeeze',
+      icon: <Handshake {...ICON} />,
+      body: 'A roster squeeze deal is accepted about half as often as a 1-for-1.',
+    })
+  if (t.owner_premium >= 0.5)
+    notes.push({
+      key: 'premium',
+      icon: <Info {...ICON} />,
+      body: `Their side includes a ${premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what they send.`,
+    })
+  // Ideas saved before facts existed carry their points only as sentences.
+  if (!t.facts) for (const r of t.reasons) notes.push({ key: `r-${r}`, icon: <Info {...ICON} />, body: r })
+  return notes
+}
+
+/** One expandable trade row: the summary line, then the pitch, their side, the category strip and notes. */
 export function TradeItem({
   trade: t,
   id,
   open,
   onToggle,
-  why,
   faab = 0,
   tag,
-  extra,
   feedbackSource,
   colour,
   teamCount,
   keeper = null,
   styleLine,
   rank,
+  categories = [],
+  pickups = [],
+  onCheck,
 }: ItemProps) {
   const rounds = useRoundValues()
   const acc = ACCEPTANCE[t.acceptance_label]
@@ -184,59 +390,69 @@ export function TradeItem({
   const tabs = scope !== null && feedbackSource !== undefined
   const [panel, setPanel] = useState<'overview' | 'feedback'>('overview')
   const saved = useMyFeedback(tabs ? feedbackSource : undefined, t)
+  const myCats = t.my_cats_gain
+  const notes = dealNotes(t, rounds, pickups)
   const overview = (
     <>
-      <div>
-        {t.warnings && t.warnings.length > 0 && (
-          <ul className="trades-warning">
-            {t.warnings.map((w) => (
-              <li key={w}>
-                <WarningMark />
-                <span>{w}</span>
+      <TheirSide
+        partner={t.partner_team_name}
+        pitch={t.pitch}
+        needs={t.pitch_needs}
+        teams={teamCount}
+        valueGet={t.value_they_get}
+        valueGive={t.value_they_give}
+        theirCats={t.their_cats_gain}
+        rounds={rounds}
+        facts={(t.facts ?? [])
+          .filter((f) => FACT_ROWS.has(f.kind))
+          .map((f) => (
+            <FactRow key={`${f.kind}-${f.player_id ?? ''}-${f.text}`} fact={f} rounds={rounds} />
+          ))}
+        actions={
+          onCheck && (
+            <button
+              type="button"
+              className="tt-btn"
+              onClick={() =>
+                onCheck({
+                  partner: t.partner_team_id,
+                  give: t.give.map((p) => p.id),
+                  get: t.get.map((p) => p.id),
+                  mode: 'sending',
+                  cut: t.my_drop?.id ?? null,
+                })
+              }
+            >
+              <MaybeHandshake size={18} />
+              Check This Trade
+            </button>
+          )
+        }
+      />
+      <div className="mvt-aside">
+        <CatStrip
+          changes={t.category_changes}
+          categories={categories.length ? categories : undefined}
+          title="Your weekly win chance"
+          summary={
+            <>
+              <span className={`num mvt-cats ${myCats > 0 ? 'good' : myCats < 0 ? 'bad' : ''}`}>{signed(myCats)}</span>{' '}
+              categories won a week
+            </>
+          }
+        />
+        {notes.length > 0 && (
+          <ul className="mvt-notes">
+            {notes.map((n) => (
+              <li key={n.key} className={n.warn ? 'mvt-notes-warn' : undefined}>
+                {n.icon}
+                <span>{n.body}</span>
               </li>
             ))}
           </ul>
         )}
-        <PitchCard partner={t.partner_team_name} colour={colour} teams={teamCount} pitch={t.pitch} needs={t.pitch_needs}>
-          <ReasonTiles
-            facts={t.facts}
-            reasons={t.reasons}
-            title={why}
-            valueGet={t.value_they_get}
-            valueGive={t.value_they_give}
-            myCats={t.my_cats_gain}
-            theirCats={t.their_cats_gain}
-            rounds={rounds}
-          />
-        </PitchCard>
-        {t.owner_premium >= 0.5 && (
-          <p className="small muted">
-            Their side includes a {premiumValue(t.owner_premium, t.value_they_give, rounds)} owner premium on what
-            they send.
-          </p>
-        )}
-        <ul className="reasons">
-          {t.my_drop && (
-            <li>
-              You drop <PlayerInline player={t.my_drop} /> to make room.
-            </li>
-          )}
-          {t.my_add && (
-            <li>
-              You send more than you get back: pick up <PlayerInline player={t.my_add} /> from free agency for the open
-              spot. The odds above include him.
-            </li>
-          )}
-          {t.their_drop && (
-            <li>
-              They would likely drop <PlayerInline player={t.their_drop} tail="." />
-            </li>
-          )}
-          {extra}
-        </ul>
         <BadgeNotes players={t.get} />
       </div>
-      <ImpactBars changes={t.category_changes} label="Your weekly win chance per category" />
     </>
   )
   return (
@@ -316,50 +532,45 @@ export function TradeItem({
           </span>
         </div>
       </div>
-      {open && !tabs && (
-        <div className="move-detail" id={`${id}-detail`}>
-          {overview}
-        </div>
-      )}
-      {open && tabs && (
-        <div id={`${id}-detail`}>
-          <div className="move-tabs tabs" role="tablist" aria-label="Trade details">
-            <button
-              type="button"
-              role="tab"
-              className="tab"
-              id={`${id}-tab-overview`}
-              aria-selected={panel === 'overview'}
-              aria-controls={`${id}-panel-overview`}
-              onClick={() => setPanel('overview')}
-            >
-              Overview
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className="tab"
-              id={`${id}-tab-feedback`}
-              aria-selected={panel === 'feedback'}
-              aria-controls={`${id}-panel-feedback`}
-              onClick={() => setPanel('feedback')}
-            >
-              Feedback
-              {saved && <span className={`feedback-pill ${saved.rating}`}>{ratingLabel(saved.rating)}</span>}
-            </button>
-          </div>
-          {panel === 'overview' ? (
+      {open && (
+        <div className="mvt-detail" id={`${id}-detail`}>
+          {tabs && (
+            <div className="mvt-tabs" role="tablist" aria-label="Trade details">
+              <button
+                type="button"
+                role="tab"
+                id={`${id}-tab-overview`}
+                aria-selected={panel === 'overview'}
+                aria-controls={`${id}-panel-overview`}
+                onClick={() => setPanel('overview')}
+              >
+                Overview
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id={`${id}-tab-feedback`}
+                aria-selected={panel === 'feedback'}
+                aria-controls={`${id}-panel-feedback`}
+                onClick={() => setPanel('feedback')}
+              >
+                Feedback
+                {saved && <span className={`feedback-pill ${saved.rating}`}>{ratingLabel(saved.rating)}</span>}
+              </button>
+            </div>
+          )}
+          {!tabs || panel === 'overview' ? (
             <div
-              className="move-detail"
-              role="tabpanel"
-              id={`${id}-panel-overview`}
-              aria-labelledby={`${id}-tab-overview`}
+              className="mvt-body"
+              role={tabs ? 'tabpanel' : undefined}
+              id={tabs ? `${id}-panel-overview` : undefined}
+              aria-labelledby={tabs ? `${id}-tab-overview` : undefined}
             >
               {overview}
             </div>
           ) : (
             <div
-              className="move-detail"
+              className="mvt-fb"
               role="tabpanel"
               id={`${id}-panel-feedback`}
               aria-labelledby={`${id}-tab-feedback`}
@@ -375,18 +586,16 @@ export function TradeItem({
 
 type Mode = 'fair' | 'edge'
 
-const MODES: Record<Mode, { label: string; hint: string; empty: string; why: string }> = {
+const MODES: Record<Mode, { label: string; hint: string; empty: string }> = {
   fair: {
     label: 'Fair',
     hint: "Both teams' playoff odds go up at least a point",
     empty: "No trade raises both teams' playoff odds right now.",
-    why: 'Why they might say yes',
   },
   edge: {
     label: 'Bold',
     hint: 'They win on paper, you win on the court, and their odds dip 3 points at most',
     empty: 'No deal gives them the paper win while raising your playoff odds right now.',
-    why: 'Why it favors you',
   },
 }
 
@@ -409,6 +618,10 @@ interface TradesProps {
   onToggleKeep?: (id: number) => void
   /** A quiet line on how each partner plays, by team id ("Door closed · declined 2, never traded"). */
   partnerStyles?: Map<number, string>
+  /** The free agent moves, to name who a trade is measured against. */
+  pickups?: Pick<PickupIdea, 'add' | 'drop'>[]
+  /** Opens Check a Trade with a deal from the list. */
+  onCheck?: (deal: CheckDeal) => void
 }
 
 export function Trades({
@@ -422,6 +635,8 @@ export function Trades({
   keep,
   onToggleKeep,
   partnerStyles,
+  pickups,
+  onCheck,
 }: TradesProps) {
   const { rules } = useTradeRules()
   const fairSplit = useMemo(() => applyRules(rules, allFair), [rules, allFair])
@@ -502,13 +717,15 @@ export function Trades({
                   id={`trade-${i}`}
                   open={isOpen}
                   onToggle={() => setOpen(isOpen ? null : key)}
-                  why={MODES[mode].why}
                   keeper={keeper}
                   feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                   colour={colours.get(t.partner_team_id)}
                   teamCount={teams.length || undefined}
                   styleLine={partnerStyles?.get(t.partner_team_id)}
                   rank={i + 1}
+                  categories={categories}
+                  pickups={pickups}
+                  onCheck={onCheck}
                 />
               )
             })}
@@ -523,13 +740,15 @@ export function Trades({
                     id={`trade-skipped-${i}`}
                     open={isOpen}
                     onToggle={() => setOpen(isOpen ? null : key)}
-                    why={MODES[mode].why}
-                    keeper={keeper}
+                      keeper={keeper}
                     tag={<span className="skipped-pill">Skipped: {rule.label}</span>}
                     feedbackSource={mode === 'fair' ? 'trades' : 'edge'}
                     colour={colours.get(t.partner_team_id)}
                     teamCount={teams.length || undefined}
                     styleLine={partnerStyles?.get(t.partner_team_id)}
+                    categories={categories}
+                    pickups={pickups}
+                    onCheck={onCheck}
                   />
                 )
               })}

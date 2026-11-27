@@ -246,13 +246,26 @@ export interface TheirSideProps {
   rounds: RoundValues
   /** Buttons after Copy pitch, e.g. Check This Trade. */
   actions?: ReactNode
+  /** More rows for the facts list, ahead of the value rows: each a <div> with a <dt> and a <dd>. */
+  facts?: ReactNode
 }
 
 /**
  * The deal from their side, flat: the pitch as columns, "Sends as …", Copy pitch (plus the
  * caller's actions) and a short list of facts.
  */
-export function TheirSide({ partner, pitch, needs, teams, valueGet, valueGive, theirCats, rounds, actions }: TheirSideProps) {
+export function TheirSide({
+  partner,
+  pitch,
+  needs,
+  teams,
+  valueGet,
+  valueGive,
+  theirCats,
+  rounds,
+  actions,
+  facts,
+}: TheirSideProps) {
   const list = needs ?? []
   const paper = valueGive > 0 ? Math.round((valueGet / valueGive) * 100) : null
   return (
@@ -285,6 +298,7 @@ export function TheirSide({ partner, pitch, needs, teams, valueGet, valueGive, t
           Their side of the deal
         </h3>
         <dl className="tt-facts">
+          {facts}
           {paper != null && (
             <div>
               <dt>On paper they get</dt>
