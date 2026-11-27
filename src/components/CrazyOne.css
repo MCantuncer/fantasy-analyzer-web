@@ -1,5 +1,5 @@
-/* Crazy One's World: another room in the same building. The site's fonts, radii and rows, a plum floor and
-   its own ultraviolet ink (--cz-ink, CrazyDoor.css), which only ever marks Crazy One. */
+/* Crazy 1's World: another room in the same building. The site's fonts, radii and rows, a plum floor and
+   its own ultraviolet ink (--cz-ink, CrazyDoor.css), which only ever marks Crazy 1. */
 .cz {
   min-width: 0;
 }
@@ -280,7 +280,7 @@
   color: var(--text);
 }
 
-/* Markers: Our call a cream dot, Crazy One a diamond in its ink, the book a hollow ring. */
+/* Markers: Our call a cream dot, Crazy 1 a diamond in its ink, the book a hollow ring. */
 .cz-mk {
   display: inline-block;
   width: 12px;

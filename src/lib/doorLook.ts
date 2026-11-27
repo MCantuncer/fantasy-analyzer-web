@@ -1,4 +1,4 @@
-/* The moon on Crazy One's door orbits slowly, and when a pointer comes in it turns to look at the spot
+/* The moon on Crazy 1's door orbits slowly, and when a pointer comes in it turns to look at the spot
    where the hover started, then carries on orbiting from there (Can 2026-11-26: an "overthinker" that
    notices every change). Angles are degrees, clockwise from 3 o'clock, as SVG's rotate() reads them. */
 

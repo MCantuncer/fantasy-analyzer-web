@@ -75,7 +75,7 @@ interface Props {
   searchLeague?: SearchLeague | null
   /** Admins: a way over to Site health. */
   onHealth?: () => void
-  /** The door to Crazy One's World. */
+  /** The door to Crazy 1's World. */
   onCrazy?: () => void
 }
 

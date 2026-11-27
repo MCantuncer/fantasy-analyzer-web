@@ -140,7 +140,7 @@ describe('CrazyDoor', () => {
   it('is a labelled button that opens the world', () => {
     const open = vi.fn()
     render(<CrazyDoor onOpen={open} />)
-    fireEvent.click(screen.getByRole('button', { name: "Go to Crazy One's World" }))
+    fireEvent.click(screen.getByRole('button', { name: "Go to Crazy 1's World" }))
     expect(open).toHaveBeenCalled()
   })
 
@@ -149,7 +149,7 @@ describe('CrazyDoor', () => {
     window.matchMedia = ((q: string) => ({ matches: q.includes('reduce'), media: q })) as typeof window.matchMedia
     try {
       render(<CrazyDoor onOpen={vi.fn()} />)
-      const door = screen.getByRole('button', { name: "Go to Crazy One's World" })
+      const door = screen.getByRole('button', { name: "Go to Crazy 1's World" })
       const moon = door.querySelector('g')!
       expect(moon.getAttribute('transform')).toBe('rotate(-42.00 13 13)')
       fireEvent.pointerEnter(door, { clientX: -20, clientY: 0, pointerType: 'mouse' })
@@ -225,7 +225,7 @@ describe('CrazyOne', () => {
     expect(rows[0].textContent).toContain('Other winner')
     const calm = screen.getByText('Same as Our call:').parentElement!
     expect(calm.textContent).toContain('BOS @ NYK')
-    expect(calm.textContent).toContain('Crazy One hit')
+    expect(calm.textContent).toContain('Crazy 1 hit')
   })
 
   it('shows a total belief as the total, agreeing on the winner', async () => {
