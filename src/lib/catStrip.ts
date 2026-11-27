@@ -46,8 +46,8 @@ export interface PairOptions {
   top: 'today' | 'week'
   /** The small figures under each side, or none. */
   sub?: 'week' | null
-  /** Where "close" comes from. The design always uses the week. */
-  closeFrom?: 'week'
+  /** Where "close" comes from: the week, or null for no close flags (Scores' tonight-only strip). */
+  closeFrom?: 'week' | null
 }
 
 const ORDER: readonly string[] = CATEGORY_ORDER
@@ -86,8 +86,8 @@ export function pairCells(a: StripSide, b: StripSide, { top, sub = null, closeFr
   const topB = pick(b, top)
   const subA = sub ? pick(a, sub) : null
   const subB = sub ? pick(b, sub) : null
-  const closeA = pick(a, closeFrom)
-  const closeB = pick(b, closeFrom)
+  const closeA = closeFrom ? pick(a, closeFrom) : null
+  const closeB = closeFrom ? pick(b, closeFrom) : null
   const topLive = topA != null && topB != null && !unplayed(topA, topB, stats)
   const subLive = subA != null && subB != null && !unplayed(subA, subB, stats)
 

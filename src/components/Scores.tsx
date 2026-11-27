@@ -16,8 +16,12 @@ import { fetchScoreGames, fetchScores, fetchScoreSits } from '../api/client'
 import type { FixtureDay, Game, GameLine, ScoreDay } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { best, dayLabel, leader, longDayLabel, myLines, nickname, nightTotals, statLine, usToday } from '../lib/scores'
-import { HeadStack, PlayerHead, TeamLogo } from './PlayerHead'
+import { PlayerHead, TeamLogo } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
+import { CatStripPair } from './CatStrip'
+import { shortTeam } from '../lib/matchupSheet'
+import type { StatValue } from '../lib/catStrip'
+import { formatStat } from '../lib/league'
 import { teamColours } from '../lib/league'
 import { teamLight } from '../lib/nbaTeams'
 import { useFitsWidth } from '../lib/useFitsWidth'
@@ -254,14 +258,7 @@ export function Scores({ leagueId, season, teamId, teams, creds, matchup }: Prop
       {pending ? (
         <ScoresFilling failed={failed} onRetry={() => scores.refetch()} />
       ) : (
-        <YourNight
-          games={data.games}
-          teamId={teamId}
-          matchup={matchup ?? null}
-          abbrev={abbrev}
-          rival={rivalColour}
-          day={dayLabel(data.date)}
-        />
+        <YourNight games={data.games} teamId={teamId} matchup={matchup ?? null} sides={sides} />
       )}
 
       {games.length === 0 ? (
@@ -690,147 +687,132 @@ function DayStrip({ data, onPick }: { data: ScoreDay; onPick: (day: number) => v
   )
 }
 
-type Cat = [label: string, mine: number, theirs: number | null, text: (v: number) => string]
-type Res = 'W' | 'L' | 'T'
+/** Tonight's nine category figures for one fantasy team, from its players' box score lines. */
+function nightFigures(t: ReturnType<typeof nightTotals>): StatValue[] {
+  const pct = (m: number, a: number) => (a ? m / a : 0)
+  return [
+    { stat: 'FG%', value: pct(t.fgm, t.fga) },
+    { stat: 'FT%', value: pct(t.ftm, t.fta) },
+    { stat: '3PM', value: t.tpm },
+    { stat: 'REB', value: t.reb },
+    { stat: 'AST', value: t.ast },
+    { stat: 'STL', value: t.stl },
+    { stat: 'BLK', value: t.blk },
+    { stat: 'TO', value: t.to },
+    { stat: 'PTS', value: t.pts },
+  ]
+}
 
 /**
- * Tonight in your matchup. Game Night: each category says who took it tonight with a W/L letter, and
- * the winner's number lights up (green from the top on your row, coral from the bottom on theirs).
- * The night's category count leads the card ("6-3, Won the night"), your warm light sits in the near
- * corner and your rival's crest colour in the far one. On phones the nine categories are a 3x3 grid.
+ * Tonight in your matchup, as League's line score sheet: your house light in the near corner and
+ * your rival's crest light in the far one. The night's category count leads ("2–5–2 Behind so
+ * far"), then CatStrip pair with tonight's figures (your row on top, the bar toward whoever leads)
+ * and the night's top performer. Before your rival has played, the strip is your row alone.
  */
 function YourNight({
   games,
   teamId,
   matchup,
-  abbrev,
-  rival,
-  day,
+  sides,
 }: {
   games: Game[]
   teamId: number
   matchup: TonightMatchup | null
-  abbrev: Map<number, string>
-  rival?: string
-  day: string
+  sides: Sides
 }) {
   const t = nightTotals(games, teamId)
   if (t.played === 0) return null
   const o = matchup ? nightTotals(games, matchup.opponentId) : null
-  const lines = myLines(games, teamId)
-  const top = best(lines)
-  const pct = (m: number, a: number) => (a ? m / a : 0)
-  const n = (v: number) => String(v)
-  const r = (v: number) => (v ? v.toFixed(3).replace(/^0/, '') : '–')
-  // The site's category order (lib/statOrder): shooting, box stats, then TO and PTS.
-  const cats: Cat[] = [
-    ['FG%', pct(t.fgm, t.fga), o ? pct(o.fgm, o.fga) : null, r],
-    ['FT%', pct(t.ftm, t.fta), o ? pct(o.ftm, o.fta) : null, r],
-    ['3PM', t.tpm, o?.tpm ?? null, n],
-    ['REB', t.reb, o?.reb ?? null, n],
-    ['AST', t.ast, o?.ast ?? null, n],
-    ['STL', t.stl, o?.stl ?? null, n],
-    ['BLK', t.blk, o?.blk ?? null, n],
-    ['TO', t.to, o?.to ?? null, n],
-    ['PTS', t.pts, o?.pts ?? null, n],
-  ]
+  const top = best(myLines(games, teamId))
+  const mineFig = nightFigures(t)
   // Only compare once they have played tonight; an empty side isn't a contest.
-  const versus = o != null && o.played > 0
-  const ahead = (label: string, mine: number, theirs: number | null) =>
-    versus && theirs != null && mine !== theirs && (label === 'TO' ? mine < theirs : mine > theirs)
-  const result = (label: string, mine: number, theirs: number | null): Res | null =>
-    !versus || theirs == null ? null : ahead(label, mine, theirs) ? 'W' : ahead(label, theirs, mine) ? 'L' : 'T'
-  const results = cats.map(([k, mine, theirs]) => result(k, mine, theirs))
-  const count = (x: Res) => results.filter((v) => v === x).length
-  const [w, l, tie] = [count('W'), count('L'), count('T')]
+  const versus = matchup != null && o != null && o.played > 0
+  const theirFig = versus ? nightFigures(o) : null
+  const lead = (stat: string, a: number, b: number) => (stat === 'TO' ? a < b : a > b)
+  let [w, l, tie] = [0, 0, 0]
+  if (theirFig)
+    mineFig.forEach((m, i) => {
+      const th = theirFig[i].value
+      if (m.value === th) tie++
+      else if (lead(m.stat, m.value, th)) w++
+      else l++
+    })
   const live = games.some((g) => g.status === 'live')
   const verdict = w > l ? 'W' : w < l ? 'L' : 'T'
   const verdictText = live
     ? { W: 'Ahead so far', L: 'Behind so far', T: 'Level so far' }[verdict]
     : { W: 'Won the night', L: 'Lost the night', T: 'Split the night' }[verdict]
-  const oppShort = matchup ? (abbrev.get(matchup.opponentId) ?? matchup.opponentName) : ''
-  const RES_WORD = { W: 'you took it', L: 'they took it', T: 'level' }
+  const record = tie ? [w, l, tie] : [w, l]
   return (
     <section
-      className={`card your-night${matchup ? ' versus' : ''}`}
-      aria-labelledby="night-title"
-      style={rival ? ({ '--rival': rival } as CSSProperties) : undefined}
+      className={`sc-tonight${matchup ? ' versus' : ''}`}
+      aria-labelledby="sc-tn-title"
+      style={matchup && sides.rival ? ({ '--rival': sides.rival.colour } as CSSProperties) : undefined}
     >
-      <div className="stack night-head">
-        <h2 className="night-title" id="night-title">
-          <Television size={20} aria-hidden="true" />
-          <span>
-            {matchup ? 'Tonight in your matchup' : `Your ${live ? 'night so far' : 'night'}`}
-            {matchup && <span className="night-vs"> · vs {matchup.opponentName}</span>}
-          </span>
-        </h2>
-        {versus && (
-          <p className="night-score">
-            <b className="num">{tie ? `${w}-${l}-${tie}` : `${w}-${l}`}</b>
-            <span className="night-score-text">
-              <span className={`night-verdict ${verdict}`}>{verdictText}</span>
-              <span className="small">{day ? `${day} · categories` : 'categories'}</span>
-            </span>
-          </p>
-        )}
-        {top && (
-          <span className="night-lead">
-            <PlayerLink player={{ id: top.player_id, name: top.name }} decorative>
-              <PlayerHead player={{ id: top.player_id, name: top.name }} size={36} />
-            </PlayerLink>
-            <span>
-              <PlayerLink player={{ id: top.player_id, name: top.name }} /> led with {statLine(top)}.
-            </span>
-          </span>
-        )}
-      </div>
-      <div className="night-totals">
-        <span className="night-totals-label small muted" id="night-totals-label">
-          <HeadStack players={lines.map((l) => ({ id: l.player_id, name: l.name }))} size={22} />
-          {t.played === 1 ? 'Your 1 player' : `All ${t.played} of your players combined`}
-          {matchup &&
-            (versus ? `, against ${o!.played} of theirs` : ` · ${matchup.opponentName} haven't played tonight`)}
+      <h2 className="sc-tn-title" id="sc-tn-title">
+        <Television aria-hidden="true" />
+        <span>
+          {matchup ? 'Tonight in your matchup' : `Your ${live ? 'night so far' : 'night'}`}
+          {matchup && <span className="sc-tn-vs"> · vs {matchup.opponentName}</span>}
         </span>
-        <dl className={`night-cats${versus ? ' lit' : ''}`} aria-labelledby="night-totals-label">
-          {versus && (
-            <div className="night-who" aria-hidden="true">
-              <dt>&nbsp;</dt>
-              <dd>You</dd>
-              <dd className="them">{oppShort}</dd>
-            </div>
-          )}
-          {cats.map(([k, mine, theirs, text], i) => {
-            const res = results[i]
-            return (
-              <div key={k} className={res ? `res-${res}` : undefined}>
-                <dt>
-                  {k}
-                  {res && (
-                    <span className={`night-res ${res}`} aria-label={`, ${RES_WORD[res]}`}>
-                      {res}
-                    </span>
-                  )}
-                </dt>
-                <dd className={`num${ahead(k, mine, theirs) ? ' ahead' : ''}${res === 'W' ? ' won' : ''}`}>
-                  {text(mine)}
-                </dd>
-                {versus && theirs != null && (
-                  <dd className={`num them${ahead(k, theirs, mine) ? ' ahead' : ''}${res === 'L' ? ' lost' : ''}`}>
-                    <span className="sr-only">{matchup!.opponentName}: </span>
-                    {text(theirs)}
-                  </dd>
-                )}
-              </div>
-            )
-          })}
-        </dl>
-        {versus && (
-          <p className="night-key small muted" aria-hidden="true">
-            <span>You · big</span>
-            <span>{oppShort} · small</span>
-          </p>
+      </h2>
+      {versus ? (
+        <p className="sc-tn-score">
+          <span className="num sc-tn-big" aria-label={`${w} won, ${l} lost${tie ? `, ${tie} tied` : ''}`}>
+            {record.map((n, i) => (
+              <Fragment key={i}>
+                {i > 0 && <i aria-hidden="true">–</i>}
+                {n}
+              </Fragment>
+            ))}
+          </span>
+          <span className={`sc-tn-verdict ${verdict}`}>{verdictText}</span>
+        </p>
+      ) : (
+        matchup && <p className="sc-tn-wait">They haven't played tonight</p>
+      )}
+      <div className="sc-tn-strip">
+        {versus && sides.rival ? (
+          <CatStripPair
+            a={{ id: teamId, name: sides.you.name, short: 'You', colour: sides.you.colour, week: mineFig, today: mineFig }}
+            b={{
+              id: matchup.opponentId,
+              name: sides.rival.name,
+              short: shortTeam(sides.rival.name),
+              colour: sides.rival.colour,
+              week: theirFig!,
+              today: theirFig,
+            }}
+            top="today"
+            mine="a"
+            close={false}
+            label="Tonight's categories"
+          />
+        ) : (
+          <ul className="sc-tn-solo" aria-label="Your categories tonight">
+            {mineFig.map((f) => (
+              <li key={f.stat} aria-label={`${f.stat} ${formatStat(f.stat, f.value)}`}>
+                <span className="sc-tn-cat" aria-hidden="true">
+                  {f.stat === 'TO' ? 'TO↓' : f.stat}
+                </span>
+                <b className="num" aria-hidden="true">
+                  {formatStat(f.stat, f.value)}
+                </b>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
+      {top && (
+        <p className="sc-tn-lead">
+          <PlayerLink player={{ id: top.player_id, name: top.name }} decorative>
+            <PlayerHead player={{ id: top.player_id, name: top.name }} size={28} />
+          </PlayerLink>
+          <span>
+            <PlayerLink player={{ id: top.player_id, name: top.name }} /> led with {statLine(top)}
+          </span>
+        </p>
+      )}
     </section>
   )
 }
