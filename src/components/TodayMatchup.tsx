@@ -43,9 +43,6 @@ export function TodayMatchup({
   me: TodaySide
   them: TodaySide
   myId: number | null
-  /** Always false now: the sheet and the matchup rows draw the status, score and categories themselves.
-   * Kept so their callers still type-check; it draws nothing. */
-  head?: false
 }) {
   const [view, setView] = useState<0 | 1>(0)
   // The bench flag's player, to bring into view once his team is on screen.
@@ -230,8 +227,7 @@ function TeamColumn({ side }: { side: Side }) {
 }
 
 /** The shape of the Today view while the day's games and both lineups load. */
-// `head` is always false now (see TodayMatchup); the prop stays so callers still type-check.
-export const TodayLoading: (props: { head?: false }) => ReactElement = () => (
+export const TodayLoading = (): ReactElement => (
   <div className="tm tm-loading" aria-busy="true" aria-label="Loading today's matchup">
     <div className="tm-cols">
       {[0, 1].map((c) => (
