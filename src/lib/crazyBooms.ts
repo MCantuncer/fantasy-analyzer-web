@@ -1,7 +1,7 @@
 import type { CrazyBoom, CrazyBoomRecord, CrazyGame } from '../api/client'
 import { movesWinner } from './crazyOne'
 
-/* Crazy One hunts booms (api app/booms.py): the players he thinks go way over their line tonight, the
+/* Crazy 1 hunts booms (api app/booms.py): the players he thinks go way over their line tonight, the
    beliefs behind each call, and his record of booms caught against what Our chance expected of the same
    calls. Everything here turns POST /api/crazy-one's `booms` and `boom_record` into words, places and
    marks. */
@@ -157,7 +157,7 @@ export interface Star {
   call: CrazyBoom
   /** 0-1 across (the game's place, spread when a game has more than one call). */
   x: number
-  /** 0-1 up, Crazy One's chance and Our chance, from the sky's floor to its top. */
+  /** 0-1 up, Crazy 1's chance and Our chance, from the sky's floor to its top. */
   y: number
   ours: number
   /** The game's likeliest call: the one whose name shows without pointing at it. */
