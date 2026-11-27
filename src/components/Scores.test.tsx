@@ -516,7 +516,7 @@ describe('Scores', () => {
     mockApi()
     renderScores()
     await screen.findByText(/Amen Thompson led with 20 pts, 10 reb/)
-    const summary = screen.getByText(/All 2 games · 1 of your players in action/)
+    const summary = screen.getByText(/All 2 games · 1 of your players in action/).closest('.sc-sum')!
     const hou = screen.getByRole('button', { name: /HOU/ })
     expect(summary).not.toHaveClass('sl-away')
 
@@ -592,10 +592,13 @@ describe('Scores', () => {
     })
     const { container } = renderScores()
     await screen.findByText(/Amen Thompson led with/)
-    expect(container.querySelectorAll('.call-night')).toHaveLength(1)
+    expect(container.querySelectorAll('.call-tally')).toHaveLength(1)
+    // The tally sits on the summary row; the key sentence lives in How this works now.
+    expect(container.querySelector('.sc-sum .call-tally')!.textContent).toMatch(/^Our calls \d+ of \d+ right · \d+ pts off a team$/)
+    expect(container.querySelector('.sc-sum')!.textContent).not.toMatch(/locked at tip-off/)
     fireEvent.click(screen.getByRole('button', { name: /^Thu 22/ }))
     await vi.waitFor(() => expect(screen.getAllByRole('button', { name: /^Thu 22/ })[0]).toHaveAttribute('aria-pressed', 'true'))
-    await vi.waitFor(() => expect(container.querySelectorAll('.call-night')).toHaveLength(1))
+    await vi.waitFor(() => expect(container.querySelectorAll('.call-tally')).toHaveLength(1))
     expect(container.querySelectorAll('.game-card.has-call').length).toBeGreaterThan(0)
   })
 

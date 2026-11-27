@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Game } from '../api/client'
-import { band, firstFinal, percent, pick, shortNick, showKey, tally, timesInTen, verdict } from './ourCall'
+import { band, firstFinal, percent, pick, shortNick, tally, timesInTen, verdict } from './ourCall'
 
 function game(status: Game['status'], scores: [number | null, number | null], call: [number, number, number] | null) {
   return {
@@ -49,11 +49,8 @@ describe('our call', () => {
     expect(shortNick('Magic')).toBe('Magic')
   })
 
-  it('draws a verdict once and shows the key on the first three nights', () => {
+  it('draws a verdict once', () => {
     expect(firstFinal(7)).toBe(true)
     expect(firstFinal(7)).toBe(false)
-    expect(['2026-11-15', '2026-11-16', '2026-11-17'].map(showKey)).toEqual([true, true, true])
-    expect(showKey('2026-11-16')).toBe(true)
-    expect(showKey('2026-11-18')).toBe(false)
   })
 })

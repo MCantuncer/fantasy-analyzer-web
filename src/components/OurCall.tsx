@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Game } from '../api/client'
-import { band, firstFinal, percent, pick, showKey, tally, timesInTen, verdict, type Call } from '../lib/ourCall'
+import { band, firstFinal, percent, pick, tally, timesInTen, verdict, type Call } from '../lib/ourCall'
 import { nickname } from '../lib/scores'
 import './OurCall.css'
 
@@ -115,45 +115,19 @@ export function CallSentence({ game }: { game: Game }) {
   return <span className="sr-only">{text}</span>
 }
 
-/** Above the games: what "Our call" is (first nights), then the day's honest tally once a final lands. */
-export function CallNight({ games, date, today }: { games: Game[]; date: string | null | undefined; today: boolean }) {
-  const any = games.some((g) => g.call)
+/** Our calls on the summary row, once a final with a call lands: "Our calls tonight 1 of 1 right ·
+    15 pts off a team". Past days read "Our calls". What "Our call" means lives in How this works. */
+export function CallTally({ games, today }: { games: Game[]; today: boolean }) {
   const t = tally(games)
-  const [key] = useState(() => any && date != null && showKey(date))
-  if (!any || (!key && !t)) return null
+  if (!t) return null
   return (
-    <p className="call-night">
-      {key && (
-        <span className="ln">
-          <span className="lbl">Our call</span> is our estimate of each final score, locked at tip-off. The % is how
-          sure we are of the winner:{' '}
-          <span className="kw" data-band="sure">
-            green
-          </span>{' '}
-          sure,{' '}
-          <span className="kw" data-band="lean">
-            amber
-          </span>{' '}
-          a lean,{' '}
-          <span className="kw" data-band="flip">
-            grey
-          </span>{' '}
-          a coin flip.
-        </span>
-      )}
-      {t && (
-        <span className="ln">
-          <span className="lbl">
-            {today ? (t.done ? 'Our calls tonight' : 'Our calls so far tonight') : 'Our calls'}
-          </span>{' '}
-          <span>
-            <span className="num">{t.right}</span> of <span className="num">{t.finals}</span>{' '}
-            {t.finals === 1 ? 'winner' : 'winners'} <span className="dot">·</span> <span className="num">{t.avg}</span>{' '}
-            pts off a team on average
-          </span>
-        </span>
-      )}
-    </p>
+    <span className="call-tally">
+      {today ? 'Our calls tonight' : 'Our calls'}{' '}
+      <b className="num">
+        {t.right} of {t.finals}
+      </b>{' '}
+      right <span className="dot">·</span> <b className="num">{t.avg}</b> pts off a team
+    </span>
   )
 }
 
