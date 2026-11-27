@@ -107,12 +107,13 @@ describe('numbers', () => {
         partner_playoff_pct_after: 0.697,
         value_they_get: 10.5,
         value_they_give: 25.9,
+        acceptance: 0.11,
         acceptance_label: 'long_shot',
       },
     } as unknown as OfferCheck
     expect(checkSummary(check)).toBe(
       'Take it. Your playoff odds 43 to 47 percent, up 4. Aliaga Hermanos 72 to 70, down 2, worse for them, loses on paper, $11 for $26.',
     )
-    expect(checkSummary({ ...check, direction: 'sending' })).toContain('Chance they say yes: long shot.')
+    expect(checkSummary({ ...check, direction: 'sending' })).toContain('Chance they say yes: 1 in 9.')
   })
 })

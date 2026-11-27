@@ -7,7 +7,6 @@ import {
   CalendarBlank,
   CaretRight,
   Clock,
-  Handshake,
   Plus,
   Target,
   Trash,
@@ -26,7 +25,7 @@ import { PlayerHead } from './PlayerHead'
 import { PlayerLink } from './PlayerCard'
 import { PlayerInline } from './PlayerInline'
 import { TeamCrest } from './TeamCrest'
-import { ACCEPTANCE } from './Trades'
+import { AcceptChance } from './AcceptChance'
 import './BestMove.css'
 
 /** "MIL · PF": the NBA team code and positions, with an optional note after them. */
@@ -281,7 +280,6 @@ export function BestMove({
   const trade = best.trade
 
   const theirs = colours.get(trade.partner_team_id)
-  const acc = ACCEPTANCE[trade.acceptance_label]
   const theyBefore = trade.partner_playoff_pct_before
   const theyAfter = trade.partner_playoff_pct_after
   const before = trade.playoff_pct_before
@@ -331,13 +329,7 @@ export function BestMove({
     >
       <Head
         right={
-          <span className="mvl-accept" title="How offers like this one went in real leagues">
-            <Handshake size={18} aria-hidden="true" />
-            <span className={`mvl-accept-w ${acc.tone}`}>
-              <span className="sr-only">chance they accept, </span>
-              {acc.label}
-            </span>
-          </span>
+          <AcceptChance p={trade.acceptance} className="mvl-accept" />
         }
       >
         <span className="mvl-sub mvl-partner">

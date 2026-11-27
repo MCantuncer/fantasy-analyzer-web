@@ -1,5 +1,6 @@
 import type { CategoryDetail, OfferCheck } from '../api/client'
 import { CATEGORY_ORDER } from './statOrder'
+import { oneIn } from './chance'
 
 /** A trade the manager is checking: who it's with, who goes each way, and how it came about. */
 export type CheckMode = 'received' | 'sending'
@@ -130,14 +131,8 @@ export function checkSummary(c: OfferCheck): string {
       } on paper, $${Math.round(i.value_they_get)} for $${Math.round(i.value_they_give)}.`,
     )
   }
-  if (c.direction === 'sending') parts.push(`Chance they say yes: ${ACCEPTANCE_WORD[i.acceptance_label]}.`)
+  if (c.direction === 'sending') parts.push(`Chance they say yes: ${oneIn(i.acceptance)}.`)
   return parts.join(' ')
-}
-
-export const ACCEPTANCE_WORD: Record<OfferCheck['idea']['acceptance_label'], string> = {
-  likely: 'likely',
-  possible: 'possible',
-  long_shot: 'long shot',
 }
 
 /** The checks that came back clear, by title, for "the rest came back clear". */

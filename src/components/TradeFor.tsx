@@ -26,7 +26,7 @@ import { PlayerInline } from './PlayerInline'
 import { HeadStack, PlayerHead } from './PlayerHead'
 import { TeamCrest } from './TeamCrest'
 import { EndLabel, OddsPlate, TheirSide, TradeTable, Wants, type CrestTeam } from './TradeTable'
-import { ACCEPTANCE } from './Trades'
+import { AcceptChance } from './AcceptChance'
 import './TradeFor.css'
 
 const FIT = {
@@ -664,17 +664,14 @@ function OwnerFacts({ data }: { data: TargetReport }) {
   )
 }
 
-/** One offer: the angle, who goes each way, the accept word and your odds. On the table when picked. */
+/** One offer: the angle, who goes each way, the accept chance and your odds. On the table when picked. */
 function OfferRow({ offer: o, on, onPick }: { offer: TargetOffer; on: boolean; onPick: () => void }) {
-  const acc = ACCEPTANCE[o.acceptance_label]
   return (
     <button type="button" className="tf-offer" aria-current={on || undefined} onClick={onPick}>
       <span className="tf-offer-top">
         <span className="tf-offer-angle">{ANGLE[o.angle]}</span>
-        <span className={`tf-offer-acc ${acc.tone}`}>
-          <span className="sr-only">, chance they say yes: </span>
-          {acc.label}
-        </span>
+        <span className="sr-only">, </span>
+        <AcceptChance p={o.acceptance} className="tf-offer-acc" icon={14} />
       </span>
       <span className="tf-offer-swap">
         <span className="tf-offer-side">
