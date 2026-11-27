@@ -17,7 +17,7 @@ import { applyRules } from '../lib/tradeRules'
 import { useKeepRowInView } from '../lib/useKeepRowInView'
 import './Trades.css'
 import { PlayerLink } from './PlayerCard'
-import { KeptPlayers, PlayerInline, PlayerList } from './PlayerInline'
+import { KeptPlayers, PlayerInline } from './PlayerInline'
 import { ReasonTiles } from './ReasonTiles'
 import { expectedGain, expectedGainSpoken, expectedGainText } from '../lib/expectedGain'
 import { keptNames } from '../lib/untouchable'
@@ -373,8 +373,8 @@ interface TradesProps {
   myTeamId?: number
   /** Players these moves already leave out. */
   kept?: PlayerRef[]
-  /** Opens My Team, where the Keep list is changed. */
-  onEditKeep?: () => void
+  /** The answered untouchable question: one line with its Change, at the top of the list. */
+  untouchable?: ReactNode
   /** The Keep list and its switch, for "Keep him" in an open trade. */
   keep?: number[]
   onToggleKeep?: (id: number) => void
@@ -389,7 +389,7 @@ export function Trades({
   teams = [],
   myTeamId,
   kept = [],
-  onEditKeep,
+  untouchable,
   keep,
   onToggleKeep,
   partnerStyles,
@@ -439,21 +439,7 @@ export function Trades({
           </div>
         )}
       </div>
-      {kept.length > 0 && (
-        <p className="trades-kept small">
-          <span className="trades-kept-names">
-            <LockSimple size={14} weight="fill" aria-hidden="true" />
-            <span>
-              <strong>Always kept:</strong> <PlayerList players={kept} tail="." />
-            </span>
-          </span>
-          {onEditKeep && (
-            <button type="button" className="link" onClick={onEditKeep}>
-              Change in My Team
-            </button>
-          )}
-        </p>
-      )}
+      {untouchable}
       {!nothing && (
         <>
           <RulesBar

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { lastName } from './matchForm'
 
 // "Anyone untouchable?" is asked once per team on this device. The answer itself is the Keep list;
 // this only remembers that the question was answered, so it is not asked again.
@@ -34,4 +35,10 @@ export function useUntouchableAsked(leagueId: number, season: number, teamId: nu
 export function keptNames(names: string[]): string {
   if (names.length <= 2) return names.join(' and ')
   return `${names[0]} and ${names.length - 1} more`
+}
+
+/** The name under a face: the last name, or the first when the last one won't fit ("Giannis"). */
+export function railName(name: string): string {
+  const last = lastName(name)
+  return last.length > 11 ? name.trim().split(/\s+/)[0] : last
 }
