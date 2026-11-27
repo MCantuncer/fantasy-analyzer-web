@@ -123,7 +123,16 @@ export function WinPathView({ data }: { data: ManagerStyles }) {
         label="Your nine categories, by how often you win them"
         cats={CATEGORY_ORDER}
         bands={BANDS}
-        catHint={(cat) => (cat === 'TO' ? 'lower wins' : undefined)}
+        catLabel={(cat) =>
+          cat === 'TO' ? (
+            <>
+              <span aria-hidden="true">TO↓</span>
+              <span className="sr-only">turnovers, lower wins</span>
+            </>
+          ) : (
+            cat
+          )
+        }
         magnets={board.map((c) => ({
           cat: c.cat,
           band: c.band,

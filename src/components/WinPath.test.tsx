@@ -29,7 +29,11 @@ describe('WinPathView', () => {
     render(<WinPathView data={data} />)
     const board = screen.getByRole('table', { name: /nine categories/ })
     const heads = within(board).getAllByRole('columnheader').map((h) => h.firstChild?.textContent)
-    expect(heads).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
+    expect(heads).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO↓', 'PTS'])
+    // TO↓ as everywhere on the site, no "lower wins" sub-label; screen readers still hear it
+    const to = within(board).getAllByRole('columnheader')[7]
+    expect(to.querySelector('small')).toBeNull()
+    expect(to.querySelector('.sr-only')?.textContent).toBe('turnovers, lower wins')
     expect(within(board).getByLabelText(/^FG%: Lock, 100%/)).toBeTruthy()
     expect(within(board).getByLabelText(/^PTS: Let go, 0%/)).toBeTruthy()
   })

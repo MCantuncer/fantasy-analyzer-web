@@ -26,12 +26,15 @@ export function ScoutBoard({
   bands,
   magnets,
   catHint,
+  catLabel,
   label,
 }: {
   cats: readonly string[]
   bands: ScoutBand[]
   magnets: ScoutMagnet[]
   catHint?: (cat: string) => string | undefined
+  /** What a column head shows, when it isn't the category's own name (e.g. "TO↓"). */
+  catLabel?: (cat: string) => ReactNode
   label: string
 }) {
   return (
@@ -57,7 +60,7 @@ export function ScoutBoard({
       ))}
       {cats.map((cat, i) => (
         <div key={`h-${cat}`} className="sb-cathead" style={{ '--ci': i + 2 } as CSSProperties} role="columnheader">
-          {cat}
+          {catLabel ? catLabel(cat) : cat}
           {catHint?.(cat) && <small>{catHint(cat)}</small>}
         </div>
       ))}
