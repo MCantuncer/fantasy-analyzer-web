@@ -1,123 +1,207 @@
-/* My Team > Your categories: grouped by status, one line per category. */
+/* My Team > Your categories (Quiet Field): one row grammar, rank · category · bar · win chance · a week.
+   No chips, dots or legend sentence: a real column head says what the columns are. Colour is light on
+   outcomes only: the bars fade in from green or coral, and the Winning and Losing words carry it. Swing
+   is neutral, so it fades in --text-2 and gets weight instead. co- prefix. */
+.co {
+  --co-track: color-mix(in srgb, var(--text) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-theme='light'] .co {
+  --co-track: color-mix(in srgb, #5a3c1e 9%, transparent);
+}
+
 .co-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-height: 44px;
 }
 
-.co-help {
+.co-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.co-title svg {
   flex: none;
-  width: 32px;
-  height: 32px;
+  color: var(--text-2);
+}
+
+/* "?": a bare 44px icon button, no outline. */
+button.co-help {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 50%;
   background: transparent;
   color: var(--muted);
-  font-weight: 600;
   cursor: pointer;
 }
 
-.co-help[aria-expanded='true'] {
-  color: var(--accent-text);
-  border-color: var(--accent);
+button.co-help:hover,
+button.co-help[aria-expanded='true'] {
+  color: var(--text);
 }
 
-.co-legend {
-  display: flex;
-  flex-wrap: wrap;
+@media (hover: hover) {
+  button.co-help:hover {
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+  }
+}
+
+.co-helptext {
+  max-width: 46ch;
+  margin: 2px 0 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* rank 34 · category 50 · bar · win chance 50 · a week 46 */
+.co-ch,
+.co-row {
+  display: grid;
+  grid-template-columns: 34px 50px minmax(64px, 1fr) 50px 46px;
+  column-gap: 6px;
   align-items: center;
-  gap: 6px;
-  margin: 4px 0 0;
 }
 
-.co-legend-mid {
-  display: inline-block;
-  width: 2px;
-  height: 12px;
-  background: var(--faint);
-}
-
-.co-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.co-group-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 13px;
+.co-ch {
+  min-height: 24px;
+  margin-top: 6px;
+  font-size: 11.5px;
   font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-.co-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.co-ch-bar {
+  grid-column: 3 / 5;
+}
+
+.co-ch-avg {
+  grid-column: 5;
+  text-align: right;
+}
+
+.co-g {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 18px 0 4px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.co-g b {
+  font-weight: 650;
+}
+
+.co-won .co-g b {
+  color: var(--good);
+}
+
+.co-lost .co-g b {
+  color: var(--bad);
 }
 
 .co-hint {
+  font-size: 12.5px;
   font-weight: 400;
-  font-size: 12px;
   color: var(--muted);
 }
 
 .co-rows {
-  display: flex;
-  flex-direction: column;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .co-row {
-  display: grid;
-  grid-template-columns: 40px 36px minmax(0, 1fr) 40px 40px;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-}
-
-.co-cat {
-  font-size: 16px;
-  font-weight: 700;
+  min-height: 40px;
 }
 
 .co-rank {
-  padding: 2px 0;
-  border-radius: 4px;
-  background: var(--track);
+  font-size: 12px;
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
 }
 
-.co-legend .co-rank {
-  padding: 1px 6px;
+.co-cat {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* The bar fades in from its outcome colour: light, not paint. The tick marks 50%. */
+.co-bar {
+  position: relative;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 3px;
+  background: var(--co-track);
+}
+
+.co-bar i {
+  --co-tone: var(--text-2);
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--w);
+  border-radius: 3px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--co-tone) 8%, transparent), var(--co-tone));
+}
+
+.co-won .co-bar i {
+  --co-tone: var(--good);
+}
+
+.co-lost .co-bar i {
+  --co-tone: var(--bad);
+}
+
+.co-bar b {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--muted);
+  opacity: 0.6;
 }
 
 .co-pct {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 650;
   text-align: right;
 }
 
 .co-avg {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--muted);
   text-align: right;
 }
 
-/* The global .bar-track names a grid area for .bar-row; here it is a plain cell. */
-.co-row .bar-track {
-  grid-area: auto;
+/* Swing is where moves help: it gets the weight. Losing recedes. */
+.co-in .co-cat {
+  font-weight: 700;
 }
 
-.co-group-head .co-hint {
-  font-family: var(--font-ui);
+.co-in .co-pct {
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.co-lost .co-cat,
+.co-lost .co-pct {
+  font-weight: 500;
+  color: var(--text-2);
 }
