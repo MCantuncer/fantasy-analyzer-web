@@ -21,38 +21,6 @@
   }
 }
 
-.lo-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 650;
-}
-
-/* The playoff line in Standings: a solid ink rule instead of a dashed amber one, since amber means
-   "close, can flip" elsewhere on this page. */
-.standings tr.cutline.playoff td,
-.standings tr.cutline.playoff th {
-  border-bottom: 2px solid var(--text-2);
-}
-
-/* The standings' last column: a trade check with that team (not yours). */
-.standings .st-trade {
-  width: 44px;
-  padding: 2px 0;
-  text-align: right;
-}
-
-.standings .st-trade button.icon {
-  width: 44px;
-  min-height: 44px;
-  border-color: transparent;
-  color: var(--text-2);
-}
-
-.standings .st-trade button.icon:hover {
-  color: var(--partner);
-  border-color: var(--border);
-}
-
 /* Under the sheet: the week's matchups and the wire on the left, the standings on the right (≥ 1100);
    one column below that. */
 .lo-cols {
