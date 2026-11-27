@@ -56,7 +56,7 @@
   padding: 24px 28px 20px 16px;
 }
 
-/* Head: the target, "Best move", what sits beside it; the accept word top right on a trade. */
+/* Head: the target, "Best move", what sits beside it; the accept chance top right on a trade. */
 .mvl-h {
   display: flex;
   flex-wrap: wrap;
@@ -96,16 +96,8 @@
 }
 
 .mvl-accept {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   margin-left: auto;
-  color: var(--text-2);
-}
-
-.mvl-accept-w {
-  font-size: 16px;
-  font-weight: 650;
+  font-size: 15px;
 }
 
 /* The two sides. Add (or You get): a 72px team-lit face and the name at 28px. Drop (or You give):
@@ -546,10 +538,6 @@
 
   .bm-note {
     padding-left: 70px;
-  }
-
-  .mvl-accept-w {
-    font-size: 15px;
   }
 
   .bm-actions {

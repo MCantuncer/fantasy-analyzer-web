@@ -78,11 +78,13 @@ describe('Trades', () => {
     expect(view.getByRole('button', { name: 'Bold 1' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('shows the accept chance as a word, never as a percentage', () => {
+  it('shows the accept chance as 1 in N, never as a word or a percentage', () => {
     const { container } = show(<Trades fair={[idea]} edge={[]} />)
     const accept = container.querySelector('.mvt-accept')
-    expect(accept).toHaveTextContent('chance they accept, Possible')
+    expect(accept).toHaveTextContent('chance they accept: 1 in 3')
+    expect(accept?.querySelector('.acn-chance-v')).toHaveTextContent('1 in 3')
     expect(accept).not.toHaveTextContent('%')
+    expect(accept).not.toHaveTextContent('Possible')
   })
 
   it('prints the number the list is ranked by on each row', () => {
