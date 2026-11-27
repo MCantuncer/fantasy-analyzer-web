@@ -1,20 +1,40 @@
 /* Trade rules: chips above the trade list, the editor, and the offer in the Feedback tab.
    Moved out of index.css; every class here starts with rule(s)- or skipped-. */
+/* One 44px line on the bare page: "Trade rules None yet · Add a Rule", or the rules as chips. */
 .rules-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--divider);
+  gap: 4px 10px;
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--text-2);
 }
 
 .rules-title {
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.rules-title svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.rules-none {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.rules-bar .rules-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: auto;
   font-weight: 600;
-  color: var(--text-2);
-  margin-right: 4px;
 }
 
 .rule-chip {
@@ -70,8 +90,8 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px 20px 20px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--divider);
+  border-radius: var(--field-r, 16px);
+  background: var(--field);
 }
 
 .rules-editor-head {

@@ -1,4 +1,4 @@
-/* Trade cards on Moves and Trade Park. */
+/* Trade rows on Moves. */
 
 /* A quiet caveat (e.g. you give up one of the league's jewels): a small amber mark beside muted
    text, so it reads as a note on the deal rather than an alarm. */
@@ -31,264 +31,489 @@
   justify-content: center;
 }
 
-/* Front Office trade row (tr- prefix): partner and accept chance on top, then You give / You get
-   lanes with small team-lit faces, then both teams' playoff odds, so their gain is always visible. */
-.tr-row {
-  position: relative;
+/* Trades to offer on Moves (mvt- prefix, Quiet Lead): a bare section, two control lines, then
+   numbered rows on the bare page. A row: the partner and the accept word on top, then Centre Line's
+   geometry (you give | your odds | you get), then Show details and the expected gain. Rows are
+   closed by default and tint on hover; only the opened row lifts. Narrower than 560px a row stacks:
+   give, the odds band between two rules, get. */
+.mvt-sec {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
   gap: 12px;
-  width: 100%;
-  padding: 16px 20px;
-  border: none;
-  border-radius: 0;
+  min-width: 0;
+}
+
+.mvt-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.mvt-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.mvt-title svg {
+  flex: none;
+  color: var(--muted);
+}
+
+/* Fair | Bold: a 44px segment, Title Case, the count in the muted ink. */
+.mvt-seg {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(88px, auto));
+  padding: 2px;
+  border-radius: 12px;
+  background: var(--track);
+}
+
+.mvt-seg button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
   background: transparent;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.mvt-seg button[aria-pressed='true'] {
+  background: var(--surface);
   color: var(--text);
-  font-weight: 400;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+.mvt-seg-n {
+  margin-left: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.mvt-controls {
+  display: flex;
+  flex-direction: column;
+}
+
+.mvt-note {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.mvt-list {
+  container: mvt-list / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px -12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mvt-item {
+  border-radius: 16px;
+  transition: background-color 120ms;
+}
+
+.mvt-item:not(.open):hover {
+  background: var(--field-hover);
+}
+
+.mvt-item.open {
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+
+.mvt-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 14px 8px;
+  padding: 16px 16px 8px 12px;
+}
+
+.mvt-rank {
+  grid-row: 1;
+  font-size: 13px;
+  line-height: 32px;
+  color: var(--muted);
   text-align: left;
 }
 
-.tr-top {
+.mvt-head,
+.mvt-deal,
+.mvt-foot {
+  grid-column: 2;
+}
+
+.mvt-head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.mvt-team {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mvt-team-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 32px;
+}
+
+.mvt-partner {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.mvt-style {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.mvt-kept-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* Accept chance: a word beside the handshake, never a percentage. */
+.mvt-accept {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--text-2);
+}
+
+.mvt-accept-w {
+  font-size: 16px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mvt-accept-w.good {
+  color: var(--good);
+}
+
+.mvt-accept-w.warn {
+  color: var(--warn);
+}
+
+.mvt-accept-w.bad {
+  color: var(--bad);
+}
+
+.mvt-deal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.mvt-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mvt-lane-k {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.mvt-lane-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mvt-lane-l svg {
+  color: var(--muted);
+}
+
+.mvt-keep-k {
+  width: 44px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+}
+
+.mvt-player {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mvt-face {
+  display: grid;
+}
+
+.mvt-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mvt-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.mvt-meta {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.mvt-extra {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* Keep: a bare 44px lock under the "Keep" label, only in an opened row. */
+.mvt-row .mvt-keep {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-2);
+}
+
+.mvt-row .mvt-keep:hover {
+  background: var(--field-hover);
+}
+
+.mvt-row .mvt-keep[aria-pressed='true'] {
+  color: var(--text);
+}
+
+/* Your odds on the centre line: the after-odds big, then "from X% ▲ +N pts", then theirs. */
+.mvt-odds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.mvt-odds-k {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.mvt-odds-big {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.mvt-odds-from,
+.mvt-odds-them {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mvt-odds-them {
+  margin-top: 4px;
+  color: var(--text-2);
+}
+
+.mvt-d {
+  font-weight: 650;
+}
+
+.mvt-d.good {
+  color: var(--good);
+}
+
+.mvt-d.bad {
+  color: var(--bad);
+}
+
+.mvt-ar {
+  margin-right: 2px;
+  font-size: 0.7em;
+}
+
+.mvt-foot {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.tr-with {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.tr-partner {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-/* How the partner plays: one quiet line under the name, lined up with it past the crest. */
-.tr-style {
-  flex-basis: 100%;
-  margin-top: -4px;
-  padding-left: 28px;
+.mvt-exp {
   font-size: 13px;
-  font-weight: 450;
-  color: var(--muted);
+  color: var(--text-2);
+  white-space: nowrap;
 }
 
-/* Accept chance: a word, not a percentage. Real leagues differ too much for the number to mean much. */
-.tr-accept {
+.mvt-exp-n {
+  margin-left: 6px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+/* Show details: a bare text toggle whose hit area stretches over the whole row, so a tap anywhere
+   opens or closes it. Names, faces and the Keep locks sit above that layer. */
+.mvt-row .mvt-more {
   display: inline-flex;
-  flex: none;
   align-items: center;
   gap: 6px;
-  color: var(--text-2);
-}
-
-.tr-accept-w {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.tr-deal {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 200px;
-  gap: 16px;
-  align-items: start;
-}
-
-.tr-lane {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tr-lane-label,
-.tr-who {
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.tr-player {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.tr-player-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.tr-name {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 6px;
-  font-family: var(--font-ui);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
   font-size: 14px;
   font-weight: 600;
 }
 
-.tr-meta {
-  font-variant-numeric: tabular-nums;
-  font-size: 11.5px;
-  color: var(--muted);
-}
-
-.tr-extra {
-  font-size: 13px;
-  color: var(--text-2);
-}
-
-.tr-odds {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 22px;
-}
-
-.tr-ol {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.tr-who {
-  width: 36px;
-  flex: none;
-}
-
-.tr-ol .odds-change {
-  text-align: left;
-}
-
-/* The row's last line: Details on the left, and under the odds column the number the list is
-   ranked by. Plain ink and smaller than the odds above it: arithmetic, not a promise. */
-.tr-foot {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px;
-  gap: 16px;
-  align-items: baseline;
-}
-
-.tr-exp {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tr-exp-l {
-  font-size: 12px;
-  color: var(--text-2);
-}
-
-.tr-exp-n {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* The Details button: a plain text toggle whose hit area stretches over the whole row, so a tap
-   anywhere opens or closes the trade. Player names and the durability mark sit above that layer. */
-.tr-row .tr-more {
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  justify-content: flex-start;
-  gap: 4px;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-
-.tr-row .tr-more::after {
+.mvt-row .mvt-more::after {
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: 16px;
 }
 
-.tr-row .tr-more:focus-visible {
+.mvt-row .mvt-more:focus-visible {
   outline: none;
 }
 
-.tr-row .tr-more:focus-visible::after {
-  outline: 2px solid var(--focus);
+.mvt-row .mvt-more:focus-visible::after {
+  outline: 2px solid var(--gold);
   outline-offset: -2px;
 }
 
-.tr-row .pc-link,
-.tr-row .dur-chip {
+.mvt-row .pc-link,
+.mvt-row .mvt-keep,
+.mvt-row .skipped-pill,
+.mvt-row .dur-chip {
   position: relative;
   z-index: 1;
 }
 
-.tr-more svg {
-  transition: transform 0.2s ease;
+.mvt-more svg {
+  transition: transform 160ms ease;
 }
 
-.tr-more[aria-expanded='true'] svg {
+.mvt-more[aria-expanded='true'] svg {
   transform: rotate(180deg);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tr-more svg {
-    transition: none;
+/* An offer that gives a player you have just kept is on its way out: its deal, accept word and
+   foot go to the muted ink through the tokens (no opacity) until moves are updated. */
+.mvt-kept .mvt-deal,
+.mvt-kept .mvt-accept,
+.mvt-kept .mvt-foot {
+  --text: var(--muted);
+  --text-2: var(--muted);
+  --good: var(--muted);
+  --bad: var(--muted);
+  --warn: var(--muted);
+  color: var(--muted);
+}
+
+/* Opened: the details sit inside the lifted row. */
+.mvt-item .move-tabs {
+  margin-top: 4px;
+}
+
+@container mvt-list (max-width: 559px) {
+  .mvt-deal {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  /* The odds band across the row, between two rules. */
+  .mvt-odds {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    justify-items: start;
+    gap: 0 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--divider);
+    border-bottom: 1px solid var(--divider);
+    text-align: left;
+  }
+
+  .mvt-odds-k,
+  .mvt-odds-them {
+    grid-column: 1 / -1;
+  }
+
+  .mvt-odds-them {
+    margin-top: 0;
   }
 }
 
-/* "Keep him" beside each player you would give, once a trade is open. It sits above the row's
-   tap layer, like the names. */
-.tr-row .tr-keep {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  gap: 6px;
-  min-height: 36px;
-  margin-left: auto;
-  padding: 0 12px;
-  font-size: 13px;
+@media (max-width: 640px) {
+  .mvt-title {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .mvt-list {
+    margin-inline: -8px;
+  }
+
+  .mvt-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px 8px 6px;
+  }
+
+  .mvt-rank {
+    display: none;
+  }
+
+  .mvt-head,
+  .mvt-deal,
+  .mvt-foot {
+    grid-column: 1;
+  }
 }
 
-.tr-row .tr-keep[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-/* An offer that gives a player you have just kept is on its way out: it dims until moves are
-   updated, and a tag says why. The Kept switch stays at full strength so the choice can be undone. */
-.move.tr-stale .tr-accept,
-.move.tr-stale .tr-odds,
-.move.tr-stale .tr-exp,
-.move.tr-stale .tr-lane-label,
-.move.tr-stale .tr-player > :not(.tr-keep) {
-  opacity: 0.45;
-}
-
-.tr-kept-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 600;
+@media (prefers-reduced-motion: reduce) {
+  .mvt-item,
+  .mvt-more svg {
+    transition: none;
+  }
 }

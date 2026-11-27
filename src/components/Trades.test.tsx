@@ -39,14 +39,14 @@ describe('Trades', () => {
     expect(view.queryByRole('group', { name: 'Trade style' })).toBeNull()
     expect(view.getByText("No deal lifts both teams' playoff odds today.")).toBeInTheDocument()
     expect(view.queryByText(/they win on paper/)).toBeNull()
-    expect(container.querySelectorAll('.move-list > li')).toHaveLength(1)
+    expect(container.querySelectorAll('.mvt-list > li')).toHaveLength(1)
   })
 
   it('puts how the partner plays in a quiet line under their name', () => {
     const { container } = show(
       <Trades fair={[idea]} edge={[]} partnerStyles={new Map([[7, 'Door closed · declined 2, never traded']])} />,
     )
-    expect(container.querySelector('.tr-style')?.textContent).toBe('Door closed · declined 2, never traded')
+    expect(container.querySelector('.mvt-style')?.textContent).toBe('Door closed · declined 2, never traded')
   })
 
   it('folds to one line when there is no trade of either style', () => {
@@ -69,13 +69,13 @@ describe('Trades', () => {
   it('opens on Fair when a trade helps both teams', () => {
     const { container } = show(<Trades fair={[idea]} edge={[idea]} />)
     const view = within(container)
-    expect(view.getByRole('button', { name: 'Fair · 1' })).toHaveAttribute('aria-pressed', 'true')
-    expect(view.getByRole('button', { name: 'Bold · 1' })).toHaveAttribute('aria-pressed', 'false')
+    expect(view.getByRole('button', { name: 'Fair 1' })).toHaveAttribute('aria-pressed', 'true')
+    expect(view.getByRole('button', { name: 'Bold 1' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('shows the accept chance as a word, never as a percentage', () => {
     const { container } = show(<Trades fair={[idea]} edge={[]} />)
-    const accept = container.querySelector('.tr-accept')
+    const accept = container.querySelector('.mvt-accept')
     expect(accept).toHaveTextContent('chance they accept, Possible')
     expect(accept).not.toHaveTextContent('%')
   })
@@ -85,7 +85,7 @@ describe('Trades', () => {
     const view = within(container)
     expect(view.queryByText(/Ranked by expected gain/)).toBeNull()
     // 33% of +4 points.
-    expect(container.querySelector('.tr-exp')).toHaveTextContent('Expected gain+1.3, plus 1.3 playoff odds points')
+    expect(container.querySelector('.mvt-exp')).toHaveTextContent('Expected gain+1.3, plus 1.3 playoff odds points')
   })
 })
 
@@ -104,7 +104,7 @@ describe('TradeItem', () => {
     vi.restoreAllMocks()
   })
 
-  it('opens player cards from the names in the offer once the trade is open', async () => {
+  it('opens player cards from the names in the offer, closed or open', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}))
     show(
       <>
@@ -112,9 +112,9 @@ describe('TradeItem', () => {
         <PlayerCardHost leagueRef={{ leagueId: 1, season: 2027 }} creds={null} teams={[]} myTeamId={3} />
       </>,
     )
-    // Closed: the names are plain text and the whole row is one Details toggle.
-    expect(screen.queryByRole('button', { name: 'Jaylen Brown' })).toBeNull()
-    const toggle = screen.getByRole('button', { name: /^Details of the trade with Aliaga Hermanos/ })
+    // Closed: every name already opens the card; the rest of the row is one Show details toggle.
+    expect(screen.getByRole('button', { name: 'Jaylen Brown' })).toBeInTheDocument()
+    const toggle = screen.getByRole('button', { name: /^Show details of the trade with Aliaga Hermanos/ })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
@@ -130,7 +130,7 @@ describe('TradeItem', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('offers "Keep him" beside the players you give once the trade is open', () => {
+  it('offers a Keep lock beside the players you give once the trade is open', () => {
     const onToggleKeep = vi.fn()
     const row = (keep: number[]) => (
       <ul>
@@ -141,12 +141,13 @@ describe('TradeItem', () => {
     // Only your side: nobody keeps a player they would receive.
     expect(screen.queryByRole('button', { name: 'Keep Jaylen Brown out of trades' })).toBeNull()
     const keepHim = screen.getByRole('button', { name: 'Keep Davion Mitchell out of trades' })
-    expect(keepHim).toHaveTextContent('Keep him')
+    expect(keepHim).toHaveAttribute('title', 'Keep him')
+    expect(document.querySelector('.mvt-keep-k')).toHaveTextContent('Keep')
     fireEvent.click(keepHim)
     expect(onToggleKeep).toHaveBeenCalledWith(1)
     view.rerender(<QueryClientProvider client={new QueryClient()}>{row([1])}</QueryClientProvider>)
     const kept = screen.getByRole('button', { name: 'Davion Mitchell is kept out of trades' })
-    expect(kept).toHaveTextContent('Kept')
+    expect(kept).toHaveAttribute('title', 'Kept')
     expect(kept).toHaveAttribute('aria-pressed', 'true')
   })
 
@@ -157,23 +158,41 @@ describe('TradeItem', () => {
       </ul>
     )
     const view = show(row([]))
-    expect(view.container.querySelector('.move')).not.toHaveClass('tr-stale')
+    expect(view.container.querySelector('.mvt-item')).not.toHaveClass('mvt-kept')
     expect(screen.queryByText(/is kept$/)).toBeNull()
     // Keeping a player you would only receive changes nothing.
     view.rerender(<QueryClientProvider client={new QueryClient()}>{row([2])}</QueryClientProvider>)
-    expect(view.container.querySelector('.move')).not.toHaveClass('tr-stale')
+    expect(view.container.querySelector('.mvt-item')).not.toHaveClass('mvt-kept')
     view.rerender(<QueryClientProvider client={new QueryClient()}>{row([1])}</QueryClientProvider>)
-    expect(view.container.querySelector('.move')).toHaveClass('tr-stale')
+    expect(view.container.querySelector('.mvt-item')).toHaveClass('mvt-kept')
     expect(screen.getByText('Davion Mitchell is kept')).toBeInTheDocument()
   })
 
-  it('leaves "Keep him" out of a closed row and of lists without a Keep list', () => {
+  it('leaves the Keep locks out of a closed row and of lists without a Keep list', () => {
     show(
       <ul>
         <TradeItem trade={idea} id="t1" open={false} onToggle={() => {}} why="Why" keeper={{ keep: [], onToggleKeep: () => {} }} />
         <TradeItem trade={idea} id="t2" open onToggle={() => {}} why="Why" />
       </ul>,
     )
-    expect(screen.queryByText('Keep him')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Keep / })).toBeNull()
+    expect(document.querySelector('.mvt-keep-k')).toBeNull()
+  })
+
+  it('numbers the rows and starts them all closed', () => {
+    const second = { ...idea, partner_team_id: 8, partner_team_name: 'Kartal' } as TradeIdea
+    const { container } = show(<Trades fair={[idea, second]} edge={[]} />)
+    const rows = [...container.querySelectorAll('.mvt-list > li')]
+    expect(rows.map((r) => r.querySelector('.mvt-rank')?.textContent)).toEqual(['1', '2'])
+    expect(container.querySelectorAll('.mvt-item.open')).toHaveLength(0)
+    expect(screen.getAllByRole('button', { name: /^Show details/ })[0]).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('puts your odds on the centre line: the after-odds big, from today, and theirs', () => {
+    const { container } = show(<Trades fair={[idea]} edge={[]} />)
+    const odds = container.querySelector('.mvt-odds') as HTMLElement
+    expect(odds.querySelector('.mvt-odds-big')).toHaveTextContent('55%')
+    expect(odds.querySelector('.mvt-odds-from')).toHaveTextContent('from 51% ▲+4 pts')
+    expect(odds.querySelector('.mvt-odds-them')).toHaveTextContent('Them 89% → 88% ▼−1')
   })
 })
