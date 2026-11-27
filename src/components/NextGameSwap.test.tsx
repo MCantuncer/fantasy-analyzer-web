@@ -60,7 +60,7 @@ describe('next game line', () => {
     expect(wins(add)).toEqual(['-', '-', 'B', 'B', '-', 'B', 'B', '-', '-', 'B'])
     expect(wins(drop)).toEqual(['-', 'B', '-', '-', 'B', '-', '-', 'B', '-', '-'])
     expect(nums(extra)).toEqual(['+6', '−.200', '+.260', '+2', '−3', '+4', '+1', '−2', '±0', '+6'])
-    expect(container.textContent).toContain('A usual night, not a promise')
+    expect(container.textContent).not.toContain('A usual night, not a promise')
     expect(container.textContent).not.toMatch(/\d\s*[-–]\s*\d/) // never a range
   })
 

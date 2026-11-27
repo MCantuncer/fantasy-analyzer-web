@@ -595,7 +595,15 @@ function CardBody({ card, season, teams, myTeamId, news, onRetryNews, nextGame, 
               <Section
                 id="pc-minutes-title"
                 title="Minutes"
-                aside={line ? `dashed line: season ${line.per_game.minutes.toFixed(1)} a game` : undefined}
+                aside={
+                  line ? (
+                    <span className="pc-avg-key" title="Season average, minutes a game">
+                      <i aria-hidden="true" />
+                      <span className="sr-only">Season average: </span>
+                      <span className="num">{line.per_game.minutes.toFixed(1)}</span>
+                    </span>
+                  ) : undefined
+                }
               >
                 <MinutesChart games={played} average={line?.per_game.minutes ?? null} />
               </Section>
@@ -917,7 +925,6 @@ function GameLog({ card, played, lastSeason }: { card: Card; played: PlayerGame[
     >
       {has && explain === 'key' && <GarbageExplainer id="pc-gt-x-key" tally={tally} />}
       <GameTable card={card} played={played} explain={explain} onExplain={toggle} />
-      <p className="pc-swipe small muted">Swipe for all categories</p>
       {has && (
         <div className="pc-gt-foot">
           <button

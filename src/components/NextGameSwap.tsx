@@ -144,7 +144,6 @@ export function NextGameSwap({ add, drop, byTrade = false, live = false }: Props
             </tbody>
           )}
         </table>
-        <p className="ng-foot">A usual night, not a promise</p>
       </div>
     </section>
   )
