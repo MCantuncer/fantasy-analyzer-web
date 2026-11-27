@@ -353,7 +353,7 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                         <ul className="reasons">
                           {addGame?.state === 'out' && (
                             <li>
-                              <PlayerLink player={p.add} /> is listed out
+                              <PlayerInline player={p.add} /> is listed out
                               {addGame.back
                                 ? `; expected back ${new Date(`${addGame.back}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })}`
                                 : ''}
@@ -372,9 +372,9 @@ export function Pickups({ pickups, faab, waiverPriority, teams, week, today }: P
                           )}
                           {p.open_spot_by_trade ? (
                             <li>
-                              <PlayerLink player={p.drop} /> has trade value ({Math.round(p.drop.percent_owned)}%
+                              <PlayerInline player={p.drop} /> has trade value ({Math.round(p.drop.percent_owned)}%
                               owned), so don't release him: move him in a trade that brings back fewer players, then add{' '}
-                              <PlayerInline player={p.add} face={false} tail="." />
+                              <PlayerInline player={p.add} tail="." />
                             </li>
                           ) : (
                             <li>
