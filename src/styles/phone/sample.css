@@ -1,12 +1,41 @@
-/* Phones: the sample league's top-bar crumb stacks on two lines and drops "Scouting", and "How the sample works" is "How?". */
+/* Phones: the sample league's top-bar crumb stacks on two lines and drops "Scouting"; the page head
+   puts How it works beside the title. */
 @media (max-width: 640px) {
-  .smp-switcher-verb,
-  .smp-how-long {
+  .smp-switcher-verb {
     display: none;
   }
 
-  .smp-how-short {
-    display: inline;
+  /* The title and How it works share the first row; the meta line runs under them. */
+  .smp-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 8px;
+  }
+
+  .smp-head-l {
+    display: contents;
+  }
+
+  .smp-title {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 20px;
+  }
+
+  .smp-meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 13px;
+  }
+
+  .smp-how-toggle {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .smp-how {
+    grid-column: 1 / -1;
   }
 
   .smp-crumb {
@@ -19,10 +48,6 @@
     display: block;
     font-size: 12px;
     line-height: 1.2;
-  }
-
-  .smp-lead {
-    font-size: 16px;
   }
 
   .smp-door {

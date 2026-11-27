@@ -1,56 +1,102 @@
 /* The sample league for visitors who haven't signed in: the intro sentence, the dated data line,
    the door to your own league, and the Scout another team list. */
 
-.smp-intro {
+/* The page head: "Sample league", the dated meta line, and a bare "How it works" on the right. */
+.smp-head {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 68ch;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 16px;
+  min-height: 44px;
 }
 
-.smp-lead {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.4;
-  font-weight: 600;
-  color: var(--text);
+.smp-head-l {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  min-width: 0;
 }
 
-.smp-data {
+.smp-title {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.smp-meta {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.smp-meta b {
   color: var(--text-2);
-}
-
-.smp-data b {
-  color: var(--text);
-  font-weight: 650;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .smp-how-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-right: -6px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text);
+  font: inherit;
   font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.smp-how-short {
-  display: none;
+.smp-how-toggle:hover {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.smp-how-toggle svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.smp-how-caret {
+  transition: transform 160ms ease;
+}
+
+.smp-how-toggle[aria-expanded='true'] .smp-how-caret {
+  transform: rotate(180deg);
 }
 
 .smp-how {
+  flex-basis: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
   max-width: 68ch;
+  padding: 6px 0 4px;
+}
+
+.smp-how[hidden] {
+  display: none;
 }
 
 .smp-how p {
   margin: 0;
+  font-size: 14px;
   line-height: 1.5;
+  color: var(--text-2);
 }
 
-.smp-how-title {
-  margin: 0;
-  font-size: 16px;
+@media (prefers-reduced-motion: reduce) {
+  .smp-how-caret {
+    transition: none;
+  }
 }
 
 /* The door: the card's main button, cream like the shipped primary, with the open crest. */

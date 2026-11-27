@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Binoculars, CaretRight, ListNumbers, Target } from '@phosphor-icons/react'
+import { Binoculars, CaretDown, CaretRight, Info, ListNumbers, Target } from '@phosphor-icons/react'
 import { fetchSampleTeam } from '../api/client'
 import type { SampleIndex, SampleTeam } from '../api/client'
 import { ordinal } from '../lib/format'
@@ -29,46 +29,50 @@ function Door({ onJoin }: { onJoin: () => void }) {
   )
 }
 
-/** The dated line under the intro: what the data is, when it was analysed, and how the sample works. */
-function DataLine({ index }: { index: SampleIndex }) {
+/** The page head, as on the other pages: "Sample league", a dated meta line, and a bare "How it works"
+    that opens the product sentence and how the sample is made. The best move is the first thing read. */
+function SampleHead({ index }: { index: SampleIndex }) {
   const [how, setHow] = useState(false)
   const day = sampleDay(index.analysed_on)
+  const offseason = index.phase === 'offseason'
   return (
-    <>
-      <p className="smp-data">
-        Below: a real ESPN 9-cat league, team names masked.{' '}
-        {index.phase === 'offseason' ? (
-          <>
-            From <b>{day}</b>, last season. New moves start once the season tips off.
-          </>
-        ) : (
-          <>
-            Analysed <b>{day}</b>.{!index.fresh && " Today's run is late."}
-          </>
-        )}{' '}
-        <button
-          type="button"
-          className="link smp-how-toggle"
-          aria-expanded={how}
-          aria-controls="smp-how"
-          onClick={() => setHow((v) => !v)}
-        >
-          <span className="smp-how-long">How the sample works</span>
-          <span className="smp-how-short">How?</span>
-        </button>
-      </p>
-      {how && (
-        <div className="smp-how card" id="smp-how">
-          <h2 className="smp-how-title">How the sample works</h2>
-          <p>
-            One real public ESPN 9-cat league, analysed once a day. Players, stats and odds are real. Team names are
-            swapped for basketball play calls, and the league's chat isn't shown. You're scouting one team; pick any
-            other under Scout another team.
-          </p>
-          <p className="small muted">Last run: {day}.</p>
-        </div>
-      )}
-    </>
+    <header className="smp-head">
+      <div className="smp-head-l">
+        <h1 className="smp-title">Sample league</h1>
+        <p className="smp-meta">
+          A real ESPN 9-cat league, team names masked ·{' '}
+          {offseason ? (
+            <>
+              from <b>{day}</b>, last season
+            </>
+          ) : (
+            <>
+              analysed <b>{day}</b>
+              {!index.fresh && " · today's run is late"}
+            </>
+          )}
+        </p>
+      </div>
+      <button
+        type="button"
+        className="smp-how-toggle"
+        aria-expanded={how}
+        aria-controls="smp-how"
+        onClick={() => setHow((v) => !v)}
+      >
+        <Info size={14} aria-hidden="true" />
+        <span>How it works</span>
+        <CaretDown size={14} className="smp-how-caret" aria-hidden="true" />
+      </button>
+      <div className="smp-how" id="smp-how" hidden={!how}>
+        <p>
+          {PRODUCT_NAME} finds the best move for your ESPN team and shows what it does to your playoff odds. This is
+          one real public ESPN 9-cat league, analysed once a day. Players, stats and odds are real; team names are
+          swapped for play calls and the chat isn't shown. Pick any team below to scout its move.
+        </p>
+        {offseason && <p>New moves start once the season tips off.</p>}
+      </div>
+    </header>
   )
 }
 
@@ -193,12 +197,7 @@ export function SamplePage({
 
   return (
     <div className="stack smp" style={{ gap: 20 }}>
-      <header className="smp-intro">
-        <p className="smp-lead">
-          {PRODUCT_NAME} finds the best move for your ESPN team and shows what it does to your playoff odds.
-        </p>
-        <DataLine index={index} />
-      </header>
+      <SampleHead index={index} />
       <p className="sr-only" aria-live="polite">
         {announce}
       </p>

@@ -44,13 +44,15 @@ function renderSample(over: Partial<SampleIndex> = {}) {
 describe('SamplePage', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it("shows the scouted team's real best move under one sentence and a dated data line", async () => {
+  it("shows the page head, then the scouted team's real best move", async () => {
     const { container, fetchMock } = renderSample()
     const view = within(container)
-    expect(view.getByText(/finds the best move for your ESPN team/)).toBeInTheDocument()
-    expect(container.querySelector('.smp-data')?.textContent).toContain(
-      'Below: a real ESPN 9-cat league, team names masked. Analysed Wed, Nov 11.',
+    expect(view.getByRole('heading', { level: 1, name: 'Sample league' })).toBeInTheDocument()
+    expect(container.querySelector('.smp-meta')?.textContent).toBe(
+      'A real ESPN 9-cat league, team names masked · analysed Wed, Nov 11',
     )
+    // The product sentence waits inside How it works; the best move is the first thing read.
+    expect(view.getByText(/finds the best move for your ESPN team/)).not.toBeVisible()
     await waitFor(() => expect(view.getAllByText("Hammer's playoff odds").length).toBeGreaterThan(0))
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/sample\/teams\/3\?day=2026-11-11$/)
     expect(view.getByText('How often Hammer wins each category')).toBeInTheDocument()
@@ -59,10 +61,31 @@ describe('SamplePage', () => {
 
   it('says when the run is late, and marks last season', () => {
     const late = renderSample({ fresh: false })
-    expect(late.container.querySelector('.smp-data')?.textContent).toContain("Today's run is late.")
+    expect(late.container.querySelector('.smp-meta')?.textContent).toBe(
+      "A real ESPN 9-cat league, team names masked · analysed Wed, Nov 11 · today's run is late",
+    )
     late.unmount()
     const old = renderSample({ phase: 'offseason', analysed_on: '2026-04-06' })
-    expect(old.container.querySelector('.smp-data')?.textContent).toContain('From Mon, Apr 6, last season.')
+    expect(old.container.querySelector('.smp-meta')?.textContent).toBe(
+      'A real ESPN 9-cat league, team names masked · from Mon, Apr 6, last season',
+    )
+    expect(within(old.container).getByText('New moves start once the season tips off.')).toBeInTheDocument()
+  })
+
+  it('opens and closes How it works', () => {
+    const { container } = renderSample()
+    const view = within(container)
+    const toggle = view.getByRole('button', { name: 'How it works' })
+    const panel = container.querySelector('.smp-how')!
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveAttribute('aria-controls', panel.id)
+    expect(panel).not.toBeVisible()
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(panel).toBeVisible()
+    expect(panel.textContent).toMatch(/^COURT finds the best move .* Pick any team below to scout its move\.$/)
+    fireEvent.click(toggle)
+    expect(panel).not.toBeVisible()
   })
 
   it('lists every team by projected finish and scouts the one picked', () => {
