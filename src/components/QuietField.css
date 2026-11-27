@@ -1,0 +1,763 @@
+/* Quiet Field: a lineup's rows (Today, and My Players next). No row has a box, a fill or an outline. The
+   starters and their total sit on one soft field, the bench on the bare page; rows part by air, hold by
+   alignment, and say their state through weight and tone. Names pinned left, PTS pinned right, the stats
+   between slide. The rows sit in a `.tm` wrapper, which carries the tokens below. tm- prefix. */
+
+.tm {
+  --tm-pl: 6px; /* row inset, left */
+  --tm-pr: 8px; /* row inset, right */
+  --tm-slot-w: 30px;
+  /* where the sliding columns start: slot + name */
+  --tm-pin: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 122px + 4px);
+  --g-good: var(--good);
+  --g-bad: var(--bad);
+}
+
+:root[data-theme='light'] .tm {
+  --g-good: #0a5c37;
+  --g-bad: #962c1b;
+}
+
+.tm-slide-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 0 0 8px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.tm-slide-counts {
+  flex: 1;
+  min-width: 0;
+}
+
+.tm-pager {
+  display: flex;
+  flex: none;
+}
+
+/* Two bare carets, not two outlined boxes (44px targets kept). */
+.tm-pager button {
+  width: 44px;
+  height: 44px;
+  border-color: transparent;
+  border-radius: 50%;
+  color: var(--text-2);
+}
+
+.tm-pager button:not(:disabled):hover {
+  background: var(--field-hover);
+  color: var(--text);
+}
+
+.tm-pager button:disabled {
+  opacity: 0.3;
+}
+
+/* One column track at least as wide as the rows, so the field's backdrop can span the scroller. */
+.tm-slide {
+  display: grid;
+  grid-template-columns: minmax(min-content, 1fr);
+  align-content: start;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  container-type: inline-size;
+  isolation: isolate;
+  scrollbar-width: none;
+  /* columns land whole beside the pinned name: no half-cut digits */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--tm-pin);
+}
+
+.tm-slide::-webkit-scrollbar {
+  display: none;
+}
+
+.tm-slide > * {
+  grid-column: 1;
+}
+
+.tm-pretip .tm-slide {
+  overflow-x: hidden;
+}
+
+/* The field: a sticky backdrop the width of the scroller, so its rounded corners never scroll away. */
+.tm-field {
+  display: grid;
+  grid-template-columns: minmax(min-content, 1fr);
+}
+
+.tm-field > * {
+  grid-row: auto;
+  grid-column: 1;
+  position: relative;
+}
+
+.tm-field > .tm-field-bg {
+  grid-row: 1 / span 2;
+  position: sticky;
+  left: 0;
+  z-index: 0;
+  width: 100cqw;
+  border-radius: var(--field-r);
+  background: var(--field);
+  pointer-events: none;
+}
+
+.tm-field > .tm-list {
+  grid-row: 1;
+  padding-top: 8px;
+}
+
+.tm-field > .tm-tot {
+  grid-row: 2;
+}
+
+.tm-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-colhead,
+.tm-row,
+.tm-tot {
+  display: grid;
+  grid-template-columns: var(--tm-slot-w) 122px 30px 50px 46px 32px 32px 32px 30px 30px 30px 34px;
+  column-gap: 4px;
+  align-items: center;
+  min-width: max-content;
+}
+
+/* The column head: with the slot words, the only small caps here. */
+.tm-colhead {
+  --tm-bg: var(--surface);
+  min-height: 28px;
+  padding: 0 var(--tm-pr) 4px var(--tm-pl);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  color: var(--text-2);
+}
+
+.tm-colhead span {
+  text-align: center;
+  scroll-snap-align: start;
+}
+
+.tm-colhead span:nth-child(2) {
+  grid-column: 3;
+}
+
+.tm-colhead > .tm-pts {
+  color: var(--text);
+}
+
+.tm-ch-pin {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  grid-column: 1 / 3;
+  grid-row: 1;
+  align-self: stretch;
+  background: var(--surface);
+  box-shadow: calc(-1 * var(--tm-pl)) 0 0 var(--surface);
+}
+
+/* Player row: slot (then the grade once the night is done) · face, name over the game · the line.
+   Transparent; only its pinned cells carry the colour of what they sit on (--tm-bg). */
+.tm-row {
+  --tm-bg: var(--surface);
+  position: relative;
+  min-height: 56px;
+  padding: 6px var(--tm-pr) 6px var(--tm-pl);
+}
+
+.tm-field .tm-row,
+.tm-field .tm-tot {
+  --tm-bg: var(--field);
+}
+
+.tm-row:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+
+.tm .tm-spine,
+.tm .tm-who,
+.tm .tm-tot-lab {
+  position: sticky;
+  z-index: 2;
+  align-self: stretch;
+}
+
+/* Pinned on the row's own inset, so nothing jumps at the start or end of a swipe. */
+.tm-row > .tm-spine {
+  left: var(--tm-pl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: var(--tm-bg);
+  box-shadow:
+    calc(-1 * var(--tm-pl)) 0 0 var(--tm-bg),
+    4px 0 0 var(--tm-bg);
+}
+
+.tm-row > .tm-who {
+  left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-right: 4px;
+  background: var(--tm-bg);
+}
+
+/* The player's face, then his name over the game's state. */
+.tm-who > .pc-link-face {
+  flex: none;
+  display: flex;
+}
+
+.tm-head-hole {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.tm-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+/* Soft edges where the numbers slide under the pinned name and PTS. */
+.tm-row > .tm-who::after,
+.tm-tot-lab::after,
+.tm-pts::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  pointer-events: none;
+}
+
+.tm-row > .tm-who::after,
+.tm-tot-lab::after {
+  left: 100%;
+  background: linear-gradient(to right, var(--tm-bg), transparent);
+}
+
+.tm-pts::before {
+  right: 100%;
+  background: linear-gradient(to left, var(--tm-bg), transparent);
+}
+
+.tm .tm-colhead > .tm-pts,
+.tm .tm-stats > .tm-pts {
+  position: sticky;
+  right: var(--tm-pr);
+  z-index: 2;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--tm-bg);
+  box-shadow: var(--tm-pr) 0 0 var(--tm-bg);
+}
+
+.tm-slot {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.tm-grade {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.tm-grade sup {
+  position: relative;
+  top: -3px;
+  margin-left: 0.5px;
+  font-size: 9px;
+  font-weight: 750;
+  vertical-align: 0;
+}
+
+.tm-g-top .tm-grade {
+  color: var(--g-good);
+}
+
+.tm-g-low .tm-grade {
+  color: var(--g-bad);
+}
+
+/* Live: filled gold while he's on the floor, hollow gold while he sits. The only gold in a row. */
+.tm-mk {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 2px;
+  border-radius: 50%;
+}
+
+.tm-mk.oncourt {
+  background: var(--gold);
+}
+
+.tm-mk.sitting {
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+
+.tm-l1,
+.tm-l2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tm-nm {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 21px;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+button.pc-link.tm-nm {
+  display: block;
+}
+
+.tm-init {
+  display: none;
+}
+
+.tm-empty-name {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tm-st {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* The dot says live, so the clock is plain ink: five live rows are not five gold words. */
+.tm-clk {
+  color: var(--text);
+  font-weight: 550;
+}
+
+.tm-w400,
+.tm-wmid {
+  display: none;
+}
+
+.tm-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.tm-tag.tm-out {
+  color: var(--bad);
+  background: var(--bad-soft);
+}
+
+.tm-tag.tm-bench-tag {
+  padding: 0;
+  color: var(--warn);
+  background: none;
+}
+
+.tm-stats {
+  display: contents;
+}
+
+.tm-stats > span {
+  font-size: 14px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.tm-stats > span small {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.tm-stats > span.tm-z {
+  color: var(--muted);
+}
+
+.tm-stats > span.tm-pts {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- State, by content ---------- */
+/* Played: the name firms up, the numbers come forward. */
+.tm-row.tm-card .tm-nm {
+  font-weight: 650;
+}
+
+.tm-row.tm-card .tm-stats > span:not(.tm-z) {
+  color: var(--text);
+}
+
+/* Final: settled. The figures step back one tone; PTS and the grade stay strong. */
+.tm-row.tm-final .tm-stats > span:not(.tm-pts):not(.tm-z) {
+  color: var(--text-2);
+}
+
+/* A starter with no game today recedes. */
+.tm-row.tm-nogame .tm-nm {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tm-row.tm-nogame .tm-st {
+  color: var(--muted);
+}
+
+/* "usually 15 PTS · 7 REB · 3 AST": quiet, a step smaller than the game line. */
+.tm-note {
+  grid-column: 3 / -1;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- Starters so far: the foot of the field. Air above it, no rule. ---------- */
+.tm-tot {
+  min-height: 56px;
+  margin-top: 6px;
+  padding: 12px var(--tm-pr) 14px var(--tm-pl);
+}
+
+.tm-tot-lab {
+  grid-column: 1 / 3;
+  left: var(--tm-pl);
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 650;
+  background: var(--tm-bg);
+  box-shadow: calc(-1 * var(--tm-pl)) 0 0 var(--tm-bg);
+}
+
+.tm-tot .tm-stats > span {
+  font-weight: 650;
+}
+
+.tm-tot .tm-stats > span.tm-pts {
+  font-size: 18px;
+  font-weight: 750;
+}
+
+/* Before the first tip: words, not a row of zeros. */
+.tm-tot-note {
+  grid-column: 3 / -1;
+  font-size: 12.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* ---------- Bench: off the field, on the bare page, one step quieter ---------- */
+.tm-sub,
+.tm-sublab {
+  position: sticky;
+  align-self: flex-start;
+  justify-self: start;
+}
+
+.tm-sub {
+  left: var(--tm-pl);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 26px 0 4px var(--tm-pl);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.tm-sub span {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Sticky at its own indent, so "No game" and "IR" stay over the faces while the stats slide. */
+.tm-sublab {
+  --tm-sub-x: calc(var(--tm-pl) + var(--tm-slot-w) + 4px);
+  left: var(--tm-sub-x);
+  margin: 10px 0 0 var(--tm-sub-x);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.tm-row.tm-benchrow {
+  min-height: 48px;
+  padding-block: 4px;
+}
+
+.tm-row.tm-benchrow .tm-nm,
+.tm-row.tm-quietrow .tm-nm {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--text-2);
+}
+
+/* Left on the bench: the warn words say it; the name stays at full ink. */
+.tm-row.tm-left {
+  min-height: 56px;
+}
+
+.tm-row.tm-left .tm-nm {
+  color: var(--text);
+}
+
+@media (min-width: 400px) {
+  .tm-w400 {
+    display: inline;
+  }
+}
+
+/* 400–759: room for the opponent on the game line ("12:00 AM @ WSH") */
+@media (min-width: 400px) and (max-width: 759px) {
+  .tm {
+    --tm-pin: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 156px + 4px);
+  }
+
+  .tm-colhead,
+  .tm-row,
+  .tm-tot {
+    grid-template-columns: var(--tm-slot-w) 156px 30px 50px 46px 32px 32px 32px 30px 30px 30px 34px;
+  }
+}
+
+/* ---------- Phones: a to-come row reads in three short lines, the note pinned under the tip time ---------- */
+@media (max-width: 759px) {
+  .tm-row.tm-usual {
+    grid-template-rows: auto auto;
+    padding-block: 5px 6px;
+  }
+
+  .tm-row.tm-usual .tm-txt {
+    gap: 0;
+  }
+
+  .tm-row.tm-usual > .tm-spine,
+  .tm-row.tm-usual > .tm-who {
+    grid-row: 1;
+  }
+
+  .tm-row.tm-usual > .tm-note {
+    position: sticky;
+    left: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 26px + 10px);
+    z-index: 2;
+    grid-row: 2;
+    grid-column: 2 / -1;
+    justify-self: start;
+    width: max-content;
+    margin: 1px 0 0 36px;
+    overflow: visible;
+  }
+
+  /* before the first tip, the words go under the label */
+  .tm-tot.tm-tot-empty {
+    grid-template-rows: auto auto;
+    row-gap: 2px;
+  }
+
+  .tm-tot-empty > .tm-tot-note {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- 760 and up: wider columns, the game score on line 2 ---------- */
+@media (min-width: 760px) {
+  .tm {
+    --tm-pl: 12px;
+    --tm-pr: 16px;
+    --tm-slot-w: 40px;
+    --tm-pin: calc(var(--tm-pl) + var(--tm-slot-w) + 4px + 200px + 4px);
+  }
+
+  /* A fixed name measure, so the figures and notes start on one edge right after the name, and the ten
+     figures capped so they read as one block. */
+  .tm-colhead,
+  .tm-row,
+  .tm-tot {
+    grid-template-columns:
+      var(--tm-slot-w) 200px
+      minmax(36px, 60px) minmax(48px, 78px) minmax(46px, 78px)
+      repeat(6, minmax(34px, 60px)) minmax(40px, 68px);
+    min-width: 0;
+  }
+
+  /* the columns fit from 760 up, so nothing needs to snap */
+  .tm-slide {
+    scroll-snap-type: none;
+  }
+
+  .tm-row {
+    min-height: 58px;
+  }
+
+  .tm-row > .tm-who {
+    gap: 12px;
+  }
+
+  .tm-nm {
+    font-size: 15.5px;
+  }
+
+  /* the note sits on the tip-time line, starting on the MIN edge */
+  .tm-note {
+    align-self: end;
+    padding-bottom: 7px;
+    font-size: 12.5px;
+    line-height: 16px;
+  }
+
+  .tm-field > .tm-list {
+    padding-top: 10px;
+  }
+
+  /* Bigger faces once the line has room (PlayerHead sets its phone size inline). */
+  .tm-who > .pc-link-face > .head,
+  .tm-head-hole {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .tm-wmid {
+    display: inline;
+  }
+
+  .tm-nmid {
+    display: none;
+  }
+}
+
+/* ---------- 1200 and up: everything fits, so nothing is pinned. A faint tint follows the pointer or the
+   keyboard so the eye keeps its place across the line: feedback, never a resting style. ---------- */
+@media (min-width: 1200px) {
+  .tm-colhead,
+  .tm-row,
+  .tm-tot {
+    grid-template-columns:
+      var(--tm-slot-w) minmax(200px, 250px)
+      minmax(40px, 64px) minmax(56px, 84px) minmax(52px, 84px)
+      repeat(6, minmax(40px, 64px)) minmax(48px, 72px);
+  }
+
+  .tm-short {
+    display: none;
+  }
+
+  .tm-init {
+    display: inline;
+  }
+
+  .tm .tm-spine,
+  .tm .tm-who,
+  .tm .tm-tot-lab,
+  .tm .tm-colhead > .tm-pts,
+  .tm .tm-stats > .tm-pts {
+    position: static;
+  }
+
+  .tm-row > .tm-who::after,
+  .tm-tot-lab::after,
+  .tm-pts::before {
+    display: none;
+  }
+
+  .tm-row > .tm-spine,
+  .tm-row > .tm-who,
+  .tm .tm-stats > .tm-pts,
+  .tm .tm-colhead > .tm-pts,
+  .tm-ch-pin,
+  .tm-tot-lab {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tm-list .tm-row {
+    border-radius: 10px;
+    transition: background-color 0.12s ease;
+  }
+
+  .tm-row:focus-within {
+    background: var(--field-hover);
+  }
+
+  @media (hover: hover) {
+    .tm-row:hover {
+      background: var(--field-hover);
+    }
+  }
+
+  .tm-pager {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-row {
+    transition: none;
+  }
+}
