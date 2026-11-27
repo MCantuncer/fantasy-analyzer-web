@@ -1,7 +1,7 @@
 /* NBA News on phones: one row of filter chips that scrolls sideways inside its strip. */
 @media (max-width: 720px) {
   /* The refresh button stays on the title line, and its status ("Asking every source…",
-     "Updated 4 min ago") sits right under the button; the intro line starts below both. */
+     "Updated 4 min ago") sits right under the button; a failed-refresh note starts below both. */
   .news-head {
     grid-template-areas:
       'title refresh'
@@ -14,7 +14,7 @@
     margin-top: 8px;
   }
 
-  /* Room between the button's status and the intro, so the two never read as one line. */
+  /* Room between the button's status and that note, so the two never read as one line. */
   .news-head p {
     margin-top: 12px;
   }
@@ -45,11 +45,12 @@
   }
 
   .news-story {
-    padding: 14px 16px;
+    padding: 14px 0 16px;
   }
 
-  .news-day {
-    padding: 8px 16px;
+  /* Stacked under the feed, the rail starts a clear step below it. */
+  .news-trend-rail {
+    margin-top: 16px;
   }
 
   /* Sources get their own line, so the details line never starts with a stray dot. */
@@ -59,11 +60,5 @@
 
   .news-meta > :nth-last-child(2)::after {
     content: none;
-  }
-
-  /* "Who gains?" drops under the player instead of squeezing the name. */
-  .news-gains-toggle {
-    min-height: 40px;
-    margin-left: 46px;
   }
 }

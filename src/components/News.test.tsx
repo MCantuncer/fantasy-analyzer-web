@@ -198,23 +198,53 @@ describe('News', () => {
     })
     expect(link).toHaveAttribute('href', 'https://cbs.example/jw')
     const jw = link.closest('article') as HTMLElement
-    expect(within(jw).getByText('Confirmed · 2 sources')).toBeInTheDocument()
+    // How well it is confirmed, in one word; the via list already names the sources.
+    const confirmed = within(jw).getByText('Confirmed')
+    expect(confirmed.querySelector('svg.news-seal')).not.toBeNull()
     // Dated by when the story broke, not by its latest source.
     expect(within(jw).getByText('2h ago')).toBeInTheDocument()
     expect(within(jw).queryByText('1h ago')).not.toBeInTheDocument()
     expect(within(jw).getByText('Sources disagree')).toBeInTheDocument()
     expect(within(jw).getByRole('note')).toHaveTextContent('ESPN status says day-to-day')
-    expect(within(jw).getByText('ESPN: DTD')).toBeInTheDocument()
+    expect(within(jw).getByText('DTD')).toHaveAttribute('title', 'ESPN status: DTD')
     expect(within(jw).getByText('KVK')).toBeInTheDocument()
-    expect(screen.getAllByText('1 source · Reported')).toHaveLength(2)
+    expect(screen.getAllByText('Reported')).toHaveLength(2)
+    for (const r of screen.getAllByText('Reported')) expect(r.querySelector('svg')).toBeNull()
     expect(screen.getAllByText('Free agent').length).toBeGreaterThan(0)
-    // Your player keeps the team's abbreviation, marked as yours.
+    // Your player keeps the team's abbreviation, marked as yours by the owner dot only (no story bar).
     const dm = screen.getByText('Davion Mitchell drawing trade interest').closest('article') as HTMLElement
-    expect(dm).toHaveAttribute('data-mine')
-    expect(within(dm).getByTitle('Your team')).toHaveTextContent('KEA')
-    expect(jw).not.toHaveAttribute('data-mine')
-    expect(screen.getByText('+10.3')).toBeInTheDocument()
+    const kea = within(dm).getByTitle('Your team')
+    expect(kea).toHaveTextContent('KEA')
+    expect(kea.querySelector('.news-owner-dot')).not.toBeNull()
+    expect(dm).not.toHaveAttribute('data-mine')
+    expect(screen.getByText('+10.3%')).toBeInTheDocument()
     expect(screen.getByText(/Not answering/)).toBeInTheDocument()
+  })
+
+  it('puts the stories on the bare page under a plain day head, with no intro line', async () => {
+    renderNews()
+    await screen.findByText('Kris Dunn moves into the starting lineup')
+    expect(screen.queryByText(/checked against several sources before they show/)).not.toBeInTheDocument()
+    const feed = screen.getByRole('region', { name: 'Stories' })
+    expect(feed).not.toHaveClass('card')
+    expect(within(feed).getAllByRole('heading', { level: 3 })[0]).toHaveTextContent(/^Today$/)
+    // Trending pickups is a bare rail with no explainer line.
+    const trending = screen.getByRole('region', { name: 'Trending pickups' })
+    expect(trending).not.toHaveClass('card')
+    expect(within(trending).queryByText(/Biggest rise/)).not.toBeInTheDocument()
+  })
+
+  it('says only what happened when there are no stories, with no explainer under it', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ ...PAGE, stories: [], refreshing: false }))),
+    )
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <News leagueId={1} season={2027} myTeamId={3} teams={TEAMS} creds={null} />
+      </QueryClientProvider>,
+    )
+    expect(await screen.findByText('No checked stories in the last 7 days.')).toBeInTheDocument()
+    expect(screen.queryByText(/A story shows once/)).not.toBeInTheDocument()
   })
 
   it('filters by kind and by my roster', async () => {
@@ -279,7 +309,10 @@ describe('News', () => {
     expect(screen.getByText(/about 11 OKC games without him/)).toBeInTheDocument()
     const call = vi.mocked(fetch).mock.calls.find(([u]) => String(u).includes('/api/injury-impact'))
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ player_id: 1, league_id: 1, season: 2027 })
-    fireEvent.click(screen.getByRole('button', { name: 'Hide' }))
+    const toggle = screen.getByRole('button', { name: 'Who gains?' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByText('Cason Wallace')).not.toBeInTheDocument()
   })
 
