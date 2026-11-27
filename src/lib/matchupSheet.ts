@@ -68,3 +68,6 @@ export function shortTeam(name: string): string {
   const w = name.trim().split(/\s+/)
   return w[w.length - 1]
 }
+
+/** Within one category: the same rule the league pulse counts (|wins difference| ≤ 1). */
+export const withinOne = (a: { wins: number }, b: { wins: number }) => Math.abs(a.wins - b.wins) <= 1

@@ -1,0 +1,52 @@
+/* League → On the wire (lwr- prefix): three league facts as bare lines, the figure in ink. One wrapping
+   line where the column is full width (760–1099), stacked rows elsewhere. */
+.lwr-wire {
+  min-width: 0;
+}
+
+.lwr-h {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.lwr-facts {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lwr-facts li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 40px;
+  padding: 0 4px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.lwr-facts b {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lwr-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (min-width: 760px) and (max-width: 1099px) {
+  .lwr-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+  }
+}
