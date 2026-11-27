@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { FeedSkeleton } from './Skeleton'
 import { VerifyBanner } from './VerifyBanner'
 import type { InfiniteData } from '@tanstack/react-query'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import {
   ApiError,
@@ -43,7 +43,6 @@ import {
   dayDate,
   daySummary,
   emptyLine,
-  faabLeaderId,
   groupByDay,
   isMoment,
   matches,
@@ -109,6 +108,35 @@ interface Ctx {
   onOpenFilm?: (period: number) => void
 }
 
+/**
+ * Desktop lines share one team column, wide enough for most names. Your own name and its "You" tag
+ * never get cut: after each render this measures them on your first line and sets --feed-team on the
+ * wire, which the column grows to (CSS caps it). Again once the web font has loaded.
+ */
+function useYourNameFits(wireRef: { current: HTMLElement | null }) {
+  useLayoutEffect(() => {
+    const wire = wireRef.current
+    if (!wire) return
+    const fit = () => {
+      const tag = wire.querySelector<HTMLElement>('.feed-row .feed-team .youtag')
+      const team = tag?.parentElement
+      const name = team?.querySelector<HTMLElement>('.feed-team-name')
+      if (!tag || !team || !name) {
+        wire.style.removeProperty('--feed-team')
+        return
+      }
+      const gap = parseFloat(getComputedStyle(team).columnGap) || 0
+      wire.style.setProperty('--feed-team', `${Math.ceil(name.scrollWidth + gap + tag.offsetWidth)}px`)
+    }
+    fit()
+    let live = true
+    document.fonts?.ready.then(() => live && fit())
+    return () => {
+      live = false
+    }
+  })
+}
+
 export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Props) {
   const ref: LeagueRef = { leagueId, season }
   const qc = useQueryClient()
@@ -128,6 +156,8 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
 
   const first = feed.data?.pages[0]
   const link: Poster | null = first?.me ? { teamId: first.me.team_id, teamName: first.me.team_name } : null
+  const wireRef = useRef<HTMLOListElement>(null)
+  useYourNameFits(wireRef)
 
   function patchItem(id: string, patch: (item: FeedItem) => FeedItem) {
     qc.setQueryData<InfiniteData<FeedPage>>(feedKey, (data) =>
@@ -215,7 +245,7 @@ export function LeagueChat({ leagueId, season, creds, onVerify, onOpenFilm }: Pr
           })}
         </div>
 
-        <ol className="feed-wire" aria-label="League moves, newest first">
+        <ol ref={wireRef} className="feed-wire" aria-label="League moves, newest first">
           {link && (
             <li className="feed-entry chat-compose">
               <span className="feed-node" aria-hidden="true">
@@ -327,7 +357,6 @@ function spenders(teams: FeedTeam[]): FeedTeam[] {
 function FaabList({ teams, budget, myTeamId, colours }: FaabProps) {
   const rows = spenders(teams)
   const idle = teams.length - rows.length
-  const leader = faabLeaderId(teams)
   return (
     <>
       <ul className="feed-faab-list">
@@ -339,7 +368,6 @@ function FaabList({ teams, budget, myTeamId, colours }: FaabProps) {
               <span className="feed-faab-name">
                 <span className="feed-faab-team">{t.name}</span>
                 {t.id === myTeamId && <YouTag />}
-                {t.id === leader && <span className="feed-faab-most">Most</span>}
               </span>
               <span className="feed-faab-amt num">${spent}</span>
               <span className="feed-faab-bar" aria-hidden="true">

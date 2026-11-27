@@ -228,9 +228,11 @@
 
 .feed-row {
   display: grid;
-  /* Team and bid get what their content needs (the longest team name with its icon is ~150px, a
-     "Free agent" slot ~84px), so the player names get the rest. */
-  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
+  /* Team and bid get what their content needs (most team names fit 152px, a "Free agent" slot
+     ~84px), so the player names get the rest. --feed-team (set from your first line) widens the team
+     column so your own name and "You" tag show in full, up to 230px. */
+  --team-col: min(max(152px, var(--feed-team, 0px)), 230px);
+  grid-template-columns: var(--team-col) minmax(0, 1.2fr) minmax(0, 1fr) 88px;
   grid-template-areas:
     'team add drop slot'
     '. meta meta meta';
@@ -769,8 +771,8 @@
   font-weight: 600;
 }
 
-/* FAAB rail (1100px and up): crest, name, a thin bar of the budget spent, and the amount. "Most" marks
-   a sole leader. Sticky under the app's top bar. */
+/* FAAB rail (1100px and up): crest, name, a thin bar of the budget spent, and the amount, most spent
+   first. Sticky under the app's top bar. */
 .feed-faab {
   position: sticky;
   top: 136px;
@@ -840,12 +842,6 @@
 
 .feed-faab-row.is-me .feed-faab-name {
   font-weight: 650;
-}
-
-.feed-faab-most {
-  flex: none;
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .feed-faab-bar {
@@ -1140,7 +1136,8 @@
   }
 
   .feed-row {
-    grid-template-columns: 148px minmax(0, 1.2fr) minmax(0, 1fr) 88px;
+    --team-col: min(max(148px, var(--feed-team, 0px)), 230px);
+    grid-template-columns: var(--team-col) minmax(0, 1.2fr) minmax(0, 1fr) 88px;
   }
 }
 
@@ -1310,7 +1307,7 @@
 /* The act column fits the button with up to two reactions and a count, so bids stay in one column. */
 .feed-row.has-act {
   --act: 64px;
-  grid-template-columns: 152px minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
+  grid-template-columns: var(--team-col) minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
   grid-template-areas:
     'team add drop slot act'
     '. meta meta meta .';
@@ -1718,7 +1715,7 @@
 
 @media (max-width: 1099px) {
   .feed-row.has-act {
-    grid-template-columns: 148px minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
+    grid-template-columns: var(--team-col) minmax(0, 1.2fr) minmax(0, 1fr) 88px var(--act);
   }
 }
 

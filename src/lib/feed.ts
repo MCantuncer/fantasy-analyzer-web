@@ -152,15 +152,6 @@ export function dayDate(iso: string, now: Date = new Date()): string | null {
   return new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-/** The team that has spent the most FAAB, for "Most" on the rail. Null when nobody has spent or the top is shared. */
-export function faabLeaderId(teams: FeedTeam[]): number | null {
-  const spent = teams.filter((t) => (t.faab_spent ?? 0) > 0)
-  if (spent.length === 0) return null
-  const most = Math.max(...spent.map((t) => t.faab_spent ?? 0))
-  const at = spent.filter((t) => t.faab_spent === most)
-  return at.length === 1 ? at[0].id : null
-}
-
 /** Whether an item breaks out of its line into a moment: something people talk about. */
 export function isMoment(item: FeedItem): boolean {
   return item.kind === 'post' || item.kind === 'trade' || item.replies > 0

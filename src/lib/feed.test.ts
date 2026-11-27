@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { FeedItem, FeedTeam } from '../api/client'
+import type { FeedItem } from '../api/client'
 import {
   biggestBidId,
   dayLabel,
@@ -10,18 +10,10 @@ import {
   wonVotes,
   beatenBids,
   dayDate,
-  faabLeaderId,
   isMoment,
   timeRunStarts,
   emptyLine,
 } from './feed'
-
-const teams: FeedTeam[] = [
-  { id: 3, name: 'Kucukesat Aspavas', abbrev: 'KEA', faab_spent: 2 },
-  { id: 6, name: 'Cayyolu', abbrev: 'CAY', faab_spent: 2 },
-  { id: 8, name: 'Eryaman Lakers', abbrev: 'ERY', faab_spent: 9 },
-  { id: 9, name: 'Aliaga Hermanos', abbrev: 'AYR', faab_spent: 0 },
-]
 
 function player(id: number, name: string) {
   return { id, name, position: 'C' }
@@ -195,14 +187,6 @@ describe('wire helpers', () => {
     expect(dayDate('2026-11-22T15:00:00', now)).toBe(date('2026-11-22T15:00:00'))
     expect(dayDate('2026-11-22T15:00:00', now)).toMatch(/22/)
     expect(dayDate('2026-11-21T15:00:00', now)).toBeNull()
-  })
-
-  it('names the one FAAB leader, never a tie or an unspent league', () => {
-    expect(faabLeaderId(teams)).toBe(8)
-    expect(faabLeaderId([...teams, { id: 10, name: 'Tie', abbrev: 'TIE', faab_spent: 9 }])).toBeNull()
-    expect(faabLeaderId(teams.map((t) => ({ ...t, faab_spent: 0 })))).toBeNull()
-    expect(faabLeaderId(teams.map((t) => ({ ...t, faab_spent: null })))).toBeNull()
-    expect(faabLeaderId([])).toBeNull()
   })
 
   it('breaks posts, trades and moves with replies out into moments', () => {
