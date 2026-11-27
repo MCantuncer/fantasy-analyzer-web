@@ -167,7 +167,7 @@ export function TodayMatchup({
         </div>
       </div>
 
-      <TeamColumn key={shown.id} side={shown} names={names} />
+      <TeamColumn key={shown.id} side={shown} />
     </div>
   )
 }
@@ -274,7 +274,10 @@ function BenchFlag({
   )
 }
 
-function TeamColumn({ side, names }: { side: Side; names: Map<string, string> }) {
+function TeamColumn({ side }: { side: Side }) {
+  // One side shows at a time, so its names only need to be told apart from each other: "Thompson", not
+  // "A. Thompson" because the other lineup has a Thompson too (that clipped on phones).
+  const names = shortNames(side.rows.map((r) => r.spot.name))
   const starters: ReactNode[] = []
   const open = [...side.open]
   for (const r of side.starters) starters.push(<Row key={r.spot.player_id} row={r} names={names} />)

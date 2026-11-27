@@ -67,8 +67,9 @@ export function Slide({
   const later = starters.filter((r) => r.state === 'later').length
   const done = starters.filter((r) => r.state === 'final').length
   const counts = [playing && `${playing} live`, later && `${later} to come`, done && `${done} final`].filter(Boolean)
+  // The box is the size container the phone name measure reads (100cqw), for the rows and the snap alike.
   return (
-    <>
+    <div className="tm-slidebox">
       <div className="tm-slide-head">
         <span className="tm-slide-counts">{counts.join(' · ')}</span>
         {pager && !(at.start && at.end) && (
@@ -97,7 +98,7 @@ export function Slide({
       <div className={`tm-slide${at.start ? '' : ' tm-slid'}${at.end ? '' : ' tm-more'}`} ref={ref} onScroll={read}>
         {children}
       </div>
-    </>
+    </div>
   )
 }
 
@@ -186,9 +187,15 @@ function vs(r: PlayerRow, g: Game) {
   const [, opp] = mySideOf(r, g)
   return `${g.home.pro_team_id === r.spot.pro_team_id ? 'vs' : '@'} ${opp.abbrev}`
 }
+/** "MIA 104–111", his side first. The club joins from 1200: at 760–1199 the clock and score fill the line. */
 function gameScore(r: PlayerRow, g: Game) {
   const [a, b] = mySideOf(r, g)
-  return `${a.abbrev} ${a.score ?? 0}–${b.score ?? 0}`
+  return (
+    <>
+      <span className="tm-wide">{a.abbrev} </span>
+      {a.score ?? 0}–{b.score ?? 0}
+    </>
+  )
 }
 function result(r: PlayerRow, g: Game) {
   const [a, b] = mySideOf(r, g)
@@ -228,6 +235,8 @@ export function Row({
     !r.game ? 'tm-nogame' : '',
     r.state === 'final' || r.state === 'dnp' ? 'tm-final' : '',
     usual ? 'tm-usual' : '',
+    // no figures: the words may run on over the empty stat area instead of clipping under the pin
+    card ? '' : 'tm-q',
     grade ? `tm-g-${grade.tier}` : '',
     bench ? 'tm-benchrow' : '',
     left ? 'tm-left' : '',
@@ -245,39 +254,40 @@ export function Row({
           {grade && <Grade g={grade} />}
         </span>
         <span className="tm-who">
-          <PlayerLink player={player} decorative>
+          {/* Face, name and game line are one button (44px+) that opens the player card. */}
+          <PlayerLink player={player} className="tm-pick">
             <PlayerHead player={player} size={26} team={nbaAbbrev(r.spot.pro_team_id)} />
-          </PlayerLink>
-          <span className="tm-txt">
-            <span className="tm-l1">
-              <PlayerLink player={player} className="tm-nm">
-                <span className="tm-short">{short}</span>
-                <span className="tm-init">{initialName(r.spot.name)}</span>
-              </PlayerLink>
-            </span>
-            {!quiet ? (
-              <span className="tm-l2">
-                <span className="tm-st">
-                  {left ? (
-                    <span className="tm-tag tm-bench-tag">Left on bench</span>
-                  ) : (
-                    <>
-                      {mark && (
-                        <span className={`tm-mk ${mark}`} title={MARK_WORD[mark]}>
-                          <span className="sr-only">{MARK_WORD[mark]}</span>
-                        </span>
-                      )}
-                      {st.node}
-                    </>
-                  )}
+            <span className="tm-txt">
+              <span className="tm-l1">
+                <span className="tm-nm">
+                  <span className="tm-short">{short}</span>
+                  <span className="tm-init">{initialName(r.spot.name)}</span>
                 </span>
               </span>
-            ) : isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
-              <span className="tm-l2">
-                <span className="tm-tag tm-out">OUT</span>
-              </span>
-            ) : null}
-          </span>
+              {!quiet ? (
+                <span className="tm-l2">
+                  <span className="tm-st">
+                    {left ? (
+                      <span className="tm-tag tm-bench-tag">Left on bench</span>
+                    ) : (
+                      <>
+                        {mark && (
+                          <span className={`tm-mk ${mark}`} title={MARK_WORD[mark]}>
+                            <span className="sr-only">{MARK_WORD[mark]}</span>
+                          </span>
+                        )}
+                        {st.node}
+                      </>
+                    )}
+                  </span>
+                </span>
+              ) : isIR(r.spot) && OUT.has(r.spot.injury_status) ? (
+                <span className="tm-l2">
+                  <span className="tm-tag tm-out">OUT</span>
+                </span>
+              ) : null}
+            </span>
+          </PlayerLink>
         </span>
         {card ? (
           <StatCells line={l!} />
