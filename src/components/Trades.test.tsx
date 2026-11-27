@@ -1,9 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { useState, type ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { TradeIdea } from '../api/client'
-import { setPlayerCardHost } from '../lib/playerCard'
 import { PlayerCardHost } from './PlayerCard'
 import { TradeItem, Trades } from './Trades'
 
@@ -59,34 +58,12 @@ describe('Trades', () => {
     expect(view.queryByText(/The Bold tab has deals/)).toBeNull()
   })
 
-  it('names the kept players above the list, with the way to change them', () => {
-    const onEditKeep = vi.fn()
-    const { container } = show(
-      <Trades
-        fair={[idea]}
-        edge={[]}
-        kept={[ref(5, 'Kyshawn George'), ref(6, 'Jayson Tatum')]}
-        onEditKeep={onEditKeep}
-      />,
-    )
-    const view = within(container)
-    expect(container.querySelector('.trades-kept')).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
-    fireEvent.click(view.getByRole('button', { name: 'Change in My Team' }))
-    expect(onEditKeep).toHaveBeenCalledOnce()
-  })
-
-  it('opens the card from each kept name, each with a small face', () => {
-    const open = vi.fn()
-    act(() => setPlayerCardHost({ open, prefetch: () => {} }))
-    const { container } = show(<Trades fair={[idea]} edge={[]} kept={[ref(5, 'Kyshawn George'), ref(6, 'Jayson Tatum')]} />)
-    const line = container.querySelector('.trades-kept') as HTMLElement
-    expect(line).toHaveTextContent('Always kept: Kyshawn George, Jayson Tatum.')
-    expect(line.querySelectorAll('.pin .head')).toHaveLength(2)
-    // The comma and the full stop stay on the line of the name they follow.
-    expect([...line.querySelectorAll('.pin')].map((p) => p.textContent)).toEqual(['Kyshawn George,', 'Jayson Tatum.'])
-    fireEvent.click(within(line).getByRole('button', { name: 'Jayson Tatum' }))
-    expect(open).toHaveBeenCalledWith(expect.objectContaining({ id: 6 }))
-    act(() => setPlayerCardHost(null))
+  it('puts the untouchable line at the top of the list', () => {
+    const { container } = show(<Trades fair={[idea]} edge={[]} untouchable={<p data-part="untouchable" />} />)
+    const panel = container.querySelector('.trades-panel') as HTMLElement
+    expect(panel.querySelector('[data-part="untouchable"]')).not.toBeNull()
+    expect(container.querySelector('.trades-kept')).toBeNull()
+    expect(container.textContent).not.toContain('Change in My Team')
   })
 
   it('opens on Fair when a trade helps both teams', () => {

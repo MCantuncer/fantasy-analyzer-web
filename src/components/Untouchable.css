@@ -1,120 +1,207 @@
-/* "Anyone untouchable?" at the top of Moves (unt- prefix): the roster as faces, best first. */
-.unt-card {
+/* "Anyone untouchable?" on Moves (unt- prefix, Quiet Lead): one soft field with the question, a rail
+   of bare 44px faces (best first) and its foot. Answered, it is one line at the top of Trades to
+   offer whose Change opens the same rail in place. */
+.unt-field {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: var(--field-r, 16px);
+  background: var(--field);
 }
 
-.unt-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 14px;
-}
-
-.unt-head p,
-.unt-foot p,
-.unt-kept,
-.unt-working p {
+.unt-field p {
   margin: 0;
 }
 
 .unt-title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 24px;
 }
 
 .unt-title svg {
   flex: none;
-  color: var(--text-2);
+  color: var(--muted);
 }
 
-/* The faces scroll sideways when the roster is wider than the card; no scrollbar, a soft right edge. */
-.unt-strip {
-  overflow-x: auto;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
+/* The rail sizes itself to where it sits: 14 across on a wide page, 7 in a column, 5 on a phone. */
+.unt-rail {
+  container: unt / inline-size;
 }
 
-.unt-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.unt-track {
+.unt-faces {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(62px, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 4px;
 }
 
-.unt-card .unt-tile {
-  position: relative;
+@container unt (max-width: 979px) {
+  .unt-faces {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    row-gap: 8px;
+  }
+}
+
+@container unt (max-width: 419px) {
+  .unt-faces {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.unt-rail .unt-face {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  min-height: 102px;
-  padding: 12px 2px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-tile);
-  background: var(--surface-2);
+  gap: 6px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   color: var(--text-2);
   font-size: 12px;
   font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  scroll-snap-align: start;
+  line-height: 16px;
+  transition: background-color 120ms;
 }
 
-.unt-card .unt-tile[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.unt-rail .unt-face:hover {
+  background: var(--field-hover);
+}
+
+.unt-head {
+  position: relative;
+  display: grid;
+  border-radius: 34%;
+}
+
+/* A kept face: an ink ring and a lock badge on its corner; the name at full weight. */
+.unt-face[aria-pressed='true'] .unt-head {
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--text);
+}
+
+.unt-rail .unt-face[aria-pressed='true'] {
   color: var(--text);
   font-weight: 650;
 }
 
-/* First name over last name; a name wider than its tile ends in an ellipsis rather than breaking
-   mid-word (the button's label carries the full name). */
-.unt-name {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  min-width: 0;
+.unt-badge {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
 }
 
-.unt-name span {
+.unt-name {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.unt-mark {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  color: var(--accent-text);
+.unt-kept {
+  font-size: 13px;
+  color: var(--text-2);
 }
 
 .unt-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px 16px;
+  min-height: 44px;
 }
 
-.unt-foot .link {
+.unt-everyone {
+  min-height: 44px;
+}
+
+.unt-takes,
+.unt-wait {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.unt-wait b {
+  font-weight: 650;
+  color: var(--text);
+}
+
+/* Answered: one 44px line at the top of Trades to offer. */
+.unt-answer {
+  padding: 0 20px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.unt-answer .unt-rail {
+  padding: 4px 0 16px;
+}
+
+.unt-answer-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.unt-answer-k {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.unt-answer-k svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.unt-answer-v {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  color: var(--text);
+}
+
+.unt-answer-v b {
+  font-weight: 650;
+}
+
+.unt-answer .unt-change {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: auto;
   font-weight: 600;
 }
 
-/* While moves are re-worked the card shrinks to two lines. */
+/* While moves are worked out again the field shrinks to two lines. */
 .unt-working {
-  display: flex;
+  flex-direction: row;
   align-items: flex-start;
   gap: 12px;
+  padding: 16px 20px;
 }
 
 .unt-spin {
@@ -123,41 +210,22 @@
   color: var(--gold);
 }
 
-.unt-line {
+.unt-working-line {
   font-weight: 650;
 }
 
-/* Phones: two rows of faces that swipe together, so eight show before a swipe instead of four. */
 @media (max-width: 640px) {
-  .unt-card {
+  .unt-field {
     gap: 12px;
+    padding: 16px;
   }
 
-  .unt-strip {
-    margin: 0 -16px;
-    padding: 0 16px;
-    scroll-padding-inline: 16px;
-    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
-    mask-image: linear-gradient(90deg, #000 88%, transparent);
-  }
-
-  .unt-track {
-    grid-template-rows: repeat(2, auto);
-    grid-auto-columns: 68px;
-    width: max-content;
-    padding-right: 16px;
-  }
-
-  .unt-card .unt-tile {
-    gap: 6px;
-    width: 68px;
-    min-height: 90px;
-    padding: 9px 2px 7px;
+  .unt-rail .unt-face {
     font-size: 11.5px;
   }
 
-  .unt-foot {
-    gap: 6px 12px;
+  .unt-answer {
+    padding: 0 16px;
   }
 }
 

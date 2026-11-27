@@ -76,11 +76,6 @@
     padding-bottom: 6px;
   }
 
-  /* Eleven columns don't fit: say the rest are a swipe away. */
-  .pc-swipe {
-    display: block;
-  }
-
   .pc-tabs {
     top: -16px;
     margin: -16px -16px 0;
