@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { CalendarDots, Target } from '@phosphor-icons/react'
+import { CalendarDots } from '@phosphor-icons/react'
 import type { LeagueRef, LeagueOverview as Overview, MatchupSide, OverviewMatchup, SeasonRow } from '../api/client'
 import type { Credentials } from '../lib/credentials'
 import { isFresh, seenWeek } from '../lib/filmRoom'
@@ -8,7 +8,6 @@ import MatchupProjection from './MatchupProjection'
 import { MatchupScout } from './MatchupScout'
 import { useManagerStyles } from '../lib/useManagerStyles'
 import { BoxScore, type BoxTeam } from './BoxScore'
-import { MaybeHandshake } from './MaybeHandshake'
 import { FilmRoom, FilmRoomEntry, FilmRoomPicker } from './FilmRoom'
 import './LeagueOverview.css'
 import { Standings } from './Standings'
@@ -16,7 +15,7 @@ import { TeamCrest } from './TeamCrest'
 import { VerifyBanner } from './VerifyBanner'
 import { todayMatters, useTodayMatchup } from '../lib/todayData'
 import { TodayLoading, TodayMatchup, type TodaySide } from './TodayMatchup'
-import { MatchupSheet, TodayWeekSwitch, type SheetSide } from './MatchupSheet'
+import { FlipLine, MatchupSheet, TodayWeekSwitch, type SheetSide } from './MatchupSheet'
 import { BoxGhost, BoxSlot, type FrontRowIntent } from './ScoresFrontRow'
 import { reducedMotion, rowEndOf, tabOrigin, tabStyle } from '../lib/frontRow'
 import { useGridColumns } from '../lib/useGridColumns'
@@ -416,21 +415,7 @@ export function LeagueOverview({
               weekExtras={
                 mine && (
                   <>
-                    {(hint || check) && (
-                      <div className="lms-flip">
-                        {hint && (
-                          <p className="lms-hint">
-                            <Target size={18} aria-hidden="true" />
-                            {hint}
-                          </p>
-                        )}
-                        {check && (
-                          <button type="button" className="lms-check" onClick={() => onCheckTrade(b.team_id)}>
-                            <MaybeHandshake size={20} /> Check a Trade With Them
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <FlipLine hint={hint} onCheckTrade={check ? () => onCheckTrade(b.team_id) : undefined} />
                     {leagueRef && (
                       <MatchupProjection
                         leagueRef={leagueRef}

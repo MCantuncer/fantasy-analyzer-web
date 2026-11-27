@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { MatchupProjection } from '../api/client'
 import { ProjectionView } from './MatchupProjection'
@@ -38,23 +38,43 @@ const me = { name: 'Kucukesat Aspavas', colour: undefined }
 const opp = { name: 'Kavaklidere Boytoys', colour: undefined }
 
 describe('projected final', () => {
-  it('names the winner of the week and of each category, in box score order', () => {
-    const { container } = render(<ProjectionView data={data()} me={me} them={opp} />)
+  it('names the winner of the week and draws the winning crest per category, in the site order', () => {
+    render(<ProjectionView data={data()} me={me} them={opp} />)
+    expect(screen.getByRole('heading', { name: 'Projected final' })).toBeInTheDocument()
     expect(screen.getByText('You win')).toBeInTheDocument()
-    expect(screen.getByText('6-3')).toBeInTheDocument()
-    const stats = [...container.querySelectorAll('.proj-stat')].map((n) => n.textContent)
-    expect(stats).toEqual(['FG%', 'FT%', '3PM', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PTS'])
-    expect(container.querySelector('.proj-cat.close .proj-stat')?.textContent).toBe('TO')
-    expect(screen.getByText('Kavaklidere Boytoys, close')).toBeInTheDocument()
+    expect(screen.getByText('6–3')).toBeInTheDocument()
+    const strip = screen.getByRole('list', { name: 'Projected final: you win 6–3, by category' })
+    const items = within(strip).getAllByRole('listitem')
+    expect(items.map((li) => li.getAttribute('aria-label')!.split(':')[0])).toEqual([
+      'FG%',
+      'FT%',
+      '3PM',
+      'REB',
+      'AST',
+      'STL',
+      'BLK',
+      'TO',
+      'PTS',
+    ])
+    expect(items[1].getAttribute('aria-label')).toBe(
+      'FT%: you .500, Kavaklidere Boytoys .450, Kavaklidere Boytoys take it',
+    )
+    expect(items[7].getAttribute('aria-label')).toBe(
+      'TO: you 100, Kavaklidere Boytoys 90, Kavaklidere Boytoys take it, close',
+    )
+    // A winner crest in every column, the winner's figure in ink.
+    expect(strip.querySelectorAll('.cs-kc .crest')).toHaveLength(9)
+    expect(items[0].querySelector('.cs-w')!.textContent).toBe('.500')
+    expect(strip.querySelector('.cs-close')!.textContent).toBe('TO↓')
   })
 
   it('says when the opponent is projected to win', () => {
     render(<ProjectionView data={data({ wins: 4, losses: 5 })} me={me} them={opp} />)
     expect(screen.getByText('Kavaklidere Boytoys win')).toBeInTheDocument()
-    expect(screen.getByText('5-4')).toBeInTheDocument()
+    expect(screen.getByText('5–4')).toBeInTheDocument()
   })
 
-  it('folds crowded days that bench the same players into one row', () => {
+  it('folds crowded days that bench the same players into one flat row', () => {
     const { container } = render(<ProjectionView data={data()} me={me} them={opp} />)
     expect(container.querySelectorAll('.proj-crowd-row')).toHaveLength(1)
     const row = container.querySelector('.proj-crowd-row')!
@@ -62,6 +82,7 @@ describe('projected final', () => {
     expect(row.querySelector('.proj-crowd-count.over')?.textContent).toBe('13 playing')
     expect(screen.getByText('Davion Mitchell')).toBeInTheDocument()
     expect(screen.getByText('D. Mitchell')).toBeInTheDocument()
+    expect(row.querySelectorAll('.head')).toHaveLength(3)
   })
 
   it('leaves out crowded days when everyone fits', () => {
