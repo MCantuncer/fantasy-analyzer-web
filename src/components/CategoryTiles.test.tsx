@@ -16,19 +16,19 @@ describe('CategoryTiles', () => {
 
   it("draws one cell per category in ESPN's order, each with its state word", () => {
     const { container } = render(<CategoryTiles categories={cats} />)
-    const cells = [...container.querySelectorAll('.ct-line > li')]
-    expect(cells.map((c) => c.querySelector('.ct-code')?.textContent)).toEqual(['FG%', 'REB', 'TO', 'PTS'])
-    expect(cells.map((c) => c.querySelector('.ct-word')?.textContent)).toEqual(['Winning', 'Swing', 'Winning', 'Losing'])
-    expect(cells[0].className).toContain('ct-good')
-    expect(cells[1].className).toContain('ct-swing')
-    expect(cells[3].className).toContain('ct-bad')
-    expect(cells[0].querySelector('.ct-pct')?.textContent).toBe('89%')
-    expect(cells[0].querySelector('.ct-rank')?.textContent).toBe('1st')
+    const cells = [...container.querySelectorAll('.mvcat-line > li')]
+    expect(cells.map((c) => c.querySelector('.mvcat-code')?.textContent)).toEqual(['FG%', 'REB', 'TO', 'PTS'])
+    expect(cells.map((c) => c.querySelector('.mvcat-word')?.textContent)).toEqual(['Winning', 'Swing', 'Winning', 'Losing'])
+    expect(cells[0].className).toContain('mvcat-good')
+    expect(cells[1].className).toContain('mvcat-swing')
+    expect(cells[3].className).toContain('mvcat-bad')
+    expect(cells[0].querySelector('.mvcat-pct')?.textContent).toBe('89%')
+    expect(cells[0].querySelector('.mvcat-rank')?.textContent).toBe('1st')
   })
 
   it('reads each cell as one sentence', () => {
     const { container } = render(<CategoryTiles categories={cats} />)
-    const cells = container.querySelectorAll('.ct-line > li')
+    const cells = container.querySelectorAll('.mvcat-line > li')
     expect(cells[0].getAttribute('aria-label')).toBe('FG%: wins 89% of weeks, 1st in the league, Winning')
     expect(cells[2].getAttribute('aria-label')).toBe('TO (lower is better): wins 71% of weeks, 1st in the league, Winning')
   })
@@ -36,6 +36,6 @@ describe('CategoryTiles', () => {
   it('has no tally line beside the heading: the cells carry the words', () => {
     const { container } = render(<CategoryTiles categories={cats} scout="Hammer" />)
     expect(container.querySelector('h2')?.textContent).toBe('How often Hammer wins each category')
-    expect(container.querySelector('.ct-note')).toBeNull()
+    expect(container.querySelector('.mvcat-note')).toBeNull()
   })
 })

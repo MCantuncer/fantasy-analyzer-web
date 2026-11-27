@@ -8,15 +8,15 @@ export function ScoresHow() {
       notes={[
         <>
           <b>Our call</b> is our score for each game, locked at tip-off. The % is how sure we are of the winner:{' '}
-          <span className="kw" data-band="sure">
+          <span className="call-kw" data-band="sure">
             green
           </span>{' '}
           sure,{' '}
-          <span className="kw" data-band="lean">
+          <span className="call-kw" data-band="lean">
             amber
           </span>{' '}
           a lean,{' '}
-          <span className="kw" data-band="flip">
+          <span className="call-kw" data-band="flip">
             grey
           </span>{' '}
           a coin flip.

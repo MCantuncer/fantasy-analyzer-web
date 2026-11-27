@@ -267,16 +267,16 @@
 }
 
 /* The % colours, named in words in How this works. */
-.kw {
+.call-kw {
   font-weight: 600;
 }
-.kw[data-band='sure'] {
+.call-kw[data-band='sure'] {
   color: var(--conf-sure);
 }
-.kw[data-band='lean'] {
+.call-kw[data-band='lean'] {
   color: var(--conf-lean);
 }
-.kw[data-band='flip'] {
+.call-kw[data-band='flip'] {
   color: var(--conf-flip);
 }
 
