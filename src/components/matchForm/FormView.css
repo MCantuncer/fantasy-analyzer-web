@@ -724,11 +724,9 @@
   }
 }
 
-/* Last 10: team tabs (club-underlined) and one 64px row per game. */
-.mf-log {
-  margin-top: 4px;
-}
+/* Team tabs (club-underlined) above the Game Ball: they pick the team for it and for the Last 10. */
 .mf-tabs {
+  margin-top: 18px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -766,6 +764,11 @@
   color: var(--muted);
   font-weight: 500;
   font-size: 12.5px;
+}
+
+/* Last 10: one 64px row per game. */
+.mf-log {
+  margin-top: 4px;
 }
 .mf-rows {
   margin: 8px 0 0;

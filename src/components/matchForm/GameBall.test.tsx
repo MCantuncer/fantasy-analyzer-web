@@ -70,7 +70,15 @@ const IND = team('IND', 'Indiana Pacers', [
 ])
 const NY = team('NY', 'New York Knicks', [
   game(5, '2026-11-21', true, 'POR', 97, 96, 'NY'),
-  { ...game(3, '2026-11-13', false, 'IND', 104, 106, 'NY'), mvp: IND.games[2].mvp, kind: 'cup', note: 'NBA Cup - Group Play' },
+  // the same game from the Knicks' side: the same players on it
+  {
+    ...game(3, '2026-11-13', false, 'IND', 104, 106, 'NY'),
+    mvp: IND.games[2].mvp,
+    best: IND.games[2].opp_best ?? null,
+    opp_best: IND.games[2].best,
+    kind: 'cup',
+    note: 'NBA Cup - Group Play',
+  },
 ])
 const FORM: MatchForm = { away: IND, home: NY, next: null }
 
@@ -128,6 +136,31 @@ describe('Game Ball', () => {
     expect(screen.queryByRole('button', { name: /Back To/ })).toBeNull()
   })
 
+  it('turns to the other team on the first tab tap, Game Ball and list together', () => {
+    render(<FormView form={FORM} venueNeutral={false} initialSide="away" />)
+    fireEvent.click(screen.getByRole('button', { name: /^Nov 20, at CLE/ }))
+    expect(within(ball()).getByText('CLE Lead 1')).toBeTruthy()
+    // one tap on Knicks: their last meeting, seen from their side, with no stale Pacers pick
+    fireEvent.click(screen.getByRole('tab', { name: /Knicks/ }))
+    expect(within(ball()).getByText('Game Ball · Last Meeting')).toBeTruthy()
+    expect(ball().textContent).toContain("Knicks' best: NY Lead 3")
+    expect(screen.queryByRole('button', { name: /Back To/ })).toBeNull()
+    const list = within(screen.getByRole('tabpanel')).getAllByRole('listitem')
+    expect(list).toHaveLength(2)
+    // Earlier walks the Knicks list from the meeting, which is its oldest game
+    expect((within(ball()).getAllByRole('button', { name: /Earlier/ })[0] as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(within(ball()).getAllByRole('button', { name: /Later/ })[0])
+    expect(within(ball()).getByText(/^Game Ball · Knicks vs \w*Blazers$/)).toBeTruthy()
+  })
+
+  it("follows the tab under tonight's venue too: that team's latest game there", () => {
+    render(<FormView form={FORM} venueNeutral={false} initialSide="away" />)
+    fireEvent.click(screen.getByRole('radio', { name: /Tonight's Venue/ }))
+    expect(within(ball()).getByText('Game Ball · Pacers at Cavaliers')).toBeTruthy()
+    fireEvent.click(screen.getByRole('tab', { name: /Knicks/ }))
+    expect(within(ball()).getByText(/^Game Ball · Knicks vs \w*Blazers$/)).toBeTruthy()
+  })
+
   it('reads the helpers', () => {
     expect(dayDate('2026-11-20')).toBe('Fri Nov 20')
     expect(dayDate(null)).toBe('')
@@ -138,6 +171,12 @@ describe('Game Ball', () => {
     expect(heroGame(FORM, shown, null, false, 'home')?.game.game_id).toBe(3)
     expect(heroGame(FORM, shown, null, true, 'home')?.game.game_id).toBe(5)
     expect(heroGame(FORM, shown, { side: 'away', game_id: 99 }, false, 'away')?.picked).toBe(false)
+    // a pick from the other team never holds the Game Ball once the tabs show this one
+    expect(heroGame(FORM, shown, { side: 'away', game_id: 1 }, false, 'home')).toEqual({
+      side: 'home',
+      game: NY.games[1],
+      picked: false,
+    })
     expect(heroGame({ ...FORM, away: { ...IND, games: [] } }, { away: [], home: [] }, null, false, 'away')).toBeNull()
   })
   it("opens the star's and the other side's best player's cards from their names and faces", () => {
