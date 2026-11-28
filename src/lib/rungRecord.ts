@@ -1,7 +1,7 @@
 // The Running Record of the value rungs: everything here is read from POST /api/book-compare/record
 // (and, for night names, the night list the page already has). Comparison only.
 import { MIN_ODD, nightTab } from './iddaaCompare'
-import type { RecordBucket, RecordNight, RecordPicks } from './iddaaCompare'
+import type { RecordBucket, RecordLeg, RecordNight, RecordPicks } from './iddaaCompare'
 import { signed2 } from './valueRungs'
 
 /** Under this many nights the record is an early read, and says so. */
@@ -105,6 +105,8 @@ export interface LedgerNight {
   top: number | null
   /** The running balance after this night. */
   balance: number
+  /** The night's picks one by one; empty when the server doesn't send them. */
+  legs: RecordLeg[]
 }
 
 /** The series as a ledger, oldest first, settled nights only. A day the page knows had games but
@@ -123,7 +125,7 @@ export function ledgerOf(series: RecordNight[] | undefined, known: { day: number
   return rows.map(({ day, n }) => {
     const date = day == null ? null : dateOfDay(day, known)
     const label = date ? nightTab(date) : day == null ? 'Night' : `Day ${day}`
-    if (!n) return { day, label, date, kind: 'none', picks: 0, hits: 0, net: 0, marked: 0, players: 0, top: null, balance: round2(bal) }
+    if (!n) return { day, label, date, kind: 'none', picks: 0, hits: 0, net: 0, marked: 0, players: 0, top: null, balance: round2(bal), legs: [] }
     bal += n.net
     return {
       day,
@@ -137,11 +139,77 @@ export function ledgerOf(series: RecordNight[] | undefined, known: { day: number
       players: n.players,
       top: n.top_hit,
       balance: round2(bal),
+      legs: n.legs ?? [],
     }
   })
 }
 
 const round2 = (v: number) => Math.round(v * 100) / 100
+
+/** The site's stat order and short names for a leg's stat. */
+const LEG_STATS = ['pts', 'reb', 'ast', 'three_pm', 'stl', 'blk']
+export const LEG_STAT: Record<string, string> = { pts: 'PTS', reb: 'REB', ast: 'AST', three_pm: '3PM', stl: 'STL', blk: 'BLK' }
+export const LEG_WORD: Record<string, string> = {
+  pts: 'points',
+  reb: 'rebounds',
+  ast: 'assists',
+  three_pm: 'threes',
+  stl: 'steals',
+  blk: 'blocks',
+}
+
+export interface LedgerLadder {
+  stat: string
+  /** Rungs low to high. */
+  rungs: RecordLeg[]
+  /** What he got in this stat; null when it isn't known. */
+  got: number | null
+  /** How many rungs, from the bottom, he reached. */
+  reached: number
+}
+
+export interface LedgerPlayer {
+  key: string
+  name: string
+  id: number | null
+  team: number | null
+  /** One unit on each of his picks: net units. */
+  net: number
+  ladders: LedgerLadder[]
+}
+
+/** A night's picks by player, best night first; each player's ladders in stat order. */
+export function ledgerPlayers(legs: RecordLeg[]): LedgerPlayer[] {
+  const by = new Map<string, { name: string; id: number | null; team: number | null; net: number; stats: Map<string, RecordLeg[]> }>()
+  for (const l of legs) {
+    const key = l.player_id != null ? String(l.player_id) : l.name
+    const p = by.get(key) ?? { name: l.name, id: l.player_id, team: l.team, net: 0, stats: new Map() }
+    p.net += l.hit ? l.odd - 1 : -1
+    p.stats.set(l.stat, [...(p.stats.get(l.stat) ?? []), l])
+    by.set(key, p)
+  }
+  const order = (s: string) => (LEG_STATS.includes(s) ? LEG_STATS.indexOf(s) : LEG_STATS.length)
+  return [...by.entries()]
+    .map(([key, p]) => ({
+      key,
+      name: p.name,
+      id: p.id,
+      team: p.team,
+      net: round2(p.net),
+      ladders: [...p.stats.entries()]
+        .sort((a, b) => order(a[0]) - order(b[0]))
+        .map(([stat, rs]) => {
+          const rungs = [...rs].sort((a, b) => a.n - b.n)
+          return {
+            stat,
+            rungs,
+            got: rungs.find((r) => r.actual != null)?.actual ?? null,
+            reached: rungs.filter((r) => r.hit).length,
+          }
+        }),
+    }))
+    .sort((a, b) => b.net - a.net || a.name.localeCompare(b.name))
+}
 
 /** The balance without the night's single biggest landed pick (one unit at its odds paid odds − 1),
  *  and those odds. Null when nothing landed. */

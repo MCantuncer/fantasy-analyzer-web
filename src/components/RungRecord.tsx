@@ -17,11 +17,11 @@ import {
   withoutBiggest,
 } from '../lib/rungRecord'
 import type { CalRow, LedgerNight, RecordBand, RecordTotals } from '../lib/rungRecord'
+import { Ledger } from './LedgerReveal'
 import './RungRecord.css'
 
 type Known = BookCompare['nights']
 const PHONE = '(max-width: 719px)'
-const LEDGER_ROWS = 6
 const NONE: Known = []
 
 /** The record over the server's default nights, one query for the page. */
@@ -175,79 +175,6 @@ export function RunningRecord({ r, day = null }: { r: Read; day?: number | null 
         <Bands bands={bands} />
         <Calibration rec={rec} wide={series} counted={r.counted} early={early} />
       </div>
-    </div>
-  )
-}
-
-function Ledger({ ledger, day }: { ledger: LedgerNight[]; day: number | null }) {
-  const [all, setAll] = useState(false)
-  const rows = [...ledger].reverse()
-  const shown = all ? rows : rows.slice(0, LEDGER_ROWS)
-  return (
-    <div className="vr-rec-card">
-      <h3>
-        Ledger<small>newest first</small>
-      </h3>
-      <table className="vr-rec-table">
-        <caption className="sr-only">Night by night: value picks, how many landed, the night's net and the balance</caption>
-        <thead>
-          <tr>
-            <th scope="col">Night</th>
-            <th scope="col" className="n">
-              <span className="vr-hide-s">Picks</span>
-              <span className="vr-ph-in">Landed</span>
-            </th>
-            <th scope="col" className="n vr-hide-s">
-              Landed
-            </th>
-            <th scope="col" className="n">
-              Net
-            </th>
-            <th scope="col" className="n">
-              Balance
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {shown.map((n) => (
-            <tr key={`${n.day}`} className={n.day != null && n.day === day ? 'this' : undefined}>
-              <th scope="row">
-                {n.label}
-                {n.kind === 'none' ? (
-                  <small>ladders didn't load</small>
-                ) : n.day != null && n.day === day ? (
-                  <small>the night above</small>
-                ) : null}
-              </th>
-              {n.kind === 'none' ? (
-                <>
-                  <td className="n">–</td>
-                  <td className="n vr-hide-s">–</td>
-                  <td className="n">–</td>
-                </>
-              ) : (
-                <>
-                  <td className="n">
-                    {n.picks > 0 && <span className="vr-ph-in">{n.hits} of </span>}
-                    {n.picks}
-                    {n.players > 0 && <small className="vr-hide-s">{n.players} players</small>}
-                  </td>
-                  <td className="n vr-hide-s">{n.hits}</td>
-                  <td className={`n ${n.net > 0 ? 'good' : n.net < 0 ? 'bad' : ''}`}>{n.picks ? unitsText(n.net) : '0'}</td>
-                </>
-              )}
-              <td className="n">
-                <b>{unitsText(n.balance)}</b>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {rows.length > LEDGER_ROWS && (
-        <button type="button" className="vr-rec-more" aria-expanded={all} onClick={() => setAll(!all)}>
-          {all ? 'Show fewer' : `Show all ${rows.length} nights`}
-        </button>
-      )}
     </div>
   )
 }

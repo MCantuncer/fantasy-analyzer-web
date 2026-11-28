@@ -207,7 +207,7 @@ describe('Our record: the running record row', () => {
     fireEvent.click(row)
     expect(screen.getByText('Without the biggest hit')).toBeTruthy()
     expect(screen.getByText('−1.50')).toBeTruthy() // 11.70 − (14.20 − 1)
-    expect(screen.getByText("ladders didn't load")).toBeTruthy()
+    expect(screen.getByText("Ladders didn't load")).toBeTruthy()
     expect(container.querySelector('.vr-rec-chart')).not.toBeNull() // jsdom has no width, so the svg itself waits
     expect(container.querySelector('.vr-early')?.textContent).toBe('Early read · 3 of 14 nights')
     expect(container.querySelector('.vr-early i')).toBeNull() // no pips

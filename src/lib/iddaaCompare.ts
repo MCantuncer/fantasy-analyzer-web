@@ -214,6 +214,23 @@ export interface RecordBucket {
   happened: number
 }
 
+/** One value pick of a night (api: record series legs): the rung he needed, its odds and what he got. */
+export interface RecordLeg {
+  name: string
+  player_id: number | null
+  /** ESPN pro team id. */
+  team: number | null
+  game_id?: number | null
+  /** three_pm, reb, ast, stl, blk or pts. */
+  stat: string
+  /** The rung: he needed n or more. */
+  n: number
+  odd: number
+  ours: number
+  hit: boolean
+  actual: number | null
+}
+
 export interface RecordNight {
   day: number | null
   /** The night has results; false before tip-off. */
@@ -226,6 +243,8 @@ export interface RecordNight {
   players: number
   /** Odds of the biggest pick that landed. */
   top_hit: number | null
+  /** Every pick on its own (older servers send none). */
+  legs?: RecordLeg[]
 }
 
 export interface BookCompare {

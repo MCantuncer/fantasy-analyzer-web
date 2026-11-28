@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RecordBucket, RecordNight, RecordPicks } from './iddaaCompare'
+import type { RecordBucket, RecordLeg, RecordNight, RecordPicks } from './iddaaCompare'
 import {
   EARLY_NIGHTS,
   bandName,
@@ -8,6 +8,7 @@ import {
   calRows,
   dateOfDay,
   ledgerOf,
+  ledgerPlayers,
   losingRun,
   oftenText,
   totalsOf,
@@ -139,5 +140,40 @@ describe('said vs happened', () => {
   })
   it('the early read lasts two weeks', () => {
     expect(EARLY_NIGHTS).toBe(14)
+  })
+})
+
+describe('ledgerPlayers', () => {
+  const leg = (name: string, id: number, stat: string, n: number, odd: number, actual: number): RecordLeg => ({
+    name,
+    player_id: id,
+    team: 7,
+    stat,
+    n,
+    odd,
+    ours: 0.5,
+    hit: actual >= n,
+    actual,
+  })
+  it('groups a night by player, best night first, ladders in stat order and rungs low to high', () => {
+    const got = ledgerPlayers([
+      leg('Nikola Jokić', 1, 'ast', 10, 2.05, 9),
+      leg('Nikola Jokić', 1, 'pts', 30, 1.95, 31),
+      leg('Nikola Jokić', 1, 'pts', 25, 1.42, 31),
+      leg('Nikola Jokić', 1, 'pts', 35, 3.4, 31),
+      leg('Jayson Tatum', 2, 'three_pm', 3, 1.9, 4),
+    ])
+    expect(got.map((p) => [p.name, p.net])).toEqual([
+      ['Jayson Tatum', 0.9],
+      ['Nikola Jokić', -0.63], // +0.42 +0.95 −1 −1
+    ])
+    const [pts, ast] = got[1].ladders
+    expect(pts.stat).toBe('pts')
+    expect(pts.rungs.map((r) => r.n)).toEqual([25, 30, 35])
+    expect([pts.got, pts.reached]).toEqual([31, 2])
+    expect([ast.stat, ast.got, ast.reached]).toEqual(['ast', 9, 0])
+  })
+  it('a night the server sent no picks for has no players', () => {
+    expect(ledgerPlayers([])).toEqual([])
   })
 })
