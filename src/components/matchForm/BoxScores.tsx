@@ -6,90 +6,101 @@ import type { FormGame, Side, TeamForm } from '../../lib/matchForm'
 import { teamLight } from '../../lib/nbaTeams'
 import { PlayerHead, TeamLogo } from '../PlayerHead'
 
-/** The last ten games of one team, newest first, as a readable list: result, where, score and margin,
- *  the kind of game, and the game's MVP with his face. Pacers | Knicks tabs pick the team. */
-export function BoxScores({
+/** Pacers | Knicks tabs above the Game Ball (Can 2026-11-28): the team picks both the Game Ball and
+ *  the Last 10 list under it, so both turn on the same tap. */
+export function TeamTabs({
   away,
   home,
   side,
   onSide,
-  shown,
-  venue,
-  picked,
-  onPick,
+  panel,
 }: {
   away: TeamForm
   home: TeamForm
   side: Side
   onSide: (s: Side) => void
-  /** Each side's games in view (all, or tonight's venue), newest first. */
-  shown: Record<Side, FormGame[]>
-  venue: boolean
+  /** The id of the panel the tabs control (Game Ball + Last 10). */
+  panel: string
+}) {
+  return (
+    <div
+      className="mf-tabs"
+      role="tablist"
+      aria-label="Team"
+      onKeyDown={(e) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+        e.preventDefault()
+        const next: Side = e.key === 'Home' ? 'away' : e.key === 'End' ? 'home' : side === 'away' ? 'home' : 'away'
+        onSide(next)
+        e.currentTarget.querySelector<HTMLButtonElement>(`[data-side="${next}"]`)?.focus()
+      }}
+    >
+      {([
+        ['away', away],
+        ['home', home],
+      ] as const).map(([s, t]) => (
+        <button
+          key={s}
+          type="button"
+          role="tab"
+          data-side={s}
+          className="mf-tab"
+          aria-selected={side === s}
+          aria-controls={panel}
+          tabIndex={side === s ? 0 : -1}
+          style={{ '--tl': teamLight(t.abbrev) ?? 'var(--border)' } as CSSProperties}
+          onClick={() => onSide(s)}
+        >
+          <TeamLogo abbrev={t.abbrev} size={22} fallback />
+          {nick(t.abbrev)}
+          <span className="num">
+            {t.wins}-{t.losses}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** The last ten games of the team the tabs show, newest first, as a readable list: result, where,
+ *  score and margin, the kind of game, and the game's MVP with his face. */
+export function BoxScores({
+  team,
+  games: all,
+  where,
+  picked,
+  onPick,
+}: {
+  team: TeamForm
+  /** The team's games in view (all, or tonight's venue), newest first. */
+  games: FormGame[]
+  /** " at home" / " on the road" under the venue switch, else "". */
+  where: string
   /** The game on the Game Ball, and how a row puts its game there. */
   picked: number | null
-  onPick: (side: Side, gameId: number) => void
+  onPick: (gameId: number) => void
 }) {
-  const tabsId = useId()
-  const team = side === 'away' ? away : home
-  const games = shown[side].slice(0, LAST_GAMES)
-  const where = venue ? (side === 'home' ? ' at home' : ' on the road') : ''
+  const headId = useId()
+  const games = all.slice(0, LAST_GAMES)
   return (
-    <section className="mf-log" aria-labelledby={`${tabsId}-h`}>
+    <section className="mf-log" aria-labelledby={headId}>
       <div className="mf-blk-h">
-        <h3 id={`${tabsId}-h`}>Last {LAST_GAMES}</h3>
-      </div>
-      <div
-        className="mf-tabs"
-        role="tablist"
-        aria-label="Team"
-        onKeyDown={(e) => {
-          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
-          e.preventDefault()
-          const next: Side = e.key === 'Home' ? 'away' : e.key === 'End' ? 'home' : side === 'away' ? 'home' : 'away'
-          onSide(next)
-          e.currentTarget.querySelector<HTMLButtonElement>(`[data-side="${next}"]`)?.focus()
-        }}
-      >
-        {([
-          ['away', away],
-          ['home', home],
-        ] as const).map(([s, t]) => (
-          <button
-            key={s}
-            type="button"
-            role="tab"
-            data-side={s}
-            className="mf-tab"
-            aria-selected={side === s}
-            aria-controls={`${tabsId}-list`}
-            tabIndex={side === s ? 0 : -1}
-            style={{ '--tl': teamLight(t.abbrev) ?? 'var(--border)' } as CSSProperties}
-            onClick={() => onSide(s)}
-          >
-            <TeamLogo abbrev={t.abbrev} size={22} fallback />
-            {nick(t.abbrev)}
-            <span className="num">
-              {t.wins}-{t.losses}
-            </span>
-          </button>
-        ))}
+        <h3 id={headId}>Last {LAST_GAMES}</h3>
       </div>
       {games.length ? (
-        <ol id={`${tabsId}-list`} className="mf-rows" role="tabpanel" aria-label={`${team.name}, last ${games.length}${where}`}>
+        <ol className="mf-rows" aria-label={`${team.name}, last ${games.length}${where}`}>
           {games.map((g) => (
             <Row
               key={g.game_id}
               g={g}
               team={team.abbrev}
               picked={g.game_id === picked}
-              onPick={() => onPick(side, g.game_id)}
+              onPick={() => onPick(g.game_id)}
             />
           ))}
         </ol>
       ) : (
-        <p id={`${tabsId}-list`} className="mf-none" role="tabpanel">
-          No games{where} yet this season.
-        </p>
+        <p className="mf-none">No games{where} yet this season.</p>
       )}
     </section>
   )

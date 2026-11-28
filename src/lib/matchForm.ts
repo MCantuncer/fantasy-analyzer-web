@@ -244,8 +244,8 @@ export function shootingPct(made: number, tried: number): string {
  *  never reads as the house gold. Small faces keep the usual team light. */
 export const HERO_LIGHT: Record<string, string> = { IND: '#4F7FD6', DEN: '#5A86C9', NO: '#4C6FA8' }
 
-/** The game on the Game Ball: the picked one, else the last meeting (all games), else the latest at
- *  tonight's venue for the side the list shows. */
+/** The game on the Game Ball, always from the side the team tabs show: the picked one, else their last
+ *  meeting (all games), else that side's latest game in view. */
 export interface Pick {
   side: Side
   game_id: number
@@ -258,14 +258,11 @@ export function heroGame(
   venue: boolean,
   listSide: Side,
 ): { side: Side; game: FormGame; picked: boolean } | null {
-  if (pick) {
-    const g = shown[pick.side].find((x) => x.game_id === pick.game_id)
-    if (g) return { side: pick.side, game: g, picked: true }
+  if (pick && pick.side === listSide) {
+    const g = shown[listSide].find((x) => x.game_id === pick.game_id)
+    if (g) return { side: listSide, game: g, picked: true }
   }
-  if (!venue) {
-    const g = defaultGame(shown.away, form.home.abbrev)
-    return g ? { side: 'away', game: g, picked: false } : null
-  }
-  const g = shown[listSide][0]
+  const other = listSide === 'away' ? form.home.abbrev : form.away.abbrev
+  const g = venue ? (shown[listSide][0] ?? null) : defaultGame(shown[listSide], other)
   return g ? { side: listSide, game: g, picked: false } : null
 }

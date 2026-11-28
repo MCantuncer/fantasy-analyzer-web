@@ -5,6 +5,7 @@ import {
   HEAT_RULE,
   HEAT_WORDS,
   LAST_GAMES,
+  defaultGame,
   formRead,
   heroGame,
   inVenue,
@@ -17,7 +18,7 @@ import {
 import type { FormHeat, FormRead, MatchForm, Pick, Side, TeamForm } from '../../lib/matchForm'
 import { teamLight } from '../../lib/nbaTeams'
 import { TeamLogo } from '../PlayerHead'
-import { BoxScores } from './BoxScores'
+import { BoxScores, TeamTabs } from './BoxScores'
 import { GameBall } from './GameBall'
 import { Tape } from './Tape'
 import './FormView.css'
@@ -48,17 +49,27 @@ export function FormView({
   const [venue, setVenue] = useState(false)
   const [side, setSide] = useState<Side>(initialSide)
   const [pick, setPick] = useState<Pick | null>(null)
+  const panelId = useId()
   const on = venue && !venueNeutral
   const shown = useMemo(
     () => ({ away: inVenue(form.away.games, 'away', on), home: inVenue(form.home.games, 'home', on) }),
     [form, on],
   )
+  const team = side === 'away' ? form.away : form.home
+  const other = side === 'away' ? form.home : form.away
   const hero = heroGame(form, shown, pick, on, side)
   // Earlier / Later walk the list on screen, newest first.
   const list = shown[side].slice(0, LAST_GAMES)
   const at = hero ? list.findIndex((g) => g.game_id === hero.game.game_id) : -1
   const step = (i: number) => (i >= 0 && i < list.length ? () => setPick({ side, game_id: list[i].game_id }) : null)
-  // A bar puts its game on the Game Ball and turns the list to that team.
+  const meetingFirst = !on && defaultGame(shown[side], other.abbrev)?.opponent === other.abbrev
+  const where = on ? (side === 'home' ? ' at home' : ' on the road') : ''
+  // A tab turns the Game Ball and the list to that team at once: its last meeting or latest game.
+  const pickSide = (s: Side) => {
+    setSide(s)
+    setPick(null)
+  }
+  // A bar puts its game on the Game Ball and turns the tabs to that team.
   const pickBar = (s: Side, id: number) => {
     setPick({ side: s, game_id: id })
     setSide(s)
@@ -91,28 +102,28 @@ export function FormView({
         picked={hero?.game.game_id ?? null}
         onPick={pickBar}
       />
-      {hero && (
-        <GameBall
-          team={(hero.side === 'away' ? form.away : form.home).abbrev}
-          other={(hero.side === 'away' ? form.home : form.away).abbrev}
-          game={hero.game}
-          picked={hero.picked}
-          backLabel={on ? 'Back To Latest' : 'Back To Last Meeting'}
-          onBack={() => setPick(null)}
-          onEarlier={at < 0 ? step(0) : step(at + 1)}
-          onLater={at > 0 ? step(at - 1) : null}
+      <TeamTabs away={form.away} home={form.home} side={side} onSide={pickSide} panel={panelId} />
+      <div id={panelId} className="mf-panel" role="tabpanel" aria-label={team.name}>
+        {hero && (
+          <GameBall
+            team={team.abbrev}
+            other={other.abbrev}
+            game={hero.game}
+            picked={hero.picked}
+            backLabel={meetingFirst ? 'Back To Last Meeting' : 'Back To Latest'}
+            onBack={() => setPick(null)}
+            onEarlier={at < 0 ? step(0) : step(at + 1)}
+            onLater={at > 0 ? step(at - 1) : null}
+          />
+        )}
+        <BoxScores
+          team={team}
+          games={shown[side]}
+          where={where}
+          picked={hero?.game.game_id ?? null}
+          onPick={(id) => setPick({ side, game_id: id })}
         />
-      )}
-      <BoxScores
-        away={form.away}
-        home={form.home}
-        side={side}
-        onSide={setSide}
-        shown={shown}
-        venue={on}
-        picked={hero?.game.game_id ?? null}
-        onPick={(s, id) => setPick({ side: s, game_id: id })}
-      />
+      </div>
       <p className="mf-rule">{HEAT_RULE} Game Ball: the best Game Score on the winning side.</p>
     </div>
   )

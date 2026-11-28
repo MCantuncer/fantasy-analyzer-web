@@ -71,7 +71,7 @@ const NY = team('NY', 'New York Knicks', [
 const FORM: MatchForm = { away: IND, home: NY, next: null }
 
 const rows = () =>
-  within(screen.getByRole('tabpanel'))
+  within(within(screen.getByRole('tabpanel')).getByRole('list'))
     .getAllByRole('listitem')
     .map((li) => li.querySelector('button') as HTMLButtonElement)
 
@@ -98,7 +98,9 @@ describe('Last 10', () => {
     const labels = rows().map((r) => r.getAttribute('aria-label'))
     expect(labels).toHaveLength(5)
     expect(labels.every((l) => l?.includes(', at '))).toBe(true)
-    expect(screen.getByRole('tabpanel').getAttribute('aria-label')).toBe('Indiana Pacers, last 5 on the road')
+    expect(within(screen.getByRole('tabpanel')).getByRole('list').getAttribute('aria-label')).toBe(
+      'Indiana Pacers, last 5 on the road',
+    )
   })
 
   it('switches team with a click or the arrow keys', () => {
@@ -110,11 +112,25 @@ describe('Last 10', () => {
     expect(document.activeElement).toBe(screen.getByRole('tab', { name: /Pacers/ }))
   })
 
+  it('sits above the Game Ball and controls it and the list as one panel', () => {
+    render(<FormView form={FORM} venueNeutral={false} initialSide="away" />)
+    const tabs = screen.getByRole('tablist', { name: 'Team' })
+    const panel = screen.getByRole('tabpanel')
+    const ball = screen.getByRole('region', { name: 'Game Ball' })
+    expect(tabs.compareDocumentPosition(ball) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(panel.contains(ball)).toBe(true)
+    expect(screen.getAllByRole('tab').every((t) => t.getAttribute('aria-controls') === panel.id)).toBe(true)
+    expect(panel.getAttribute('aria-label')).toBe('Indiana Pacers')
+  })
+
   it('says so when a side has no games in view', () => {
     const empty: MatchForm = { ...FORM, home: { ...NY, games: NY.games.filter((g) => !g.home) } }
     render(<FormView form={empty} venueNeutral={false} initialSide="home" />)
     fireEvent.click(screen.getByRole('radio', { name: /Tonight's Venue/ }))
-    expect(screen.getByRole('tabpanel').textContent).toBe('No games at home yet this season.')
+    const panel = screen.getByRole('tabpanel')
+    expect(panel.querySelector('.mf-none')?.textContent).toBe('No games at home yet this season.')
+    // nothing to put on the Game Ball either
+    expect(within(panel).queryByRole('region', { name: 'Game Ball' })).toBeNull()
   })
 
   it('shortens names to the last name for phones', () => {
