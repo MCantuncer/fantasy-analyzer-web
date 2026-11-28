@@ -49,9 +49,20 @@
   gap: 16px;
   align-items: start;
 }
+/* side by side, every slip takes the tallest one's height (Can 2026-11-28): the picks stay at the
+   top and the slip runs on below them */
 @media (min-width: 900px) {
   .ic-ku-rail {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  /* and their parts line up across the rail: names, totals, then the seam and the picks at one height */
+  .ic-ku-rail > .ic-ku-slip:not(.wn) {
+    grid-row: span 3;
+    display: grid;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-content: start;
   }
   .ic-ku-rail.three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -67,6 +78,11 @@
   background-color: var(--ic-slip);
   background-image: radial-gradient(120% 70% at 0% 0%, var(--ic-slip-light), transparent 60%);
   box-shadow: var(--lift);
+}
+/* the legs read their width from here; not from the slip itself, which (as a container) couldn't
+   share the rail's rows */
+.ic-ku-picks,
+.ic-ku-slip.wn {
   container: ic-ku / inline-size;
 }
 .ic-ku-sh {
@@ -243,15 +259,26 @@
     radial-gradient(circle at 0 50%, var(--bg) 7px, transparent 7.5px),
     radial-gradient(circle at 100% 50%, var(--bg) 7px, transparent 7.5px);
 }
+/* the heads sit over the values they name: Bet starts where the bet does (beside the mark) */
 .ic-ku-cols {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px 84px;
+  grid-template-columns: 44px minmax(0, 1fr) 48px 84px;
   column-gap: 8px;
   padding-top: 4px;
   font-size: 12px;
   line-height: 16px;
   color: var(--muted);
   text-align: right;
+}
+.ic-ku-cols > :first-child {
+  grid-column: 2;
+  text-align: left;
+}
+.ic-ku-cols > :nth-child(2) {
+  grid-column: -3;
+}
+.ic-ku-cols > :nth-child(3) {
+  grid-column: -2;
 }
 
 /* ---------- a leg: one 64px button ---------- */
@@ -378,6 +405,9 @@ button.ic-ku-leg:focus-visible {
   }
   .ic-ku-cols {
     grid-template-columns: minmax(0, 1fr) 44px 76px;
+  }
+  .ic-ku-cols > :first-child {
+    grid-column: 1;
   }
 }
 
@@ -519,7 +549,7 @@ button.ic-ku-leg:focus-visible {
     grid-template-columns: 40px minmax(0, 1fr) 44px 76px;
   }
   .ic-ku-cols {
-    grid-template-columns: minmax(0, 1fr) 44px 76px;
+    grid-template-columns: 40px minmax(0, 1fr) 44px 76px;
   }
 }
 

@@ -183,68 +183,70 @@ function KuponSlip({
           <span className="num">{n}</span> {n === 1 ? 'pick' : 'picks'}
         </span>
       </div>
-      <div className="ic-ku-tot">
-        <div>
-          <span className="lab">Total odds</span>
-          <b className="big num">{fmtOdds(won ? c.odds : c.listed)}</b>
-          <span className="prod num">{c.legs.map((l) => fmtOdds(won ? oddOf(l) : l.odd)).join(' × ')}</span>
-        </div>
-        <div className="r">
-          {done ? (
-            <>
-              <span className="lab">Result</span>
-              {won ? (
-                <b className="out ok">
-                  <Check size={16} weight="bold" aria-hidden="true" />
-                  Won
+      <div className="ic-ku-mid">
+        <div className="ic-ku-tot">
+          <div>
+            <span className="lab">Total odds</span>
+            <b className="big num">{fmtOdds(won ? c.odds : c.listed)}</b>
+            <span className="prod num">{c.legs.map((l) => fmtOdds(won ? oddOf(l) : l.odd)).join(' × ')}</span>
+          </div>
+          <div className="r">
+            {done ? (
+              <>
+                <span className="lab">Result</span>
+                {won ? (
+                  <b className="out ok">
+                    <Check size={16} weight="bold" aria-hidden="true" />
+                    Won
+                  </b>
+                ) : (
+                  <b className="out no">
+                    {c.broke.length === 1 ? (
+                      // one span, so the flex row keeps the words together as one line of text
+                      <span>
+                        Lost on <ShortOf leg={c.broke[0]} />
+                      </span>
+                    ) : (
+                      `Lost on ${c.broke.length} picks`
+                    )}
+                  </b>
+                )}
+                <span className="was">
+                  Probability was <span className="num">~{pctOf(c.chance)}%</span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="lab">Probability</span>
+                <b className="big num">
+                  <span className="tl">~</span>
+                  {pctOf(c.chance)}%
                 </b>
-              ) : (
-                <b className="out no">
-                  {c.broke.length === 1 ? (
-                    // one span, so the flex row keeps the words together as one line of text
-                    <span>
-                      Lost on <ShortOf leg={c.broke[0]} />
-                    </span>
-                  ) : (
-                    `Lost on ${c.broke.length} picks`
-                  )}
-                </b>
-              )}
-              <span className="was">
-                Probability was <span className="num">~{pctOf(c.chance)}%</span>
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="lab">Probability</span>
-              <b className="big num">
-                <span className="tl">~</span>
-                {pctOf(c.chance)}%
-              </b>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
+        {c.voided.length > 0 && (
+          <p className="ic-ku-note">
+            <span>
+              <PlayerList players={c.voided.map(faceOf)} name={(p) => lastName(p.name)} />{' '}
+              sat out, so iddaa counts that pick at <span className="num">1.00</span>.
+            </span>
+          </p>
+        )}
+        {gameOnly && !done && (
+          <p className="ic-ku-note">
+            <Clock size={14} aria-hidden="true" />
+            Game lines only for now. May change when player bets come in.
+          </p>
+        )}
       </div>
-      {c.voided.length > 0 && (
-        <p className="ic-ku-note">
-          <span>
-            <PlayerList players={c.voided.map(faceOf)} name={(p) => lastName(p.name)} />{' '}
-            sat out, so iddaa counts that pick at <span className="num">1.00</span>.
-          </span>
-        </p>
-      )}
-      {gameOnly && !done && (
-        <p className="ic-ku-note">
-          <Clock size={14} aria-hidden="true" />
-          Game lines only for now. May change when player bets come in.
-        </p>
-      )}
       {sameAs ? (
         <p className="ic-ku-note">
           {waiting ? `Same ${n} picks as ${sameAs} until player bets come in.` : `Same ${n} picks as ${sameAs} tonight.`}
         </p>
       ) : (
-        <>
+        <div className="ic-ku-picks">
           <div className="ic-ku-seam" aria-hidden="true" />
           <div className="ic-ku-cols" aria-hidden="true">
             <span>Bet</span>
@@ -258,7 +260,7 @@ function KuponSlip({
               </li>
             ))}
           </ol>
-        </>
+        </div>
       )}
     </li>
   )
